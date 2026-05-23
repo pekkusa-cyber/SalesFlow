@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>SalesFlow - Nordic Frost</title>
     
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="./manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#cbd5e1">
@@ -418,7 +418,7 @@
             return isNaN(num) ? 0 : num;
         }
 
-        // SUPABASE INIT MED KRASCH-SKYDD
+        // SUPABASE INIT MED KRASCH-SKYDD & SYNK LOGG
         const SB_URL = 'https://xnrclzkzzthlesaftpvs.supabase.co';
         const SB_KEY = 'sb_publishable_EhCyGN_p4TH-rtOEuDLXOA_9hIxS7pW';
         let sb = null;
@@ -426,13 +426,12 @@
             if (typeof supabase !== 'undefined') {
                 sb = supabase.createClient(SB_URL, SB_KEY);
             } else {
-                console.warn("Kunde inte ladda Supabase från nätverket.");
+                console.error("Kunde inte ladda Supabase från nätverket (Skriptet blockeras eller saknas).");
             }
         } catch(e) {
-            console.error("Fel vid start av Supabase", e);
+            console.error("Fel vid start av Supabase:", e);
         }
         
-        // SÄKERHET FÖR LOCALSTORAGE
         let initBudget = 240000;
         try {
             let bStore = localStorage.getItem('sf_budget');
@@ -448,7 +447,6 @@
         let pendingAbsenceType = null;
         let pendingAbsenceSource = null;
 
-        // Notes System
         let savedNotes = [];
         try {
             savedNotes = JSON.parse(localStorage.getItem('sf_notes')) || [];
@@ -467,10 +465,12 @@
             try {
                 if (sb) {
                     const [s, q] = await Promise.all([sb.from('sales_data').select('*'), sb.from('schedule_data').select('*')]); 
+                    if (s && s.error) console.error("Supabase hämtningsfel (sales_data): Kontrollera RLS policies.", s.error);
+                    if (q && q.error) console.error("Supabase hämtningsfel (schedule_data): Kontrollera RLS policies.", q.error);
                     if (s && s.data) s.data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent }); 
                     if (q && q.data) q.data.forEach(r => { db.q[r.date_key] = { exists: true, start: r.start_time, end: r.end_time }; }); 
                 }
-            } catch(e) { console.warn("Kunde inte hämta data vid uppstart", e); }
+            } catch(e) { console.error("Kunde inte hämta data vid uppstart:", e); }
             
             calculateTimeline(); activeK = getK(realToday); 
             renderWeekSlides(); updateDash(); setMode('day'); setupSwipeObserver(); renderNotes();
@@ -486,10 +486,12 @@
             try {
                 if(sb) {
                     const [s, q] = await Promise.all([sb.from('sales_data').select('*'), sb.from('schedule_data').select('*')]); 
+                    if (s && s.error) console.error("Synk-fel sales_data:", s.error);
+                    if (q && q.error) console.error("Synk-fel schedule_data:", q.error);
                     if (s && s.data) s.data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent }); 
                     if (q && q.data) q.data.forEach(r => { db.q[r.date_key] = { exists: true, start: r.start_time, end: r.end_time }; }); 
                 }
-            } catch(e) { console.warn("Synk misslyckades", e); }
+            } catch(e) { console.error("Synk via knapp misslyckades:", e); }
             
             calculateTimeline(); updateDash(); 
             if (viewMode === 'day') updateInlineFocusDashboard();
@@ -661,9 +663,7 @@
             
             container.innerHTML = fullHTML;
         }
-        // -----------------------------
 
-        // --- BARNVAL MODAL LOGIK ---
         function triggerChildSelection(absType, source) {
             pendingAbsenceType = absType;
             pendingAbsenceSource = source;
@@ -692,7 +692,6 @@
             }
             closeChildModal();
         }
-        // -----------------------------
 
         function openBudgetModal() { document.getElementById('budget-modal').classList.remove('hidden'); }
         function closeBudgetModal() { document.getElementById('budget-modal').classList.add('hidden'); }
@@ -714,14 +713,565 @@
             }
         }
 
-        document.getElementById('pane-day').addEventListener('touchstart', handleSwipeStart, {passive: true});
-        document.getElementById('pane-day').addEventListener('touchend', (e) => handleSwipeEnd(e, 'day'), {passive: true});
-        document.getElementById('pane-month').addEventListener('touchstart', handleSwipeStart, {passive: true});
-        document.getElementById('pane-month').addEventListener('touchend', (e) => handleSwipeEnd(e, 'month'), {passive: true});
-        document.getElementById('pane-absence').addEventListener('touchstart', handleSwipeStart, {passive: true});
-        document.getElementById('pane-absence').addEventListener('touchend', (e) => handleSwipeEnd(e, 'absence'), {passive: true});
-        document.getElementById('pane-notes').addEventListener('touchstart', handleSwipeStart, {passive: true});
-        document.getElementById('pane-notes').addEventListener('touchend', (e) => handleSwipeEnd(e, 'notes'), {passive: true});
+        function updateTopTitle() {
+            const t = document.getElementById('dynamic-view-title');
+            if(!t) return;
+            const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+            const months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
+            
+            if (viewMode === 'day') {
+                const k = activeK || getK(realToday);
+                const parts = k.split('-');
+                const d = new Date(parts[0], parts[1]-1, parts[2]);
+                t.innerText = `${d.getDate()} ${months[d.getMonth()].toUpperCase()} ${daysLong[d.getDay()].toUpperCase()}`;
+            } else if (viewMode === 'week') {
+                t.innerText = `VECKA ${getWeekNumber(currentWeekStart)}`;
+            } else if (viewMode === 'month') {
+                t.innerText = `${months[viewDate.getMonth()].toUpperCase()} ${viewDate.getFullYear()}`;
+            } else if (viewMode === 'absence') {
+                t.innerText = `FRÅNVARO - ${months[viewDate.getMonth()].toUpperCase()} ${viewDate.getFullYear()}`;
+            } else if (viewMode === 'notes') {
+                t.innerText = "ANTECKNINGAR";
+            }
+        }
+
+        function setMode(mode) {
+            if (viewMode === mode) {
+                if (mode === 'month' || mode === 'absence') {
+                    viewDate = new Date(realToday);
+                    calculateTimeline(); updateDash();
+                    if(mode === 'absence') renderAbsence();
+                } else if (mode === 'week') {
+                    currentWeekStart = new Date(realToday); 
+                    const sdo = currentWeekStart.getDay() || 7; 
+                    currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
+                    activeK = null; renderWeekSlides(); updateWeekPanel();
+                } else if (mode === 'day') {
+                    activeK = getK(realToday);
+                    updateInlineFocusDashboard();
+                }
+                updateTopTitle();
+                return;
+            }
+
+            viewMode = mode; document.body.className = `mode-${mode}`; 
+            closeMonthEdit();
+
+            ['week', 'day', 'month', 'absence', 'notes'].forEach(m => {
+                const b = document.getElementById(`tab-${m}`);
+                if(b) {
+                    if(m === mode) b.className = "flex-1 text-[7px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm";
+                    else b.className = "flex-1 text-[7px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50";
+                }
+            });
+
+            if (mode === 'day') {
+                if(!activeK) activeK = getK(realToday);
+                updateInlineFocusDashboard();
+            } else if (mode === 'week') {
+                activeK = null; 
+                renderWeekSlides(); updateWeekPanel();
+            } else if (mode === 'month') {
+                activeK = null; renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1);
+            } else if (mode === 'absence') {
+                activeK = null; renderAbsence();
+            } else if (mode === 'notes') {
+                activeK = null; renderNotes();
+            }
+            updateTopTitle();
+        }
+
+        function cycleView(dir) {
+            const views = ['week', 'day', 'month', 'absence', 'notes'];
+            let idx = views.indexOf(viewMode);
+            idx += dir;
+            if(idx < 0) idx = views.length - 1;
+            if(idx > views.length - 1) idx = 0;
+            setMode(views[idx]);
+        }
+
+        function navCal(offset) {
+            closeMonthEdit();
+            if (viewMode === 'month' || viewMode === 'absence') { 
+                viewDate.setMonth(viewDate.getMonth() + offset); 
+                calculateTimeline(); updateDash(); 
+                if (viewMode === 'absence') renderAbsence();
+            } 
+            else if (viewMode === 'week') { 
+                currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); 
+                activeK = null; renderWeekSlides(); updateWeekPanel(); toggleWeekInput(false); 
+            } 
+            else if (viewMode === 'day') { 
+                let p = (activeK || getK(realToday)).split('-'); 
+                let d = new Date(p[0], p[1]-1, p[2]); 
+                d.setDate(d.getDate() + offset); 
+                activeK = getK(d); 
+                updateInlineFocusDashboard(); 
+            }
+            updateTopTitle();
+        }
+
+        function getCellState(k) { 
+            const o = db.d[k] || {}, qData = db.q[k] || {}; 
+            if (o.abs && o.abs === 'Semester') return 'semester';
+            if (o.abs) return 'absent'; 
+            if (o.st === 'Ledig') return 'ledig';
+            if (o.s > 0) return 'worked'; 
+            if (qData.exists) return 'planned'; 
+            return 'unplanned'; 
+        }
+
+        function calculateTimeline() {
+            const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate(); timeline = {};
+            let tW = 0; for(let d=1; d<=daysM; d++) { const state = getCellState(`${cy}-${cm}-${d}`); if(state === 'planned' || state === 'worked') tW++; }
+            let rB = db.b, rP = tW;
+            
+            for(let d=1; d<=daysM; d++) { 
+                const k = `${cy}-${cm}-${d}`;
+                const state = getCellState(k); 
+                const isW = (state === 'planned' || state === 'worked'); 
+                const o = db.d[k] || {s:0}; 
+                
+                if (isW) { 
+                    const target = rP > 0 ? rB / rP : 0; 
+                    timeline[k] = { target: Math.max(0, target) }; 
+                    rB -= o.s; 
+                    rP--; 
+                } else { 
+                    timeline[k] = { target: 0 }; 
+                    rB -= o.s;
+                } 
+            }
+        }
+
+        function updateDash() { 
+            const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); let tS = 0, dP = 0, tP = 0, rW = 0; const daysM = new Date(cy, cm, 0).getDate();
+            for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`, o = db.d[k] || {s:0}, state = getCellState(k); tS += o.s; if (o.s > 0) dP++; if (state === 'planned' || state === 'worked' || (state === 'absent' && db.q[k]?.exists)) { tP++; const dObj = new Date(cy, cm-1, d); if (dObj >= realToday && state !== 'absent' && state !== 'semester') rW++; } }
+            const monthlyPerc = Math.round((tS/db.b)*100), avg = dP ? (tS / dP) : 0;
+            
+            const bValEl = document.getElementById('d-budget-val'); if(bValEl) bValEl.innerText = db.b.toLocaleString('sv-SE') + " kr";
+            const maxK = Math.round(db.b / 1000); const maxLbl = document.getElementById('g-max-lbl'); if (maxLbl) maxLbl.innerText = maxK;
+            
+            const tgtEl = document.getElementById('d-today-target'); if(tgtEl) tgtEl.innerText = Math.round((timeline[getK(realToday)]?.target || 0)/1000) + " k";
+            const avgEl = document.getElementById('d-avg-val'); if(avgEl) avgEl.innerText = Math.round(avg/1000) + " k"; 
+            const mainValEl = document.getElementById('h-main-val'); if(mainValEl) mainValEl.innerText = (tS/1000).toFixed(1) + " k";
+            const percEl = document.getElementById('h-perc-val'); if(percEl) percEl.innerText = monthlyPerc + "%"; 
+            const leftEl = document.getElementById('d-work-left'); if(leftEl) leftEl.innerText = `${rW} Pass Kvar`;
+            const totEl = document.getElementById('d-work-total'); if(totEl) totEl.innerText = `${tP} Totalt`; 
+            const kvarEl = document.getElementById('d-kvar'); if(kvarEl) kvarEl.innerText = Math.max(0, Math.round((db.b - tS)/1000)) + " k";
+            
+            const hCirc = document.getElementById('h-circle-prog'); if(hCirc) hCirc.style.strokeDashoffset = 326.7 - ((Math.min(monthlyPerc, 100) / 100) * (326.7 * 0.75));
+            const progStr = Math.round((avg * tP)/1000); 
+            const progEl = document.getElementById('d-prog'); if(progEl) { progEl.innerText = progStr + " k"; progEl.style.color = progStr >= (db.b/1000) ? 'var(--pos)' : 'var(--neg)'; }
+            const statEl = document.getElementById('d-status'); if(statEl) { statEl.innerText = progStr >= (db.b/1000) ? "I FAS" : "EFTER"; statEl.style.color = progStr >= (db.b/1000) ? 'var(--pos)' : 'var(--neg)'; }
+            
+            if(viewMode === 'month') renderCal(cy, cm); else if(viewMode === 'week') { renderWeekSlides(); updateWeekPanel(); } else if(viewMode === 'absence') renderAbsence();
+            updateTopTitle();
+        }
+
+        function setupSwipeObserver() {
+            if(!sc) return;
+            sc.addEventListener('scroll', () => {
+                if(isResettingScroll || viewMode !== 'week') return; clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    const width = sc.clientWidth; if(width === 0) return; const idx = Math.round(sc.scrollLeft / width); 
+                    if (idx !== 1) { closeMonthEdit(); currentWeekStart.setDate(currentWeekStart.getDate() + ((idx === 0 ? -1 : 1) * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); toggleWeekInput(false); updateTopTitle(); }
+                }, 50); 
+            });
+        }
+
+        function selectDay(k, el, e) {
+            e.stopPropagation();
+            const isSameDay = (activeK === k);
+            
+            if (isSameDay) {
+                activeK = null;
+                document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus'));
+                if (viewMode === 'month') closeMonthEdit();
+                else if (viewMode === 'week') { updateWeekPanel(); toggleWeekInput(false); }
+                return;
+            }
+
+            activeK = k;
+            document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); 
+            el.classList.add('active-focus');
+            
+            if (viewMode === 'month') openMonthEdit(k); 
+            else if (viewMode === 'week') { updateWeekPanel(); toggleWeekInput(false); }
+        }
+
+        function saveSalesFromWeekDirect() {
+            if(!activeK) return; 
+            const val = document.getElementById('in-sales-week-direct').value; 
+            let sVal = parseNum(val); 
+            pushMatrixSync(activeK, { s: sVal }); toggleWeekInput(false);
+        }
+
+        function handleWeekDirectAction(t) { 
+            if(!activeK) return; 
+            if (t === 'VAB' || t === 'Föräldraledig') {
+                triggerChildSelection(t, 'week');
+                return;
+            }
+            finalizeWeekDirectAction(t);
+        }
+
+        function finalizeWeekDirectAction(t) {
+            if(['Arbete','Ledig'].includes(t)) pushMatrixSync(activeK, { st: t, abs: null }); 
+            else pushMatrixSync(activeK, { st: 'Arbete', abs: t }); 
+        }
+
+        function openMonthEdit(k) { const o = db.d[k] || {}; document.getElementById('in-sales-month').value = o.s > 0 ? o.s : ''; document.getElementById('cal-standard-header').classList.add('hidden'); document.getElementById('month-edit-menu').classList.remove('hidden'); }
+        function closeMonthEdit() { const m = document.getElementById('month-edit-menu'); if(m) m.classList.add('hidden'); const h = document.getElementById('cal-standard-header'); if(h) h.classList.remove('hidden'); }
+
+        function saveDirectDaySales() {
+            const k = activeK || getK(realToday); 
+            const val = document.getElementById('in-sales-direct-day').value; 
+            let sVal = parseNum(val); 
+            pushMatrixSync(k, { s: sVal }); 
+            document.getElementById('in-sales-direct-day').value = '';
+        }
+
+        function saveDirectDayStatus(s) {
+            if (s === 'VAB' || s === 'Föräldraledig') {
+                triggerChildSelection(s, 'direct');
+                return;
+            }
+            finalizeDirectDayStatus(s);
+        }
+
+        function finalizeDirectDayStatus(s) {
+            const k = activeK || getK(realToday);
+            if(s === 'Ledig') { pushMatrixSync(k, { st: 'Ledig', abs: null }); } 
+            else if (s === 'Sjuk' || s === 'Semester' || s.includes('VAB') || s.includes('Föräldraledig')) { pushMatrixSync(k, { st: 'Arbete', abs: s }); } 
+            else { pushMatrixSync(k, { st: 'Arbete', abs: null }); } 
+        }
+
+        function saveSalesFromPopup() { const val = document.getElementById('in-sales-month').value; let sVal = parseNum(val); pushMatrixSync(activeK, { s: sVal }); }
+        
+        function checkOverwriteFromPopup(t) { 
+            if (db.d[activeK]?.s > 0 && t === 'delete') { 
+                document.getElementById('confirm-box').style.display='block'; 
+                document.getElementById('conf-yes').onclick = () => { handleSaveFromPopup(t); hideConfirm(); }; 
+            } else {
+                if (t === 'VAB' || t === 'Föräldraledig') {
+                    triggerChildSelection(t, 'popup');
+                } else {
+                    handleSaveFromPopup(t); 
+                }
+            } 
+        }
+
+        function finalizeOverwriteFromPopup(t) {
+            handleSaveFromPopup(t);
+        }
+
+        function handleSaveFromPopup(t) { 
+            if(t==='delete') { 
+                pushMatrixSync(activeK, { s: 0, abs: null, st: 'Arbete' }); 
+            } else { 
+                if(['Arbete','Ledig'].includes(t)) pushMatrixSync(activeK, { st: t, abs: null }); 
+                else pushMatrixSync(activeK, { st: 'Arbete', abs: t }); 
+            } 
+        }
+
+        async function pushMatrixSync(k, o) {
+            const old = db.d[k] || {}; 
+            const merged = { st: o.st !== undefined ? o.st : (old.st || 'Arbete'), s: o.s !== undefined ? o.s : (old.s || 0), abs: o.abs !== undefined ? o.abs : (old.abs || null) };
+            if (sb) {
+                try {
+                    const res = await sb.from('sales_data').upsert({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
+                    if (res.error) console.error("Kunde inte synka data till Supabase table:", res.error);
+                } catch(e) { console.error("Nätverksfel vid pushMatrixSync:", e); }
+            }
+            db.d[k] = merged; calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard();
+        }
+
+        function updateWeekPanel() {
+            let wSales = 0, wPass = 0, firstShiftTarget = null; 
+            let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec']; const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+            
+            for(let i=0; i<7; i++) { 
+                const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); 
+                const k = getK(cd); const state = getCellState(k); 
+                wSales += (db.d[k]?.s || 0); 
+                if(state === 'worked' || state === 'planned') { 
+                    if(firstShiftTarget === null) firstShiftTarget = (timeline[k]?.target || 0);
+                    wPass++; 
+                } 
+            }
+            
+            let wTarget = (firstShiftTarget || 0) * wPass;
+            
+            const rEl = document.getElementById('wp-date-range'); if(rEl) rEl.innerText = `${startD.getDate()} ${months[startD.getMonth()].toUpperCase()} - ${endD.getDate()} ${months[endD.getMonth()].toUpperCase()}`;
+            const cEl = document.getElementById('wp-pass-count'); if(cEl) cEl.innerText = `(V.${getWeekNumber(currentWeekStart)}) ${wPass} Pass`; 
+            
+            const sumTargetEl = document.getElementById('wp-sum-target');
+            const sumSalesEl = document.getElementById('wp-sum-sales');
+            const sumDiffEl = document.getElementById('wp-sum-diff');
+            const lblTarget = document.getElementById('wp-lbl-target');
+            const lblSales = document.getElementById('wp-lbl-sales');
+            
+            const weekSummary = document.getElementById('wp-week-summary');
+            const dayActions = document.getElementById('wp-day-actions');
+            
+            if (activeK && dayActions && weekSummary) {
+                weekSummary.classList.add('hidden'); weekSummary.classList.remove('flex');
+                dayActions.classList.remove('hidden'); dayActions.classList.add('flex');
+                
+                const parts = activeK.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]); const curO = db.d[activeK] || {s:0}; 
+                const qtEl = document.getElementById('wp-quick-title'); if(qtEl) qtEl.innerText = `REDIGERA: ${daysLong[dObj.getDay()].toUpperCase()} ${dObj.getDate()}/${parts[1]} (${curO.s > 0 ? (curO.s/1000).toFixed(1)+' k' : 'EJ REGGAD'})`; 
+                
+                let dTarget = timeline[activeK]?.target || 0;
+                let dSales = curO.s || 0;
+                let dDiff = dSales - dTarget;
+                
+                if(lblTarget) lblTarget.innerText = "Dagsmål"; if(lblSales) lblSales.innerText = "Inkört";
+                if(sumTargetEl) sumTargetEl.innerText = (dTarget/1000).toFixed(1) + ' k';
+                if(sumSalesEl) sumSalesEl.innerText = (dSales/1000).toFixed(1) + ' k';
+                if(sumDiffEl) { sumDiffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; sumDiffEl.style.color = dDiff >= 0 ? "var(--pos)" : "var(--neg)"; }
+            } else if (dayActions && weekSummary) {
+                dayActions.classList.add('hidden'); dayActions.classList.remove('flex');
+                weekSummary.classList.remove('hidden'); weekSummary.classList.add('flex');
+                
+                let diff = wSales - wTarget; 
+                
+                if(lblTarget) lblTarget.innerText = "Veckomål"; if(lblSales) lblSales.innerText = "Inkört";
+                if(sumTargetEl) sumTargetEl.innerText = (wTarget/1000).toFixed(1) + ' k';
+                if(sumSalesEl) sumSalesEl.innerText = (wSales/1000).toFixed(1) + ' k';
+                if(sumDiffEl) { sumDiffEl.innerText = (diff >= 0 ? "+" : "") + (diff/1000).toFixed(1) + " k"; sumDiffEl.style.color = diff >= 0 ? "var(--pos)" : "var(--neg)"; }
+
+                let bestDay = null, worstDay = null, bestVal = -1, worstVal = Infinity;
+                for(let i=0; i<7; i++) {
+                    const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i);
+                    const k = getK(cd); const o = db.d[k] || {s:0};
+                    if(o.s > 0) {
+                        if(o.s > bestVal) { bestVal = o.s; bestDay = cd; }
+                        if(o.s < worstVal) { worstVal = o.s; worstDay = cd; }
+                    }
+                }
+
+                if (bestDay) {
+                    const bdEl = document.getElementById('wp-best-day'); if(bdEl) bdEl.innerText = daysLong[bestDay.getDay()];
+                    const bvEl = document.getElementById('wp-best-val'); if(bvEl) bvEl.innerText = (bestVal/1000).toFixed(1) + ' k';
+                } else {
+                    const bdEl = document.getElementById('wp-best-day'); if(bdEl) bdEl.innerText = '-';
+                    const bvEl = document.getElementById('wp-best-val'); if(bvEl) bvEl.innerText = '0 k';
+                }
+
+                if (worstDay && worstVal !== Infinity) {
+                    const wdEl = document.getElementById('wp-worst-day'); if(wdEl) wdEl.innerText = daysLong[worstDay.getDay()];
+                    const wvEl = document.getElementById('wp-worst-val'); if(wvEl) wvEl.innerText = (worstVal/1000).toFixed(1) + ' k';
+                } else {
+                    const wdEl = document.getElementById('wp-worst-day'); if(wdEl) wdEl.innerText = '-';
+                    const wvEl = document.getElementById('wp-worst-val'); if(wvEl) wvEl.innerText = '0 k';
+                }
+            }
+        }
+
+        function renderCal(y, m) { const g = document.getElementById('d-cal'); if(!g) return; g.innerHTML = ''; ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'].forEach(d => g.innerHTML += `<div class="weekday-label">${d}</div>`); const last = new Date(y, m, 0).getDate(), first = new Date(y, m-1, 1).getDay() || 7; for(let i=1; i<first; i++) g.innerHTML += '<div></div>'; for(let d=1; d<=last; d++) g.appendChild(createDayCell(new Date(y, m-1, d), `${y}-${m}-${d}`)); }
+        
+        function renderAbsence() {
+            const pane = document.getElementById('pane-absence');
+            if(!pane) return;
+            const cm = viewDate.getMonth() + 1;
+            const cy = viewDate.getFullYear();
+            const daysM = new Date(cy, cm, 0).getDate();
+            
+            let absCounts = {};
+            let absListHTML = '';
+            let totalAbs = 0;
+
+            const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+            const em = { 'Sjuk': '🤒', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '🌴', 'Tjänstledig': '✈️', 'Åtgärd krävs': '⚠️' }; 
+            const col = { 'Sjuk': 'text-rose-500', 'VAB Belma': 'text-amber-500', 'VAB Wilma': 'text-amber-500', 'Föräldraledig Belma': 'text-purple-500', 'Föräldraledig Wilma': 'text-purple-500', 'Semester': 'text-emerald-500', 'Tjänstledig': 'text-slate-500', 'Åtgärd krävs': 'text-amber-500' };
+
+            for (let d = 1; d <= daysM; d++) {
+                const k = `${cy}-${cm}-${d}`;
+                const o = db.d[k] || {};
+                
+                if (o.abs && ['Sjuk', 'VAB Belma', 'VAB Wilma', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig', 'Åtgärd krävs'].includes(o.abs)) {
+                    let reason = o.abs;
+                    absCounts[reason] = (absCounts[reason] || 0) + 1;
+                    totalAbs++;
+                    
+                    const dObj = new Date(cy, cm-1, d);
+                    const dayStr = `${daysLong[dObj.getDay()]} ${d}`;
+                    const icon = em[reason] || '•';
+                    const tCol = col[reason] || 'text-slate-500';
+
+                    absListHTML += `
+                    <div class="flex justify-between items-center p-3.5 border-b border-slate-100 last:border-0 bg-white">
+                        <span class="text-[10px] font-black uppercase text-slate-600 tracking-wider">${dayStr}</span>
+                        <span class="text-[11px] font-black ${tCol} uppercase tracking-widest">${icon} ${reason}</span>
+                    </div>`;
+                }
+            }
+
+            if (totalAbs === 0) {
+                pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[10px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`;
+                return;
+            }
+
+            let summaryHTML = `<div class="mb-3 bg-white rounded-[20px] border border-slate-200 p-4 shadow-sm flex-shrink-0">
+                <h4 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">SAMMANFATTNING</h4>`;
+            
+            for (let reason in absCounts) {
+                const icon = em[reason] || '•';
+                const tCol = col[reason] || 'text-slate-500';
+                summaryHTML += `<div class="flex justify-between items-center mb-1.5 last:mb-0"><span class="text-[11px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[12px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`;
+            }
+            summaryHTML += `</div>`;
+
+            let listContainer = `
+                <div class="bg-white rounded-[20px] border border-slate-200 shadow-sm overflow-y-auto hide-scrollbar flex-1 mb-2">
+                    ${absListHTML}
+                </div>`;
+
+            pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}${listContainer}</div>`;
+        }
+
+        function rotateInlineQuote() { const q = document.getElementById('dp-inline-quote'); if(q) { q.style.opacity = 0; setTimeout(() => { q.innerText = `"${SALES_QUOTES[Math.floor(Math.random() * SALES_QUOTES.length)]}"`; q.style.opacity = 1; }, 300); } }
+
+        function updateInlineFocusDashboard() {
+            const k = activeK || getK(realToday); const state = getCellState(k); const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; const target = timeline[k]?.target || 0;
+            let isToday = (k === getK(realToday));
+            let nH = new Date().getHours(), nM = new Date().getMinutes();
+            let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let sH = Math.max(10, sStart); let eH = Math.min(20, sEnd); let tH = eH - sH; if(tH <= 0) tH = 9;
+            
+            let cTot = o.s || 0;
+            
+            const cEl = document.getElementById('dp-cockpit-card'); 
+            let isShiftActive = (isToday && qData.exists && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sH && nH <= eH);
+
+            if (cEl) { 
+                cEl.className = "p-3 flex flex-col justify-between shadow-sm border border-slate-100 h-[125px] mb-1.5 flex-shrink-0 relative glass-panel-inline transition-all"; 
+                if (state === 'absent') cEl.classList.add('cc-bg-fail'); 
+                else if (state === 'semester') cEl.classList.add('cc-bg-semester');
+                else if (state === 'ledig' || state === 'unplanned') cEl.classList.add('cc-bg-ledig'); 
+                else if (isShiftActive) cEl.classList.add('cc-bg-active-shift'); 
+                else if (cTot >= target && target > 0) cEl.classList.add('cc-bg-success'); 
+                else if (state === 'planned') cEl.classList.add('cc-bg-planned'); 
+                else cEl.classList.add('cc-bg-default'); 
+            }
+            
+            const inSalesDirect = document.getElementById('in-sales-direct-day');
+            if (inSalesDirect) {
+                inSalesDirect.placeholder = `Total försäljning (kr)...`;
+            }
+            
+            const dObj = new Date(k.split('-')[0], k.split('-')[1]-1, k.split('-')[2]); const days = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'], months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+            const dateEl = document.getElementById('dp-inline-date'), timeEl = document.getElementById('dp-inline-time'); if(dateEl) dateEl.innerText = `${days[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`; if(timeEl) timeEl.innerText = qData.exists ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
+            
+            const statEl = document.getElementById('dp-inline-status'); 
+            
+            if(statEl) { 
+                if (state === 'absent') { 
+                    const absMap = { 
+                        'Sjuk': '🤒 SJUK', 
+                        'VAB Belma': '👶 VAB (BELMA)', 
+                        'VAB Wilma': '👶 VAB (WILMA)', 
+                        'Föräldraledig Belma': '🍼 FL (BELMA)', 
+                        'Föräldraledig Wilma': '🍼 FL (WILMA)', 
+                        'Tjänstledig': '✈️ TJÄNSTLEDIG', 
+                        'Åtgärd krävs': '⚠️ ÅTGÄRD KRÄVS' 
+                    };
+                    statEl.innerText = absMap[o.abs] || o.abs.toUpperCase(); 
+                    statEl.style.color = (o.abs === 'Åtgärd krävs') ? "#b45309" : "var(--neg)"; 
+                } else if (state === 'semester') {
+                    statEl.innerText = "🌴 SEMESTER"; statEl.style.color = "#0f766e";
+                } else if (state === 'ledig' || state === 'unplanned') { 
+                    statEl.innerText = "🏠 LEDIG"; statEl.style.color = "var(--text-muted)"; 
+                } else { 
+                    statEl.innerText = "⚒️ ARBETSPASS"; statEl.style.color = "var(--sting-blue)"; 
+                } 
+            }
+            
+            const tEl = document.getElementById('dp-inline-target'), lEl = document.getElementById('dp-inline-left'), sEl = document.getElementById('dp-inline-sales'), rEl = document.getElementById('dp-inline-req');
+            if(tEl) tEl.innerText = (target/1000).toFixed(1) + ' k'; if(lEl) lEl.innerText = (Math.max(0, target - cTot)/1000).toFixed(1) + ' k'; if(sEl) sEl.innerText = (cTot/1000).toFixed(1) + ' k';
+            let tPH = tH > 0 ? Math.round(target / tH) : 0; if(rEl) rEl.innerText = (tPH/1000).toFixed(1) + ' k';
+            let timeP = 0; if(qData.exists) { if (nH >= eH) timeP = 100; else if (nH >= sH) { let el = ((nH - sH) * 60) + nM; timeP = Math.min(100, Math.round((el / (tH * 60)) * 100)); } }
+            const gTime = document.getElementById('dp-gauge-time'); if(gTime) gTime.style.strokeDashoffset = 283 - ((timeP / 100) * 283);
+            let sP = target > 0 ? Math.min(100, Math.round((cTot / target) * 100)) : 0; const gSales = document.getElementById('dp-gauge-sales'); if(gSales) gSales.style.strokeDashoffset = 220 - ((sP / 100) * 220);
+            let hP = nH >= sH ? (nH >= eH ? tH : nH - sH + 1) : 0; let eP = tPH * hP; let eff = eP > 0 ? Math.round((cTot / eP) * 100) : 0;
+            const effEl = document.getElementById('dp-inline-eff'); if(effEl) effEl.innerText = eff + '%'; const effLbl = document.getElementById('dp-inline-eff-lbl'); if(effLbl && qData.exists) { if(cTot < eP && cTot < target) { effLbl.innerText = "EFTER"; effLbl.style.color = "#dc2626"; } else { effLbl.innerText = "I FAS"; effLbl.style.color = "#059669"; } }
+        }
+
+        function createDayCell(cd, k) {
+            const o = db.d[k] || {s:0}, t = timeline[k] || {target:0}, qData = db.q[k] || {}; 
+            let cls = 'day-cell', b = '', content = '', wt = ''; 
+            const em = { 'Sjuk': '🤒', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '🌴', 'Tjänstledig': '✈️', 'Åtgärd krävs': '⚠️' }; 
+            const isPast = cd < realToday, isToday = cd.getTime() === realToday.getTime(), state = getCellState(k);
+            
+            let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; 
+            let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19;
+            let nH = new Date().getHours();
+            
+            let isShiftActive = (isToday && qData.exists && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sStart && nH <= sEnd);
+            
+            if (cd.getDay() === 1 && viewMode === 'month') wt = `<div class="week-tag">${getWeekNumber(cd)}</div>`;
+            
+            if (o.abs) {
+                if (o.abs === 'Åtgärd krävs') {
+                    b = `<div class="u-badge badge-abs badge-action">${em[o.abs] || '•'}</div>`;
+                } else {
+                    b = `<div class="u-badge badge-abs">${em[o.abs] || '•'}</div>`;
+                }
+            }
+
+            if (o.s > 0) {
+                content = `<span class="cell-main-val mt-1">${(o.s/1000).toFixed(1)} k</span>`;
+            } else if (state === 'planned' || (isToday && qData.exists && state !== 'ledig' && !o.abs)) {
+                if (qData.start && qData.end) {
+                    content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[8.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`;
+                }
+            } else if (state === 'unplanned') {
+                content = `<span class="text-[8px] font-black text-slate-400 mt-1 uppercase tracking-widest opacity-50">Ledig</span>`;
+            } else if (state === 'ledig' && o.s === 0) {
+                content = `<span class="cell-main-val mt-1" style="font-size:10px; opacity:0.4;">🏠</span>`;
+            }
+
+            if (state === 'absent') { cls += ' type-absent'; } 
+            else if (state === 'semester') { cls += ' type-semester'; }
+            else if (state === 'ledig') { cls += ' type-ledig'; } 
+            else if (state === 'unplanned') { cls += ' type-unplanned'; }
+            else if (isPast) { 
+                cls += ' history-cell'; 
+                if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; 
+            } else { 
+                if (isToday) cls += ' status-today'; else if (state === 'planned') cls += ' type-planned'; 
+            }
+            
+            if (isShiftActive) cls += ' active-shift-pulse'; 
+            if (activeK === k) cls += ' active-focus';
+            
+            const cell = document.createElement('div'); cell.className = cls; cell.dataset.key = k; cell.onclick = (e) => selectDay(k, cell, e);
+            cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[8px] text-center tracking-tighter">${b}${content}</div>`; return cell;
+        }
+
+        function populateSlide(cId, sD) { const c = document.getElementById(cId); if(!c) return; c.innerHTML = ''; c.className = "w-full h-full flex-shrink-0 snap-center grid grid-cols-7 gap-1 px-4 items-center"; for(let i=0; i<7; i++) { const cd = new Date(sD); cd.setDate(cd.getDate() + i); c.appendChild(createDayCell(cd, getK(cd))); } }
+        function renderWeekSlides() { const ps = new Date(currentWeekStart); ps.setDate(ps.getDate() - 7); const ns = new Date(currentWeekStart); ns.setDate(ns.getDate() + 7); populateSlide('slide-prev', ps); populateSlide('slide-curr', currentWeekStart); populateSlide('slide-next', ns); isResettingScroll = true; if(!sc) return; sc.style.scrollBehavior = 'auto'; sc.scrollLeft = sc.clientWidth; setTimeout(() => { isResettingScroll = false; sc.style.scrollBehavior = 'smooth'; }, 50); }
+        
+        function getWeekNumber(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7); }
+        function hideConfirm() { const cb = document.getElementById('confirm-box'); if(cb) cb.style.display='none'; }
+        
+        let touchStartX = 0, touchStartY = 0;
+        function handleSwipeStart(e) { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }
+        function handleSwipeEnd(e, targetView) { 
+            if(viewMode !== targetView) return;
+            let dx = e.changedTouches[0].screenX - touchStartX;
+            let dy = e.changedTouches[0].screenY - touchStartY;
+            if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+                if(dx > 0) navCal(-1); 
+                else navCal(1); 
+            }
+        }
+        
+        const pd = document.getElementById('pane-day'); if(pd) { pd.addEventListener('touchstart', handleSwipeStart, {passive: true}); pd.addEventListener('touchend', (e) => handleSwipeEnd(e, 'day'), {passive: true}); }
+        const pm = document.getElementById('pane-month'); if(pm) { pm.addEventListener('touchstart', handleSwipeStart, {passive: true}); pm.addEventListener('touchend', (e) => handleSwipeEnd(e, 'month'), {passive: true}); }
+        const pa = document.getElementById('pane-absence'); if(pa) { pa.addEventListener('touchstart', handleSwipeStart, {passive: true}); pa.addEventListener('touchend', (e) => handleSwipeEnd(e, 'absence'), {passive: true}); }
+        const pn = document.getElementById('pane-notes'); if(pn) { pn.addEventListener('touchstart', handleSwipeStart, {passive: true}); pn.addEventListener('touchend', (e) => handleSwipeEnd(e, 'notes'), {passive: true}); }
 
         document.addEventListener('click', (e) => {
             const mMenu = document.getElementById('month-edit-menu');
@@ -741,9 +1291,9 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
-            .then(reg => console.log('PWA installerbar och redo!', reg))
-            .catch(err => console.log('Service Worker registreringsfel:', err));
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('PWA Service Worker aktiverad i root-scope!', reg))
+            .catch(err => console.error('Kritiskt fel vid PWA registrering:', err));
         });
       }
     </script>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SalesFlow - Nordic Frost</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#cbd5e1">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bg-canvas: #cbd5e1; 
+            --navy-card: #ffffff; 
+            --white: #ffffff;
+            --text-main: #0f172a; 
+            --text-muted: #475569; 
+            --border-subtle: rgba(15, 23, 42, 0.08); 
+            --sting-blue: #0ea5e9; 
+            --pos: #059669; 
+            --neg: #dc2626; 
+            --gold-main: #b45309; 
+            --backdrop-gradient: linear-gradient(to bottom, #94a3b8, #cbd5e1);
+            --input-bg: #f8fafc; 
+            --today-light: #38bdf8; 
+            --today-dark: #0284c7;
+            --top-banner-bg: linear-gradient(135deg, #020617, #334155); 
+            --selected-bg: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            --pastel-green-bg: #d1fae5; 
+            --pastel-red-bg: #fee2e2;
+            --pastel-blue-bg: #f0f9ff; 
+            --pastel-gray-bg: #e2e8f0;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
+        body { background: var(--bg-canvas); font-family: 'Plus Jakarta Sans', sans-serif; font-variant-numeric: tabular-nums; height: 100dvh; width: 100vw; overflow: hidden; display: flex; justify-content: center; color: var(--text-main); }
+        
+        .dark-backdrop { position: absolute; top: 0; left: 0; right: 0; height: 210px; background: var(--backdrop-gradient); border-radius: 0 0 40px 40px; z-index: 0; opacity: 0.6; }
+        #app-shell { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
+        .content-locker { width: 100%; max-width: 390px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding-top: max(env(safe-area-inset-top), 6px); }
+        
+        .app-card { border-radius: 28px; box-shadow: 0 12px 35px -10px rgba(15,23,42,0.15); flex-shrink: 0; border: 1px solid var(--border-subtle); background: var(--white); }
+        .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; }
+        .top-section { margin: 0 16px 6px; padding: 10px 20px 8px; position: relative; border: none; box-shadow: 0 20px 35px -10px rgba(15,23,42,0.3); }
+        .budget-header { text-align: center; margin-bottom: 2px; }
+        .budget-label { font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.25em; margin-bottom: 2px; }
+        .budget-val { font-size: 19px; font-weight: 900; line-height: 1; color: #ffffff !important; text-shadow: 0 2px 10px rgba(255,255,255,0.1); }
+        .gauge-layout { display: flex; align-items: center; justify-content: space-between; gap: 0; }
+        .side-col { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
+        .micro-lbl { font-size: 8px; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .val-display { font-size: 18px; font-weight: 900; line-height: 1; }
+        .pop-highlight { color: #ffffff; text-shadow: 0 2px 8px rgba(255, 255, 255, 0.15); }
+        .status-pill { display: inline-flex; padding: 4px 10px; border-radius: 100px; font-size: 8px; font-weight: 900; text-transform: uppercase; margin-top: 4px; border: 1px solid rgba(255,255,255,0.1); }
+        .pill-blue { background: rgba(255,255,255,0.08); color: white; backdrop-filter: blur(5px); }
+        .gauge-container { position: relative; width: 105px; height: 105px; display: flex; align-items: center; justify-content: center; margin: 0 8px;}
+        .g-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; stroke-linecap: round; }
+        .g-prog { fill: none; stroke: var(--sting-blue); stroke-width: 8; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; transition: stroke-dashoffset 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.5)); }
+        .g-marks { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 1.5; stroke-dasharray: 1, 15; transform: rotate(135deg); transform-origin: 50% 50%; opacity: 0.7; }
+        .g-label-0 { position: absolute; bottom: 4px; left: 10px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.4); }
+        .g-label-240 { position: absolute; bottom: 4px; right: 10px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.4); }
+        .bottom-section { flex: 1; margin: 0 16px calc(env(safe-area-inset-bottom) + 6px); display: flex; flex-direction: column; position: relative; min-height: 0; overflow: hidden; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px 4px; padding: 4px 12px 8px; }
+        .weekday-label { text-align: center; font-size: 9px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; padding-bottom: 2px; }
+        .day-cell { width: 100%; aspect-ratio: 1; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; background: #f8fafc; border: 1px solid rgba(15,23,42,0.04); transition: background 0.15s ease, opacity 0.2s ease, transform 0.1s; }
+        .day-cell:active { transform: scale(0.95); }
+        
+        .type-unplanned { background: #f1f5f9 !important; border: 1px dashed #cbd5e1 !important; color: var(--text-muted) !important; }
+        .type-planned { background: var(--pastel-blue-bg) !important; color: var(--sting-blue) !important; border-color: rgba(14, 165, 233, 0.15) !important; }
+        .type-ledig { background: var(--pastel-gray-bg) !important; color: var(--text-muted) !important; }
+        .type-semester { background: #ccfbf1 !important; color: #0f766e !important; border-color: #99f6e4 !important; z-index: 4; }
+        .cc-bg-semester { background: linear-gradient(135deg, #f0fdfa, #ccfbf1) !important; border-color: #14b8a6 !important; }
+        .type-absent { background: #ffedd5 !important; color: #c2410c !important; border: 1px dashed #fdb974 !important; z-index: 4; }
+        
+        .history-cell { opacity: 0.55 !important; }
+        .history-success { background: var(--pastel-green-bg) !important; color: #065f46 !important; }
+        .history-fail { background: var(--pastel-red-bg) !important; color: #9f1239 !important; }
+        .history-ledig { background: var(--pastel-gray-bg) !important; color: var(--text-muted) !important; }
+        .status-today { background: linear-gradient(135deg, var(--today-light), var(--today-dark)) !important; color: #ffffff !important; opacity: 1 !important; z-index: 5; box-shadow: 0 6px 12px -4px rgba(14, 165, 233, 0.3); }
+        .active-focus { background: var(--selected-bg) !important; z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; box-shadow: 0 6px 15px -4px rgba(14, 165, 233, 0.4); border: none !important; }
+        .status-today .date-num, .active-focus .date-num, .status-today .cell-main-val, .active-focus .cell-main-val { color: #ffffff !important; }
+        .date-num { position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 9px; font-weight: 800; pointer-events: none; color: var(--text-main); }
+        .u-badge { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; z-index: 35; border: 1.5px solid var(--white); pointer-events: none; }
+        .badge-abs { top: -4px; right: -4px; width: 15px; height: 15px; font-size: 9px; background: #f8fafc; border: 1px solid #f97316; }
+        .badge-action { background: #fef3c7 !important; border-color: #f59e0b !important; color: #b45309 !important; }
+        .week-tag { position: absolute; top: -2px; left: -2px; background: var(--sting-blue); color: white !important; font-size: 6px; padding: 1px 2.5px; border-radius: 2.5px; font-weight: 900; z-index: 10; pointer-events: none; }
+        .cell-main-val { font-size: 8.5px; font-weight: 900; line-height: 1; pointer-events: none; color: inherit; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        #confirm-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 14000; display: none; width: 280px; background: var(--white); border: 1px solid var(--border-subtle); border-radius: 28px; padding: 24px; box-shadow: 0 20px 50px rgba(15,23,42,0.15); }
+        #container-dash-views { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+        .dash-view-pane { position: absolute; inset: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; visibility: hidden; opacity: 0; pointer-events: none; }
+        .mode-day #pane-day, .mode-week #pane-week, .mode-month #pane-month, .mode-absence #pane-absence, .mode-notes #pane-notes { visibility: visible; opacity: 1; pointer-events: auto; transform: scale(1); }
+        .glass-panel-inline { border-radius: 22px; transition: all 0.25s ease; border: 1px solid var(--border-subtle); }
+        .focus-gauge-bg { fill: none; stroke: rgba(15,23,42,0.05); stroke-linecap: round; }
+        .fg-time { fill: none; stroke: #94a3b8; stroke-width: 5; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; stroke-dasharray: 283; }
+        .fg-sales { fill: none; stroke: var(--sting-blue); stroke-width: 7; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; stroke-dasharray: 220; }
+        .input-dark-theme { background: #ffffff; border: 1px solid #cbd5e1; color: var(--text-main); outline: none; }
+        .input-dark-theme:focus { border-color: var(--sting-blue); }
+        .cc-bg-default { background: #ffffff; }
+        .cc-bg-success { background: linear-gradient(135deg, #f0fdf4, #d1fae5); border-color: #10b981; }
+        .cc-bg-fail { background: linear-gradient(135deg, #fff5f5, #fee2e2); border-color: #f43f5e; }
+        .cc-bg-planned { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-color: var(--sting-blue); }
+        .cc-bg-ledig { background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-color: #94a3b8; }
+        
+        @keyframes pulse-cell {
+            0% { box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3), 0 0 0 0 rgba(14, 165, 233, 0.5); }
+            70% { box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3), 0 0 0 6px rgba(14, 165, 233, 0); }
+            100% { box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3), 0 0 0 0 rgba(14, 165, 233, 0); }
+        }
+        @keyframes pulse-card {
+            0% { box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 0 rgba(14, 165, 233, 0.3); }
+            70% { box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 8px rgba(14, 165, 233, 0); }
+            100% { box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 0 rgba(14, 165, 233, 0); }
+        }
+        @keyframes pulse-action {
+            0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+            70% { box-shadow: 0 0 0 6px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+        }
+        .btn-action-req {
+            background-color: #fef3c7 !important;
+            color: #b45309 !important;
+            border-color: #fcd34d !important;
+            animation: pulse-action 2s infinite;
+        }
+        .status-today.active-shift-pulse, .active-focus.active-shift-pulse {
+            animation: pulse-cell 2s infinite;
+            border: 2px solid var(--sting-blue) !important;
+        }
+        .cc-bg-active-shift {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe) !important;
+            border: 1.5px solid var(--sting-blue) !important;
+            animation: pulse-card 2s infinite;
+        }
+    </style>
+</head>
+<body class="mode-day">
+    <div class="dark-backdrop"></div>
+    <div id="confirm-box"><p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p><div class="flex gap-3"><button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button><button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button></div></div>
+
+    <div id="note-confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-3 transform scale-95 transition-transform duration-300" id="note-modal-content">
+            <p class="text-[11px] font-black text-center uppercase tracking-widest text-slate-800 mb-2">Vill du stänga ärendet?</p>
+            <div class="flex gap-2">
+                <button id="btn-note-yes" class="flex-1 py-4 bg-[#f0f9ff] hover:bg-[#e0f2fe] text-[#0ea5e9] font-black text-xs rounded-2xl border border-[#bae6fd] active:scale-95 transition-all shadow-sm">JA</button>
+                <button onclick="closeNoteModal()" class="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-500 font-black text-xs rounded-2xl border border-slate-200 active:scale-95 transition-all shadow-sm">NEJ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="child-select-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-3 transform scale-95 transition-transform duration-300" id="child-modal-content">
+            <p id="child-modal-title" class="text-[10px] font-black text-center uppercase tracking-widest text-slate-400 mb-2">VEM GÄLLER DET?</p>
+            <div class="flex gap-2">
+                <button onclick="selectChild('Belma')" class="flex-1 py-4 bg-[#f0f9ff] hover:bg-[#e0f2fe] text-[#0ea5e9] font-black text-xs rounded-2xl border border-[#bae6fd] active:scale-95 transition-all flex flex-col items-center justify-center gap-1 shadow-sm">
+                    <span class="text-2xl">👶</span>
+                    <span class="text-[10px] uppercase tracking-wider mt-1">Belma</span>
+                </button>
+                <button onclick="selectChild('Wilma')" class="flex-1 py-4 bg-[#fff1f2] hover:bg-[#ffe4e6] text-[#e11d48] font-black text-xs rounded-2xl border border-[#fecdd3] active:scale-95 transition-all flex flex-col items-center justify-center gap-1 shadow-sm">
+                    <span class="text-2xl">👧</span>
+                    <span class="text-[10px] uppercase tracking-wider mt-1">Wilma</span>
+                </button>
+            </div>
+            <button onclick="closeChildModal()" class="mt-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Avbryt</button>
+        </div>
+    </div>
+
+    <div id="budget-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[15000] hidden flex items-center justify-center p-4">
+        <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-4">
+            <p class="text-[10px] font-black text-center uppercase tracking-widest text-slate-400">Välj Månadsmål</p>
+            <div class="flex flex-col gap-2">
+                <button onclick="setGlobalBudget(100000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">100 000 kr</button>
+                <button onclick="setGlobalBudget(140000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">140 000 kr</button>
+                <button onclick="setGlobalBudget(180000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">180 000 kr</button>
+                <button onclick="setGlobalBudget(240000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">240 000 kr</button>
+                <button onclick="setGlobalBudget(350000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">350 000 kr</button>
+            </div>
+            <button onclick="closeBudgetModal()" class="mt-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Avbryt</button>
+        </div>
+    </div>
+
+    <div id="app-shell">
+        <div class="content-locker">
+            <header class="flex justify-between items-center px-6 pb-1.5 pt-1 relative z-20 flex-shrink-0">
+                <div class="flex items-center gap-2"><span class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 drop-shadow-sm">Översikt</span><button onclick="openBudgetModal()" class="text-slate-500 hover:text-slate-800 text-xs active:scale-75 transition-transform p-0.5 select-none drop-shadow-sm">⚙️</button></div>
+                <button id="sync-btn" onclick="syncData()" class="text-[9px] font-black uppercase tracking-widest bg-[#0ea5e9] text-white px-3 py-1 rounded-full shadow-md border border-[#0284c7] select-none active:scale-95 transition-all">SalesFlow ⚡</button>
+            </header>
+
+            <div class="app-card top-section premium-slate-banner">
+                <div class="budget-header"><p class="budget-label">Månadsmål</p><p id="d-budget-val" class="budget-val">240,000 kr</p></div>
+                <div class="gauge-layout">
+                    <div class="side-col">
+                        <p class="micro-lbl">Dagens Krav</p><p id="d-today-target" class="val-display pop-highlight">0 k</p>
+                        <div class="status-pill pill-blue"><span id="d-work-left">0 Pass Kvar</span></div>
+                    </div>
+                    <div class="gauge-container">
+                        <span class="g-label-0">0</span>
+                        <svg width="105" height="105" viewBox="0 0 130 130">
+                            <circle class="g-bg" cx="65" cy="65" r="52" stroke-dasharray="245 326.7" transform="rotate(135 65 65)"></circle>
+                            <circle class="g-marks" cx="65" cy="65" r="44" stroke-dasharray="1 18" transform="rotate(135 65 65)"></circle>
+                            <circle id="h-circle-prog" class="g-prog" cx="65" cy="65" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"></circle>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pt-1"><span id="h-main-val" class="text-[21px] font-black tracking-tighter text-white drop-shadow-md">0 k</span><span id="h-perc-val" class="text-[10px] font-extrabold mt-0.5 text-white/90">0%</span></div>
+                        <span id="g-max-lbl" class="g-label-240">240</span>
+                    </div>
+                    <div class="side-col">
+                        <p class="micro-lbl">Kvar Till Mål</p><p id="d-kvar" class="val-display pop-highlight">0 k</p>
+                        <div class="status-pill pill-blue"><span id="d-work-total">0 Totalt</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex bg-white rounded-[18px] border border-slate-200 shadow-md mx-4 mb-1.5 py-1.5 divide-x divide-slate-100 flex-shrink-0 relative z-20" id="dash-stats-bar">
+                <div class="flex-1 text-center"><p class="text-[7px] font-black uppercase mb-0.5 tracking-wide text-slate-500">Snitt / Pass</p><p id="d-avg-val" class="text-[13px] font-black text-[#0ea5e9]">0 k</p></div>
+                <div class="flex-1 text-center"><p class="text-[7px] font-black uppercase mb-0.5 tracking-wide text-slate-500">Prognos</p><p id="d-prog" class="text-[13px] font-black">0</p></div>
+                <div class="flex-1 text-center"><p class="text-[7px] font-black uppercase mb-0.5 tracking-wide text-slate-500">Status</p><p id="d-status" class="text-[11px] font-black mt-0.5 uppercase tracking-wider">LADDAR</p></div>
+            </div>
+
+            <div class="app-card bottom-section" id="calendar-wrapper" style="background: var(--white); overflow: hidden;">
+                
+                <div class="flex justify-between items-center px-2 py-2 border-b flex-shrink-0 relative z-30 h-[64px]" style="border-color: rgba(15,23,42,0.05); background: var(--white); border-radius: 28px 28px 0 0;">
+                    <button onclick="cycleView(-1)" class="text-slate-400 hover:text-[#0ea5e9] text-3xl px-1 active:scale-90 transition-colors">←</button>
+                    <div id="cal-standard-header" class="flex-1 flex flex-col justify-center items-center w-full px-1">
+                        <h3 id="dynamic-view-title" class="text-[10px] font-black uppercase tracking-widest text-slate-800 mb-1.5 text-center leading-none">LADDAR...</h3>
+                        <div class="flex gap-1 p-0.5 bg-slate-50 rounded-lg border border-slate-100 shadow-inner w-full">
+                            <button id="tab-week" onclick="setMode('week')" class="flex-1 text-[7px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">VECKA</button>
+                            <button id="tab-day" onclick="setMode('day')" class="flex-1 text-[7px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm">COCKPIT</button>
+                            <button id="tab-month" onclick="setMode('month')" class="flex-1 text-[7px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">MÅNAD</button>
+                            <button id="tab-absence" onclick="setMode('absence')" class="flex-1 text-[7px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">FRÅNV.</button>
+                            <button id="tab-notes" onclick="setMode('notes')" class="flex-1 text-[7px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">NOTER</button>
+                        </div>
+                    </div>
+                    <div id="month-edit-menu" class="hidden absolute inset-0 flex items-center justify-between px-4 z-50 bg-slate-50" style="border-radius: 28px 28px 0 0;">
+                        <div class="flex items-center justify-between w-full">
+                            <div class="flex items-center gap-1.5">
+                                <input type="text" inputmode="decimal" id="in-sales-month" onclick="event.stopPropagation()" class="w-14 h-8 text-center font-black rounded text-xs input-dark-theme focus:border-[#0ea5e9]" placeholder="0">
+                                <button onclick="saveSalesFromPopup(); event.stopPropagation();" class="w-8 h-8 rounded text-white font-black text-xs bg-[#0ea5e9] shadow-sm">✓</button>
+                            </div>
+                            <div class="flex items-center gap-1.5 border-l border-slate-200 pl-2 ml-2 text-slate-700">
+                                <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-base transform active:scale-90 px-0.5">⚒️</button>
+                                <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-base transform active:scale-90 px-0.5">🏠</button>
+                                <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="text-base transform active:scale-90 px-0.5">🤒</button>
+                                <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="text-base transform active:scale-90 px-0.5">👶</button>
+                                <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="text-base transform active:scale-90 px-0.5">🍼</button>
+                                <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="text-red-500 text-base transform active:scale-90 border-l border-slate-200 pl-2 ml-1">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="cycleView(1)" class="text-slate-400 hover:text-[#0ea5e9] text-3xl px-1 active:scale-90 transition-colors">→</button>
+                </div>
+
+                <div id="container-dash-views">
+                    
+                    <div id="pane-day" class="dash-view-pane p-3 justify-between h-full flex flex-col overflow-hidden">
+                        <div class="flex justify-between items-center flex-shrink-0 mb-1">
+                            <div class="flex items-center gap-1 w-full justify-center relative">
+                                <button onclick="navCal(-1)" class="absolute left-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl leading-none active:scale-75 transition-transform" style="margin-top:-2px;">‹</button>
+                                <div class="text-center">
+                                    <h4 id="dp-inline-date" class="text-xs font-black uppercase tracking-widest text-slate-800">Laddar...</h4>
+                                    <p id="dp-inline-time" class="text-[10px] font-bold text-[#0ea5e9] mt-0.5">00:00 — 00:00</p>
+                                </div>
+                                <button onclick="navCal(1)" class="absolute right-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl leading-none active:scale-75 transition-transform" style="margin-top:-2px;">›</button>
+                            </div>
+                        </div>
+
+                        <div id="dp-cockpit-card" class="cc-bg-default p-3 flex flex-col justify-between shadow-sm border border-slate-100 h-[125px] mb-1.5 flex-shrink-0 relative glass-panel-inline transition-all">
+                            <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none">
+                                <div class="flex flex-col justify-center text-left pointer-events-auto">
+                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">DAGENS MÅL</span><p id="dp-inline-target" class="text-lg font-black leading-none mb-2 text-slate-900">0 k</p>
+                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">KVAR TILL MÅL</span><p id="dp-inline-left" class="text-lg font-black leading-none text-rose-600">0 k</p>
+                                </div>
+                                <div class="relative flex flex-col justify-center items-center pointer-events-none">
+                                    <svg width="85" height="85" viewBox="0 0 120 120">
+                                        <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="5" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
+                                        <circle id="dp-gauge-time" class="fg-time" cx="60" cy="60" r="45" stroke-dashoffset="283"></circle>
+                                        <circle class="focus-gauge-bg" cx="60" cy="60" r="35" stroke-width="7" stroke-dasharray="165 220" transform="rotate(135 60 60)"></circle>
+                                        <circle id="dp-gauge-sales" class="fg-sales" cx="60" cy="60" r="35" stroke-dashoffset="220"></circle>
+                                    </svg>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center pt-0.5"><span id="dp-inline-eff" class="text-sm font-black tracking-tighter text-slate-900">0%</span><span id="dp-inline-eff-lbl" class="text-[7px] font-black uppercase tracking-widest text-emerald-600 mt-0.5">I FAS</span></div>
+                                </div>
+                                <div class="flex flex-col justify-center text-right pointer-events-auto">
+                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">KRAV PER TIMME</span><p id="dp-inline-req" class="text-lg font-black text-[#0ea5e9] leading-none mb-2">0 k</p>
+                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">TOTALT INKÖRT</span><p id="dp-inline-sales" class="text-lg font-black text-emerald-600 leading-none">0 k</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-1.5 flex-shrink-0 flex gap-2">
+                            <div class="bg-slate-50 border border-slate-200/60 rounded-2xl p-1 flex items-center shadow-inner flex-1 h-[44px]">
+                                <span class="pl-3 pr-1 text-xs opacity-40">⚡</span>
+                                <input type="text" inputmode="decimal" id="in-sales-direct-day" class="flex-1 bg-transparent font-black text-xs text-slate-900 placeholder-slate-400 outline-none w-full text-center" placeholder="Total försäljning (kr)...">
+                                <button onclick="saveDirectDaySales()" class="text-white font-black uppercase tracking-widest text-[9px] px-4 py-2 rounded-xl bg-[#0ea5e9] shadow-md flex-shrink-0 active:scale-95 transition-transform">SPARA</button>
+                            </div>
+                        </div>
+
+                        <div class="h-[40px] mb-1.5 flex-shrink-0 w-full grid grid-cols-5 gap-1.5">
+                            <button onclick="saveDirectDayStatus('Arbete')" class="bg-[#f0f9ff] text-[#0ea5e9] font-extrabold text-[9px] rounded-xl border border-[#e0f2fe] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>⚒️</span><span class="text-[6.5px] mt-0.5">Jobb</span></button>
+                            <button onclick="saveDirectDayStatus('Ledig')" class="bg-slate-100 text-slate-600 font-extrabold text-[9px] rounded-xl border border-slate-200/60 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🏠</span><span class="text-[6.5px] mt-0.5">Ledig</span></button>
+                            <button onclick="saveDirectDayStatus('Sjuk')" class="bg-rose-50 text-rose-700 font-extrabold text-[9px] rounded-xl border border-rose-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🤒</span><span class="text-[6.5px] mt-0.5">Sjuk</span></button>
+                            <button onclick="saveDirectDayStatus('VAB')" class="bg-amber-50 text-amber-700 font-extrabold text-[9px] rounded-xl border border-amber-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>👶</span><span class="text-[6.5px] mt-0.5">VAB</span></button>
+                            <button onclick="saveDirectDayStatus('Föräldraledig')" class="bg-purple-50 text-purple-700 font-extrabold text-[9px] rounded-xl border border-purple-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🍼</span><span class="text-[6.5px] mt-0.5">FL</span></button>
+                        </div>
+
+                        <div class="text-center py-1.5 bg-slate-50 border border-slate-100 rounded-xl mb-1.5 flex-shrink-0 flex items-center justify-center gap-1.5"><span class="text-[8.5px] font-extrabold uppercase tracking-widest text-slate-400">REGISTRERAT:</span><span id="dp-inline-status" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-wider">ARBETSPASS</span></div>
+                        <div class="border-t border-slate-100 pt-1.5 text-center mt-auto pb-1 h-[32px] flex-shrink-0 flex flex-col justify-center"><p id="dp-inline-quote" class="text-[9.5px] font-medium italic text-slate-500 tracking-tight px-2">"Laddar fokusmentalitet..."</p></div>
+                    </div>
+
+                    <div id="pane-week" class="dash-view-pane h-full justify-start pt-2">
+                        <div class="grid grid-cols-7 gap-1 mb-1 px-4 flex-shrink-0">
+                            <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
+                            <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
+                        </div>
+                        
+                        <div id="swipe-wrapper" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full h-[48px] flex-shrink-0 mb-1">
+                            <div id="slide-prev" class="w-full h-full flex-shrink-0 snap-center"></div>
+                            <div id="slide-curr" class="w-full h-full flex-shrink-0 snap-center"></div>
+                            <div id="slide-next" class="w-full h-full flex-shrink-0 snap-center"></div>
+                        </div>
+
+                        <div class="mx-4 mt-auto mb-4 p-5 bg-white rounded-[24px] border border-slate-200 shadow-sm flex flex-col flex-shrink-0 relative z-20">
+                            <div class="flex justify-between items-end pb-3 border-b border-slate-100">
+                                <div class="flex flex-col">
+                                    <span id="wp-date-range" class="text-[11px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
+                                    <span id="wp-pass-count" class="text-[10px] font-bold text-slate-400 mt-1">0 Pass</span>
+                                </div>
+                                <div class="flex gap-2 text-right">
+                                    <div class="flex flex-col items-center w-[48px] flex-shrink-0">
+                                        <span id="wp-lbl-target" class="text-[8px] font-black text-slate-400 uppercase tracking-wider text-center">Veckomål</span>
+                                        <span id="wp-sum-target" class="text-[12px] font-black text-slate-400 mt-0.5 text-center">0 k</span>
+                                    </div>
+                                    <div class="flex flex-col items-center w-[48px] flex-shrink-0">
+                                        <span id="wp-lbl-sales" class="text-[8px] font-black text-slate-400 uppercase tracking-wider text-center">Inkört</span>
+                                        <span id="wp-sum-sales" class="text-[12px] font-black text-slate-800 mt-0.5 text-center">0 k</span>
+                                    </div>
+                                    <div class="flex flex-col items-center w-[48px] flex-shrink-0">
+                                        <span class="text-[8px] font-black text-slate-400 uppercase tracking-wider text-center">Diff</span>
+                                        <span id="wp-sum-diff" class="text-[12px] font-black mt-0.5 text-center">0 k</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="wp-week-summary" class="flex gap-3 pt-3 mt-1 w-full h-[95px]">
+                                <div class="flex-1 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center relative overflow-hidden shadow-sm">
+                                    <span class="absolute -top-2 -right-1 text-4xl opacity-[0.07]">🔥</span>
+                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400 mb-1 z-10">Bästa Dag</span>
+                                    <span id="wp-best-val" class="text-[17px] font-black text-emerald-600 leading-none mb-1.5 z-10">-</span>
+                                    <span id="wp-best-day" class="text-[9px] font-bold text-slate-500 uppercase tracking-widest z-10">-</span>
+                                </div>
+                                <div class="flex-1 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center relative overflow-hidden shadow-sm">
+                                    <span class="absolute -top-2 -right-1 text-4xl opacity-[0.07]">📉</span>
+                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400 mb-1 z-10">Sämsta Dag</span>
+                                    <span id="wp-worst-val" class="text-[17px] font-black text-rose-600 leading-none mb-1.5 z-10">-</span>
+                                    <span id="wp-worst-day" class="text-[9px] font-bold text-slate-500 uppercase tracking-widest z-10">-</span>
+                                </div>
+                            </div>
+
+                            <div id="wp-day-actions" class="hidden flex-col gap-2 pt-3 mt-1 w-full">
+                                <p id="wp-quick-title" class="text-[9px] font-black text-[#0ea5e9] uppercase tracking-widest text-center mb-1">REDIGERA: VÄLJ DAG...</p>
+                                <div class="relative w-full h-[42px] overflow-hidden">
+                                    <div id="wp-default-state" class="absolute inset-0 flex gap-1.5 transition-transform duration-300 transform translate-x-0">
+                                        <button onclick="toggleWeekInput(true)" class="flex-[1.5] text-[10px] font-black bg-[#f0f9ff] hover:bg-[#e0f2fe] text-[#0ea5e9] border border-[#bae6fd] rounded-xl shadow-sm active:scale-95 flex items-center justify-center gap-1 uppercase tracking-wider transition-colors">💰 Sälj</button>
+                                        <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[13px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl shadow-sm active:scale-95 flex items-center justify-center transition-colors">⚒️</button>
+                                        <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[13px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl shadow-sm active:scale-95 flex items-center justify-center transition-colors">🏠</button>
+                                        <button onclick="handleWeekDirectAction('Sjuk')" class="flex-1 text-[13px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl shadow-sm active:scale-95 flex items-center justify-center transition-colors">🤒</button>
+                                        <button onclick="handleWeekDirectAction('VAB')" class="flex-1 text-[13px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl shadow-sm active:scale-95 flex items-center justify-center transition-colors">👶</button>
+                                        <button onclick="handleWeekDirectAction('Föräldraledig')" class="flex-1 text-[13px] bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl shadow-sm active:scale-95 flex items-center justify-center transition-colors">🍼</button>
+                                    </div>
+                                    <div id="wp-input-state" class="absolute inset-0 flex gap-1.5 transition-transform duration-300 transform translate-x-full bg-white z-10">
+                                        <input type="text" inputmode="decimal" id="in-sales-week-direct" class="flex-1 h-full px-4 text-center font-black rounded-xl text-sm bg-slate-50 border border-slate-200 text-slate-900 outline-none placeholder-slate-400 focus:border-[#0ea5e9] transition-colors" placeholder="Belopp (kr)...">
+                                        <button onclick="saveSalesFromWeekDirect()" class="h-full px-5 flex items-center justify-center rounded-xl text-white font-black text-[11px] bg-[#0ea5e9] shadow-sm active:scale-95 transition-transform uppercase tracking-wider">Spara</button>
+                                        <button onclick="toggleWeekInput(false)" class="h-full px-4 flex items-center justify-center rounded-xl text-slate-500 font-black text-[11px] bg-slate-100 border border-slate-200 shadow-sm active:scale-95 transition-transform uppercase tracking-wider">✕</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="pane-month" class="dash-view-pane h-full overflow-y-auto hide-scrollbar"><div id="d-cal" class="cal-grid"></div></div>
+                    
+                    <div id="pane-absence" class="dash-view-pane h-full overflow-hidden p-4 flex flex-col"></div>
+
+                    <div id="pane-notes" class="dash-view-pane h-full overflow-hidden flex flex-col bg-slate-50/50">
+                        <div class="p-3 bg-white border-b border-slate-100 shadow-sm flex-shrink-0 flex flex-col gap-2 relative z-20">
+                            <div class="flex gap-2">
+                                <input type="text" id="note-name" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-[10px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Namn...">
+                                <input type="tel" id="note-phone" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-[10px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Telefonnr...">
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" id="note-order" class="w-[70px] min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-[10px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Ordernr...">
+                                <input type="text" id="note-text" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-[10px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Anteckning...">
+                                <button id="note-submit-btn" onclick="addNote()" class="bg-[#0ea5e9] text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-sm active:scale-95 transition-transform px-3">SPARA</button>
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-y-auto hide-scrollbar p-3 relative flex flex-col gap-2" id="notes-list-container">
+                            </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getK(d) {
+            return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+        }
+
+        function parseNum(val) {
+            if (val === undefined || val === null || val === '') return 0;
+            if (typeof val === 'number') return val;
+            let str = String(val).replace(/\s/g, '').replace(',', '.');
+            let num = parseFloat(str);
+            return isNaN(num) ? 0 : num;
+        }
+
+        // SUPABASE INIT MED KRASCH-SKYDD
+        const SB_URL = 'https://xnrclzkzzthlesaftpvs.supabase.co';
+        const SB_KEY = 'sb_publishable_EhCyGN_p4TH-rtOEuDLXOA_9hIxS7pW';
+        let sb = null;
+        try {
+            if (typeof supabase !== 'undefined') {
+                sb = supabase.createClient(SB_URL, SB_KEY);
+            } else {
+                console.warn("Kunde inte ladda Supabase från nätverket.");
+            }
+        } catch(e) {
+            console.error("Fel vid start av Supabase", e);
+        }
+        
+        // SÄKERHET FÖR LOCALSTORAGE
+        let initBudget = 240000;
+        try {
+            let bStore = localStorage.getItem('sf_budget');
+            if(bStore) initBudget = Number(bStore) || 240000;
+        } catch(e) {}
+        
+        let db = { b: initBudget, d: {}, q: {} }, timeline = {}, viewDate = new Date(), realToday = new Date(); realToday.setHours(0,0,0,0);
+        let activeK = null, viewMode = 'day', currentWeekStart = new Date(realToday);
+        const startDayOffset = currentWeekStart.getDay() || 7;
+        currentWeekStart.setDate(currentWeekStart.getDate() - startDayOffset + 1);
+        currentWeekStart.setHours(0,0,0,0);
+        let focusTimer = null, quoteTimer = null;
+        let pendingAbsenceType = null;
+        let pendingAbsenceSource = null;
+
+        // Notes System
+        let savedNotes = [];
+        try {
+            savedNotes = JSON.parse(localStorage.getItem('sf_notes')) || [];
+        } catch(e) {
+            console.warn("Återställde anteckningar pga minnesfel", e);
+            savedNotes = [];
+        }
+        
+        let pendingNoteId = null;
+        let editingNoteId = null;
+        let expandedNoteId = null;
+
+        const SALES_QUOTES = ["Gå på avslut tidigt, fega säljare får inga affärer.", "Det finns inget 'nej', bara 'inte just nu'.", "Du missar 100% av de skott du aldrig skjuter.", "Varje invändning är bara en begäran om mer information.", "Energi smittar av sig – vinn morgonen, vinn dagen!", "Kunden köper din entusiasm innan de köper din produkt.", "Ett nej är bara ett steg närmare nästa dunder-JA!"];
+
+        async function init() { 
+            try {
+                if (sb) {
+                    const [s, q] = await Promise.all([sb.from('sales_data').select('*'), sb.from('schedule_data').select('*')]); 
+                    if (s && s.data) s.data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent }); 
+                    if (q && q.data) q.data.forEach(r => { db.q[r.date_key] = { exists: true, start: r.start_time, end: r.end_time }; }); 
+                }
+            } catch(e) { console.warn("Kunde inte hämta data vid uppstart", e); }
+            
+            calculateTimeline(); activeK = getK(realToday); 
+            renderWeekSlides(); updateDash(); setMode('day'); setupSwipeObserver(); renderNotes();
+            clearInterval(focusTimer); focusTimer = setInterval(updateInlineFocusDashboard, 2000);
+            clearInterval(quoteTimer); quoteTimer = setInterval(rotateInlineQuote, 8000); rotateInlineQuote();
+        }
+
+        async function syncData() {
+            const btn = document.getElementById('sync-btn');
+            if(!btn) return;
+            const oldTxt = btn.innerText;
+            btn.innerText = 'SYNKAR...';
+            try {
+                if(sb) {
+                    const [s, q] = await Promise.all([sb.from('sales_data').select('*'), sb.from('schedule_data').select('*')]); 
+                    if (s && s.data) s.data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent }); 
+                    if (q && q.data) q.data.forEach(r => { db.q[r.date_key] = { exists: true, start: r.start_time, end: r.end_time }; }); 
+                }
+            } catch(e) { console.warn("Synk misslyckades", e); }
+            
+            calculateTimeline(); updateDash(); 
+            if (viewMode === 'day') updateInlineFocusDashboard();
+            else if (viewMode === 'week') updateWeekPanel();
+            else if (viewMode === 'absence') renderAbsence();
+            setTimeout(() => { btn.innerText = oldTxt; }, 800);
+        }
+
+        // --- ANTECKNINGAR LOGIK ---
+        function toggleExpandNote(id) {
+            if (expandedNoteId === id) expandedNoteId = null;
+            else expandedNoteId = id;
+            renderNotes();
+        }
+
+        function deleteHistoryNote(id, e) {
+            e.stopPropagation();
+            savedNotes = savedNotes.filter(n => n.id !== id);
+            try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
+            renderNotes();
+        }
+
+        function clearAllHistory() {
+            savedNotes = savedNotes.filter(n => !n.done);
+            try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
+            renderNotes();
+        }
+
+        function addNote() {
+            const elName = document.getElementById('note-name');
+            const elOrder = document.getElementById('note-order');
+            const elPhone = document.getElementById('note-phone');
+            const elText = document.getElementById('note-text');
+            if(!elName || !elOrder || !elPhone || !elText) return;
+
+            const n_val = elName.value.trim();
+            const o_val = elOrder.value.trim();
+            const p_val = elPhone.value.trim();
+            const t_val = elText.value.trim();
+            if(!t_val && !o_val && !p_val && !n_val) return;
+            
+            if (editingNoteId) {
+                const note = savedNotes.find(x => x.id === editingNoteId);
+                if (note) {
+                    note.name = n_val; note.order = o_val; note.phone = p_val; note.text = t_val;
+                }
+                editingNoteId = null;
+                document.getElementById('note-submit-btn').innerText = 'SPARA';
+            } else {
+                savedNotes.unshift({ id: Date.now(), name: n_val, order: o_val, phone: p_val, text: t_val, done: false, date: new Date().toLocaleDateString('sv-SE') });
+            }
+            
+            try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
+            
+            elName.value = ''; elOrder.value = ''; elPhone.value = ''; elText.value = '';
+            renderNotes();
+        }
+
+        function editNote(id) {
+            const note = savedNotes.find(x => x.id === id);
+            if(!note) return;
+            editingNoteId = id;
+            
+            document.getElementById('note-name').value = note.name || '';
+            document.getElementById('note-order').value = note.order || '';
+            document.getElementById('note-phone').value = note.phone || '';
+            document.getElementById('note-text').value = note.text || '';
+            
+            document.getElementById('note-submit-btn').innerText = 'UPPDAT.';
+            document.getElementById('note-text').focus();
+        }
+
+        function askCloseNote(id) {
+            pendingNoteId = id;
+            const m = document.getElementById('note-confirm-modal');
+            const c = document.getElementById('note-modal-content');
+            if(!m || !c) return;
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
+            document.getElementById('btn-note-yes').onclick = () => confirmCloseNote();
+        }
+
+        function closeNoteModal() {
+            const m = document.getElementById('note-confirm-modal');
+            const c = document.getElementById('note-modal-content');
+            if(!m || !c) return;
+            m.classList.add('opacity-0'); c.classList.add('scale-95');
+            setTimeout(() => { m.classList.add('hidden'); pendingNoteId = null; }, 300);
+        }
+
+        function confirmCloseNote() {
+            if(pendingNoteId) {
+                const n = savedNotes.find(x => x.id === pendingNoteId);
+                if(n) { n.done = true; n.doneDate = new Date().toLocaleDateString('sv-SE'); }
+                try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
+                renderNotes();
+            }
+            closeNoteModal();
+        }
+
+        function renderNotes() {
+            const container = document.getElementById('notes-list-container');
+            if(!container) return;
+            
+            let activeHTML = '';
+            let histHTML = '';
+            
+            const activeCount = savedNotes.filter(x => !x.done).length;
+
+            savedNotes.forEach(n => {
+                if (!n.done) {
+                    const isExpanded = (activeCount <= 1) || (expandedNoteId === n.id);
+
+                    if (isExpanded) {
+                        activeHTML += `
+                            <div class="bg-white rounded-[20px] border border-slate-200 shadow-sm p-3.5 flex flex-col gap-1.5 relative transition-all">
+                                ${activeCount > 1 ? `<button onclick="toggleExpandNote(${n.id})" class="absolute top-3 right-3 w-6 h-6 flex items-center justify-center text-slate-400 active:scale-90 transition-all text-[10px] border border-slate-100 rounded-full bg-slate-50">▲</button>` : ''}
+                                
+                                <div class="pr-10 ${activeCount > 1 ? 'cursor-pointer' : ''}" onclick="${activeCount > 1 ? `toggleExpandNote(${n.id})` : ''}">
+                                    <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">${n.date}</span>
+                                    ${n.name ? `<div class="text-[12px] font-black text-[#0ea5e9] mt-0.5">${n.name}</div>` : ''}
+                                    ${n.order ? `<div class="text-[11px] font-bold text-slate-500 mt-0.5">Order: <span class="text-slate-800 font-black">${n.order}</span></div>` : ''}
+                                    ${n.phone ? `<div class="text-[11px] font-bold text-slate-500 mt-0.5">Tel: <a href="tel:${n.phone}" onclick="event.stopPropagation()" class="text-[#0ea5e9] font-black hover:underline">${n.phone}</a></div>` : ''}
+                                    ${n.text ? `<div class="text-[13px] font-bold text-slate-800 mt-1.5 leading-snug pb-8">${n.text}</div>` : '<div class="pb-8"></div>'}
+                                </div>
+                                
+                                <div class="absolute bottom-3 right-3 flex gap-2">
+                                    <button onclick="editNote(${n.id}); event.stopPropagation();" class="w-7 h-7 rounded-full border border-slate-200 bg-white shadow-sm flex items-center justify-center hover:bg-slate-50 active:scale-90 transition-all text-[10px]">✏️</button>
+                                    <button onclick="askCloseNote(${n.id}); event.stopPropagation();" class="w-7 h-7 rounded-full border-2 border-slate-200 flex items-center justify-center hover:bg-[#f0f9ff] hover:border-[#bae6fd] active:scale-90 transition-all bg-white"></button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        activeHTML += `
+                            <div onclick="toggleExpandNote(${n.id})" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex justify-between items-center cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all">
+                                <div class="flex flex-col overflow-hidden whitespace-nowrap pr-2">
+                                    ${n.name ? `<span class="text-[11px] font-black text-[#0ea5e9] truncate">${n.name}</span>` : '<span class="text-[11px] font-black text-slate-400 italic">Inget namn</span>'}
+                                    ${n.order ? `<span class="text-[10px] font-bold text-slate-500 truncate mt-0.5">Order: ${n.order}</span>` : ''}
+                                </div>
+                                <div class="text-slate-300 text-[10px]">▼</div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    histHTML += `
+                        <div class="bg-white rounded-[20px] border border-slate-100 opacity-75 p-3 flex flex-col relative transition-all">
+                            <button onclick="deleteHistoryNote(${n.id}, event)" class="absolute top-2 right-2 w-6 h-6 rounded-full bg-rose-50 flex items-center justify-center hover:bg-rose-100 active:scale-90 transition-all text-[10px] border border-rose-100 text-rose-500">✕</button>
+                            <div class="pr-8">
+                                <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">KLAR ${n.doneDate||''}</span>
+                                ${n.name ? `<div class="text-[11px] font-black text-emerald-600 mt-0.5">${n.name}</div>` : ''}
+                                ${n.order ? `<div class="text-[10px] font-bold text-slate-500">Order: ${n.order}</div>` : ''}
+                                ${n.text ? `<div class="text-[11px] font-medium text-slate-500 mt-1 truncate">${n.text}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            let fullHTML = '';
+            if(activeHTML) fullHTML += `<h4 class="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1 mt-1 mb-1">Aktiva Ärenden</h4>${activeHTML}`;
+            if(histHTML) fullHTML += `
+                <div class="flex justify-between items-center px-1 mt-4 mb-1 border-t border-slate-200/50 pt-3">
+                    <h4 class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Historik</h4>
+                    <button onclick="clearAllHistory()" class="text-[8px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-600 bg-rose-50 px-2 py-1 rounded-md active:scale-95 transition-all border border-rose-100">Radera allt</button>
+                </div>
+                ${histHTML}`;
+            
+            if(!activeHTML && !histHTML) fullHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">📝</span><p class="text-[10px] font-black uppercase tracking-widest text-center px-4">Inga anteckningar<br>skrivna ännu</p></div>`;
+            
+            container.innerHTML = fullHTML;
+        }
+        // -----------------------------
+
+        // --- BARNVAL MODAL LOGIK ---
+        function triggerChildSelection(absType, source) {
+            pendingAbsenceType = absType;
+            pendingAbsenceSource = source;
+            document.getElementById('child-modal-title').innerText = `${absType.toUpperCase()} - VEM GÄLLER DET?`;
+            const m = document.getElementById('child-select-modal');
+            const c = document.getElementById('child-modal-content');
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
+        }
+
+        function closeChildModal() {
+            const m = document.getElementById('child-select-modal');
+            const c = document.getElementById('child-modal-content');
+            m.classList.add('opacity-0'); c.classList.add('scale-95');
+            setTimeout(() => { m.classList.add('hidden'); pendingAbsenceType = null; pendingAbsenceSource = null; }, 300);
+        }
+
+        function selectChild(childName) {
+            const fullAbs = `${pendingAbsenceType} ${childName}`; 
+            if (pendingAbsenceSource === 'direct') {
+                finalizeDirectDayStatus(fullAbs);
+            } else if (pendingAbsenceSource === 'week') {
+                finalizeWeekDirectAction(fullAbs);
+            } else if (pendingAbsenceSource === 'popup') {
+                finalizeOverwriteFromPopup(fullAbs);
+            }
+            closeChildModal();
+        }
+        // -----------------------------
+
+        function openBudgetModal() { document.getElementById('budget-modal').classList.remove('hidden'); }
+        function closeBudgetModal() { document.getElementById('budget-modal').classList.add('hidden'); }
+        function setGlobalBudget(amount) { db.b = amount; try{localStorage.setItem('sf_budget', amount);}catch(e){} calculateTimeline(); updateDash(); closeBudgetModal(); }
+        
+        function toggleWeekInput(show) {
+            const def = document.getElementById('wp-default-state');
+            const inp = document.getElementById('wp-input-state');
+            const inputField = document.getElementById('in-sales-week-direct');
+            if(!def || !inp) return;
+            if(show) {
+                def.classList.add('-translate-x-full'); def.classList.remove('translate-x-0');
+                inp.classList.remove('translate-x-full'); inp.classList.add('translate-x-0');
+                setTimeout(() => inputField.focus(), 300);
+            } else {
+                inp.classList.add('translate-x-full'); inp.classList.remove('translate-x-0');
+                def.classList.remove('-translate-x-full'); def.classList.add('translate-x-0');
+                inputField.value = '';
+            }
+        }
+
+        document.getElementById('pane-day').addEventListener('touchstart', handleSwipeStart, {passive: true});
+        document.getElementById('pane-day').addEventListener('touchend', (e) => handleSwipeEnd(e, 'day'), {passive: true});
+        document.getElementById('pane-month').addEventListener('touchstart', handleSwipeStart, {passive: true});
+        document.getElementById('pane-month').addEventListener('touchend', (e) => handleSwipeEnd(e, 'month'), {passive: true});
+        document.getElementById('pane-absence').addEventListener('touchstart', handleSwipeStart, {passive: true});
+        document.getElementById('pane-absence').addEventListener('touchend', (e) => handleSwipeEnd(e, 'absence'), {passive: true});
+        document.getElementById('pane-notes').addEventListener('touchstart', handleSwipeStart, {passive: true});
+        document.getElementById('pane-notes').addEventListener('touchend', (e) => handleSwipeEnd(e, 'notes'), {passive: true});
+
+        document.addEventListener('click', (e) => {
+            const mMenu = document.getElementById('month-edit-menu');
+            if (mMenu && !mMenu.classList.contains('hidden') && !e.target.closest('#month-edit-menu') && !e.target.closest('.day-cell')) {
+                closeMonthEdit();
+            }
+            const wInput = document.getElementById('wp-input-state');
+            if (wInput && wInput.classList.contains('translate-x-0') && !e.target.closest('#wp-input-state') && !e.target.closest('button[onclick="toggleWeekInput(true)"]')) {
+                toggleWeekInput(false);
+            }
+        });
+
+        let isResettingScroll = false; const sc = document.getElementById('swipe-wrapper'); let scrollTimeout;
+        init();
+    </script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('PWA installerbar och redo!', reg))
+            .catch(err => console.log('Service Worker registreringsfel:', err));
+        });
+      }
+    </script>
+</body>
+</html>

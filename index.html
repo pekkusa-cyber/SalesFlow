@@ -36,8 +36,8 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
         body { background: var(--bg-canvas); font-family: 'Plus Jakarta Sans', sans-serif; font-variant-numeric: tabular-nums; height: 100dvh; width: 100vw; overflow: hidden; display: flex; justify-content: center; color: var(--text-main); }
         
-        /* Ökad höjd för backdrop så hela det större översta kortet täcks snyggt */
-        .dark-backdrop { position: absolute; top: 0; left: 0; right: 0; height: 275px; background: var(--backdrop-gradient); border-radius: 0 0 45px 45px; z-index: 0; opacity: 0.6; }
+        /* Justerad backdrop för att matcha de slimmade top-korten */
+        .dark-backdrop { position: absolute; top: 0; left: 0; right: 0; height: 250px; background: var(--backdrop-gradient); border-radius: 0 0 45px 45px; z-index: 0; opacity: 0.6; }
         
         #app-shell { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
         .content-locker { width: 100%; max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding-top: max(env(safe-area-inset-top), 8px); }
@@ -45,41 +45,38 @@
         .app-card { border-radius: 28px; box-shadow: 0 12px 35px -10px rgba(15,23,42,0.15); flex-shrink: 0; border: 1px solid var(--border-subtle); background: var(--white); }
         .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; }
         
-        /* Mer padding och luft runt top-sektionen */
-        .top-section { margin: 8px 16px 14px; padding: 20px 22px 18px; position: relative; border: none; box-shadow: 0 20px 35px -10px rgba(15,23,42,0.3); }
+        /* Slimmad padding och margin för att ge plats till kalender och cockpit */
+        .top-section { margin: 6px 16px 10px; padding: 14px 20px 12px; position: relative; border: none; box-shadow: 0 20px 35px -10px rgba(15,23,42,0.3); }
         
-        .budget-header { text-align: center; margin-bottom: 4px; }
-        .budget-label { font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 4px; }
+        .budget-header { text-align: center; margin-bottom: 2px; }
+        .budget-label { font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 2px; }
         
-        /* Mycket större budget-text */
-        .budget-val { font-size: 28px; font-weight: 900; line-height: 1; color: #ffffff !important; text-shadow: 0 2px 10px rgba(255,255,255,0.1); }
+        .budget-val { font-size: 25px; font-weight: 900; line-height: 1; color: #ffffff !important; text-shadow: 0 2px 10px rgba(255,255,255,0.1); }
         
         .gauge-layout { display: flex; align-items: center; justify-content: space-between; gap: 0; }
         .side-col { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
-        .micro-lbl { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+        .micro-lbl { font-size: 8px; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
         
-        /* Större siffror på sidorna */
-        .val-display { font-size: 22px; font-weight: 900; line-height: 1; }
+        .val-display { font-size: 20px; font-weight: 900; line-height: 1; }
         
         .pop-highlight { color: #ffffff; text-shadow: 0 2px 8px rgba(255, 255, 255, 0.15); }
-        .status-pill { display: inline-flex; padding: 5px 12px; border-radius: 100px; font-size: 9px; font-weight: 900; text-transform: uppercase; margin-top: 6px; border: 1px solid rgba(255,255,255,0.1); }
+        .status-pill { display: inline-flex; padding: 4px 10px; border-radius: 100px; font-size: 8.5px; font-weight: 900; text-transform: uppercase; margin-top: 4px; border: 1px solid rgba(255,255,255,0.1); }
         .pill-blue { background: rgba(255,255,255,0.08); color: white; backdrop-filter: blur(5px); }
         
-        /* Större Mätare i mitten */
-        .gauge-container { position: relative; width: 125px; height: 125px; display: flex; align-items: center; justify-content: center; margin: 0 10px;}
+        /* Cirkeln nedskalad från 125px till 110px så att bottenvyerna får plats */
+        .gauge-container { position: relative; width: 110px; height: 110px; display: flex; align-items: center; justify-content: center; margin: 0 8px;}
         .gauge-container svg { width: 100%; height: 100%; }
         
         .g-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; stroke-linecap: round; }
         .g-prog { fill: none; stroke: var(--sting-blue); stroke-width: 8; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; transition: stroke-dashoffset 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.5)); }
         .g-marks { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 1.5; stroke-dasharray: 1, 15; transform: rotate(135deg); transform-origin: 50% 50%; opacity: 0.7; }
-        .g-label-0 { position: absolute; bottom: 4px; left: 12px; font-size: 9px; font-weight: 900; color: rgba(255,255,255,0.4); }
-        .g-label-240 { position: absolute; bottom: 4px; right: 12px; font-size: 9px; font-weight: 900; color: rgba(255,255,255,0.4); }
+        .g-label-0 { position: absolute; bottom: 4px; left: 10px; font-size: 8.5px; font-weight: 900; color: rgba(255,255,255,0.4); }
+        .g-label-240 { position: absolute; bottom: 4px; right: 10px; font-size: 8.5px; font-weight: 900; color: rgba(255,255,255,0.4); }
         
-        /* Flexhantering i botten säkerställer att det inte klipper */
         .bottom-section { flex: 1; margin: 0 16px calc(env(safe-area-inset-bottom) + 8px); display: flex; flex-direction: column; position: relative; min-height: 0; overflow: hidden; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px 4px; padding: 4px 12px 8px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px 2px; padding: 4px 10px 8px; }
         .weekday-label { text-align: center; font-size: 9px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; padding-bottom: 2px; }
-        .day-cell { width: 100%; aspect-ratio: 1; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; background: #f8fafc; border: 1px solid rgba(15,23,42,0.04); transition: background 0.15s ease, opacity 0.2s ease, transform 0.1s; }
+        .day-cell { width: 100%; aspect-ratio: 1; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; background: #f8fafc; border: 1px solid rgba(15,23,42,0.04); transition: background 0.15s ease, opacity 0.2s ease, transform 0.1s; }
         .day-cell:active { transform: scale(0.95); }
         
         .type-unplanned { background: #f1f5f9 !important; border: 1px dashed #cbd5e1 !important; color: var(--text-muted) !important; }
@@ -96,11 +93,11 @@
         .status-today { background: linear-gradient(135deg, var(--today-light), var(--today-dark)) !important; color: #ffffff !important; opacity: 1 !important; z-index: 5; box-shadow: 0 6px 12px -4px rgba(14, 165, 233, 0.3); }
         .active-focus { background: var(--selected-bg) !important; z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; box-shadow: 0 6px 15px -4px rgba(14, 165, 233, 0.4); border: none !important; }
         .status-today .date-num, .active-focus .date-num, .status-today .cell-main-val, .active-focus .cell-main-val { color: #ffffff !important; }
-        .date-num { position: absolute; top: 3px; left: 0; width: 100%; text-align: center; font-size: 10px; font-weight: 800; pointer-events: none; color: var(--text-main); }
+        .date-num { position: absolute; top: 3px; left: 0; width: 100%; text-align: center; font-size: 9px; font-weight: 800; pointer-events: none; color: var(--text-main); }
         .u-badge { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; z-index: 35; border: 1.5px solid var(--white); pointer-events: none; }
-        .badge-abs { top: -4px; right: -4px; width: 16px; height: 16px; font-size: 10px; background: #f8fafc; border: 1px solid #f97316; }
+        .badge-abs { top: -4px; right: -4px; width: 15px; height: 15px; font-size: 9px; background: #f8fafc; border: 1px solid #f97316; }
         .badge-action { background: #fef3c7 !important; border-color: #f59e0b !important; color: #b45309 !important; }
-        .week-tag { position: absolute; top: -3px; left: -3px; background: var(--sting-blue); color: white !important; font-size: 7px; padding: 1.5px 3px; border-radius: 3px; font-weight: 900; z-index: 10; pointer-events: none; }
+        .week-tag { position: absolute; top: -3px; left: -3px; background: var(--sting-blue); color: white !important; font-size: 6px; padding: 1.5px 3px; border-radius: 3px; font-weight: 900; z-index: 10; pointer-events: none; }
         .cell-main-val { font-size: 9px; font-weight: 900; line-height: 1; pointer-events: none; color: inherit; }
         
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -191,19 +188,19 @@
     <div id="app-shell">
         <div class="content-locker">
             
-            <header class="flex justify-between items-center px-6 pb-3 pt-6 relative z-20 flex-shrink-0">
+            <header class="flex justify-between items-center px-6 pb-2 pt-4 relative z-20 flex-shrink-0">
                 <div class="flex items-center gap-2 flex-1">
                     <span class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-700 drop-shadow-sm">Översikt</span>
                     <button onclick="openBudgetModal()" class="text-slate-500 hover:text-slate-800 text-sm active:scale-75 transition-transform p-0.5 select-none drop-shadow-sm">⚙️</button>
                 </div>
                 
                 <div class="flex flex-col items-center justify-center flex-1">
-                    <span class="text-[7.5px] font-black uppercase tracking-widest text-slate-500 bg-white/40 px-2.5 py-0.5 rounded-full mb-0.5 shadow-sm border border-slate-200/50">V.2.0 PWA</span>
-                    <span id="live-clock" class="text-[13px] font-black text-slate-800 tabular-nums tracking-tight">--:--</span>
+                    <span class="text-[7px] font-black uppercase tracking-widest text-slate-500 bg-white/40 px-2 py-0.5 rounded-full mb-0.5 shadow-sm border border-slate-200/50">V.2.1 PWA</span>
+                    <span id="live-clock" class="text-[12px] font-black text-slate-800 tabular-nums tracking-tight">--:--</span>
                 </div>
 
                 <div class="flex justify-end flex-1">
-                    <button id="sync-btn" onclick="syncData()" class="text-[9px] font-black uppercase tracking-widest bg-[#0ea5e9] text-white px-3.5 py-1.5 rounded-full shadow-md border border-[#0284c7] select-none active:scale-95 transition-all">SalesFlow ⚡</button>
+                    <button id="sync-btn" onclick="syncData()" class="text-[9px] font-black uppercase tracking-widest bg-[#0ea5e9] text-white px-3 py-1 rounded-full shadow-md border border-[#0284c7] select-none active:scale-95 transition-all">SalesFlow ⚡</button>
                 </div>
             </header>
 
@@ -221,7 +218,7 @@
                             <circle class="g-marks" cx="65" cy="65" r="44" stroke-dasharray="1 18" transform="rotate(135 65 65)"></circle>
                             <circle id="h-circle-prog" class="g-prog" cx="65" cy="65" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"></circle>
                         </svg>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center pt-1"><span id="h-main-val" class="text-[27px] font-black tracking-tighter text-white drop-shadow-md">0 k</span><span id="h-perc-val" class="text-[12px] font-extrabold mt-0.5 text-white/90">0%</span></div>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pt-1"><span id="h-main-val" class="text-[24px] font-black tracking-tighter text-white drop-shadow-md">0 k</span><span id="h-perc-val" class="text-[11px] font-extrabold mt-0.5 text-white/90">0%</span></div>
                         <span id="g-max-lbl" class="g-label-240">240</span>
                     </div>
                     <div class="side-col">
@@ -231,10 +228,10 @@
                 </div>
             </div>
 
-            <div class="flex bg-white rounded-[22px] border border-slate-200 shadow-md mx-4 mb-2.5 py-3 divide-x divide-slate-100 flex-shrink-0 relative z-20" id="dash-stats-bar">
-                <div class="flex-1 text-center"><p class="text-[8.5px] font-black uppercase mb-1 tracking-wide text-slate-500">Snitt / Pass</p><p id="d-avg-val" class="text-[16px] font-black text-[#0ea5e9]">0 k</p></div>
-                <div class="flex-1 text-center"><p class="text-[8.5px] font-black uppercase mb-1 tracking-wide text-slate-500">Prognos</p><p id="d-prog" class="text-[16px] font-black">0</p></div>
-                <div class="flex-1 text-center"><p class="text-[8.5px] font-black uppercase mb-1 tracking-wide text-slate-500">Status</p><p id="d-status" class="text-[14px] font-black mt-0.5 uppercase tracking-wider">LADDAR</p></div>
+            <div class="flex bg-white rounded-[22px] border border-slate-200 shadow-md mx-4 mb-2 py-2 divide-x divide-slate-100 flex-shrink-0 relative z-20" id="dash-stats-bar">
+                <div class="flex-1 text-center"><p class="text-[8px] font-black uppercase mb-0.5 tracking-wide text-slate-500">Snitt / Pass</p><p id="d-avg-val" class="text-[15px] font-black text-[#0ea5e9]">0 k</p></div>
+                <div class="flex-1 text-center"><p class="text-[8px] font-black uppercase mb-0.5 tracking-wide text-slate-500">Prognos</p><p id="d-prog" class="text-[15px] font-black">0</p></div>
+                <div class="flex-1 text-center"><p class="text-[8px] font-black uppercase mb-0.5 tracking-wide text-slate-500">Status</p><p id="d-status" class="text-[13px] font-black mt-0.5 uppercase tracking-wider">LADDAR</p></div>
             </div>
 
             <div class="app-card bottom-section" id="calendar-wrapper" style="background: var(--white); overflow: hidden;">
@@ -273,7 +270,7 @@
 
                 <div id="container-dash-views">
                     
-                    <div id="pane-day" class="dash-view-pane p-3 justify-between h-full flex flex-col overflow-hidden">
+                    <div id="pane-day" class="dash-view-pane p-3 justify-between h-full flex flex-col overflow-y-auto hide-scrollbar">
                         <div class="flex justify-between items-center flex-shrink-0 mb-1">
                             <div class="flex items-center gap-1 w-full justify-center relative">
                                 <button onclick="navCal(-1)" class="absolute left-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl leading-none active:scale-75 transition-transform" style="margin-top:-2px;">‹</button>
@@ -285,50 +282,50 @@
                             </div>
                         </div>
 
-                        <div id="dp-cockpit-card" class="cc-bg-default p-3 flex flex-col justify-between shadow-sm border border-slate-100 h-[145px] mb-2 flex-shrink-0 relative glass-panel-inline transition-all">
+                        <div id="dp-cockpit-card" class="cc-bg-default p-3 flex flex-col justify-between shadow-sm border border-slate-100 h-[125px] mb-1.5 flex-shrink-0 relative glass-panel-inline transition-all">
                             <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none">
                                 <div class="flex flex-col justify-center text-left pointer-events-auto">
-                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">DAGENS MÅL</span><p id="dp-inline-target" class="text-xl font-black leading-none mb-2 text-slate-900">0 k</p>
-                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">KVAR TILL MÅL</span><p id="dp-inline-left" class="text-xl font-black leading-none text-rose-600">0 k</p>
+                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">DAGENS MÅL</span><p id="dp-inline-target" class="text-lg font-black leading-none mb-2 text-slate-900">0 k</p>
+                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">KVAR TILL MÅL</span><p id="dp-inline-left" class="text-lg font-black leading-none text-rose-600">0 k</p>
                                 </div>
                                 <div class="relative flex flex-col justify-center items-center pointer-events-none">
-                                    <svg width="95" height="95" viewBox="0 0 120 120">
+                                    <svg width="85" height="85" viewBox="0 0 120 120">
                                         <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="5" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
                                         <circle id="dp-gauge-time" class="fg-time" cx="60" cy="60" r="45" stroke-dashoffset="283"></circle>
                                         <circle class="focus-gauge-bg" cx="60" cy="60" r="35" stroke-width="7" stroke-dasharray="165 220" transform="rotate(135 60 60)"></circle>
                                         <circle id="dp-gauge-sales" class="fg-sales" cx="60" cy="60" r="35" stroke-dashoffset="220"></circle>
                                     </svg>
-                                    <div class="absolute inset-0 flex flex-col items-center justify-center pt-0.5"><span id="dp-inline-eff" class="text-[16px] font-black tracking-tighter text-slate-900">0%</span><span id="dp-inline-eff-lbl" class="text-[8px] font-black uppercase tracking-widest text-emerald-600 mt-0.5">I FAS</span></div>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center pt-0.5"><span id="dp-inline-eff" class="text-sm font-black tracking-tighter text-slate-900">0%</span><span id="dp-inline-eff-lbl" class="text-[7px] font-black uppercase tracking-widest text-emerald-600 mt-0.5">I FAS</span></div>
                                 </div>
                                 <div class="flex flex-col justify-center text-right pointer-events-auto">
-                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">KRAV/TIMME</span><p id="dp-inline-req" class="text-xl font-black text-[#0ea5e9] leading-none mb-2">0 k</p>
-                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">INKÖRT</span><p id="dp-inline-sales" class="text-xl font-black text-emerald-600 leading-none">0 k</p>
+                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">KRAV/TIMME</span><p id="dp-inline-req" class="text-lg font-black text-[#0ea5e9] leading-none mb-2">0 k</p>
+                                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">INKÖRT</span><p id="dp-inline-sales" class="text-lg font-black text-emerald-600 leading-none">0 k</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mb-2 flex-shrink-0 flex gap-2">
-                            <div class="bg-slate-50 border border-slate-200/60 rounded-[18px] p-1.5 flex items-center shadow-inner flex-1 h-[50px]">
-                                <span class="pl-3 pr-1 text-sm opacity-40">⚡</span>
-                                <input type="text" inputmode="decimal" id="in-sales-direct-day" class="flex-1 bg-transparent font-black text-sm text-slate-900 placeholder-slate-400 outline-none w-full text-center" placeholder="Försäljning (kr)...">
-                                <button onclick="saveDirectDaySales()" class="text-white font-black uppercase tracking-widest text-[10px] px-4 py-2.5 rounded-xl bg-[#0ea5e9] shadow-md flex-shrink-0 active:scale-95 transition-transform">SPARA</button>
+                        <div class="mb-1.5 flex-shrink-0 flex gap-2">
+                            <div class="bg-slate-50 border border-slate-200/60 rounded-[16px] p-1 flex items-center shadow-inner flex-1 h-[44px]">
+                                <span class="pl-3 pr-1 text-xs opacity-40">⚡</span>
+                                <input type="text" inputmode="decimal" id="in-sales-direct-day" class="flex-1 bg-transparent font-black text-xs text-slate-900 placeholder-slate-400 outline-none w-full text-center" placeholder="Försäljning (kr)...">
+                                <button onclick="saveDirectDaySales()" class="text-white font-black uppercase tracking-widest text-[9px] px-4 py-2.5 rounded-xl bg-[#0ea5e9] shadow-md flex-shrink-0 active:scale-95 transition-transform">SPARA</button>
                             </div>
                         </div>
 
-                        <div class="h-[44px] mb-2 flex-shrink-0 w-full grid grid-cols-6 gap-1.5">
-                            <button onclick="saveDirectDayStatus('Arbete')" class="bg-[#f0f9ff] text-[#0ea5e9] font-extrabold text-[10px] rounded-xl border border-[#e0f2fe] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>⚒️</span><span class="text-[7px] mt-0.5">Jobb</span></button>
-                            <button onclick="saveDirectDayStatus('Ledig')" class="bg-slate-100 text-slate-600 font-extrabold text-[10px] rounded-xl border border-slate-200/60 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🏠</span><span class="text-[7px] mt-0.5">Ledig</span></button>
-                            <button onclick="saveDirectDayStatus('Semester')" class="bg-[#ccfbf1] text-[#0f766e] font-extrabold text-[10px] rounded-xl border border-[#99f6e4] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>✈️</span><span class="text-[7px] mt-0.5">Sem</span></button>
-                            <button onclick="saveDirectDayStatus('Sjuk')" class="bg-rose-50 text-rose-700 font-extrabold text-[10px] rounded-xl border border-rose-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🤒</span><span class="text-[7px] mt-0.5">Sjuk</span></button>
-                            <button onclick="saveDirectDayStatus('VAB')" class="bg-amber-50 text-amber-700 font-extrabold text-[10px] rounded-xl border border-amber-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>👶</span><span class="text-[7px] mt-0.5">VAB</span></button>
-                            <button onclick="saveDirectDayStatus('Föräldraledig')" class="bg-purple-50 text-purple-700 font-extrabold text-[10px] rounded-xl border border-purple-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🍼</span><span class="text-[7px] mt-0.5">FL</span></button>
+                        <div class="h-[40px] mb-1.5 flex-shrink-0 w-full grid grid-cols-6 gap-1">
+                            <button onclick="saveDirectDayStatus('Arbete')" class="bg-[#f0f9ff] text-[#0ea5e9] font-extrabold text-[9px] rounded-xl border border-[#e0f2fe] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>⚒️</span><span class="text-[6px] mt-0.5">Jobb</span></button>
+                            <button onclick="saveDirectDayStatus('Ledig')" class="bg-slate-100 text-slate-600 font-extrabold text-[9px] rounded-xl border border-slate-200/60 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🏠</span><span class="text-[6px] mt-0.5">Ledig</span></button>
+                            <button onclick="saveDirectDayStatus('Semester')" class="bg-[#ccfbf1] text-[#0f766e] font-extrabold text-[9px] rounded-xl border border-[#99f6e4] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>✈️</span><span class="text-[6px] mt-0.5">Sem</span></button>
+                            <button onclick="saveDirectDayStatus('Sjuk')" class="bg-rose-50 text-rose-700 font-extrabold text-[9px] rounded-xl border border-rose-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🤒</span><span class="text-[6px] mt-0.5">Sjuk</span></button>
+                            <button onclick="saveDirectDayStatus('VAB')" class="bg-amber-50 text-amber-700 font-extrabold text-[9px] rounded-xl border border-amber-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>👶</span><span class="text-[6px] mt-0.5">VAB</span></button>
+                            <button onclick="saveDirectDayStatus('Föräldraledig')" class="bg-purple-50 text-purple-700 font-extrabold text-[9px] rounded-xl border border-purple-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🍼</span><span class="text-[6px] mt-0.5">FL</span></button>
                         </div>
 
-                        <div class="text-center py-2 bg-slate-50 border border-slate-100 rounded-xl mb-1.5 flex-shrink-0 flex items-center justify-center gap-1.5"><span class="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">REGISTRERAT:</span><span id="dp-inline-status" class="text-[9px] font-black text-[#0ea5e9] uppercase tracking-wider">ARBETSPASS</span></div>
-                        <div class="border-t border-slate-100 pt-1.5 text-center mt-auto pb-1 h-[32px] flex-shrink-0 flex flex-col justify-center"><p id="dp-inline-quote" class="text-[10px] font-medium italic text-slate-500 tracking-tight px-2">"Laddar fokusmentalitet..."</p></div>
+                        <div class="text-center py-1.5 bg-slate-50 border border-slate-100 rounded-xl mb-1.5 flex-shrink-0 flex items-center justify-center gap-1.5"><span class="text-[8.5px] font-extrabold uppercase tracking-widest text-slate-400">REGISTRERAT:</span><span id="dp-inline-status" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-wider">ARBETSPASS</span></div>
+                        <div class="border-t border-slate-100 pt-1.5 text-center mt-auto pb-1 min-h-[30px] flex-shrink-0 flex flex-col justify-center"><p id="dp-inline-quote" class="text-[9.5px] font-medium italic text-slate-500 tracking-tight px-2">"Laddar fokusmentalitet..."</p></div>
                     </div>
 
-                    <div id="pane-week" class="dash-view-pane h-full justify-start pt-2">
+                    <div id="pane-week" class="dash-view-pane h-full justify-start pt-2 overflow-y-auto hide-scrollbar">
                         <div class="grid grid-cols-7 gap-1 mb-1 px-4 flex-shrink-0">
                             <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
                             <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
@@ -340,7 +337,7 @@
                             <div id="slide-next" class="w-full h-full flex-shrink-0 snap-center"></div>
                         </div>
 
-                        <div class="mx-4 mt-auto mb-4 p-5 bg-white rounded-[24px] border border-slate-200 shadow-sm flex flex-col flex-shrink-0 relative z-20">
+                        <div class="mx-4 mt-auto mb-4 p-4 bg-white rounded-[24px] border border-slate-200 shadow-sm flex flex-col flex-shrink-0 relative z-20">
                             <div class="flex justify-between items-end pb-3 border-b border-slate-100">
                                 <div class="flex flex-col">
                                     <span id="wp-date-range" class="text-[11px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
@@ -401,7 +398,7 @@
 
                     <div id="pane-month" class="dash-view-pane h-full overflow-y-auto hide-scrollbar"><div id="d-cal" class="cal-grid"></div></div>
                     
-                    <div id="pane-absence" class="dash-view-pane h-full overflow-hidden p-4 flex flex-col"></div>
+                    <div id="pane-absence" class="dash-view-pane h-full overflow-y-auto hide-scrollbar p-4 flex flex-col"></div>
 
                     <div id="pane-notes" class="dash-view-pane h-full overflow-hidden flex flex-col bg-slate-50/50">
                         <div class="p-3 bg-white border-b border-slate-100 shadow-sm flex-shrink-0 flex flex-col gap-2 relative z-20">
@@ -1236,7 +1233,7 @@
             let isShiftActive = (isToday && qData.exists && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sH && nH <= eH);
 
             if (cEl) { 
-                cEl.className = "p-3 flex flex-col justify-between shadow-sm border border-slate-100 h-[145px] mb-2 flex-shrink-0 relative glass-panel-inline transition-all"; 
+                cEl.className = "p-3 flex flex-col justify-between shadow-sm border border-slate-100 h-[125px] mb-1.5 flex-shrink-0 relative glass-panel-inline transition-all"; 
                 if (state === 'absent') cEl.classList.add('cc-bg-fail'); 
                 else if (state === 'semester') cEl.classList.add('cc-bg-semester');
                 else if (state === 'ledig' || state === 'unplanned') cEl.classList.add('cc-bg-ledig'); 

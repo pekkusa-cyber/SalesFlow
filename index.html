@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SalesFlow - Nordic Frost</title><link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <title>SalesFlow - Nordic Frost</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -35,24 +36,36 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
         body { background: var(--bg-canvas); font-family: 'Plus Jakarta Sans', sans-serif; font-variant-numeric: tabular-nums; height: 100dvh; width: 100vw; overflow: hidden; display: flex; justify-content: center; color: var(--text-main); }
         
-        .dark-backdrop { position: absolute; top: 0; left: 0; right: 0; height: 210px; background: var(--backdrop-gradient); border-radius: 0 0 40px 40px; z-index: 0; opacity: 0.6; }
+        /* Uppdaterad höjd på backdropen för att täcka den nya stora topbaren */
+        .dark-backdrop { position: absolute; top: 0; left: 0; right: 0; height: 240px; background: var(--backdrop-gradient); border-radius: 0 0 40px 40px; z-index: 0; opacity: 0.6; }
         #app-shell { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
         .content-locker { width: 100%; max-width: 390px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding-top: max(env(safe-area-inset-top), 6px); }
         
         .app-card { border-radius: 28px; box-shadow: 0 12px 35px -10px rgba(15,23,42,0.15); flex-shrink: 0; border: 1px solid var(--border-subtle); background: var(--white); }
         .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; }
-        .top-section { margin: 0 16px 6px; padding: 10px 20px 8px; position: relative; border: none; box-shadow: 0 20px 35px -10px rgba(15,23,42,0.3); }
+        
+        /* Ökad padding för top-section för mer luft */
+        .top-section { margin: 0 16px 8px; padding: 18px 20px 14px; position: relative; border: none; box-shadow: 0 20px 35px -10px rgba(15,23,42,0.3); }
+        
         .budget-header { text-align: center; margin-bottom: 2px; }
         .budget-label { font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.25em; margin-bottom: 2px; }
-        .budget-val { font-size: 19px; font-weight: 900; line-height: 1; color: #ffffff !important; text-shadow: 0 2px 10px rgba(255,255,255,0.1); }
+        
+        /* Större budget-siffra */
+        .budget-val { font-size: 22px; font-weight: 900; line-height: 1; color: #ffffff !important; text-shadow: 0 2px 10px rgba(255,255,255,0.1); }
+        
         .gauge-layout { display: flex; align-items: center; justify-content: space-between; gap: 0; }
         .side-col { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
         .micro-lbl { font-size: 8px; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-        .val-display { font-size: 18px; font-weight: 900; line-height: 1; }
+        
+        /* Större sidovärden */
+        .val-display { font-size: 20px; font-weight: 900; line-height: 1; }
+        
         .pop-highlight { color: #ffffff; text-shadow: 0 2px 8px rgba(255, 255, 255, 0.15); }
         .status-pill { display: inline-flex; padding: 4px 10px; border-radius: 100px; font-size: 8px; font-weight: 900; text-transform: uppercase; margin-top: 4px; border: 1px solid rgba(255,255,255,0.1); }
         .pill-blue { background: rgba(255,255,255,0.08); color: white; backdrop-filter: blur(5px); }
-        .gauge-container { position: relative; width: 105px; height: 105px; display: flex; align-items: center; justify-content: center; margin: 0 8px;}
+        
+        /* Mätaren har fått bredare container */
+        .gauge-container { position: relative; width: 115px; height: 115px; display: flex; align-items: center; justify-content: center; margin: 0 8px;}
         .g-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; stroke-linecap: round; }
         .g-prog { fill: none; stroke: var(--sting-blue); stroke-width: 8; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; transition: stroke-dashoffset 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.5)); }
         .g-marks { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 1.5; stroke-dasharray: 1, 15; transform: rotate(135deg); transform-origin: 50% 50%; opacity: 0.7; }
@@ -181,7 +194,7 @@
 
     <div id="app-shell">
         <div class="content-locker">
-            <header class="flex justify-between items-center px-6 pb-1.5 pt-1 relative z-20 flex-shrink-0">
+            <header class="flex justify-between items-center px-6 pb-4 pt-4 relative z-20 flex-shrink-0">
                 <div class="flex items-center gap-2"><span class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 drop-shadow-sm">Översikt</span><button onclick="openBudgetModal()" class="text-slate-500 hover:text-slate-800 text-xs active:scale-75 transition-transform p-0.5 select-none drop-shadow-sm">⚙️</button></div>
                 <button id="sync-btn" onclick="syncData()" class="text-[9px] font-black uppercase tracking-widest bg-[#0ea5e9] text-white px-3 py-1 rounded-full shadow-md border border-[#0284c7] select-none active:scale-95 transition-all">SalesFlow ⚡</button>
             </header>
@@ -195,12 +208,12 @@
                     </div>
                     <div class="gauge-container">
                         <span class="g-label-0">0</span>
-                        <svg width="105" height="105" viewBox="0 0 130 130">
+                        <svg width="115" height="115" viewBox="0 0 130 130">
                             <circle class="g-bg" cx="65" cy="65" r="52" stroke-dasharray="245 326.7" transform="rotate(135 65 65)"></circle>
                             <circle class="g-marks" cx="65" cy="65" r="44" stroke-dasharray="1 18" transform="rotate(135 65 65)"></circle>
                             <circle id="h-circle-prog" class="g-prog" cx="65" cy="65" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"></circle>
                         </svg>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center pt-1"><span id="h-main-val" class="text-[21px] font-black tracking-tighter text-white drop-shadow-md">0 k</span><span id="h-perc-val" class="text-[10px] font-extrabold mt-0.5 text-white/90">0%</span></div>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pt-1"><span id="h-main-val" class="text-[24px] font-black tracking-tighter text-white drop-shadow-md">0 k</span><span id="h-perc-val" class="text-[11px] font-extrabold mt-0.5 text-white/90">0%</span></div>
                         <span id="g-max-lbl" class="g-label-240">240</span>
                     </div>
                     <div class="side-col">
@@ -1352,12 +1365,9 @@
         let isResettingScroll = false; const sc = document.getElementById('swipe-wrapper'); let scrollTimeout;
         init();
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
-</script>
-</body>
-</html>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("sw.js");
+        }
     </script>
 </body>
 </html>

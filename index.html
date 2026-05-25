@@ -36,16 +36,13 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
         body { background: var(--bg-canvas); font-family: 'Plus Jakarta Sans', sans-serif; font-variant-numeric: tabular-nums; height: 100dvh; width: 100vw; overflow: hidden; display: flex; justify-content: center; color: var(--text-main); }
         
-        /* Mer kompakt backdrop för att garantera plats i botten */
         .dark-backdrop { position: absolute; top: 0; left: 0; right: 0; height: 210px; background: var(--backdrop-gradient); border-radius: 0 0 40px 40px; z-index: 0; opacity: 0.6; }
-        
         #app-shell { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
         .content-locker { width: 100%; max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding-top: max(env(safe-area-inset-top), 6px); }
         
         .app-card { border-radius: 28px; box-shadow: 0 12px 35px -10px rgba(15,23,42,0.15); flex-shrink: 0; border: 1px solid var(--border-subtle); background: var(--white); }
         .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; }
         
-        /* Slimmad Top Section */
         .top-section { margin: 4px 12px 8px; padding: 12px 16px; position: relative; border: none; box-shadow: 0 20px 35px -10px rgba(15,23,42,0.3); }
         .budget-header { text-align: center; margin-bottom: 2px; }
         .budget-label { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 2px; }
@@ -59,10 +56,8 @@
         .status-pill { display: inline-flex; padding: 3px 8px; border-radius: 100px; font-size: 8px; font-weight: 900; text-transform: uppercase; margin-top: 4px; border: 1px solid rgba(255,255,255,0.1); }
         .pill-blue { background: rgba(255,255,255,0.08); color: white; backdrop-filter: blur(5px); }
         
-        /* Huvudmätaren anpassad så den inte äter skärmhöjd */
         .gauge-container { position: relative; width: 95px; height: 95px; display: flex; align-items: center; justify-content: center; margin: 0 4px;}
         .gauge-container svg { width: 100%; height: 100%; }
-        
         .g-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; stroke-linecap: round; }
         .g-prog { fill: none; stroke: var(--sting-blue); stroke-width: 8; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.5)); }
         .g-marks { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 1.5; stroke-dasharray: 1, 15; transform: rotate(135deg); transform-origin: 50% 50%; opacity: 0.7; }
@@ -70,12 +65,9 @@
         .g-label-240 { position: absolute; bottom: 4px; right: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.4); }
         
         .bottom-section { flex: 1; margin: 0 12px calc(env(safe-area-inset-bottom) + 6px); display: flex; flex-direction: column; position: relative; min-height: 0; overflow: hidden; }
-        
-        /* Magisk Kalender CSS - Räknar ut höjden automatiskt för att aldrig klippa sista raden! */
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(0, 1fr); gap: 3px 2px; padding: 2px 6px 6px; height: 100%; }
         .weekday-label { text-align: center; font-size: 8.5px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; padding-bottom: 2px; }
         
-        /* Cellerna har inte längre hårdkodad form, de anpassar sig exakt till utrymmet */
         .day-cell { width: 100%; height: 100%; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; background: #f8fafc; border: 1px solid rgba(15,23,42,0.04); transition: background 0.15s ease, opacity 0.2s ease, transform 0.1s; }
         .day-cell:active { transform: scale(0.95); }
         
@@ -109,8 +101,7 @@
         .mode-day #pane-day, .mode-week #pane-week, .mode-month #pane-month, .mode-absence #pane-absence, .mode-notes #pane-notes { visibility: visible; opacity: 1; pointer-events: auto; transform: scale(1); }
         .glass-panel-inline { border-radius: 20px; transition: all 0.2s ease; border: 1px solid var(--border-subtle); }
         .focus-gauge-bg { fill: none; stroke: rgba(15,23,42,0.05); stroke-linecap: round; }
-        .fg-time { fill: none; stroke: #94a3b8; stroke-width: 5; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; stroke-dasharray: 283; }
-        .fg-sales { fill: none; stroke: var(--sting-blue); stroke-width: 7; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; stroke-dasharray: 220; transition: stroke-dashoffset 0.6s ease; }
+        .fg-sales { fill: none; stroke: var(--sting-blue); stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
         .input-dark-theme { background: #ffffff; border: 1px solid #cbd5e1; color: var(--text-main); outline: none; }
         .input-dark-theme:focus { border-color: var(--sting-blue); }
         
@@ -189,7 +180,7 @@
                 </div>
                 
                 <div class="flex flex-col items-center justify-center flex-1">
-                    <span class="text-[6.5px] font-black uppercase tracking-widest text-slate-500 bg-white/50 px-2 py-0.5 rounded-full mb-0.5 shadow-sm border border-slate-200/50">V.2.2 PWA</span>
+                    <span class="text-[6.5px] font-black uppercase tracking-widest text-slate-500 bg-white/50 px-2 py-0.5 rounded-full mb-0.5 shadow-sm border border-slate-200/50">V.2.4 PWA</span>
                     <span id="live-clock" class="text-[11px] font-black text-slate-800 tabular-nums tracking-tight">--:--</span>
                 </div>
 
@@ -243,19 +234,19 @@
                         </div>
                     </div>
                     <div id="month-edit-menu" class="hidden absolute inset-0 flex items-center justify-between px-3 z-50 bg-slate-50" style="border-radius: 28px 28px 0 0;">
-                        <div class="flex items-center justify-between w-full">
-                            <div class="flex items-center gap-1">
-                                <input type="text" inputmode="decimal" id="in-sales-month" onclick="event.stopPropagation()" class="w-12 h-8 text-center font-black rounded text-[11px] input-dark-theme focus:border-[#0ea5e9]" placeholder="0">
-                                <button onclick="saveSalesFromPopup(); event.stopPropagation();" class="w-8 h-8 rounded text-white font-black text-xs bg-[#0ea5e9] shadow-sm">✓</button>
+                        <div class="flex items-center justify-between w-full h-full pb-0.5">
+                            <div class="flex items-center gap-2">
+                                <input type="text" inputmode="decimal" id="in-sales-month" onclick="event.stopPropagation()" class="w-16 h-10 text-center font-black rounded-xl text-[14px] input-dark-theme focus:border-[#0ea5e9] shadow-inner" placeholder="0 kr">
+                                <button onclick="saveSalesFromPopup(); event.stopPropagation();" class="w-10 h-10 rounded-xl text-white font-black text-[16px] bg-[#0ea5e9] shadow-md active:scale-95 transition-all">✓</button>
                             </div>
-                            <div class="flex items-center gap-0.5 border-l border-slate-200 pl-1 ml-1 text-slate-700">
-                                <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-[13px] transform active:scale-90 px-0.5">⚒️</button>
-                                <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-[13px] transform active:scale-90 px-0.5">🏠</button>
-                                <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="text-[13px] transform active:scale-90 px-0.5">✈️</button>
-                                <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="text-[13px] transform active:scale-90 px-0.5">🤒</button>
-                                <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="text-[13px] transform active:scale-90 px-0.5">👶</button>
-                                <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="text-[13px] transform active:scale-90 px-0.5">🍼</button>
-                                <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="text-red-500 text-[13px] transform active:scale-90 border-l border-slate-200 pl-1 ml-0.5">🗑️</button>
+                            <div class="flex items-center gap-1.5 border-l border-slate-200 pl-2 ml-1">
+                                <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">⚒️</button>
+                                <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">🏠</button>
+                                <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">✈️</button>
+                                <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">🤒</button>
+                                <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">👶</button>
+                                <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">🍼</button>
+                                <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="text-red-500 text-[18px] transform active:scale-90 border-l border-slate-200 pl-2 ml-1">🗑️</button>
                             </div>
                         </div>
                     </div>
@@ -278,22 +269,27 @@
 
                         <div id="dp-cockpit-card" class="cc-bg-default p-2 flex flex-col justify-between shadow-sm border border-slate-100 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors">
                             <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none">
-                                <div class="flex flex-col justify-center text-left pointer-events-auto">
-                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">DAGSMÅL</span><p id="dp-inline-target" class="text-[16px] font-black leading-none mb-1 text-slate-900">0 k</p>
-                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mt-1">KVAR TILL MÅL</span><p id="dp-inline-left" class="text-[16px] font-black leading-none text-rose-600">0 k</p>
+                                <div class="flex flex-col justify-center text-left pointer-events-auto flex-1 pl-1">
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">DAGSMÅL</span>
+                                    <p id="dp-inline-target" class="text-[16px] font-black leading-none mb-1.5 text-slate-900">0 k</p>
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">KVAR TILL MÅL</span>
+                                    <p id="dp-inline-left" class="text-[16px] font-black leading-none text-rose-600">0 k</p>
                                 </div>
-                                <div class="relative flex flex-col justify-center items-center pointer-events-none flex-1 max-w-[85px] aspect-square mx-1">
-                                    <svg class="w-full h-full" viewBox="0 0 120 120">
-                                        <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="5" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
-                                        <circle id="dp-gauge-time" class="fg-time" cx="60" cy="60" r="45" stroke-dashoffset="283"></circle>
-                                        <circle class="focus-gauge-bg" cx="60" cy="60" r="35" stroke-width="7" stroke-dasharray="165 220" transform="rotate(135 60 60)"></circle>
-                                        <circle id="dp-gauge-sales" class="fg-sales" cx="60" cy="60" r="35" stroke-dashoffset="220"></circle>
+                                <div class="relative flex flex-col justify-center items-center pointer-events-none flex-[1.5] max-w-[110px] aspect-square mx-1">
+                                    <svg class="w-full h-full drop-shadow-sm" viewBox="0 0 120 120">
+                                        <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
+                                        <circle id="dp-gauge-sales" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
                                     </svg>
-                                    <div class="absolute inset-0 flex flex-col items-center justify-center pt-0.5"><span id="dp-inline-eff" class="text-[13px] font-black tracking-tighter text-slate-900">0%</span><span id="dp-inline-eff-lbl" class="text-[6px] font-black uppercase tracking-widest text-emerald-600 mt-0.5">I FAS</span></div>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5">
+                                        <span id="dp-inline-eff" class="text-[22px] font-black tracking-tighter text-slate-900 leading-none">0%</span>
+                                        <span id="dp-inline-eff-lbl" class="text-[8px] font-black uppercase tracking-widest text-emerald-600 mt-1">I FAS</span>
+                                    </div>
                                 </div>
-                                <div class="flex flex-col justify-center text-right pointer-events-auto">
-                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">KRAV/TIMME</span><p id="dp-inline-req" class="text-[16px] font-black text-[#0ea5e9] leading-none mb-1">0 k</p>
-                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mt-1">INKÖRT</span><p id="dp-inline-sales" class="text-[16px] font-black text-emerald-600 leading-none">0 k</p>
+                                <div class="flex flex-col justify-center text-right pointer-events-auto flex-1 pr-1">
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">INKÖRT</span>
+                                    <p id="dp-inline-sales" class="text-[16px] font-black text-[#0ea5e9] leading-none mb-1.5">0 k</p>
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">SNITT / PASS</span>
+                                    <p id="dp-inline-req" class="text-[16px] font-black text-slate-600 leading-none">0 k</p>
                                 </div>
                             </div>
                         </div>
@@ -326,51 +322,40 @@
                             <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
                         </div>
                         
-                        <div id="swipe-wrapper" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full h-[52px] flex-shrink-0 mb-1">
+                        <div id="swipe-wrapper" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full h-[52px] flex-shrink-0 mb-1" style="touch-action: pan-x; overscroll-behavior: contain;">
                             <div id="slide-prev" class="w-full h-full flex-shrink-0 snap-center"></div>
                             <div id="slide-curr" class="w-full h-full flex-shrink-0 snap-center"></div>
                             <div id="slide-next" class="w-full h-full flex-shrink-0 snap-center"></div>
                         </div>
 
-                        <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[20px] border border-slate-200 shadow-sm flex flex-col flex-1 relative z-20 min-h-0 justify-between">
-                            <div class="flex justify-between items-end pb-2.5 border-b border-slate-100">
+                        <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[20px] border border-slate-200 shadow-sm flex flex-col flex-1 relative z-20 min-h-0 justify-between overflow-hidden">
+                            <div class="flex justify-between items-end pb-3 border-b border-slate-100">
                                 <div class="flex flex-col">
                                     <span id="wp-date-range" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
                                     <span id="wp-pass-count" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
                                 </div>
-                                <div class="flex gap-2 text-right">
-                                    <div class="flex flex-col items-center w-[44px] flex-shrink-0">
-                                        <span id="wp-lbl-target" class="text-[7.5px] font-black text-slate-400 uppercase tracking-wider text-center">Veckomål</span>
-                                        <span id="wp-sum-target" class="text-[11px] font-black text-slate-400 mt-0.5 text-center">0 k</span>
-                                    </div>
-                                    <div class="flex flex-col items-center w-[44px] flex-shrink-0">
-                                        <span id="wp-lbl-sales" class="text-[7.5px] font-black text-slate-400 uppercase tracking-wider text-center">Inkört</span>
-                                        <span id="wp-sum-sales" class="text-[11px] font-black text-slate-800 mt-0.5 text-center">0 k</span>
-                                    </div>
-                                    <div class="flex flex-col items-center w-[44px] flex-shrink-0">
-                                        <span class="text-[7.5px] font-black text-slate-400 uppercase tracking-wider text-center">Diff</span>
-                                        <span id="wp-sum-diff" class="text-[11px] font-black mt-0.5 text-center">0 k</span>
-                                    </div>
+                                <div class="flex flex-col text-right">
+                                    <p id="wp-quick-title" class="text-[8px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
+                                    <p class="text-[10px] font-bold text-slate-400">För att redigera</p>
                                 </div>
                             </div>
                             
-                            <div id="wp-week-summary" class="flex gap-2 pt-2 w-full h-[85px] mt-auto">
-                                <div class="flex-1 bg-slate-50 rounded-[14px] border border-slate-100 flex flex-col items-center justify-center relative overflow-hidden shadow-sm">
-                                    <span class="absolute -top-2 -right-1 text-3xl opacity-[0.07]">🔥</span>
-                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-1 z-10">Bästa Dag</span>
-                                    <span id="wp-best-val" class="text-[15px] font-black text-emerald-600 leading-none mb-1.5 z-10">-</span>
-                                    <span id="wp-best-day" class="text-[8.5px] font-bold text-slate-500 uppercase tracking-widest z-10">-</span>
+                            <div id="wp-week-summary" class="flex justify-between items-center w-full mt-auto mb-1 px-1 transition-opacity duration-300">
+                                <div class="flex flex-col items-center flex-1 py-1">
+                                    <span id="wp-lbl-target" class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">MÅL</span>
+                                    <span id="wp-sum-target" class="text-[13px] font-black text-slate-700">0 k</span>
                                 </div>
-                                <div class="flex-1 bg-slate-50 rounded-[14px] border border-slate-100 flex flex-col items-center justify-center relative overflow-hidden shadow-sm">
-                                    <span class="absolute -top-2 -right-1 text-3xl opacity-[0.07]">📉</span>
-                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-1 z-10">Sämsta Dag</span>
-                                    <span id="wp-worst-val" class="text-[15px] font-black text-rose-600 leading-none mb-1.5 z-10">-</span>
-                                    <span id="wp-worst-day" class="text-[8.5px] font-bold text-slate-500 uppercase tracking-widest z-10">-</span>
+                                <div class="flex flex-col items-center flex-[1.2] bg-[#f0f9ff] border border-[#bae6fd] rounded-[14px] p-2.5 shadow-sm transform scale-105 mx-2">
+                                    <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INKÖRT</span>
+                                    <span id="wp-sum-sales" class="text-[17px] font-black text-[#0ea5e9] leading-none">0 k</span>
+                                </div>
+                                <div class="flex flex-col items-center flex-1 py-1">
+                                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">DIFF</span>
+                                    <span id="wp-sum-diff" class="text-[13px] font-black text-slate-700">0 k</span>
                                 </div>
                             </div>
 
-                            <div id="wp-day-actions" class="hidden flex-col gap-1.5 pt-2 w-full mt-auto">
-                                <p id="wp-quick-title" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest text-center mb-0.5">REDIGERA: VÄLJ DAG...</p>
+                            <div id="wp-day-actions" class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md p-3 border-t border-slate-100 flex-col gap-2 w-full z-30 transition-transform duration-300 translate-y-full flex rounded-b-[20px] shadow-[0_-10px_20px_rgba(0,0,0,0.03)]">
                                 <div class="relative w-full h-[40px] overflow-hidden rounded-xl">
                                     <div id="wp-default-state" class="absolute inset-0 flex gap-1 transition-transform duration-200 transform translate-x-0">
                                         <button onclick="toggleWeekInput(true)" class="flex-[1.2] text-[8px] font-black bg-[#f0f9ff] hover:bg-[#e0f2fe] text-[#0ea5e9] border border-[#bae6fd] rounded-xl shadow-sm active:scale-95 flex items-center justify-center gap-1 uppercase tracking-wider transition-colors">💰 Sälj</button>
@@ -488,7 +473,6 @@
             setTimeout(() => { btn.innerText = oldTxt; }, 800);
         }
 
-        // OPTIMISTIC SYNC: Uppdaterar skärmen omedelbart, sparar i bakgrunden.
         function pushMatrixSync(k, o) {
             const old = db.d[k] || {}; 
             const merged = { st: o.st !== undefined ? o.st : (old.st || 'Arbete'), s: o.s !== undefined ? o.s : (old.s || 0), abs: o.abs !== undefined ? o.abs : (old.abs || null) };
@@ -500,57 +484,34 @@
             if (sb) {
                 sb.from('sales_data')
                   .upsert({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs })
-                  .catch(e => console.warn("Supabase fel vid spara i bakgrunden", e));
+                  .catch(e => console.warn("Supabase fel", e));
             }
         }
 
         function handleSaveFromPopup(t) { 
-            let upserts = [];
-            const keys = Array.from(multiSelectKeys);
+            let upserts = []; const keys = Array.from(multiSelectKeys);
             
             for (let k of keys) {
-                const old = db.d[k] || {}; 
-                let merged = { st: old.st || 'Arbete', s: old.s || 0, abs: old.abs || null };
-                
+                const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: old.s || 0, abs: old.abs || null };
                 if(t==='delete') { merged = { st: 'Arbete', s: 0, abs: null }; } 
-                else { 
-                    if(['Arbete','Ledig'].includes(t)) { merged.st = t; merged.abs = null; }
-                    else { merged.st = 'Arbete'; merged.abs = t; }
-                }
-                
-                db.d[k] = merged;
-                upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
+                else { if(['Arbete','Ledig'].includes(t)) { merged.st = t; merged.abs = null; } else { merged.st = 'Arbete'; merged.abs = t; } }
+                db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
             }
             
-            multiSelectKeys.clear();
-            calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard();
+            multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard();
             if (viewMode === 'week') updateWeekPanel();
-            
-            if (sb && upserts.length > 0) {
-                sb.from('sales_data').upsert(upserts).catch(e => console.warn("Supabase fel", e));
-            }
+            if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).catch(e => console.warn("Supabase fel", e)); }
         }
 
         function saveSalesFromPopup() { 
-            const val = document.getElementById('in-sales-month').value; 
-            let sVal = parseNum(val); 
-            let upserts = [];
-            const keys = Array.from(multiSelectKeys);
-            
+            const val = document.getElementById('in-sales-month').value; let sVal = parseNum(val); let upserts = []; const keys = Array.from(multiSelectKeys);
             for (let k of keys) {
-                const old = db.d[k] || {};
-                let merged = { st: old.st || 'Arbete', s: sVal, abs: old.abs || null };
-                db.d[k] = merged;
-                upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
+                const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: sVal, abs: old.abs || null };
+                db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
             }
-            
-            multiSelectKeys.clear();
-            calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard();
+            multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard();
             if (viewMode === 'week') updateWeekPanel();
-
-            if (sb && upserts.length > 0) {
-                sb.from('sales_data').upsert(upserts).catch(e => console.warn("Supabase fel", e));
-            }
+            if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).catch(e => console.warn("Supabase fel", e)); }
         }
 
         function toggleExpandNote(id) { if (expandedNoteId === id) expandedNoteId = null; else expandedNoteId = id; renderNotes(); }
@@ -666,26 +627,33 @@
             else if (viewMode === 'notes') { t.innerText = "ANTECKNINGAR"; }
         }
 
+        // FIX FÖR "TIDSMASKINEN" / TOGGLE - NOLLSTÄLLER ALLTID TILL IDAG VID FLIK-BYTE
         function setMode(mode) {
-            if (viewMode === mode) {
-                if (mode === 'month' || mode === 'absence') { viewDate = new Date(realToday); calculateTimeline(); updateDash(); if(mode === 'absence') renderAbsence(); } 
-                else if (mode === 'week') { currentWeekStart = new Date(realToday); const sdo = currentWeekStart.getDay() || 7; currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); activeK = null; renderWeekSlides(); updateWeekPanel(); } 
-                else if (mode === 'day') { activeK = getK(realToday); updateInlineFocusDashboard(); }
-                updateTopTitle(); multiSelectKeys.clear(); closeMonthEdit(); return;
-            }
+            viewDate = new Date(realToday);
+            currentWeekStart = new Date(realToday);
+            const sdo = currentWeekStart.getDay() || 7;
+            currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
+            currentWeekStart.setHours(0,0,0,0);
+            activeK = getK(realToday);
+            
+            multiSelectKeys.clear();
+            closeMonthEdit();
 
-            viewMode = mode; document.body.className = `mode-${mode}`; multiSelectKeys.clear(); closeMonthEdit();
+            viewMode = mode; document.body.className = `mode-${mode}`;
 
             ['week', 'day', 'month', 'absence', 'notes'].forEach(m => {
                 const b = document.getElementById(`tab-${m}`);
                 if(b) { if(m === mode) b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm"; else b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50"; }
             });
 
-            if (mode === 'day') { if(!activeK) activeK = getK(realToday); updateInlineFocusDashboard(); } 
-            else if (mode === 'week') { activeK = null; renderWeekSlides(); updateWeekPanel(); } 
-            else if (mode === 'month') { activeK = null; renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1); } 
-            else if (mode === 'absence') { activeK = null; renderAbsence(); } 
-            else if (mode === 'notes') { activeK = null; renderNotes(); }
+            calculateTimeline(); updateDash();
+
+            if (mode === 'day') { updateInlineFocusDashboard(); } 
+            else if (mode === 'week') { renderWeekSlides(); updateWeekPanel(); toggleWeekInput(false); } 
+            else if (mode === 'month') { renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1); } 
+            else if (mode === 'absence') { renderAbsence(); } 
+            else if (mode === 'notes') { renderNotes(); }
+            
             updateTopTitle();
         }
 
@@ -821,34 +789,29 @@
             const weekSummary = document.getElementById('wp-week-summary'); const dayActions = document.getElementById('wp-day-actions');
             
             if (activeK && dayActions && weekSummary) {
-                weekSummary.classList.add('hidden'); weekSummary.classList.remove('flex'); dayActions.classList.remove('hidden'); dayActions.classList.add('flex');
+                // Skjut in regg-baren osynligt över innehållet utan att ändra flex/layout!
+                weekSummary.style.opacity = '0'; weekSummary.style.pointerEvents = 'none';
+                dayActions.classList.remove('translate-y-full'); dayActions.classList.add('translate-y-0');
                 
                 const parts = activeK.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]); const curO = db.d[activeK] || {s:0}; 
                 const qtEl = document.getElementById('wp-quick-title'); if(qtEl) qtEl.innerText = `REDIGERA: ${daysLong[dObj.getDay()].toUpperCase()} ${dObj.getDate()}/${parts[1]} (${curO.s > 0 ? (curO.s/1000).toFixed(1)+' k' : 'EJ REGGAD'})`; 
                 
                 let dTarget = timeline[activeK]?.target || 0; let dSales = curO.s || 0; let dDiff = dSales - dTarget;
                 
-                if(lblTarget) lblTarget.innerText = "Dagsmål"; if(lblSales) lblSales.innerText = "Inkört";
+                if(lblTarget) lblTarget.innerText = "DAGSMÅL"; if(lblSales) lblSales.innerText = "INKÖRT (DAG)";
                 if(sumTargetEl) sumTargetEl.innerText = (dTarget/1000).toFixed(1) + ' k';
                 if(sumSalesEl) sumSalesEl.innerText = (dSales/1000).toFixed(1) + ' k';
                 if(sumDiffEl) { sumDiffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; sumDiffEl.style.color = dDiff >= 0 ? "var(--pos)" : "var(--neg)"; }
             } else if (dayActions && weekSummary) {
-                dayActions.classList.add('hidden'); dayActions.classList.remove('flex'); weekSummary.classList.remove('hidden'); weekSummary.classList.add('flex');
+                // Göm regg-baren och visa summorna igen
+                weekSummary.style.opacity = '1'; weekSummary.style.pointerEvents = 'auto';
+                dayActions.classList.remove('translate-y-0'); dayActions.classList.add('translate-y-full');
+
                 let diff = wSales - wTarget; 
-                if(lblTarget) lblTarget.innerText = "Veckomål"; if(lblSales) lblSales.innerText = "Inkört";
+                if(lblTarget) lblTarget.innerText = "VECKOMÅL"; if(lblSales) lblSales.innerText = "INKÖRT (VECKA)";
+                const qtEl = document.getElementById('wp-quick-title'); if(qtEl) qtEl.innerText = `VÄLJ DAG...`; 
                 if(sumTargetEl) sumTargetEl.innerText = (wTarget/1000).toFixed(1) + ' k'; if(sumSalesEl) sumSalesEl.innerText = (wSales/1000).toFixed(1) + ' k';
                 if(sumDiffEl) { sumDiffEl.innerText = (diff >= 0 ? "+" : "") + (diff/1000).toFixed(1) + " k"; sumDiffEl.style.color = diff >= 0 ? "var(--pos)" : "var(--neg)"; }
-
-                let bestDay = null, worstDay = null, bestVal = -1, worstVal = Infinity;
-                for(let i=0; i<7; i++) {
-                    const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); const k = getK(cd); const o = db.d[k] || {s:0};
-                    if(o.s > 0) { if(o.s > bestVal) { bestVal = o.s; bestDay = cd; } if(o.s < worstVal) { worstVal = o.s; worstDay = cd; } }
-                }
-
-                if (bestDay) { const bdEl = document.getElementById('wp-best-day'); if(bdEl) bdEl.innerText = daysLong[bestDay.getDay()]; const bvEl = document.getElementById('wp-best-val'); if(bvEl) bvEl.innerText = (bestVal/1000).toFixed(1) + ' k'; } 
-                else { const bdEl = document.getElementById('wp-best-day'); if(bdEl) bdEl.innerText = '-'; const bvEl = document.getElementById('wp-best-val'); if(bvEl) bvEl.innerText = '0 k'; }
-                if (worstDay && worstVal !== Infinity) { const wdEl = document.getElementById('wp-worst-day'); if(wdEl) wdEl.innerText = daysLong[worstDay.getDay()]; const wvEl = document.getElementById('wp-worst-val'); if(wvEl) wvEl.innerText = (worstVal/1000).toFixed(1) + ' k'; } 
-                else { const wdEl = document.getElementById('wp-worst-day'); if(wdEl) wdEl.innerText = '-'; const wvEl = document.getElementById('wp-worst-val'); if(wvEl) wvEl.innerText = '0 k'; }
             }
         }
 
@@ -881,8 +844,8 @@
 
         function updateInlineFocusDashboard() {
             const k = activeK || getK(realToday); const state = getCellState(k); const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; const target = timeline[k]?.target || 0;
-            let isToday = (k === getK(realToday)); let nH = new Date().getHours(), nM = new Date().getMinutes();
-            let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let sH = Math.max(10, sStart); let eH = Math.min(20, sEnd); let tH = eH - sH; if(tH <= 0) tH = 9;
+            let isToday = (k === getK(realToday)); let nH = new Date().getHours();
+            let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let sH = Math.max(10, sStart); let eH = Math.min(20, sEnd);
             
             let cTot = o.s || 0; const cEl = document.getElementById('dp-cockpit-card'); let isShiftActive = (isToday && qData.exists && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sH && nH <= eH);
 
@@ -910,12 +873,25 @@
             
             const tEl = document.getElementById('dp-inline-target'), lEl = document.getElementById('dp-inline-left'), sEl = document.getElementById('dp-inline-sales'), rEl = document.getElementById('dp-inline-req');
             if(tEl) tEl.innerText = (target/1000).toFixed(1) + ' k'; if(lEl) lEl.innerText = (Math.max(0, target - cTot)/1000).toFixed(1) + ' k'; if(sEl) sEl.innerText = (cTot/1000).toFixed(1) + ' k';
-            let tPH = tH > 0 ? Math.round(target / tH) : 0; if(rEl) rEl.innerText = (tPH/1000).toFixed(1) + ' k';
-            let timeP = 0; if(qData.exists) { if (nH >= eH) timeP = 100; else if (nH >= sH) { let el = ((nH - sH) * 60) + nM; timeP = Math.min(100, Math.round((el / (tH * 60)) * 100)); } }
-            const gTime = document.getElementById('dp-gauge-time'); if(gTime) gTime.style.strokeDashoffset = 283 - ((timeP / 100) * 283);
-            let sP = target > 0 ? Math.min(100, Math.round((cTot / target) * 100)) : 0; const gSales = document.getElementById('dp-gauge-sales'); if(gSales) gSales.style.strokeDashoffset = 220 - ((sP / 100) * 220);
-            let hP = nH >= sH ? (nH >= eH ? tH : nH - sH + 1) : 0; let eP = tPH * hP; let eff = eP > 0 ? Math.round((cTot / eP) * 100) : 0;
-            const effEl = document.getElementById('dp-inline-eff'); if(effEl) effEl.innerText = eff + '%'; const effLbl = document.getElementById('dp-inline-eff-lbl'); if(effLbl && qData.exists) { if(cTot < eP && cTot < target) { effLbl.innerText = "EFTER"; effLbl.style.color = "#dc2626"; } else { effLbl.innerText = "I FAS"; effLbl.style.color = "#059669"; } }
+            
+            // Cockpit Gauge logic (Endast Procent pengar)
+            let sP = target > 0 ? Math.min(100, Math.round((cTot / target) * 100)) : 0; 
+            const gSales = document.getElementById('dp-gauge-sales'); 
+            // 283 är cirkelns fulla omkrets. 212 är de 75% vi använder (dasharray="212 283")
+            if(gSales) gSales.style.strokeDashoffset = 212 - ((sP / 100) * 212);
+            
+            let eff = target > 0 ? Math.round((cTot / target) * 100) : 0;
+            const effEl = document.getElementById('dp-inline-eff'); if(effEl) effEl.innerText = eff + '%'; 
+            const effLbl = document.getElementById('dp-inline-eff-lbl'); 
+            if(effLbl) { 
+                if(cTot >= target && target > 0) { effLbl.innerText = "I MÅL"; effLbl.style.color = "#059669"; } 
+                else { effLbl.innerText = "KVAR"; effLbl.style.color = "#dc2626"; } 
+            }
+
+            // Snitt / Pass (prognos)
+            let cm = dObj.getMonth() + 1, cy = dObj.getFullYear(), tS = 0, dP = 0; const daysM = new Date(cy, cm, 0).getDate();
+            for(let d=1; d<=daysM; d++) { const mk = `${cy}-${cm}-${d}`; if(db.d[mk] && db.d[mk].s > 0) { tS += db.d[mk].s; dP++; } }
+            let avg = dP ? (tS/dP) : 0; if(rEl) rEl.innerText = (avg/1000).toFixed(1) + ' k';
         }
 
         function createDayCell(cd, k) {

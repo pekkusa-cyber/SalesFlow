@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SalesFlow V3.2 - Nordic Frost (Fixed Core)</title>
+    <title>SalesFlow - Nordic Frost</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
@@ -12,30 +12,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg-canvas: #cbd5e1; --navy-card: #ffffff; --white: #ffffff;
-            --text-main: #0f172a; --text-muted: #475569; --border-subtle: rgba(15, 23, 42, 0.08); 
-            --sting-blue: #0ea5e9; --pos: #059669; --neg: #dc2626; 
+            --bg-canvas: #cbd5e1; 
+            --navy-card: #ffffff; 
+            --white: #ffffff;
+            --text-main: #0f172a; 
+            --text-muted: #475569; 
+            --border-subtle: rgba(15, 23, 42, 0.08); 
+            --sting-blue: #0ea5e9; 
+            --pos: #059669; 
+            --neg: #dc2626; 
+            --gold-main: #b45309; 
             --backdrop-gradient: linear-gradient(to bottom, #94a3b8, #cbd5e1);
-            --today-light: #38bdf8; --today-dark: #0284c7;
+            --input-bg: #f8fafc; 
+            --today-light: #38bdf8; 
+            --today-dark: #0284c7;
             --top-banner-bg: linear-gradient(135deg, #020617, #334155); 
             --selected-bg: linear-gradient(135deg, #38bdf8, #0ea5e9);
-            --pastel-green-bg: #d1fae5; --pastel-red-bg: #fee2e2;
-            --pastel-blue-bg: #f0f9ff; --pastel-gray-bg: #e2e8f0;
+            --pastel-green-bg: #d1fae5; 
+            --pastel-red-bg: #fee2e2;
+            --pastel-blue-bg: #f0f9ff; 
+            --pastel-gray-bg: #e2e8f0;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
         body { background: var(--bg-canvas); font-family: 'Plus Jakarta Sans', sans-serif; font-variant-numeric: tabular-nums; height: 100dvh; width: 100vw; overflow: hidden; display: flex; justify-content: center; color: var(--text-main); }
         
-        .dark-backdrop { position: absolute; top: 0; left: 0; right: 0; height: 215px; background: var(--backdrop-gradient); border-radius: 0 0 40px 40px; z-index: 0; opacity: 0.6; }
+        .dark-backdrop { position: absolute; top: 0; left: 0; right: 0; height: 210px; background: var(--backdrop-gradient); border-radius: 0 0 40px 40px; z-index: 0; opacity: 0.6; }
         #app-shell { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
-        .content-locker { width: 100%; max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; height: calc(100% - 64px); }
+        .content-locker { width: 100%; max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding-top: max(env(safe-area-inset-top), 6px); }
         
-        .safe-top-spacer { height: max(env(safe-area-inset-top), 10px); }
-        .balanced-header { padding: 12px 20px 6px; border: none; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
-
         .app-card { border-radius: 28px; box-shadow: 0 12px 35px -10px rgba(15,23,42,0.15); flex-shrink: 0; border: 1px solid var(--border-subtle); background: var(--white); }
         .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; }
         
-        .top-section { margin: 2px 12px 6px; padding: 12px 16px; position: relative; border: none; box-shadow: 0 20px 35px -10px rgba(15,23,42,0.3); }
+        .top-section { margin: 4px 12px 8px; padding: 12px 16px; position: relative; border: none; box-shadow: 0 20px 35px -10px rgba(15,23,42,0.3); }
         .budget-header { text-align: center; margin-bottom: 2px; }
         .budget-label { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 2px; }
         .budget-val { font-size: 22px; font-weight: 900; line-height: 1; color: #ffffff !important; text-shadow: 0 2px 10px rgba(255,255,255,0.1); }
@@ -48,16 +56,18 @@
         .status-pill { display: inline-flex; padding: 3px 8px; border-radius: 100px; font-size: 8px; font-weight: 900; text-transform: uppercase; margin-top: 4px; border: 1px solid rgba(255,255,255,0.1); }
         .pill-blue { background: rgba(255,255,255,0.08); color: white; backdrop-filter: blur(5px); }
         
-        .gauge-container { position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; margin: 0 6px;}
+        .gauge-container { position: relative; width: 95px; height: 95px; display: flex; align-items: center; justify-content: center; margin: 0 4px;}
         .gauge-container svg { width: 100%; height: 100%; }
         .g-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; stroke-linecap: round; }
-        .g-prog { fill: none; stroke: var(--sting-blue); stroke-width: 8; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.8s ease; filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.5)); }
+        .g-prog { fill: none; stroke: var(--sting-blue); stroke-width: 8; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.5)); }
         .g-marks { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 1.5; stroke-dasharray: 1, 15; transform: rotate(135deg); transform-origin: 50% 50%; opacity: 0.7; }
         .g-label-0 { position: absolute; bottom: 4px; left: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.4); }
         .g-label-240 { position: absolute; bottom: 4px; right: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.4); }
         
-        .bottom-section { flex: 1; margin: 0 12px 6px; display: flex; flex-direction: column; position: relative; min-height: 0; overflow: hidden; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(0, 1fr); gap: 4px 3px; padding: 4px 8px 8px; height: 100%; }
+        .bottom-section { flex: 1; margin: 0 12px calc(env(safe-area-inset-bottom) + 6px); display: flex; flex-direction: column; position: relative; min-height: 0; overflow: hidden; }
+        
+        /* Justerad kalender layout (Månad) */
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 4px; padding: 2px 4px 6px; height: 100%; }
         .weekday-label { text-align: center; font-size: 8.5px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; padding-bottom: 2px; }
         
         .day-cell { width: 100%; height: 100%; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; background: #f8fafc; border: 1px solid rgba(15,23,42,0.04); transition: background 0.15s ease, opacity 0.2s ease, transform 0.1s; }
@@ -89,29 +99,32 @@
         
         #confirm-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 14000; display: none; width: 280px; background: var(--white); border: 1px solid var(--border-subtle); border-radius: 28px; padding: 24px; box-shadow: 0 20px 50px rgba(15,23,42,0.15); }
         #container-dash-views { position: relative; flex: 1; min-height: 0; overflow: hidden; }
-        .dash-view-pane { position: absolute; inset: 0; transition: all 0.22s ease-in-out; display: flex; flex-direction: column; visibility: hidden; opacity: 0; pointer-events: none; }
-        
-        .mode-day #pane-day, .mode-week #pane-week, .mode-month #pane-month, .mode-absence #pane-absence, .mode-notes #pane-notes { visibility: visible; opacity: 1; pointer-events: auto; }
-        
-        .glass-panel-inline { border-radius: 20px; border: 1px solid var(--border-subtle); }
+        .dash-view-pane { position: absolute; inset: 0; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; visibility: hidden; opacity: 0; pointer-events: none; }
+        .mode-day #pane-day, .mode-week #pane-week, .mode-month #pane-month, .mode-absence #pane-absence, .mode-notes #pane-notes { visibility: visible; opacity: 1; pointer-events: auto; transform: scale(1); }
+        .glass-panel-inline { border-radius: 20px; transition: all 0.2s ease; border: 1px solid var(--border-subtle); }
         .focus-gauge-bg { fill: none; stroke: rgba(15,23,42,0.05); stroke-linecap: round; }
         .fg-sales { fill: none; stroke: var(--sting-blue); stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+        .input-dark-theme { background: #ffffff; border: 1px solid #cbd5e1; color: var(--text-main); outline: none; }
+        .input-dark-theme:focus { border-color: var(--sting-blue); }
         
-        #wp-day-actions { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(8px); padding: 12px; border-top: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 8px; width: 100%; z-index: 30; transition: transform 0.3s ease; transform: translateY(100%); border-radius: 0 0 20px 20px; box-shadow: 0 -10px 20px rgba(0,0,0,0.03); }
-        #wp-day-actions.active { transform: translateY(0); }
-
-        #bottom-nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 64px; background: #0f172a; display: flex; justify-content: space-around; align-items: center; z-index: 10000; border-top: 1px solid rgba(255,255,255,0.05); padding-bottom: env(safe-area-inset-bottom); }
-        .nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; height: 100%; color: #94a3b8; font-weight: 700; transition: all 0.15s ease; cursor: pointer; }
-        .nav-btn.active { color: #38bdf8; }
-        .nav-btn-icon { font-size: 18px; margin-bottom: 3px; }
-        .nav-btn-text { font-size: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
-
+        .cc-bg-default { background: #ffffff; }
+        .cc-bg-success { background: linear-gradient(135deg, #f0fdf4, #d1fae5); border-color: #10b981; }
+        .cc-bg-fail { background: linear-gradient(135deg, #fff5f5, #fee2e2); border-color: #f43f5e; }
+        .cc-bg-planned { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-color: var(--sting-blue); }
+        .cc-bg-ledig { background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-color: #94a3b8; }
+        
         @keyframes pulse-cell {
             0% { box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3), 0 0 0 0 rgba(14, 165, 233, 0.5); }
             70% { box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3), 0 0 0 5px rgba(14, 165, 233, 0); }
             100% { box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3), 0 0 0 0 rgba(14, 165, 233, 0); }
         }
+        @keyframes pulse-card {
+            0% { box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 0 rgba(14, 165, 233, 0.3); }
+            70% { box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 6px rgba(14, 165, 233, 0); }
+            100% { box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 0 rgba(14, 165, 233, 0); }
+        }
         .status-today.active-shift-pulse, .active-focus.active-shift-pulse { animation: pulse-cell 2s infinite; border: 1.5px solid var(--sting-blue) !important; }
+        .cc-bg-active-shift { background: linear-gradient(135deg, #f0f9ff, #e0f2fe) !important; border: 1.5px solid var(--sting-blue) !important; animation: pulse-card 2s infinite; }
     </style>
 </head>
 <body class="mode-day">
@@ -132,10 +145,16 @@
         <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-3 transform scale-95 transition-transform duration-300" id="child-modal-content">
             <p id="child-modal-title" class="text-[10px] font-black text-center uppercase tracking-widest text-slate-400 mb-2">VEM GÄLLER DET?</p>
             <div class="flex gap-2">
-                <button onclick="selectChild('Belma')" class="flex-1 py-4 bg-[#f0f9ff] text-[#0ea5e9] font-black text-xs rounded-2xl border border-[#bae6fd] active:scale-95 transition-all flex flex-col items-center justify-center gap-1 shadow-sm"><span>👶</span><span class="text-[10px] uppercase tracking-wider mt-1">Belma</span></button>
-                <button onclick="selectChild('Wilma')" class="flex-1 py-4 bg-[#fff1f2] text-[#e11d48] font-black text-xs rounded-2xl border border-[#fecdd3] active:scale-95 transition-all flex flex-col items-center justify-center gap-1 shadow-sm"><span>👧</span><span class="text-[10px] uppercase tracking-wider mt-1">Wilma</span></button>
+                <button onclick="selectChild('Belma')" class="flex-1 py-4 bg-[#f0f9ff] hover:bg-[#e0f2fe] text-[#0ea5e9] font-black text-xs rounded-2xl border border-[#bae6fd] active:scale-95 transition-all flex flex-col items-center justify-center gap-1 shadow-sm">
+                    <span class="text-2xl">👶</span>
+                    <span class="text-[10px] uppercase tracking-wider mt-1">Belma</span>
+                </button>
+                <button onclick="selectChild('Wilma')" class="flex-1 py-4 bg-[#fff1f2] hover:bg-[#ffe4e6] text-[#e11d48] font-black text-xs rounded-2xl border border-[#fecdd3] active:scale-95 transition-all flex flex-col items-center justify-center gap-1 shadow-sm">
+                    <span class="text-2xl">👧</span>
+                    <span class="text-[10px] uppercase tracking-wider mt-1">Wilma</span>
+                </button>
             </div>
-            <button onclick="closeChildModal()" class="mt-1 py-2 bg-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Avbryt</button>
+            <button onclick="closeChildModal()" class="mt-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Avbryt</button>
         </div>
     </div>
 
@@ -143,33 +162,32 @@
         <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-4">
             <p class="text-[10px] font-black text-center uppercase tracking-widest text-slate-400">Välj Månadsmål</p>
             <div class="flex flex-col gap-2">
-                <button onclick="setGlobalBudget(100000)" class="w-full py-3 bg-slate-50 text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">100 000 kr</button>
-                <button onclick="setGlobalBudget(140000)" class="w-full py-3 bg-slate-50 text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">140 000 kr</button>
-                <button onclick="setGlobalBudget(180000)" class="w-full py-3 bg-slate-50 text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">180 000 kr</button>
-                <button onclick="setGlobalBudget(240000)" class="w-full py-3 bg-slate-50 text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">240 000 kr</button>
-                <button onclick="setGlobalBudget(350000)" class="w-full py-3 bg-slate-50 text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">350 000 kr</button>
+                <button onclick="setGlobalBudget(100000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">100 000 kr</button>
+                <button onclick="setGlobalBudget(140000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">140 000 kr</button>
+                <button onclick="setGlobalBudget(180000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">180 000 kr</button>
+                <button onclick="setGlobalBudget(240000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">240 000 kr</button>
+                <button onclick="setGlobalBudget(350000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">350 000 kr</button>
             </div>
-            <button onclick="closeBudgetModal()" class="mt-1 py-2 bg-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Avbryt</button>
+            <button onclick="closeBudgetModal()" class="mt-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Avbryt</button>
         </div>
     </div>
 
     <div id="app-shell">
         <div class="content-locker">
             
-            <div class="safe-top-spacer flex-shrink-0"></div>
-            <header class="balanced-header relative z-20 flex-shrink-0">
+            <header class="flex justify-between items-center px-5 pb-1.5 pt-3 relative z-20 flex-shrink-0">
                 <div class="flex items-center gap-1.5 flex-1">
-                    <span id="header-view-title" class="text-[11px] font-black uppercase tracking-[0.3em] text-slate-700 drop-shadow-sm">Cockpit</span>
+                    <span class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-700 drop-shadow-sm">Översikt</span>
                     <button onclick="openBudgetModal()" class="text-slate-500 hover:text-slate-800 text-xs active:scale-75 transition-transform p-0.5 select-none drop-shadow-sm">⚙️</button>
                 </div>
                 
                 <div class="flex flex-col items-center justify-center flex-1">
-                    <span class="text-[7.5px] font-black uppercase tracking-widest text-slate-500 bg-white/50 px-2 py-0.5 rounded-full mb-0.5 shadow-sm border border-slate-200/50">V.3.2 PWA</span>
-                    <span id="live-clock" class="text-[12px] font-black text-slate-800 tabular-nums tracking-tight">--:--</span>
+                    <span class="text-[6.5px] font-black uppercase tracking-widest text-slate-500 bg-white/50 px-2 py-0.5 rounded-full mb-0.5 shadow-sm border border-slate-200/50">V.2.5 PWA</span>
+                    <span id="live-clock" class="text-[11px] font-black text-slate-800 tabular-nums tracking-tight">--:--</span>
                 </div>
 
                 <div class="flex justify-end flex-1">
-                    <span class="text-[10px] font-black uppercase text-slate-600 tracking-wider">Nordic Frost</span>
+                    <button id="sync-btn" onclick="syncData()" class="text-[8.5px] font-black uppercase tracking-widest bg-[#0ea5e9] text-white px-2.5 py-1 rounded-full shadow-md border border-[#0284c7] select-none active:scale-95 transition-all">Synk ⚡</button>
                 </div>
             </header>
 
@@ -197,42 +215,83 @@
                 </div>
             </div>
 
-            <div class="flex bg-white rounded-[18px] border border-slate-200 shadow-md mx-3 mb-2 py-1.5 divide-x divide-slate-100 flex-shrink-0 relative z-20" id="dash-stats-bar">
+            <div class="flex bg-white rounded-[18px] border border-slate-200 shadow-md mx-3 mb-1.5 py-1.5 divide-x divide-slate-100 flex-shrink-0 relative z-20" id="dash-stats-bar">
                 <div class="flex-1 text-center"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-slate-500">Snitt / Pass</p><p id="d-avg-val" class="text-[14px] font-black text-[#0ea5e9]">0 k</p></div>
                 <div class="flex-1 text-center"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-slate-500">Prognos</p><p id="d-prog" class="text-[14px] font-black">0</p></div>
                 <div class="flex-1 text-center"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-slate-500">Status</p><p id="d-status" class="text-[12px] font-black mt-0.5 uppercase tracking-wider">LADDAR</p></div>
             </div>
 
-            <div class="app-card bottom-section" id="calendar-wrapper" style="background: var(--white); overflow: hidden;">
-                <div id="container-dash-views" class="h-full w-full relative">
+            <div class="app-card bottom-section" id="calendar-wrapper" style="background: var(--white);">
+                
+                <div class="flex justify-between items-center px-2 py-1 border-b flex-shrink-0 relative z-30 h-[54px]" style="border-color: rgba(15,23,42,0.05); background: var(--white); border-radius: 28px 28px 0 0;">
+                    <button onclick="cycleView(-1)" class="text-slate-400 hover:text-[#0ea5e9] text-3xl px-1 active:scale-90 transition-colors">←</button>
+                    <div id="cal-standard-header" class="flex-1 flex flex-col justify-center items-center w-full px-1">
+                        <h3 id="dynamic-view-title" class="text-[9.5px] font-black uppercase tracking-widest text-slate-800 mb-1.5 text-center leading-none">LADDAR...</h3>
+                        <div class="flex gap-1 p-0.5 bg-slate-50 rounded-lg border border-slate-100 shadow-inner w-full">
+                            <button id="tab-week" onclick="setMode('week')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">VECKA</button>
+                            <button id="tab-day" onclick="setMode('day')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm">COCKPIT</button>
+                            <button id="tab-month" onclick="setMode('month')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">MÅNAD</button>
+                            <button id="tab-absence" onclick="setMode('absence')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">FRÅNV.</button>
+                            <button id="tab-notes" onclick="setMode('notes')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">NOTER</button>
+                        </div>
+                    </div>
+                    <div id="month-edit-menu" class="hidden absolute inset-0 flex items-center justify-between px-3 z-50 bg-slate-50" style="border-radius: 28px 28px 0 0;">
+                        <div class="flex items-center justify-between w-full h-full pb-0.5">
+                            <div class="flex items-center gap-2">
+                                <input type="text" inputmode="decimal" id="in-sales-month" onclick="event.stopPropagation()" class="w-16 h-10 text-center font-black rounded-xl text-[14px] input-dark-theme focus:border-[#0ea5e9] shadow-inner" placeholder="0 kr">
+                                <button onclick="saveSalesFromPopup(); event.stopPropagation();" class="w-10 h-10 rounded-xl text-white font-black text-[16px] bg-[#0ea5e9] shadow-md active:scale-95 transition-all">✓</button>
+                            </div>
+                            <div class="flex items-center gap-1.5 border-l border-slate-200 pl-2 ml-1">
+                                <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">⚒️</button>
+                                <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">🏠</button>
+                                <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">✈️</button>
+                                <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">🤒</button>
+                                <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">👶</button>
+                                <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">🍼</button>
+                                <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="text-red-500 text-[18px] transform active:scale-90 border-l border-slate-200 pl-2 ml-1">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="cycleView(1)" class="text-slate-400 hover:text-[#0ea5e9] text-3xl px-1 active:scale-90 transition-colors">→</button>
+                </div>
+
+                <div id="container-dash-views">
                     
-                    <div id="pane-day" class="dash-view-pane p-2.5 flex flex-col justify-between h-full overflow-hidden gap-1.5">
+                    <div id="pane-day" class="dash-view-pane p-2 flex flex-col justify-between h-full overflow-hidden gap-1.5">
                         <div class="flex justify-between items-center flex-shrink-0">
-                            <div class="flex items-center gap-1 w-full justify-center relative h-[30px]">
-                                <button onclick="navCal(-1)" class="absolute left-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl active:scale-75">‹</button>
+                            <div class="flex items-center gap-1 w-full justify-center relative h-[32px]">
+                                <button onclick="navCal(-1)" class="absolute left-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl leading-none active:scale-75 transition-transform" style="margin-top:-2px;">‹</button>
                                 <div class="text-center">
                                     <h4 id="dp-inline-date" class="text-[10px] font-black uppercase tracking-widest text-slate-800">Laddar...</h4>
                                     <p id="dp-inline-time" class="text-[9px] font-bold text-[#0ea5e9] mt-0.5">00:00 — 00:00</p>
                                 </div>
-                                <button onclick="navCal(1)" class="absolute right-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl active:scale-75">›</button>
+                                <button onclick="navCal(1)" class="absolute right-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl leading-none active:scale-75 transition-transform" style="margin-top:-2px;">›</button>
                             </div>
                         </div>
 
-                        <div id="dp-cockpit-card" class="cc-bg-default p-3 flex flex-col justify-between shadow-sm border border-slate-100 flex-1 relative glass-panel-inline min-h-0 w-full transition-all">
-                            <div id="dp-gauge-view" class="flex flex-col items-center justify-center w-full h-full relative">
-                                <div class="relative w-full max-w-[130px] aspect-square flex items-center justify-center">
-                                    <svg class="w-full h-full" viewBox="0 0 120 120">
-                                        <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="7" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
-                                        <circle id="dp-gauge-sales" class="fg-sales" cx="60" cy="60" r="45" stroke-width="7" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
+                        <div id="dp-cockpit-card" class="cc-bg-default p-2 flex flex-col justify-between shadow-sm border border-slate-100 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors">
+                            <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none">
+                                <div class="flex flex-col justify-center text-left pointer-events-auto flex-1 pl-1">
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">DAGSMÅL</span>
+                                    <p id="dp-inline-target" class="text-[16px] font-black leading-none mb-1.5 text-slate-900">0 k</p>
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">KVAR TILL MÅL</span>
+                                    <p id="dp-inline-left" class="text-[16px] font-black leading-none text-rose-600">0 k</p>
+                                </div>
+                                <div class="relative flex flex-col justify-center items-center pointer-events-none flex-[1.5] max-w-[110px] aspect-square mx-1">
+                                    <svg class="w-full h-full drop-shadow-sm" viewBox="0 0 120 120">
+                                        <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
+                                        <circle id="dp-gauge-sales" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
                                     </svg>
-                                    <div class="absolute inset-0 flex flex-col items-center justify-center pt-1">
-                                        <span id="dp-inline-eff" class="text-[28px] font-black tracking-tighter text-slate-900 leading-none">0%</span>
-                                        <span id="dp-inline-eff-lbl" class="text-[9px] font-black uppercase tracking-widest text-emerald-600 mt-1">KVAR</span>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5">
+                                        <span id="dp-inline-eff" class="text-[22px] font-black tracking-tighter text-slate-900 leading-none">0%</span>
+                                        <span id="dp-inline-eff-lbl" class="text-[8px] font-black uppercase tracking-widest text-emerald-600 mt-1">I FAS</span>
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4 w-full mt-2 text-center border-t border-slate-100 pt-2 flex-shrink-0">
-                                    <div><span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">Dagsmål</span><p id="dp-inline-target" class="text-sm font-black text-slate-800">0 k</p></div>
-                                    <div><span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">Inkört</span><p id="dp-inline-sales" class="text-sm font-black text-[#0ea5e9]">0 k</p></div>
+                                <div class="flex flex-col justify-center text-right pointer-events-auto flex-1 pr-1">
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">INKÖRT</span>
+                                    <p id="dp-inline-sales" class="text-[16px] font-black text-[#0ea5e9] leading-none mb-1.5">0 k</p>
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">SNITT / PASS</span>
+                                    <p id="dp-inline-req" class="text-[16px] font-black text-slate-600 leading-none">0 k</p>
                                 </div>
                             </div>
                         </div>
@@ -240,27 +299,27 @@
                         <div class="flex-shrink-0 flex gap-1.5 h-[38px]">
                             <div class="bg-slate-50 border border-slate-200/60 rounded-[14px] p-1 flex items-center shadow-inner flex-1 h-full">
                                 <span class="pl-2 pr-1 text-[11px] opacity-40">⚡</span>
-                                <input type="text" inputmode="decimal" id="in-sales-direct-day" class="flex-1 bg-transparent font-black text-[12px] text-slate-900 placeholder-slate-400 outline-none text-center" placeholder="Försäljning (kr)...">
-                                <button onclick="saveDirectDaySales()" class="text-white font-black uppercase text-[9px] px-4 rounded-xl bg-[#0ea5e9] shadow-md active:scale-95 h-full transition-transform">SPARA</button>
+                                <input type="text" inputmode="decimal" id="in-sales-direct-day" class="flex-1 bg-transparent font-black text-[11px] text-slate-900 placeholder-slate-400 outline-none w-full text-center" placeholder="Försäljning (kr)...">
+                                <button onclick="saveDirectDaySales()" class="text-white font-black uppercase tracking-widest text-[8px] px-3.5 py-2 rounded-xl bg-[#0ea5e9] shadow-md flex-shrink-0 active:scale-95 transition-transform h-full">SPARA</button>
                             </div>
                         </div>
 
-                        <div class="flex-shrink-0 w-full grid grid-cols-6 gap-1 h-[36px] items-center">
-                            <button onclick="saveDirectDayStatus('Arbete')" class="flex-1 text-[11px] bg-slate-50 border border-slate-200 rounded-xl h-full flex flex-col items-center justify-center gap-0.5 uppercase tracking-wider transition-all active:scale-95"><span>⚒️</span><span class="text-[5.5px] font-bold text-slate-600">Jobb</span></button>
-                            <button onclick="saveDirectDayStatus('Ledig')" class="flex-1 text-[11px] bg-slate-50 border border-slate-200 rounded-xl h-full flex flex-col items-center justify-center gap-0.5 uppercase tracking-wider transition-all active:scale-95"><span>🏠</span><span class="text-[5.5px] font-bold text-slate-600">Ledig</span></button>
-                            <button onclick="saveDirectDayStatus('Semester')" class="flex-1 text-[11px] bg-slate-50 border border-slate-200 rounded-xl h-full flex flex-col items-center justify-center gap-0.5 uppercase tracking-wider transition-all active:scale-95"><span>✈️</span><span class="text-[5.5px] font-bold text-slate-600">Sem</span></button>
-                            <button onclick="saveDirectDayStatus('Sjuk')" class="flex-1 text-[11px] bg-slate-50 border border-slate-200 rounded-xl h-full flex flex-col items-center justify-center gap-0.5 uppercase tracking-wider transition-all active:scale-95"><span>🤒</span><span class="text-[5.5px] font-bold text-slate-600">Sjuk</span></button>
-                            <button onclick="saveDirectDayStatus('VAB')" class="flex-1 text-[11px] bg-slate-50 border border-slate-200 rounded-xl h-full flex flex-col items-center justify-center gap-0.5 uppercase tracking-wider transition-all active:scale-95"><span>👶</span><span class="text-[5.5px] font-bold text-slate-600">VAB</span></button>
-                            <button onclick="saveDirectDayStatus('Föräldraledig')" class="flex-1 text-[11px] bg-slate-50 border border-slate-200 rounded-xl h-full flex flex-col items-center justify-center gap-0.5 uppercase tracking-wider transition-all active:scale-95"><span>🍼</span><span class="text-[5.5px] font-bold text-slate-600">FL</span></button>
+                        <div class="flex-shrink-0 w-full grid grid-cols-6 gap-1 h-[36px]">
+                            <button onclick="saveDirectDayStatus('Arbete')" class="bg-[#f0f9ff] text-[#0ea5e9] font-extrabold text-[9px] rounded-xl border border-[#e0f2fe] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>⚒️</span><span class="text-[5.5px] mt-0.5">Jobb</span></button>
+                            <button onclick="saveDirectDayStatus('Ledig')" class="bg-slate-100 text-slate-600 font-extrabold text-[9px] rounded-xl border border-slate-200/60 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🏠</span><span class="text-[5.5px] mt-0.5">Ledig</span></button>
+                            <button onclick="saveDirectDayStatus('Semester')" class="bg-[#ccfbf1] text-[#0f766e] font-extrabold text-[9px] rounded-xl border border-[#99f6e4] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>✈️</span><span class="text-[5.5px] mt-0.5">Sem</span></button>
+                            <button onclick="saveDirectDayStatus('Sjuk')" class="bg-rose-50 text-rose-700 font-extrabold text-[9px] rounded-xl border border-rose-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🤒</span><span class="text-[5.5px] mt-0.5">Sjuk</span></button>
+                            <button onclick="saveDirectDayStatus('VAB')" class="bg-amber-50 text-amber-700 font-extrabold text-[9px] rounded-xl border border-amber-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>👶</span><span class="text-[5.5px] mt-0.5">VAB</span></button>
+                            <button onclick="saveDirectDayStatus('Föräldraledig')" class="bg-purple-50 text-purple-700 font-extrabold text-[9px] rounded-xl border border-purple-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🍼</span><span class="text-[5.5px] mt-0.5">FL</span></button>
                         </div>
 
-                        <div class="text-center bg-slate-50 border border-slate-100 rounded-xl flex-shrink-0 flex items-center justify-center h-[26px]">
-                            <span class="text-[8px] font-extrabold uppercase tracking-widest text-slate-400">REGISTRERAT:</span><span id="dp-inline-status" class="text-[8px] font-black text-[#0ea5e9] uppercase tracking-wider ml-1">ARBETSPASS</span>
+                        <div class="text-center bg-slate-50 border border-slate-100 rounded-xl flex-shrink-0 flex items-center justify-center gap-1.5 h-[26px]">
+                            <span class="text-[7.5px] font-extrabold uppercase tracking-widest text-slate-400">REGISTRERAT:</span><span id="dp-inline-status" class="text-[7.5px] font-black text-[#0ea5e9] uppercase tracking-wider">ARBETSPASS</span>
                         </div>
                     </div>
 
                     <div id="pane-week" class="dash-view-pane h-full justify-start pt-1.5 flex flex-col overflow-hidden">
-                        <div class="grid grid-cols-7 gap-1 mb-1 px-3 flex-shrink-0">
+                        <div class="grid grid-cols-7 gap-1 mb-0.5 px-3 flex-shrink-0">
                             <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
                             <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
                         </div>
@@ -271,72 +330,59 @@
                             <div id="slide-next" class="w-full h-full flex-shrink-0 snap-center"></div>
                         </div>
 
-                        <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[20px] border border-slate-200 shadow-sm flex flex-col flex-1 relative z-20 min-h-0 justify-between overflow-hidden">
-                            <div class="flex justify-between items-center pb-2 border-b border-slate-100 flex-shrink-0">
+                        <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[20px] border border-slate-200 shadow-sm flex flex-col flex-1 relative z-20 min-h-0 overflow-hidden">
+                            <div class="flex justify-between items-end pb-2 border-b border-slate-100 flex-shrink-0">
                                 <div class="flex flex-col">
                                     <span id="wp-date-range" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
                                     <span id="wp-pass-count" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
                                 </div>
-                                <div class="text-right"><p id="wp-quick-title" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p></div>
+                                <div class="flex flex-col text-right">
+                                    <p id="wp-quick-title" class="text-[8px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
+                                    <p class="text-[10px] font-bold text-slate-400">För att redigera</p>
+                                </div>
                             </div>
                             
-                            <div id="wp-week-summary" class="grid grid-cols-3 gap-1.5 w-full mt-auto mb-1 items-center px-0.5 transition-opacity">
-                                <div class="bg-slate-50 rounded-[12px] border border-slate-100 p-2.5 flex flex-col items-center justify-center shadow-sm h-[56px]">
-                                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5">MÅL</span>
-                                    <span id="wp-sum-target" class="text-[13px] font-black text-slate-700 leading-none">0 k</span>
+                            <div id="wp-week-summary" class="flex justify-between items-center w-full flex-1 px-1 mt-2 transition-opacity duration-300">
+                                <div class="flex flex-col items-center flex-1 py-1">
+                                    <span id="wp-lbl-target" class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">MÅL</span>
+                                    <span id="wp-sum-target" class="text-[14px] font-black text-slate-700">0 k</span>
                                 </div>
-                                <div class="bg-[#f0f9ff] border-2 border-[#bae6fd] rounded-[16px] p-3 flex flex-col items-center justify-center shadow-md transform scale-105 h-[62px]">
-                                    <span class="text-[9px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INKÖRT</span>
-                                    <span id="wp-sum-sales" class="text-[20px] font-black text-[#0ea5e9] leading-none">0 k</span>
+                                <div class="flex flex-col items-center flex-[1.2] bg-[#f0f9ff] border border-[#bae6fd] rounded-[14px] p-2.5 shadow-sm transform scale-105 mx-2 flex justify-center">
+                                    <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INKÖRT</span>
+                                    <span id="wp-sum-sales" class="text-[18px] font-black text-[#0ea5e9] leading-none">0 k</span>
                                 </div>
-                                <div class="bg-slate-50 rounded-[12px] border border-slate-100 p-2.5 flex flex-col items-center justify-center shadow-sm h-[56px]">
-                                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5">DIFF</span>
-                                    <span id="wp-sum-diff" class="text-[13px] font-black text-slate-700 leading-none">0 k</span>
+                                <div class="flex flex-col items-center flex-1 py-1">
+                                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">DIFF</span>
+                                    <span id="wp-sum-diff" class="text-[14px] font-black text-slate-700">0 k</span>
                                 </div>
                             </div>
 
-                            <div id="wp-day-actions">
-                                <div class="relative w-full h-[40px] overflow-hidden rounded-xl">
-                                    <div id="wp-default-state" class="absolute inset-0 flex gap-1 transition-transform duration-200">
-                                        <button onclick="toggleWeekInput(true)" class="flex-[1.2] text-[9px] font-black bg-[#f0f9ff] text-[#0ea5e9] border border-[#bae6fd] rounded-xl uppercase transition-transform active:scale-95">💰 Sälj</button>
-                                        <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[11px] bg-slate-50 border border-slate-200 rounded-xl transition-all active:scale-95">⚒️</button>
-                                        <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[11px] bg-slate-50 border border-slate-200 rounded-xl transition-all active:scale-95">🏠</button>
-                                        <button onclick="handleWeekDirectAction('Semester')" class="flex-1 text-[11px] bg-slate-50 border border-slate-200 rounded-xl transition-all active:scale-95">✈️</button>
-                                        <button onclick="handleWeekDirectAction('Sjuk')" class="flex-1 text-[11px] bg-slate-50 border border-slate-200 rounded-xl transition-all active:scale-95">🤒</button>
-                                        <button onclick="handleWeekDirectAction('VAB')" class="flex-1 text-[11px] bg-slate-50 border border-slate-200 rounded-xl transition-all active:scale-95">👶</button>
-                                        <button onclick="handleWeekDirectAction('Föräldraledig')" class="flex-1 text-[11px] bg-slate-50 border border-slate-200 rounded-xl transition-all active:scale-95">🍼</button>
+                            <div id="wp-day-actions" class="w-full flex-col transition-all duration-300 overflow-hidden max-h-0 opacity-0 flex-shrink-0 mt-0">
+                                <div class="relative w-full h-[40px] overflow-hidden rounded-xl border border-slate-200 shadow-sm mt-1">
+                                    <div id="wp-default-state" class="absolute inset-0 flex gap-0.5 transition-transform duration-200 transform translate-x-0 p-0.5 bg-slate-50">
+                                        <button onclick="toggleWeekInput(true)" class="flex-[1.2] text-[8px] font-black bg-[#f0f9ff] hover:bg-[#e0f2fe] text-[#0ea5e9] border border-[#bae6fd] rounded-lg active:scale-95 flex items-center justify-center gap-1 uppercase tracking-wider transition-colors">💰 Sälj</button>
+                                        <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">⚒️</button>
+                                        <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">🏠</button>
+                                        <button onclick="handleWeekDirectAction('Semester')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">✈️</button>
+                                        <button onclick="handleWeekDirectAction('Sjuk')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">🤒</button>
+                                        <button onclick="handleWeekDirectAction('VAB')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">👶</button>
+                                        <button onclick="handleWeekDirectAction('Föräldraledig')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">🍼</button>
                                     </div>
-                                    <div id="wp-input-state" class="absolute inset-0 flex gap-1 transition-transform duration-200 transform translate-x-full bg-white">
-                                        <input type="text" inputmode="decimal" id="in-sales-week-direct" class="flex-1 h-full px-3 font-black rounded-xl text-[12px] bg-slate-50 border border-slate-200 text-slate-900 outline-none placeholder-slate-400 focus:border-[#0ea5e9]" placeholder="Belopp (kr)...">
-                                        <button onclick="saveSalesFromWeekDirect()" class="h-full px-4 rounded-xl text-white font-black text-[10px] bg-[#0ea5e9] transition-transform active:scale-95 uppercase tracking-wider">Spara</button>
-                                        <button onclick="toggleWeekInput(false)" class="h-full px-3 rounded-xl text-slate-500 font-black text-[10px] bg-slate-100 border transition-transform active:scale-95 uppercase tracking-wider">✕</button>
+                                    <div id="wp-input-state" class="absolute inset-0 flex gap-1 transition-transform duration-200 transform translate-x-full bg-slate-50 z-10 p-0.5">
+                                        <input type="text" inputmode="decimal" id="in-sales-week-direct" class="flex-1 h-full px-3 text-center font-black rounded-lg text-xs bg-white border border-slate-200 text-slate-900 outline-none placeholder-slate-400 focus:border-[#0ea5e9] transition-colors" placeholder="Belopp (kr)...">
+                                        <button onclick="saveSalesFromWeekDirect()" class="h-full px-4 flex items-center justify-center rounded-lg text-white font-black text-[10px] bg-[#0ea5e9] active:scale-95 transition-transform uppercase tracking-wider">Spara</button>
+                                        <button onclick="toggleWeekInput(false)" class="h-full px-3 flex items-center justify-center rounded-lg text-slate-500 font-black text-[10px] bg-white border border-slate-200 active:scale-95 transition-transform uppercase tracking-wider">✕</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div id="pane-month" class="dash-view-pane h-full overflow-hidden flex flex-col relative">
-                        <div id="month-edit-menu" class="hidden absolute inset-x-0 top-0 bg-white/95 backdrop-blur-md z-40 border-b border-slate-100 p-2 shadow-sm rounded-t-[28px] flex flex-col gap-1.5" style="transform: translateY(-2px);">
-                            <div class="flex justify-between items-center w-full px-1">
-                                <span class="text-[9px] font-black text-[#0ea5e9] uppercase tracking-widest">MÅNADSREDIGERING</span>
-                                <button onclick="closeMonthEdit()" class="text-slate-400 text-xs active:scale-90 font-black">✕</button>
-                            </div>
-                            <div class="flex gap-1.5 h-[38px]">
-                                <input type="text" inputmode="decimal" id="in-sales-month" class="flex-[1.5] h-full text-center font-black rounded-xl text-[13px] bg-slate-50 border border-slate-200 text-slate-900 focus:border-[#0ea5e9] shadow-inner outline-none" placeholder="0 kr">
-                                <button onclick="saveSalesFromPopup()" class="flex-1 h-full rounded-xl text-white font-black text-[10px] bg-[#0ea5e9] shadow-sm active:scale-95 uppercase tracking-wider">Spara</button>
-                                <button onclick="checkOverwriteFromPopup('delete')" class="h-full px-4 rounded-xl text-rose-500 bg-rose-50 border border-rose-100 font-black text-[12px] active:scale-95">🗑️</button>
-                            </div>
-                            <div class="grid grid-cols-6 gap-1 h-[34px]">
-                                <button onclick="checkOverwriteFromPopup('Arbete')" class="bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-[13px] active:scale-95">⚒️</button>
-                                <button onclick="checkOverwriteFromPopup('Ledig')" class="bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-[13px] active:scale-95">🏠</button>
-                                <button onclick="checkOverwriteFromPopup('Semester')" class="bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-[13px] active:scale-95">✈️</button>
-                                <button onclick="checkOverwriteFromPopup('Sjuk')" class="bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-[13px] active:scale-95">🤒</button>
-                                <button onclick="checkOverwriteFromPopup('VAB')" class="bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-[13px] active:scale-95">👶</button>
-                                <button onclick="checkOverwriteFromPopup('Föräldraledig')" class="bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center text-[13px] active:scale-95">🍼</button>
-                            </div>
+                    <div id="pane-month" class="dash-view-pane h-full flex flex-col overflow-hidden p-1.5">
+                        <div class="grid grid-cols-7 gap-1 px-1 mb-0.5 flex-shrink-0">
+                            <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
+                            <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
                         </div>
-                        
                         <div id="d-cal" class="cal-grid w-full flex-1"></div>
                     </div>
                     
@@ -345,43 +391,293 @@
                     <div id="pane-notes" class="dash-view-pane h-full overflow-hidden flex flex-col bg-slate-50/50">
                         <div class="p-2.5 bg-white border-b border-slate-100 shadow-sm flex-shrink-0 flex flex-col gap-1.5 relative z-20">
                             <div class="flex gap-1.5">
-                                <input type="text" id="note-name" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[10px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Namn...">
-                                <input type="tel" id="note-phone" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[10px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Telefonnr...">
+                                <input type="text" id="note-name" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Namn...">
+                                <input type="tel" id="note-phone" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Telefonnr...">
                             </div>
                             <div class="flex gap-1.5">
-                                <input type="text" id="note-order" class="w-[70px] min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[10px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Ordernr...">
-                                <input type="text" id="note-text" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[10px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Anteckning...">
-                                <button id="note-submit-btn" onclick="addNote()" class="bg-[#0ea5e9] text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-sm px-4 transition-transform active:scale-95">SPARA</button>
+                                <input type="text" id="note-order" class="w-[65px] min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Ordernr...">
+                                <input type="text" id="note-text" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Anteckning...">
+                                <button id="note-submit-btn" onclick="addNote()" class="bg-[#0ea5e9] text-white font-black text-[9px] uppercase tracking-widest rounded-xl shadow-sm active:scale-95 transition-transform px-3">SPARA</button>
                             </div>
                         </div>
-                        <div class="flex-1 overflow-y-auto hide-scrollbar p-2.5 relative flex flex-col gap-1.5" id="notes-list-container"></div>
+                        <div class="flex-1 overflow-y-auto hide-scrollbar p-2.5 relative flex flex-col gap-1.5" id="notes-list-container">
+                            </div>
                     </div>
 
                 </div>
             </div>
         </div>
-
-        <footer id="bottom-nav-bar" class="flex-shrink-0">
-            <div id="nav-btn-day" onclick="setMode('day')" class="nav-btn active transition-all active:scale-105"><span class="nav-btn-icon">⚡</span><span class="nav-btn-text">Cockpit</span></div>
-            <div id="nav-btn-week" onclick="setMode('week')" class="nav-btn transition-all active:scale-105"><span class="nav-btn-icon">📊</span><span class="nav-btn-text">Vecka</span></div>
-            <div id="nav-btn-month" onclick="setMode('month')" class="nav-btn transition-all active:scale-105"><span class="nav-btn-icon">📅</span><span class="nav-btn-text">Månad</span></div>
-            <div id="nav-btn-notes" onclick="setMode('notes')" class="nav-btn transition-all active:scale-105"><span class="nav-btn-icon">📝</span><span class="nav-btn-text">Noter</span></div>
-            <div id="nav-btn-absence" onclick="setMode('absence')" class="nav-btn transition-all active:scale-105"><span class="nav-btn-icon">✈️</span><span class="nav-btn-text">Frånvaro</span></div>
-        </footer>
     </div>
 
     <script>
         // --- LIVE KLOCKA START ---
-        function updateLiveClock() { const now = new Date(); const timeStr = now.toLocaleTimeString('sv-SE', {hour: '2-digit', minute:'2-digit'}); const clockEl = document.getElementById('live-clock'); if(clockEl) clockEl.innerText = timeStr; }
-        setInterval(updateLiveClock, 1000); updateLiveClock();
+        function updateLiveClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('sv-SE', {hour: '2-digit', minute:'2-digit'});
+            const clockEl = document.getElementById('live-clock');
+            if(clockEl) clockEl.innerText = timeStr;
+        }
+        setInterval(updateLiveClock, 1000);
+        updateLiveClock();
         // --- LIVE KLOCKA SLUT ---
 
-        // ==========================================
-        // 1. CORE LOGIC (HÄR ÄR MOTORN SOM FATTADES!)
-        // ==========================================
         function getK(d) { return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
         function parseNum(val) { if (val === undefined || val === null || val === '') return 0; if (typeof val === 'number') return val; let str = String(val).replace(/\s/g, '').replace(',', '.'); let num = parseFloat(str); return isNaN(num) ? 0 : num; }
-        function getWeekNumber(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7); }
+
+        const SB_URL = 'https://xnrclzkzzthlesaftpvs.supabase.co';
+        const SB_KEY = 'sb_publishable_EhCyGN_p4TH-rtOEuDLXOA_9hIxS7pW';
+        let sb = null;
+        try { if (typeof supabase !== 'undefined') { sb = supabase.createClient(SB_URL, SB_KEY); } } catch(e) { console.error("Fel vid start av Supabase", e); }
+        
+        let initBudget = 240000;
+        try { let bStore = localStorage.getItem('sf_budget'); if(bStore) initBudget = Number(bStore) || 240000; } catch(e) {}
+        
+        let db = { b: initBudget, d: {}, q: {} }, timeline = {}, viewDate = new Date(), realToday = new Date(); realToday.setHours(0,0,0,0);
+        let activeK = null, viewMode = 'day', currentWeekStart = new Date(realToday);
+        let multiSelectKeys = new Set();
+        
+        const startDayOffset = currentWeekStart.getDay() || 7;
+        currentWeekStart.setDate(currentWeekStart.getDate() - startDayOffset + 1);
+        currentWeekStart.setHours(0,0,0,0);
+        let focusTimer = null;
+        let pendingAbsenceType = null;
+        let pendingAbsenceSource = null;
+
+        let savedNotes = [];
+        try { savedNotes = JSON.parse(localStorage.getItem('sf_notes')) || []; } catch(e) { savedNotes = []; }
+        let pendingNoteId = null; let editingNoteId = null; let expandedNoteId = null;
+
+        async function init() { 
+            try {
+                if (sb) {
+                    const [s, q] = await Promise.all([sb.from('sales_data').select('*'), sb.from('schedule_data').select('*')]); 
+                    if (s && s.data) s.data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent }); 
+                    if (q && q.data) q.data.forEach(r => { db.q[r.date_key] = { exists: true, start: r.start_time, end: r.end_time }; }); 
+                }
+            } catch(e) { console.warn("Kunde inte hämta data vid uppstart", e); }
+            
+            calculateTimeline(); activeK = getK(realToday); 
+            renderWeekSlides(); updateDash(); setMode('day'); setupSwipeObserver(); renderNotes();
+            clearInterval(focusTimer); focusTimer = setInterval(updateInlineFocusDashboard, 2000);
+        }
+
+        async function syncData() {
+            const btn = document.getElementById('sync-btn');
+            if(!btn) return;
+            const oldTxt = btn.innerText;
+            btn.innerText = 'SYNKAR...';
+            try {
+                if(sb) {
+                    const [s, q] = await Promise.all([sb.from('sales_data').select('*'), sb.from('schedule_data').select('*')]); 
+                    if (s && s.data) s.data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent }); 
+                    if (q && q.data) q.data.forEach(r => { db.q[r.date_key] = { exists: true, start: r.start_time, end: r.end_time }; }); 
+                }
+            } catch(e) { console.warn("Synk misslyckades", e); }
+            
+            calculateTimeline(); updateDash(); 
+            if (viewMode === 'day') updateInlineFocusDashboard();
+            else if (viewMode === 'week') updateWeekPanel();
+            else if (viewMode === 'absence') renderAbsence();
+            setTimeout(() => { btn.innerText = oldTxt; }, 800);
+        }
+
+        function pushMatrixSync(k, o) {
+            const old = db.d[k] || {}; 
+            const merged = { st: o.st !== undefined ? o.st : (old.st || 'Arbete'), s: o.s !== undefined ? o.s : (old.s || 0), abs: o.abs !== undefined ? o.abs : (old.abs || null) };
+            
+            db.d[k] = merged; 
+            calculateTimeline(); updateDash(); updateInlineFocusDashboard();
+            if (viewMode === 'week') updateWeekPanel();
+
+            if (sb) {
+                sb.from('sales_data')
+                  .upsert({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs })
+                  .catch(e => console.warn("Supabase fel", e));
+            }
+        }
+
+        function handleSaveFromPopup(t) { 
+            let upserts = []; const keys = Array.from(multiSelectKeys);
+            
+            for (let k of keys) {
+                const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: old.s || 0, abs: old.abs || null };
+                if(t==='delete') { merged = { st: 'Arbete', s: 0, abs: null }; } 
+                else { if(['Arbete','Ledig'].includes(t)) { merged.st = t; merged.abs = null; } else { merged.st = 'Arbete'; merged.abs = t; } }
+                db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
+            }
+            
+            multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard();
+            if (viewMode === 'week') updateWeekPanel();
+            if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).catch(e => console.warn("Supabase fel", e)); }
+        }
+
+        function saveSalesFromPopup() { 
+            const val = document.getElementById('in-sales-month').value; let sVal = parseNum(val); let upserts = []; const keys = Array.from(multiSelectKeys);
+            for (let k of keys) {
+                const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: sVal, abs: old.abs || null };
+                db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
+            }
+            multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard();
+            if (viewMode === 'week') updateWeekPanel();
+            if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).catch(e => console.warn("Supabase fel", e)); }
+        }
+
+        function toggleExpandNote(id) { if (expandedNoteId === id) expandedNoteId = null; else expandedNoteId = id; renderNotes(); }
+        function deleteHistoryNote(id, e) { e.stopPropagation(); savedNotes = savedNotes.filter(n => n.id !== id); try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){} renderNotes(); }
+        function clearAllHistory() { savedNotes = savedNotes.filter(n => !n.done); try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){} renderNotes(); }
+
+        function addNote() {
+            const elName = document.getElementById('note-name'); const elOrder = document.getElementById('note-order'); const elPhone = document.getElementById('note-phone'); const elText = document.getElementById('note-text');
+            if(!elName || !elOrder || !elPhone || !elText) return;
+
+            const n_val = elName.value.trim(); const o_val = elOrder.value.trim(); const p_val = elPhone.value.trim(); const t_val = elText.value.trim();
+            if(!t_val && !o_val && !p_val && !n_val) return;
+            
+            if (editingNoteId) {
+                const note = savedNotes.find(x => x.id === editingNoteId);
+                if (note) { note.name = n_val; note.order = o_val; note.phone = p_val; note.text = t_val; }
+                editingNoteId = null; document.getElementById('note-submit-btn').innerText = 'SPARA';
+            } else {
+                savedNotes.unshift({ id: Date.now(), name: n_val, order: o_val, phone: p_val, text: t_val, done: false, date: new Date().toLocaleDateString('sv-SE') });
+            }
+            
+            try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
+            elName.value = ''; elOrder.value = ''; elPhone.value = ''; elText.value = ''; renderNotes();
+        }
+
+        function editNote(id) {
+            const note = savedNotes.find(x => x.id === id); if(!note) return; editingNoteId = id;
+            document.getElementById('note-name').value = note.name || ''; document.getElementById('note-order').value = note.order || ''; document.getElementById('note-phone').value = note.phone || ''; document.getElementById('note-text').value = note.text || '';
+            document.getElementById('note-submit-btn').innerText = 'UPPDAT.'; document.getElementById('note-text').focus();
+        }
+
+        function askCloseNote(id) { pendingNoteId = id; const m = document.getElementById('note-confirm-modal'); const c = document.getElementById('note-modal-content'); if(!m || !c) return; m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); document.getElementById('btn-note-yes').onclick = () => confirmCloseNote(); }
+        function closeNoteModal() { const m = document.getElementById('note-confirm-modal'); const c = document.getElementById('note-modal-content'); if(!m || !c) return; m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); pendingNoteId = null; }, 300); }
+        function confirmCloseNote() { if(pendingNoteId) { const n = savedNotes.find(x => x.id === pendingNoteId); if(n) { n.done = true; n.doneDate = new Date().toLocaleDateString('sv-SE'); } try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){} renderNotes(); } closeNoteModal(); }
+
+        function renderNotes() {
+            const container = document.getElementById('notes-list-container'); if(!container) return;
+            let activeHTML = ''; let histHTML = ''; const activeCount = savedNotes.filter(x => !x.done).length;
+
+            savedNotes.forEach(n => {
+                if (!n.done) {
+                    const isExpanded = (activeCount <= 1) || (expandedNoteId === n.id);
+                    if (isExpanded) {
+                        activeHTML += `<div class="bg-white rounded-[16px] border border-slate-200 shadow-sm p-3 flex flex-col gap-1.5 relative transition-all">
+                                ${activeCount > 1 ? `<button onclick="toggleExpandNote(${n.id})" class="absolute top-2 right-2 w-5 h-5 flex items-center justify-center text-slate-400 active:scale-90 transition-all text-[8px] border border-slate-100 rounded-full bg-slate-50">▲</button>` : ''}
+                                <div class="pr-8 ${activeCount > 1 ? 'cursor-pointer' : ''}" onclick="${activeCount > 1 ? `toggleExpandNote(${n.id})` : ''}">
+                                    <span class="text-[8px] font-black uppercase text-slate-400 tracking-wider">${n.date}</span>
+                                    ${n.name ? `<div class="text-[11px] font-black text-[#0ea5e9] mt-0.5">${n.name}</div>` : ''}
+                                    ${n.order ? `<div class="text-[10px] font-bold text-slate-500 mt-0.5">Order: <span class="text-slate-800 font-black">${n.order}</span></div>` : ''}
+                                    ${n.phone ? `<div class="text-[10px] font-bold text-slate-500 mt-0.5">Tel: <a href="tel:${n.phone}" onclick="event.stopPropagation()" class="text-[#0ea5e9] font-black hover:underline">${n.phone}</a></div>` : ''}
+                                    ${n.text ? `<div class="text-[12px] font-bold text-slate-800 mt-1.5 leading-snug pb-6">${n.text}</div>` : '<div class="pb-6"></div>'}
+                                </div>
+                                <div class="absolute bottom-2 right-2 flex gap-1.5">
+                                    <button onclick="editNote(${n.id}); event.stopPropagation();" class="w-6 h-6 rounded-full border border-slate-200 bg-white shadow-sm flex items-center justify-center hover:bg-slate-50 active:scale-90 transition-all text-[9px]">✏️</button>
+                                    <button onclick="askCloseNote(${n.id}); event.stopPropagation();" class="w-6 h-6 rounded-full border-2 border-slate-200 flex items-center justify-center hover:bg-[#f0f9ff] hover:border-[#bae6fd] active:scale-90 transition-all bg-white"></button>
+                                </div></div>`;
+                    } else {
+                        activeHTML += `<div onclick="toggleExpandNote(${n.id})" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-2.5 flex justify-between items-center cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all">
+                                <div class="flex flex-col overflow-hidden whitespace-nowrap pr-2">
+                                    ${n.name ? `<span class="text-[10px] font-black text-[#0ea5e9] truncate">${n.name}</span>` : '<span class="text-[10px] font-black text-slate-400 italic">Inget namn</span>'}
+                                    ${n.order ? `<span class="text-[9px] font-bold text-slate-500 truncate mt-0.5">Order: ${n.order}</span>` : ''}
+                                </div><div class="text-slate-300 text-[9px]">▼</div></div>`;
+                    }
+                } else {
+                    histHTML += `<div class="bg-white rounded-[16px] border border-slate-100 opacity-75 p-2.5 flex flex-col relative transition-all">
+                            <button onclick="deleteHistoryNote(${n.id}, event)" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-rose-50 flex items-center justify-center hover:bg-rose-100 active:scale-90 transition-all text-[8px] border border-rose-100 text-rose-500">✕</button>
+                            <div class="pr-8"><span class="text-[8px] font-black uppercase text-slate-400 tracking-wider">KLAR ${n.doneDate||''}</span>
+                                ${n.name ? `<div class="text-[10px] font-black text-emerald-600 mt-0.5">${n.name}</div>` : ''}
+                                ${n.order ? `<div class="text-[9px] font-bold text-slate-500">Order: ${n.order}</div>` : ''}
+                                ${n.text ? `<div class="text-[10px] font-medium text-slate-500 mt-1 truncate">${n.text}</div>` : ''}
+                            </div></div>`;
+                }
+            });
+            
+            let fullHTML = '';
+            if(activeHTML) fullHTML += `<h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1 mt-1 mb-0.5">Aktiva Ärenden</h4>${activeHTML}`;
+            if(histHTML) fullHTML += `<div class="flex justify-between items-center px-1 mt-3 mb-0.5 border-t border-slate-200/50 pt-2"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Historik</h4><button onclick="clearAllHistory()" class="text-[7.5px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-600 bg-rose-50 px-2 py-1 rounded-md active:scale-95 transition-all border border-rose-100">Radera allt</button></div>${histHTML}`;
+            if(!activeHTML && !histHTML) fullHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-3xl mb-2">📝</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Inga anteckningar<br>skrivna ännu</p></div>`;
+            
+            container.innerHTML = fullHTML;
+        }
+
+        function triggerChildSelection(absType, source) { pendingAbsenceType = absType; pendingAbsenceSource = source; document.getElementById('child-modal-title').innerText = `${absType.toUpperCase()} - VEM GÄLLER DET?`; const m = document.getElementById('child-select-modal'); const c = document.getElementById('child-modal-content'); m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); }
+        function closeChildModal() { const m = document.getElementById('child-select-modal'); const c = document.getElementById('child-modal-content'); m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); pendingAbsenceType = null; pendingAbsenceSource = null; }, 300); }
+
+        function selectChild(childName) {
+            const fullAbs = `${pendingAbsenceType} ${childName}`; 
+            if (pendingAbsenceSource === 'direct') { finalizeDirectDayStatus(fullAbs); } 
+            else if (pendingAbsenceSource === 'week') { finalizeWeekDirectAction(fullAbs); } 
+            else if (pendingAbsenceSource === 'popup') { handleSaveFromPopup(fullAbs); }
+            closeChildModal();
+        }
+
+        function openBudgetModal() { document.getElementById('budget-modal').classList.remove('hidden'); }
+        function closeBudgetModal() { document.getElementById('budget-modal').classList.add('hidden'); }
+        function setGlobalBudget(amount) { db.b = amount; try{localStorage.setItem('sf_budget', amount);}catch(e){} calculateTimeline(); updateDash(); closeBudgetModal(); }
+        
+        function toggleWeekInput(show) {
+            const def = document.getElementById('wp-default-state'); const inp = document.getElementById('wp-input-state'); const inputField = document.getElementById('in-sales-week-direct');
+            if(!def || !inp) return;
+            if(show) { def.classList.add('-translate-x-full'); def.classList.remove('translate-x-0'); inp.classList.remove('translate-x-full'); inp.classList.add('translate-x-0'); setTimeout(() => inputField.focus(), 200); } 
+            else { inp.classList.add('translate-x-full'); inp.classList.remove('translate-x-0'); def.classList.remove('-translate-x-full'); def.classList.add('translate-x-0'); inputField.value = ''; }
+        }
+
+        function updateTopTitle() {
+            const t = document.getElementById('dynamic-view-title'); if(!t) return;
+            const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']; const months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
+            
+            if (viewMode === 'day') { const k = activeK || getK(realToday); const parts = k.split('-'); const d = new Date(parts[0], parts[1]-1, parts[2]); t.innerText = `${d.getDate()} ${months[d.getMonth()].toUpperCase()} ${daysLong[d.getDay()].toUpperCase()}`; } 
+            else if (viewMode === 'week') { t.innerText = `VECKA ${getWeekNumber(currentWeekStart)}`; } 
+            else if (viewMode === 'month') { t.innerText = `${months[viewDate.getMonth()].toUpperCase()} ${viewDate.getFullYear()}`; } 
+            else if (viewMode === 'absence') { t.innerText = `FRÅNVARO - ${months[viewDate.getMonth()].toUpperCase()} ${viewDate.getFullYear()}`; } 
+            else if (viewMode === 'notes') { t.innerText = "ANTECKNINGAR"; }
+        }
+
+        function setMode(mode) {
+            viewDate = new Date(realToday);
+            currentWeekStart = new Date(realToday);
+            const sdo = currentWeekStart.getDay() || 7;
+            currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
+            currentWeekStart.setHours(0,0,0,0);
+            activeK = getK(realToday);
+            
+            multiSelectKeys.clear();
+            closeMonthEdit();
+
+            viewMode = mode; document.body.className = `mode-${mode}`;
+
+            ['week', 'day', 'month', 'absence', 'notes'].forEach(m => {
+                const b = document.getElementById(`tab-${m}`);
+                if(b) { if(m === mode) b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm"; else b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50"; }
+            });
+
+            calculateTimeline(); updateDash();
+
+            if (mode === 'day') { updateInlineFocusDashboard(); } 
+            else if (mode === 'week') { renderWeekSlides(); updateWeekPanel(); toggleWeekInput(false); } 
+            else if (mode === 'month') { renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1); } 
+            else if (mode === 'absence') { renderAbsence(); } 
+            else if (mode === 'notes') { renderNotes(); }
+            
+            updateTopTitle();
+        }
+
+        function cycleView(dir) {
+            const views = ['week', 'day', 'month', 'absence', 'notes'];
+            let idx = views.indexOf(viewMode); idx += dir;
+            if(idx < 0) idx = views.length - 1; if(idx > views.length - 1) idx = 0;
+            setMode(views[idx]);
+        }
+
+        function navCal(offset) {
+            multiSelectKeys.clear(); closeMonthEdit();
+            if (viewMode === 'month' || viewMode === 'absence') { viewDate.setMonth(viewDate.getMonth() + offset); calculateTimeline(); updateDash(); if (viewMode === 'absence') renderAbsence(); } 
+            else if (viewMode === 'week') { currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); toggleWeekInput(false); } 
+            else if (viewMode === 'day') { let p = (activeK || getK(realToday)).split('-'); let d = new Date(p[0], p[1]-1, p[2]); d.setDate(d.getDate() + offset); activeK = getK(d); updateInlineFocusDashboard(); }
+            updateTopTitle();
+        }
 
         function getCellState(k) { 
             const o = db.d[k] || {}, qData = db.q[k] || {}; 
@@ -393,6 +689,7 @@
             const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate(); timeline = {};
             let tW = 0; for(let d=1; d<=daysM; d++) { const state = getCellState(`${cy}-${cm}-${d}`); if(state === 'planned' || state === 'worked') tW++; }
             let rB = db.b, rP = tW;
+            
             for(let d=1; d<=daysM; d++) { 
                 const k = `${cy}-${cm}-${d}`; const state = getCellState(k); const isW = (state === 'planned' || state === 'worked'); const o = db.d[k] || {s:0}; 
                 if (isW) { const target = rP > 0 ? rB / rP : 0; timeline[k] = { target: Math.max(0, target) }; rB -= o.s; rP--; } else { timeline[k] = { target: 0 }; rB -= o.s; } 
@@ -424,178 +721,210 @@
             updateTopTitle();
         }
 
-        function updateTopTitle() {
-            const t = document.getElementById('header-view-title'); if(!t) return;
-            const months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
-            if (viewMode === 'day') { t.innerText = "COCKPIT"; } 
-            else if (viewMode === 'week') { t.innerText = `VECKA ${getWeekNumber(currentWeekStart)}`; } 
-            else if (viewMode === 'month') { t.innerText = `${months[viewDate.getMonth()]} ${viewDate.getFullYear()}`; } 
-            else if (viewMode === 'absence') { t.innerText = "FRÅNVARO"; } 
-            else if (viewMode === 'notes') { t.innerText = "ANTECKNINGAR"; }
+        function setupSwipeObserver() {
+            if(!sc) return;
+            sc.addEventListener('scroll', () => {
+                if(isResettingScroll || viewMode !== 'week') return; clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    const width = sc.clientWidth; if(width === 0) return; const idx = Math.round(sc.scrollLeft / width); 
+                    if (idx !== 1) { multiSelectKeys.clear(); closeMonthEdit(); currentWeekStart.setDate(currentWeekStart.getDate() + ((idx === 0 ? -1 : 1) * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); toggleWeekInput(false); updateTopTitle(); }
+                }, 50); 
+            });
         }
-
-        function navCal(offset) {
-            multiSelectKeys.clear(); closeMonthEdit();
-            if (viewMode === 'month' || viewMode === 'absence') { viewDate.setMonth(viewDate.getMonth() + offset); calculateTimeline(); updateDash(); if (viewMode === 'absence') renderAbsence(); } 
-            else if (viewMode === 'week') { currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); toggleWeekInput(false); } 
-            else if (viewMode === 'day') { let p = (activeK || getK(realToday)).split('-'); let d = new Date(p[0], p[1]-1, p[2]); d.setDate(d.getDate() + offset); activeK = getK(d); updateInlineFocusDashboard(); }
-            updateTopTitle();
-        }
-
-        // ==========================================
-        // 2. SUPABASE & STATE INITIALIZATION
-        // ==========================================
-        const SB_URL = 'https://xnrclzkzzthlesaftpvs.supabase.co';
-        const SB_KEY = 'sb_publishable_EhCyGN_p4TH-rtOEuDLXOA_9hIxS7pW';
-        let sb = null; try { if (typeof supabase !== 'undefined') { sb = supabase.createClient(SB_URL, SB_KEY); } } catch(e) { console.error(e); }
-        
-        let initBudget = 240000; try { let bStore = localStorage.getItem('sf_budget'); if(bStore) initBudget = Number(bStore) || 240000; } catch(e) {}
-        let db = { b: initBudget, d: {}, q: {} }, timeline = {}, viewDate = new Date(), realToday = new Date(); realToday.setHours(0,0,0,0);
-        let activeK = null, viewMode = 'day', currentWeekStart = new Date(realToday);
-        let multiSelectKeys = new Set();
-        const startDayOffset = currentWeekStart.getDay() || 7; currentWeekStart.setDate(currentWeekStart.getDate() - startDayOffset + 1); currentWeekStart.setHours(0,0,0,0);
-        let focusTimer = null; let pendingAbsenceType = null; let pendingAbsenceSource = null;
-
-        let savedNotes = []; try { savedNotes = JSON.parse(localStorage.getItem('sf_notes')) || []; } catch(e) {}
-        let pendingNoteId = null; let editingNoteId = null; let expandedNoteId = null;
-
-        async function init() { 
-            try {
-                if (sb) {
-                    const [s, q] = await Promise.all([sb.from('sales_data').select('*'), sb.from('schedule_data').select('*')]); 
-                    if (s && s.data) s.data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent }); 
-                    if (q && q.data) q.data.forEach(r => { db.q[r.date_key] = { exists: true, start: r.start_time, end: r.end_time }; }); 
-                }
-            } catch(e) { console.warn(e); }
-            calculateTimeline(); activeK = getK(realToday); 
-            renderWeekSlides(); updateDash(); setMode('day'); setupSwipeObserver(); renderNotes();
-            clearInterval(focusTimer); focusTimer = setInterval(updateInlineFocusDashboard, 2000);
-        }
-
-        async function syncData() {
-            const btn = document.getElementById('sync-btn'); if(!btn) return; btn.innerText = '...';
-            try {
-                if(sb) {
-                    const [s, q] = await Promise.all([sb.from('sales_data').select('*'), sb.from('schedule_data').select('*')]); 
-                    if (s && s.data) s.data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent }); 
-                    if (q && q.data) q.data.forEach(r => { db.q[r.date_key] = { exists: true, start: r.start_time, end: r.end_time }; }); 
-                }
-            } catch(e) { console.warn(e); }
-            calculateTimeline(); updateDash(); 
-            if (viewMode === 'day') updateInlineFocusDashboard(); else if (viewMode === 'week') updateWeekPanel(); else if (viewMode === 'absence') renderAbsence();
-            setTimeout(() => { btn.innerText = 'Synk ⚡'; }, 600);
-        }
-
-        function pushMatrixSync(k, o) {
-            const old = db.d[k] || {}; const merged = { st: o.st !== undefined ? o.st : (old.st || 'Arbete'), s: o.s !== undefined ? o.s : (old.s || 0), abs: o.abs !== undefined ? o.abs : (old.abs || null) };
-            db.d[k] = merged; calculateTimeline(); updateDash(); updateInlineFocusDashboard();
-            if (viewMode === 'week') updateWeekPanel();
-            if (sb) { sb.from('sales_data').upsert({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs }).catch(console.error); }
-        }
-
-        // ==========================================
-        // 3. UI CONTROLLERS
-        // ==========================================
-        function setMode(mode) {
-            viewDate = new Date(realToday); currentWeekStart = new Date(realToday);
-            const sdo = currentWeekStart.getDay() || 7; currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); currentWeekStart.setHours(0,0,0,0);
-            activeK = getK(realToday); multiSelectKeys.clear(); closeMonthEdit();
-            viewMode = mode; document.body.className = `mode-${mode}`;
-            document.querySelectorAll('.nav-btn').forEach(b => { if(b.id === `nav-btn-${mode}`) b.classList.add('active'); else b.classList.remove('active'); });
-            calculateTimeline(); updateDash();
-            if (mode === 'day') { updateInlineFocusDashboard(); } else if (mode === 'week') { renderWeekSlides(); updateWeekPanel(); toggleWeekInput(false); } 
-            else if (mode === 'month') { renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1); } else if (mode === 'absence') { renderAbsence(); } else if (mode === 'notes') { renderNotes(); }
-        }
-
-        function handleSaveFromPopup(t) { let upserts = []; const keys = Array.from(multiSelectKeys); for (let k of keys) { const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: old.s || 0, abs: old.abs || null }; if(t==='delete') { merged = { st: 'Arbete', s: 0, abs: null }; } else { if(['Arbete','Ledig'].includes(t)) { merged.st = t; merged.abs = null; } else { merged.st = 'Arbete'; merged.abs = t; } } db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs }); } multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard(); if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).catch(console.error); } }
-        function saveSalesFromPopup() { const val = document.getElementById('in-sales-month').value; let sVal = parseNum(val); let upserts = []; const keys = Array.from(multiSelectKeys); for (let k of keys) { const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: sVal, abs: old.abs || null }; db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs }); } multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard(); if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).catch(console.error); } }
-        function toggleWeekInput(show) { const bar = document.getElementById('wp-day-actions'); if(!bar) return; if(show) { bar.classList.add('active'); document.getElementById('wp-week-summary').style.opacity='0'; } else { bar.classList.remove('active'); document.getElementById('wp-week-summary').style.opacity='1'; } }
 
         function selectDay(k, el, e) {
             e.stopPropagation();
             if (viewMode === 'month') {
-                if (multiSelectKeys.has(k)) { multiSelectKeys.delete(k); el.classList.remove('active-focus'); } else { multiSelectKeys.add(k); el.classList.add('active-focus'); }
-                if (multiSelectKeys.size > 0) { document.getElementById('month-edit-menu').classList.remove('hidden'); if(multiSelectKeys.size === 1) { const singleK = Array.from(multiSelectKeys)[0]; const o = db.d[singleK] || {}; document.getElementById('in-sales-month').value = o.s > 0 ? o.s : ''; } else { document.getElementById('in-sales-month').value = ''; } } else { closeMonthEdit(); }
+                if (multiSelectKeys.has(k)) { multiSelectKeys.delete(k); el.classList.remove('active-focus'); } 
+                else { multiSelectKeys.add(k); el.classList.add('active-focus'); }
+
+                if (multiSelectKeys.size > 0) {
+                    document.getElementById('cal-standard-header').classList.add('hidden'); document.getElementById('month-edit-menu').classList.remove('hidden');
+                    if(multiSelectKeys.size === 1) { const singleK = Array.from(multiSelectKeys)[0]; const o = db.d[singleK] || {}; document.getElementById('in-sales-month').value = o.s > 0 ? o.s : ''; } 
+                    else { document.getElementById('in-sales-month').value = ''; }
+                } else { closeMonthEdit(); }
             } else {
-                if (activeK === k) { activeK = null; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); updateWeekPanel(); return; }
-                activeK = k; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); el.classList.add('active-focus'); updateWeekPanel();
+                const isSameDay = (activeK === k);
+                if (isSameDay) { activeK = null; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); if (viewMode === 'week') { updateWeekPanel(); toggleWeekInput(false); } return; }
+                activeK = k; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); el.classList.add('active-focus');
+                if (viewMode === 'week') { updateWeekPanel(); toggleWeekInput(false); }
             }
         }
 
         function saveSalesFromWeekDirect() { if(!activeK) return; const val = document.getElementById('in-sales-week-direct').value; let sVal = parseNum(val); pushMatrixSync(activeK, { s: sVal }); toggleWeekInput(false); }
         function handleWeekDirectAction(t) { if(!activeK) return; if (t === 'VAB' || t === 'Föräldraledig') { triggerChildSelection(t, 'week'); return; } finalizeWeekDirectAction(t); }
         function finalizeWeekDirectAction(t) { if(['Arbete','Ledig'].includes(t)) pushMatrixSync(activeK, { st: t, abs: null }); else pushMatrixSync(activeK, { st: 'Arbete', abs: t }); }
-        function closeMonthEdit() { const m = document.getElementById('month-edit-menu'); if(m) m.classList.add('hidden'); }
-        function saveDirectDaySales() { const k = activeK || getK(realToday); const val = document.getElementById('in-sales-direct-day').value; let sVal = parseNum(val); pushMatrixSync(k, { s: sVal }); document.getElementById('in-sales-direct-day').value = ''; }
+        function closeMonthEdit() { const m = document.getElementById('month-edit-menu'); if(m) m.classList.add('hidden'); const h = document.getElementById('cal-standard-header'); if(h) h.classList.remove('hidden'); }
+
+        function saveDirectDaySales() {
+            const k = activeK || getK(realToday); const val = document.getElementById('in-sales-direct-day').value; let sVal = parseNum(val); 
+            pushMatrixSync(k, { s: sVal }); document.getElementById('in-sales-direct-day').value = '';
+        }
+
         function saveDirectDayStatus(s) { if (s === 'VAB' || s === 'Föräldraledig') { triggerChildSelection(s, 'direct'); return; } finalizeDirectDayStatus(s); }
-        function finalizeDirectDayStatus(s) { const k = activeK || getK(realToday); if(s === 'Ledig') { pushMatrixSync(k, { st: 'Ledig', abs: null }); } else if (s === 'Sjuk' || s === 'Semester' || s.includes('VAB') || s.includes('Föräldraledig')) { pushMatrixSync(k, { st: 'Arbete', abs: s }); } else { pushMatrixSync(k, { st: 'Arbete', abs: null }); } }
-        function checkOverwriteFromPopup(t) { let hasSales = Array.from(multiSelectKeys).some(k => (db.d[k]?.s > 0)); if (hasSales && t === 'delete') { document.getElementById('confirm-box').style.display='block'; document.getElementById('conf-yes').onclick = () => { handleSaveFromPopup(t); hideConfirm(); }; } else { if (t === 'VAB' || t === 'Föräldraledig') { triggerChildSelection(t, 'popup'); } else { handleSaveFromPopup(t); } } }
+        function finalizeDirectDayStatus(s) {
+            const k = activeK || getK(realToday);
+            if(s === 'Ledig') { pushMatrixSync(k, { st: 'Ledig', abs: null }); } 
+            else if (s === 'Sjuk' || s === 'Semester' || s.includes('VAB') || s.includes('Föräldraledig')) { pushMatrixSync(k, { st: 'Arbete', abs: s }); } 
+            else { pushMatrixSync(k, { st: 'Arbete', abs: null }); } 
+        }
+        
+        function checkOverwriteFromPopup(t) { 
+            let hasSales = Array.from(multiSelectKeys).some(k => (db.d[k]?.s > 0));
+            if (hasSales && t === 'delete') { document.getElementById('confirm-box').style.display='block'; document.getElementById('conf-yes').onclick = () => { handleSaveFromPopup(t); hideConfirm(); }; } 
+            else { if (t === 'VAB' || t === 'Föräldraledig') { triggerChildSelection(t, 'popup'); } else { handleSaveFromPopup(t); } } 
+        }
 
         function updateWeekPanel() {
-            let wSales = 0, wPass = 0, firstShiftTarget = null;
+            let wSales = 0, wPass = 0, firstShiftTarget = null; 
             let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6);
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec']; const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
             
-            for(let i=0; i<7; i++) { const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); const k = getK(cd); const state = getCellState(k); wSales += (db.d[k]?.s || 0); if(state === 'worked' || state === 'planned') { if(firstShiftTarget === null) firstShiftTarget = (timeline[k]?.target || 0); wPass++; } }
+            for(let i=0; i<7; i++) { 
+                const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); const k = getK(cd); const state = getCellState(k); 
+                wSales += (db.d[k]?.s || 0); 
+                if(state === 'worked' || state === 'planned') { if(firstShiftTarget === null) firstShiftTarget = (timeline[k]?.target || 0); wPass++; } 
+            }
+            
             let wTarget = (firstShiftTarget || 0) * wPass;
             
-            document.getElementById('wp-date-range').innerText = `${startD.getDate()} ${months[startD.getMonth()].toUpperCase()} - ${endD.getDate()} ${months[endD.getMonth()].toUpperCase()}`;
-            document.getElementById('wp-pass-count').innerText = `(V.${getWeekNumber(currentWeekStart)}) ${wPass} Pass`;
-
+            const rEl = document.getElementById('wp-date-range'); if(rEl) rEl.innerText = `${startD.getDate()} ${months[startD.getMonth()].toUpperCase()} - ${endD.getDate()} ${months[endD.getMonth()].toUpperCase()}`;
+            const cEl = document.getElementById('wp-pass-count'); if(cEl) cEl.innerText = `(V.${getWeekNumber(currentWeekStart)}) ${wPass} Pass`; 
+            
+            const sumTargetEl = document.getElementById('wp-sum-target'); const sumSalesEl = document.getElementById('wp-sum-sales'); const sumDiffEl = document.getElementById('wp-sum-diff');
+            const lblTarget = document.getElementById('wp-lbl-target'); const lblSales = document.getElementById('wp-lbl-sales');
             const weekSummary = document.getElementById('wp-week-summary'); const dayActions = document.getElementById('wp-day-actions');
             
             if (activeK && dayActions && weekSummary) {
-                dayActions.classList.add('active'); weekSummary.style.opacity = '0';
-                const parts = activeK.split('-'); const curO = db.d[activeK] || {s:0}; 
-                document.getElementById('wp-quick-title').innerText = `REDIGERA ${parts[2]}/${parts[1]}: ${curO.s > 0 ? (curO.s/1000).toFixed(1)+'k kr' : '0 kr'}`; 
+                dayActions.classList.remove('max-h-0', 'opacity-0', 'mt-0');
+                dayActions.classList.add('max-h-[44px]', 'opacity-100', 'mt-2', 'flex');
+                
+                const parts = activeK.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]); const curO = db.d[activeK] || {s:0}; 
+                const qtEl = document.getElementById('wp-quick-title'); if(qtEl) qtEl.innerText = `REDIGERA: ${daysLong[dObj.getDay()].toUpperCase()} ${dObj.getDate()}/${parts[1]} (${curO.s > 0 ? (curO.s/1000).toFixed(1)+' k' : 'EJ REGGAD'})`; 
+                
                 let dTarget = timeline[activeK]?.target || 0; let dSales = curO.s || 0; let dDiff = dSales - dTarget;
-                document.getElementById('wp-sum-target').innerText = (dTarget/1000).toFixed(1) + ' k';
-                document.getElementById('wp-sum-sales').innerText = (dSales/1000).toFixed(1) + ' k';
-                document.getElementById('wp-sum-diff').innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k";
-                document.getElementById('wp-sum-diff').style.color = dDiff >= 0 ? "var(--pos)" : "var(--neg)";
+                
+                if(lblTarget) lblTarget.innerText = "DAGSMÅL"; if(lblSales) lblSales.innerText = "INKÖRT (DAG)";
+                if(sumTargetEl) sumTargetEl.innerText = (dTarget/1000).toFixed(1) + ' k';
+                if(sumSalesEl) sumSalesEl.innerText = (dSales/1000).toFixed(1) + ' k';
+                if(sumDiffEl) { sumDiffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; sumDiffEl.style.color = dDiff >= 0 ? "var(--pos)" : "var(--neg)"; }
             } else if (dayActions && weekSummary) {
-                dayActions.classList.remove('active'); weekSummary.style.opacity = '1';
-                document.getElementById('wp-quick-title').innerText = `VÄLJ DAG...`; 
+                dayActions.classList.remove('max-h-[44px]', 'opacity-100', 'mt-2');
+                dayActions.classList.add('max-h-0', 'opacity-0', 'mt-0');
+
                 let diff = wSales - wTarget; 
-                document.getElementById('wp-sum-target').innerText = (wTarget/1000).toFixed(1) + ' k';
-                document.getElementById('wp-sum-sales').innerText = (wSales/1000).toFixed(1) + ' k';
-                document.getElementById('wp-sum-diff').innerText = (diff >= 0 ? "+" : "") + (diff/1000).toFixed(1) + " k";
-                document.getElementById('wp-sum-diff').style.color = diff >= 0 ? "var(--pos)" : "var(--neg)";
+                if(lblTarget) lblTarget.innerText = "VECKOMÅL"; if(lblSales) lblSales.innerText = "INKÖRT (VECKA)";
+                const qtEl = document.getElementById('wp-quick-title'); if(qtEl) qtEl.innerText = `VÄLJ DAG...`; 
+                if(sumTargetEl) sumTargetEl.innerText = (wTarget/1000).toFixed(1) + ' k'; if(sumSalesEl) sumSalesEl.innerText = (wSales/1000).toFixed(1) + ' k';
+                if(sumDiffEl) { sumDiffEl.innerText = (diff >= 0 ? "+" : "") + (diff/1000).toFixed(1) + " k"; sumDiffEl.style.color = diff >= 0 ? "var(--pos)" : "var(--neg)"; }
             }
+        }
+
+        function renderCal(y, m) { 
+            const g = document.getElementById('d-cal'); if(!g) return; 
+            g.innerHTML = ''; 
+            
+            const lastDate = new Date(y, m, 0).getDate(); 
+            const firstDay = new Date(y, m-1, 1).getDay() || 7; 
+            
+            // Prev month padding
+            const prevMonthLastDate = new Date(y, m-1, 0).getDate();
+            for(let i = 1; i < firstDay; i++) { 
+                const d = prevMonthLastDate - (firstDay - 1) + i;
+                const cell = document.createElement('div');
+                cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent';
+                cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`;
+                g.appendChild(cell);
+            } 
+            
+            // Current month days
+            for(let d=1; d<=lastDate; d++) g.appendChild(createDayCell(new Date(y, m-1, d), `${y}-${m}-${d}`)); 
+            
+            // Next month padding (Fill to 42 cells = 6 rows)
+            const totalCellsSoFar = (firstDay - 1) + lastDate;
+            const remainingCells = 42 - totalCellsSoFar;
+            for(let d=1; d<=remainingCells; d++) {
+                const cell = document.createElement('div');
+                cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent';
+                cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`;
+                g.appendChild(cell);
+            }
+        }
+        
+        function renderAbsence() {
+            const pane = document.getElementById('pane-absence'); if(!pane) return;
+            const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate();
+            let absCounts = {}; let absListHTML = ''; let totalAbs = 0;
+            const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+            const em = { 'Sjuk': '🤒', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; 
+            const col = { 'Sjuk': 'text-rose-500', 'VAB Belma': 'text-amber-500', 'VAB Wilma': 'text-amber-500', 'Föräldraledig Belma': 'text-purple-500', 'Föräldraledig Wilma': 'text-purple-500', 'Semester': 'text-[#0f766e]', 'Tjänstledig': 'text-slate-500', 'Åtgärd krävs': 'text-amber-500' };
+
+            for (let d = 1; d <= daysM; d++) {
+                const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {};
+                if (o.abs && ['Sjuk', 'VAB Belma', 'VAB Wilma', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig', 'Åtgärd krävs'].includes(o.abs)) {
+                    let reason = o.abs; absCounts[reason] = (absCounts[reason] || 0) + 1; totalAbs++;
+                    const dObj = new Date(cy, cm-1, d); const dayStr = `${daysLong[dObj.getDay()]} ${d}`; const icon = em[reason] || '•'; const tCol = col[reason] || 'text-slate-500';
+                    absListHTML += `<div class="flex justify-between items-center p-3.5 border-b border-slate-100 last:border-0 bg-white"><span class="text-[9px] font-black uppercase text-slate-600 tracking-wider">${dayStr}</span><span class="text-[10px] font-black ${tCol} uppercase tracking-widest">${icon} ${reason}</span></div>`;
+                }
+            }
+
+            if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
+
+            let summaryHTML = `<div class="mb-2.5 bg-white rounded-[16px] border border-slate-200 p-3 shadow-sm flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
+            for (let reason in absCounts) { const icon = em[reason] || '•'; const tCol = col[reason] || 'text-slate-500'; summaryHTML += `<div class="flex justify-between items-center mb-1 last:mb-0"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; }
+            summaryHTML += `</div>`;
+            pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="bg-white rounded-[16px] border border-slate-200 shadow-sm overflow-y-auto hide-scrollbar flex-1 mb-1">${absListHTML}</div></div>`;
         }
 
         function updateInlineFocusDashboard() {
             const k = activeK || getK(realToday); const state = getCellState(k); const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; const target = timeline[k]?.target || 0;
-            let cTot = o.s || 0; let isToday = (k === getK(realToday)); let nH = new Date().getHours();
-            let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19;
-            let isShiftActive = (isToday && qData.exists && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= Math.max(10, sStart) && nH <= Math.min(20, sEnd));
+            let isToday = (k === getK(realToday)); let nH = new Date().getHours();
+            let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let sH = Math.max(10, sStart); let eH = Math.min(20, sEnd);
+            
+            let cTot = o.s || 0; const cEl = document.getElementById('dp-cockpit-card'); let isShiftActive = (isToday && qData.exists && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sH && nH <= eH);
 
-            const cEl = document.getElementById('dp-cockpit-card');
             if (cEl) { 
-                cEl.className = "cc-bg-default p-3 flex flex-col justify-between shadow-sm border border-slate-100 flex-1 relative glass-panel-inline min-h-0 w-full transition-all"; 
+                cEl.className = "cc-bg-default p-2 flex flex-col justify-between shadow-sm border border-slate-100 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors"; 
                 if (state === 'absent') cEl.classList.add('cc-bg-fail'); else if (state === 'semester') cEl.classList.add('cc-bg-semester');
                 else if (state === 'ledig' || state === 'unplanned') cEl.classList.add('cc-bg-ledig'); else if (isShiftActive) cEl.classList.add('cc-bg-active-shift'); 
                 else if (cTot >= target && target > 0) cEl.classList.add('cc-bg-success'); else if (state === 'planned') cEl.classList.add('cc-bg-planned'); 
             }
+            
+            const inSalesDirect = document.getElementById('in-sales-direct-day'); if (inSalesDirect) { inSalesDirect.placeholder = `Försäljning (kr)...`; }
             
             const dObj = new Date(k.split('-')[0], k.split('-')[1]-1, k.split('-')[2]); const days = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'], months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
             const dateEl = document.getElementById('dp-inline-date'), timeEl = document.getElementById('dp-inline-time'); if(dateEl) dateEl.innerText = `${days[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`; if(timeEl) timeEl.innerText = qData.exists ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
             
             const statEl = document.getElementById('dp-inline-status'); 
             if(statEl) { 
-                if (state === 'absent') { const absMap = { 'Sjuk': '🤒 SJUK', 'VAB Belma': '👶 VAB (B)', 'VAB Wilma': '👶 VAB (W)', 'Föräldraledig Belma': '🍼 FL (B)', 'Föräldraledig Wilma': '🍼 FL (W)', 'Tjänstledig': '🏢 TJÄNSTL.', 'Åtgärd krävs': '⚠️ ÅTGÄRD' }; statEl.innerText = absMap[o.abs] || o.abs.toUpperCase(); statEl.style.color = (o.abs === 'Åtgärd krävs') ? "#b45309" : "var(--neg)"; } else if (state === 'semester') { statEl.innerText = "✈️ SEMESTER"; statEl.style.color = "#0f766e"; } else if (state === 'ledig' || state === 'unplanned') { statEl.innerText = "🏠 LEDIG"; statEl.style.color = "var(--text-muted)"; } else { statEl.innerText = "⚒️ ARBETSPASS"; statEl.style.color = "var(--sting-blue)"; } 
+                if (state === 'absent') { 
+                    const absMap = { 'Sjuk': '🤒 SJUK', 'VAB Belma': '👶 VAB (BELMA)', 'VAB Wilma': '👶 VAB (WILMA)', 'Föräldraledig Belma': '🍼 FL (BELMA)', 'Föräldraledig Wilma': '🍼 FL (WILMA)', 'Tjänstledig': '🏢 TJÄNSTLEDIG', 'Åtgärd krävs': '⚠️ ÅTGÄRD KRÄVS' };
+                    statEl.innerText = absMap[o.abs] || o.abs.toUpperCase(); statEl.style.color = (o.abs === 'Åtgärd krävs') ? "#b45309" : "var(--neg)"; 
+                } else if (state === 'semester') { statEl.innerText = "✈️ SEMESTER"; statEl.style.color = "#0f766e"; } 
+                else if (state === 'ledig' || state === 'unplanned') { statEl.innerText = "🏠 LEDIG"; statEl.style.color = "var(--text-muted)"; } 
+                else { statEl.innerText = "⚒️ ARBETSPASS"; statEl.style.color = "var(--sting-blue)"; } 
             }
-
-            document.getElementById('dp-inline-target').innerText = (target/1000).toFixed(1) + ' k';
-            document.getElementById('dp-inline-sales').innerText = (cTot/1000).toFixed(1) + ' k';
             
+            const tEl = document.getElementById('dp-inline-target'), lEl = document.getElementById('dp-inline-left'), sEl = document.getElementById('dp-inline-sales'), rEl = document.getElementById('dp-inline-req');
+            if(tEl) tEl.innerText = (target/1000).toFixed(1) + ' k'; if(lEl) lEl.innerText = (Math.max(0, target - cTot)/1000).toFixed(1) + ' k'; if(sEl) sEl.innerText = (cTot/1000).toFixed(1) + ' k';
+            
+            // Cockpit Gauge logic
             let sP = target > 0 ? Math.min(100, Math.round((cTot / target) * 100)) : 0; 
-            const gSales = document.getElementById('dp-gauge-sales'); if(gSales) gSales.style.strokeDashoffset = 283 - ((sP / 100) * 283);
+            const gSales = document.getElementById('dp-gauge-sales'); 
+            if(gSales) gSales.style.strokeDashoffset = 212 - ((sP / 100) * 212);
             
             let eff = target > 0 ? Math.round((cTot / target) * 100) : 0;
             const effEl = document.getElementById('dp-inline-eff'); if(effEl) effEl.innerText = eff + '%'; 
             const effLbl = document.getElementById('dp-inline-eff-lbl'); 
-            if(effLbl) { if(cTot >= target && target > 0) { effLbl.innerText = "I MÅL"; effLbl.style.color = "#059669"; } else { effLbl.innerText = "KVAR"; effLbl.style.color = "#dc2626"; } }
+            if(effLbl) { 
+                if(cTot >= target && target > 0) { effLbl.innerText = "I MÅL"; effLbl.style.color = "#059669"; } 
+                else { effLbl.innerText = "KVAR"; effLbl.style.color = "#dc2626"; } 
+            }
+
+            // Snitt / Pass (prognos)
+            let cm = dObj.getMonth() + 1, cy = dObj.getFullYear(), tS = 0, dP = 0; const daysM = new Date(cy, cm, 0).getDate();
+            for(let d=1; d<=daysM; d++) { const mk = `${cy}-${cm}-${d}`; if(db.d[mk] && db.d[mk].s > 0) { tS += db.d[mk].s; dP++; } }
+            let avg = dP ? (tS/dP) : 0; if(rEl) rEl.innerText = (avg/1000).toFixed(1) + ' k';
         }
 
         function createDayCell(cd, k) {
@@ -610,7 +939,7 @@
             if (o.abs) { if (o.abs === 'Åtgärd krävs') { b = `<div class="u-badge badge-abs badge-action">${em[o.abs] || '•'}</div>`; } else { b = `<div class="u-badge badge-abs">${em[o.abs] || '•'}</div>`; } }
 
             if (o.s > 0) { content = `<span class="cell-main-val mt-1">${(o.s/1000).toFixed(1)} k</span>`; } 
-            else if (state === 'planned' || (isToday && qData.exists && state !== 'ledig' && !o.abs)) { if (qData.start && qData.end) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span></div>`; } } 
+            else if (state === 'planned' || (isToday && qData.exists && state !== 'ledig' && !o.abs)) { if (qData.start && qData.end) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`; } } 
             else if (state === 'unplanned') { content = `<span class="text-[7px] font-black text-slate-400 mt-1 uppercase tracking-widest opacity-50">Ledig</span>`; } 
             else if (state === 'ledig' && o.s === 0) { content = `<span class="cell-main-val mt-1" style="font-size:9px; opacity:0.4;">🏠</span>`; }
 
@@ -620,81 +949,38 @@
             if (isShiftActive) cls += ' active-shift-pulse'; 
             if (viewMode === 'month' && multiSelectKeys.has(k)) { cls += ' active-focus'; } else if (viewMode !== 'month' && activeK === k) { cls += ' active-focus'; }
             
-            const cell = document.createElement('div'); cell.className = cls; cell.onclick = (e) => selectDay(k, cell, e);
-            cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[6px] tracking-tighter">${b}${content}</div>`; return cell;
+            const cell = document.createElement('div'); cell.className = cls; cell.dataset.key = k; cell.onclick = (e) => selectDay(k, cell, e);
+            cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[6px] text-center tracking-tighter">${b}${content}</div>`; return cell;
         }
 
         function populateSlide(cId, sD) { const c = document.getElementById(cId); if(!c) return; c.innerHTML = ''; c.className = "w-full h-full flex-shrink-0 snap-center grid grid-cols-7 gap-1 px-3 items-center"; for(let i=0; i<7; i++) { const cd = new Date(sD); cd.setDate(cd.getDate() + i); c.appendChild(createDayCell(cd, getK(cd))); } }
         function renderWeekSlides() { const ps = new Date(currentWeekStart); ps.setDate(ps.getDate() - 7); const ns = new Date(currentWeekStart); ns.setDate(ns.getDate() + 7); populateSlide('slide-prev', ps); populateSlide('slide-curr', currentWeekStart); populateSlide('slide-next', ns); isResettingScroll = true; if(!sc) return; sc.style.scrollBehavior = 'auto'; sc.scrollLeft = sc.clientWidth; setTimeout(() => { isResettingScroll = false; sc.style.scrollBehavior = 'smooth'; }, 50); }
         
+        function getWeekNumber(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7); }
         function hideConfirm() { const cb = document.getElementById('confirm-box'); if(cb) cb.style.display='none'; }
-        function openBudgetModal() { document.getElementById('budget-modal').classList.remove('hidden'); }
-        function closeBudgetModal() { document.getElementById('budget-modal').classList.add('hidden'); }
-        function setGlobalBudget(amount) { db.b = amount; try{localStorage.setItem('sf_budget', amount);}catch(e){} calculateTimeline(); updateDash(); closeBudgetModal(); }
-
-        function triggerChildSelection(absType, source) { pendingAbsenceType = absType; pendingAbsenceSource = source; document.getElementById('child-modal-title').innerText = `${absType.toUpperCase()} - VEM GÄLLER DET?`; const m = document.getElementById('child-select-modal'); const c = document.getElementById('child-modal-content'); m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); }
-        function closeChildModal() { const m = document.getElementById('child-select-modal'); const c = document.getElementById('child-modal-content'); m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); pendingAbsenceType = null; pendingAbsenceSource = null; }, 300); }
-        function selectChild(childName) { const fullAbs = `${pendingAbsenceType} ${childName}`; if (pendingAbsenceSource === 'direct') { finalizeDirectDayStatus(fullAbs); } else if (pendingAbsenceSource === 'week') { finalizeWeekDirectAction(fullAbs); } else if (pendingAbsenceSource === 'popup') { handleSaveFromPopup(fullAbs); } closeChildModal(); }
-
-        // ==========================================
-        // 4. ANTECKNINGAR OCH FRÅNVARO
-        // ==========================================
-        function addNote() {
-            const n_val = document.getElementById('note-name').value.trim(); const o_val = document.getElementById('note-order').value.trim(); const p_val = document.getElementById('note-phone').value.trim(); const t_val = document.getElementById('note-text').value.trim();
-            if(!t_val && !o_val && !p_val && !n_val) return;
-            if (editingNoteId) { const note = savedNotes.find(x => x.id === editingNoteId); if (note) { note.name = n_val; note.order = o_val; note.phone = p_val; note.text = t_val; } editingNoteId = null; document.getElementById('note-submit-btn').innerText = 'SPARA'; } 
-            else { savedNotes.unshift({ id: Date.now(), name: n_val, order: o_val, phone: p_val, text: t_val, done: false, date: new Date().toLocaleDateString('sv-SE') }); }
-            try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
-            document.getElementById('note-name').value = ''; document.getElementById('note-order').value = ''; document.getElementById('note-phone').value = ''; document.getElementById('note-text').value = ''; renderNotes();
+        
+        let touchStartX = 0, touchStartY = 0;
+        function handleSwipeStart(e) { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }
+        function handleSwipeEnd(e, targetView) { 
+            if(viewMode !== targetView) return; let dx = e.changedTouches[0].screenX - touchStartX; let dy = e.changedTouches[0].screenY - touchStartY;
+            if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) { if(dx > 0) navCal(-1); else navCal(1); }
         }
-        function askCloseNote(id) { pendingNoteId = id; const m = document.getElementById('note-confirm-modal'); const c = document.getElementById('note-modal-content'); if(!m || !c) return; m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); document.getElementById('btn-note-yes').onclick = () => confirmCloseNote(); }
-        function closeNoteModal() { const m = document.getElementById('note-confirm-modal'); const c = document.getElementById('note-modal-content'); if(!m || !c) return; m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); pendingNoteId = null; }, 300); }
-        function confirmCloseNote() { if(pendingNoteId) { const n = savedNotes.find(x => x.id === pendingNoteId); if(n) { n.done = true; n.doneDate = new Date().toLocaleDateString('sv-SE'); } try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){} renderNotes(); } closeNoteModal(); }
-        function editNote(id) { const note = savedNotes.find(x => x.id === id); if(!note) return; editingNoteId = id; document.getElementById('note-name').value = note.name || ''; document.getElementById('note-order').value = note.order || ''; document.getElementById('note-phone').value = note.phone || ''; document.getElementById('note-text').value = note.text || ''; document.getElementById('note-submit-btn').innerText = 'UPPDAT.'; }
-        function deleteHistoryNote(id, e) { e.stopPropagation(); savedNotes = savedNotes.filter(n => n.id !== id); try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){} renderNotes(); }
-        function toggleExpandNote(id) { if (expandedNoteId === id) expandedNoteId = null; else expandedNoteId = id; renderNotes(); }
+        
+        const pd = document.getElementById('pane-day'); if(pd) { pd.addEventListener('touchstart', handleSwipeStart, {passive: true}); pd.addEventListener('touchend', (e) => handleSwipeEnd(e, 'day'), {passive: true}); }
+        const pm = document.getElementById('pane-month'); if(pm) { pm.addEventListener('touchstart', handleSwipeStart, {passive: true}); pm.addEventListener('touchend', (e) => handleSwipeEnd(e, 'month'), {passive: true}); }
+        const pa = document.getElementById('pane-absence'); if(pa) { pa.addEventListener('touchstart', handleSwipeStart, {passive: true}); pa.addEventListener('touchend', (e) => handleSwipeEnd(e, 'absence'), {passive: true}); }
+        const pn = document.getElementById('pane-notes'); if(pn) { pn.addEventListener('touchstart', handleSwipeStart, {passive: true}); pn.addEventListener('touchend', (e) => handleSwipeEnd(e, 'notes'), {passive: true}); }
 
-        function renderNotes() {
-            const container = document.getElementById('notes-list-container'); if(!container) return;
-            let activeHTML = ''; let histHTML = ''; const activeCount = savedNotes.filter(x => !x.done).length;
-            savedNotes.forEach(n => {
-                if (!n.done) {
-                    const isExpanded = (activeCount <= 1) || (expandedNoteId === n.id);
-                    if (isExpanded) {
-                        activeHTML += `<div class="bg-white rounded-[16px] border border-slate-200 shadow-sm p-3 flex flex-col gap-1.5 relative transition-all">${activeCount > 1 ? `<button onclick="toggleExpandNote(${n.id})" class="absolute top-2 right-2 w-5 h-5 flex items-center justify-center text-slate-400 active:scale-90 transition-all text-[8px] border border-slate-100 rounded-full bg-slate-50">▲</button>` : ''}<div class="pr-8 ${activeCount > 1 ? 'cursor-pointer' : ''}" onclick="${activeCount > 1 ? `toggleExpandNote(${n.id})` : ''}"><span class="text-[8px] font-black uppercase text-slate-400 tracking-wider">${n.date}</span>${n.name ? `<div class="text-[11px] font-black text-[#0ea5e9] mt-0.5">${n.name}</div>` : ''}${n.order ? `<div class="text-[10px] font-bold text-slate-500 mt-0.5">Order: <span class="text-slate-800 font-black">${n.order}</span></div>` : ''}${n.phone ? `<div class="text-[10px] font-bold text-slate-500 mt-0.5">Tel: <a href="tel:${n.phone}" onclick="event.stopPropagation()" class="text-[#0ea5e9] font-black hover:underline">${n.phone}</a></div>` : ''}${n.text ? `<div class="text-[12px] font-bold text-slate-800 mt-1.5 leading-snug pb-6">${n.text}</div>` : '<div class="pb-6"></div>'}</div><div class="absolute bottom-2 right-2 flex gap-1.5"><button onclick="editNote(${n.id}); event.stopPropagation();" class="w-6 h-6 rounded-full border border-slate-200 bg-white shadow-sm flex items-center justify-center hover:bg-slate-50 active:scale-90 transition-all text-[9px]">✏️</button><button onclick="askCloseNote(${n.id}); event.stopPropagation();" class="w-6 h-6 rounded-full border-2 border-slate-200 flex items-center justify-center hover:bg-[#f0f9ff] hover:border-[#bae6fd] active:scale-90 transition-all bg-white"></button></div></div>`;
-                    } else { activeHTML += `<div onclick="toggleExpandNote(${n.id})" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-2.5 flex justify-between items-center cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all"><div class="flex flex-col overflow-hidden whitespace-nowrap pr-2">${n.name ? `<span class="text-[10px] font-black text-[#0ea5e9] truncate">${n.name}</span>` : '<span class="text-[10px] font-black text-slate-400 italic">Inget namn</span>'} ${n.order ? `<span class="text-[9px] font-bold text-slate-500 truncate mt-0.5">Order: ${n.order}</span>` : ''}</div><div class="text-slate-300 text-[9px]">▼</div></div>`; }
-                } else { histHTML += `<div class="bg-white rounded-[16px] border border-slate-100 opacity-75 p-2.5 flex flex-col relative transition-all"><button onclick="deleteHistoryNote(${n.id}, event)" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-rose-50 flex items-center justify-center hover:bg-rose-100 active:scale-90 transition-all text-[8px] border border-rose-100 text-rose-500">✕</button><div class="pr-8"><span class="text-[8px] font-black uppercase text-slate-400 tracking-wider">KLAR ${n.doneDate||''}</span>${n.name ? `<div class="text-[10px] font-black text-emerald-600 mt-0.5">${n.name}</div>` : ''}${n.order ? `<div class="text-[9px] font-bold text-slate-500">Order: ${n.order}</div>` : ''}${n.text ? `<div class="text-[10px] font-medium text-slate-500 mt-1 truncate">${n.text}</div>` : ''}</div></div>`; }
-            });
-            let fullHTML = ''; if(activeHTML) fullHTML += `<h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1 mt-1 mb-0.5">Aktiva Ärenden</h4>${activeHTML}`; if(histHTML) fullHTML += `<div class="flex justify-between items-center px-1 mt-3 mb-0.5 border-t border-slate-200/50 pt-2"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Historik</h4></div>${histHTML}`; if(!activeHTML && !histHTML) fullHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-3xl mb-2">📝</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Inga anteckningar<br>skrivna ännu</p></div>`; container.innerHTML = fullHTML;
-        }
-
-        function renderAbsence() {
-            const pane = document.getElementById('pane-absence'); if(!pane) return;
-            const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate();
-            let absCounts = {}; let absListHTML = ''; let totalAbs = 0; const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
-            const em = { 'Sjuk': '🤒', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; const col = { 'Sjuk': 'text-rose-500', 'VAB Belma': 'text-amber-500', 'VAB Wilma': 'text-amber-500', 'Föräldraledig Belma': 'text-purple-500', 'Föräldraledig Wilma': 'text-purple-500', 'Semester': 'text-[#0f766e]', 'Tjänstledig': 'text-slate-500', 'Åtgärd krävs': 'text-amber-500' };
-
-            for (let d = 1; d <= daysM; d++) {
-                const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {};
-                if (o.abs && ['Sjuk', 'VAB Belma', 'VAB Wilma', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig', 'Åtgärd krävs'].includes(o.abs)) {
-                    let reason = o.abs; absCounts[reason] = (absCounts[reason] || 0) + 1; totalAbs++;
-                    const dObj = new Date(cy, cm-1, d); const dayStr = `${daysLong[dObj.getDay()]} ${d}`; const icon = em[reason] || '•'; const tCol = col[reason] || 'text-slate-500';
-                    absListHTML += `<div class="flex justify-between items-center p-3.5 border-b border-slate-100 last:border-0 bg-white"><span class="text-[10px] font-black uppercase text-slate-600 tracking-wider">${dayStr}</span><span class="text-[11px] font-black ${tCol} uppercase tracking-widest">${icon} ${reason}</span></div>`;
-                }
-            }
-            if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[10px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
-            let summaryHTML = `<div class="mb-2.5 bg-white rounded-[16px] border border-slate-200 p-3 shadow-sm flex-shrink-0"><h4 class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
-            for (let reason in absCounts) { const icon = em[reason] || '•'; const tCol = col[reason] || 'text-slate-500'; summaryHTML += `<div class="flex justify-between items-center mb-1 last:mb-0"><span class="text-[11px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[12px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; }
-            summaryHTML += `</div>`;
-            pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="bg-white rounded-[16px] border border-slate-200 shadow-sm overflow-y-auto hide-scrollbar flex-1 mb-1">${absListHTML}</div></div>`;
-        }
-
-        function renderCal(y, m) { const g = document.getElementById('d-cal'); if(!g) return; g.innerHTML = ''; ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'].forEach(d => g.innerHTML += `<div class="weekday-label">${d}</div>`); const last = new Date(y, m, 0).getDate(), first = new Date(y, m-1, 1).getDay() || 7; for(let i=1; i<first; i++) g.innerHTML += '<div></div>'; for(let d=1; d<=last; d++) g.appendChild(createDayCell(new Date(y, m-1, d), `${y}-${m}-${d}`)); }
-        function setupSwipeObserver() { if(!sc) return; sc.addEventListener('scroll', () => { if(isResettingScroll || viewMode !== 'week') return; clearTimeout(scrollTimeout); scrollTimeout = setTimeout(() => { const width = sc.clientWidth; if(width === 0) return; const idx = Math.round(sc.scrollLeft / width); if (idx !== 1) { multiSelectKeys.clear(); closeMonthEdit(); currentWeekStart.setDate(currentWeekStart.getDate() + ((idx === 0 ? -1 : 1) * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); toggleWeekInput(false); } }, 50); }); }
+        document.addEventListener('click', (e) => {
+            const mMenu = document.getElementById('month-edit-menu');
+            if (mMenu && !mMenu.classList.contains('hidden') && !e.target.closest('#month-edit-menu') && !e.target.closest('.day-cell')) { multiSelectKeys.clear(); document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); closeMonthEdit(); }
+            const wInput = document.getElementById('wp-input-state');
+            if (wInput && wInput.classList.contains('translate-x-0') && !e.target.closest('#wp-input-state') && !e.target.closest('button[onclick="toggleWeekInput(true)"]')) { toggleWeekInput(false); }
+        });
 
         let isResettingScroll = false; const sc = document.getElementById('swipe-wrapper'); let scrollTimeout;
         init();
-        if ("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js").catch(e => console.warn('ServiceWorker log:', e)); }
+        if ("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js"); }
     </script>
 </body>
 </html>

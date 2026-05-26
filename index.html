@@ -273,58 +273,76 @@
                             <div class="flex items-center gap-1 w-full justify-center relative h-[32px]">
                                 <button onclick="navCal(-1)" class="absolute left-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl leading-none active:scale-75 transition-transform" style="margin-top:-2px;">‹</button>
                                 <div class="text-center">
-                                    <h4 id="dp-inline-date" class="text-[10px] font-black uppercase tracking-widest text-slate-800">Laddar...</h4>
-                                    <p id="dp-inline-time" class="text-[9px] font-bold text-[#0ea5e9] mt-0.5">00:00 — 00:00</p>
+                                    <h4 id="dp-inline-date" class="text-[10px] font-black uppercase tracking-tight text-slate-900">Laddar...</h4>
+                                    <p id="dp-inline-time" class="text-[9px] font-bold text-[#0ea5e9] mt-0.5 inline-block bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">00:00 — 00:00</p>
                                 </div>
                                 <button onclick="navCal(1)" class="absolute right-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl leading-none active:scale-75 transition-transform" style="margin-top:-2px;">›</button>
                             </div>
                         </div>
 
-                        <div id="dp-cockpit-card" class="cc-bg-default p-2 flex flex-col justify-between shadow-sm border border-slate-100 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors">
-                            <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none">
-                                <div class="flex flex-col justify-center text-left pointer-events-auto flex-1 pl-1">
-                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">DAGSMÅL</span>
-                                    <p id="dp-inline-target" class="text-[16px] font-black leading-none mb-1.5 text-slate-900">0 k</p>
-                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">KVAR TILL MÅL</span>
-                                    <p id="dp-inline-left" class="text-[16px] font-black leading-none text-rose-600">0 k</p>
-                                </div>
-                                <div class="relative flex flex-col justify-center items-center pointer-events-none flex-[1.5] max-w-[110px] aspect-square mx-1">
-                                    <svg class="w-full h-full drop-shadow-sm" viewBox="0 0 120 120">
-                                        <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
-                                        <circle id="dp-gauge-sales" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
-                                    </svg>
-                                    <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5">
-                                        <span id="dp-inline-eff" class="text-[22px] font-black tracking-tighter text-slate-900 leading-none">0%</span>
-                                        <span id="dp-inline-eff-lbl" class="text-[8px] font-black uppercase tracking-widest text-emerald-600 mt-1">I FAS</span>
+                        <div id="dp-cockpit-card" class="cc-bg-default p-2 flex flex-col justify-between border border-slate-200/70 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors overflow-hidden" style="border-radius:20px; background:linear-gradient(160deg,#ffffff 0%,#f8fafc 55%,#eff6ff 100%); box-shadow:0 1px 2px rgba(15,23,42,0.04),0 14px 36px -20px rgba(14,165,233,0.35),inset 0 1px 0 rgba(255,255,255,0.7);">
+                            <div class="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-sky-300/60 to-transparent pointer-events-none"></div>
+                            <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none relative">
+                                <div class="flex flex-col justify-center text-left pointer-events-auto flex-1 pl-1 gap-1.5">
+                                    <div>
+                                        <span class="flex items-center gap-1 text-[7.5px] font-black uppercase tracking-widest text-slate-400"><span class="inline-block w-1 h-1 rounded-full bg-slate-300"></span>DAGSMÅL</span>
+                                        <p id="dp-inline-target" class="text-[16px] font-black leading-none mt-1 text-slate-900 tracking-tight">0 k</p>
+                                    </div>
+                                    <div>
+                                        <span class="flex items-center gap-1 text-[7.5px] font-black uppercase tracking-widest text-slate-400"><span class="inline-block w-1 h-1 rounded-full bg-rose-400"></span>KVAR TILL MÅL</span>
+                                        <p id="dp-inline-left" class="text-[16px] font-black leading-none mt-1 text-rose-600 tracking-tight">0 k</p>
                                     </div>
                                 </div>
-                                <div class="flex flex-col justify-center text-right pointer-events-auto flex-1 pr-1">
-                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">INKÖRT</span>
-                                    <p id="dp-inline-sales" class="text-[16px] font-black text-[#0ea5e9] leading-none mb-1.5">0 k</p>
-                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">SNITT / PASS</span>
-                                    <p id="dp-inline-req" class="text-[16px] font-black text-slate-600 leading-none">0 k</p>
+                                <div class="relative flex flex-col justify-center items-center pointer-events-none flex-[1.5] max-w-[110px] aspect-square mx-1">
+                                    <div class="absolute inset-[14%] rounded-full bg-gradient-to-br from-sky-100/60 to-transparent blur-md"></div>
+                                    <svg class="w-full h-full relative" viewBox="0 0 120 120" style="filter:drop-shadow(0 4px 10px rgba(14,165,233,0.25));">
+                                        <defs>
+                                            <linearGradient id="cockpitGaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" stop-color="#7dd3fc"/>
+                                                <stop offset="60%" stop-color="#0ea5e9"/>
+                                                <stop offset="100%" stop-color="#0369a1"/>
+                                            </linearGradient>
+                                        </defs>
+                                        <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
+                                        <circle id="dp-gauge-sales" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)" stroke="url(#cockpitGaugeGrad)" stroke-linecap="round"></circle>
+                                    </svg>
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5">
+                                        <span id="dp-inline-eff" class="text-[22px] font-black tracking-tight leading-none bg-gradient-to-b from-slate-900 to-slate-700 bg-clip-text text-transparent">0%</span>
+                                        <span id="dp-inline-eff-lbl" class="text-[8px] font-black uppercase tracking-widest text-emerald-600 mt-1 px-1.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-100">I FAS</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col justify-center text-right pointer-events-auto flex-1 pr-1 gap-1.5">
+                                    <div>
+                                        <span class="flex items-center justify-end gap-1 text-[7.5px] font-black uppercase tracking-widest text-slate-400">INKÖRT<span class="inline-block w-1 h-1 rounded-full bg-[#0ea5e9] shadow-[0_0_5px_rgba(14,165,233,0.7)]"></span></span>
+                                        <p id="dp-inline-sales" class="text-[16px] font-black leading-none mt-1 tracking-tight bg-gradient-to-b from-[#0ea5e9] to-[#0369a1] bg-clip-text text-transparent">0 k</p>
+                                    </div>
+                                    <div>
+                                        <span class="flex items-center justify-end gap-1 text-[7.5px] font-black uppercase tracking-widest text-slate-400">SNITT / PASS<span class="inline-block w-1 h-1 rounded-full bg-slate-300"></span></span>
+                                        <p id="dp-inline-req" class="text-[16px] font-black text-slate-700 leading-none mt-1 tracking-tight">0 k</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex-shrink-0 flex gap-1.5 h-[38px]">
-                            <div class="bg-slate-50 border border-slate-200/60 rounded-[14px] p-1 flex items-center shadow-inner flex-1 h-full">
-                                <span class="pl-2 pr-1 text-[11px] opacity-40">⚡</span>
-                                <input type="text" inputmode="decimal" id="in-sales-direct-day" class="flex-1 bg-transparent font-black text-[11px] text-slate-900 placeholder-slate-400 outline-none w-full text-center" placeholder="Försäljning (kr)...">
-                                <button onclick="saveDirectDaySales()" class="text-white font-black uppercase tracking-widest text-[8px] px-3.5 py-2 rounded-xl bg-[#0ea5e9] shadow-md flex-shrink-0 active:scale-95 transition-transform h-full">SPARA</button>
+                            <div class="bg-gradient-to-b from-white to-slate-50 border border-slate-200/70 rounded-[14px] p-1 flex items-center shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(15,23,42,0.04)] flex-1 h-full">
+                                <span class="pl-2 pr-1 text-[11px] opacity-50">⚡</span>
+                                <input type="text" inputmode="decimal" id="in-sales-direct-day" class="flex-1 bg-transparent font-black text-[11px] text-slate-900 placeholder-slate-400 outline-none w-full text-center tracking-tight" placeholder="Försäljning (kr)...">
+                                <button onclick="saveDirectDaySales()" class="text-white font-black uppercase tracking-widest text-[8px] px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#38bdf8] to-[#0284c7] shadow-[0_2px_4px_rgba(14,165,233,0.25),0_6px_14px_-6px_rgba(14,165,233,0.6)] flex-shrink-0 active:scale-95 transition-transform h-full">SPARA</button>
                             </div>
                         </div>
 
                         <div class="flex-shrink-0 w-full grid grid-cols-6 gap-1 h-[36px]">
-                            <button onclick="saveDirectDayStatus('Arbete')" class="bg-[#f0f9ff] text-[#0ea5e9] font-extrabold text-[9px] rounded-xl border border-[#e0f2fe] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>⚒️</span><span class="text-[5.5px] mt-0.5">Jobb</span></button>
-                            <button onclick="saveDirectDayStatus('Ledig')" class="bg-slate-100 text-slate-600 font-extrabold text-[9px] rounded-xl border border-slate-200/60 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🏠</span><span class="text-[5.5px] mt-0.5">Ledig</span></button>
-                            <button onclick="saveDirectDayStatus('Semester')" class="bg-[#ccfbf1] text-[#0f766e] font-extrabold text-[9px] rounded-xl border border-[#99f6e4] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>✈️</span><span class="text-[5.5px] mt-0.5">Sem</span></button>
-                            <button onclick="saveDirectDayStatus('Sjuk')" class="bg-rose-50 text-rose-700 font-extrabold text-[9px] rounded-xl border border-rose-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🤒</span><span class="text-[5.5px] mt-0.5">Sjuk</span></button>
-                            <button onclick="saveDirectDayStatus('VAB')" class="bg-amber-50 text-amber-700 font-extrabold text-[9px] rounded-xl border border-amber-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>👶</span><span class="text-[5.5px] mt-0.5">VAB</span></button>
-                            <button onclick="saveDirectDayStatus('Föräldraledig')" class="bg-purple-50 text-purple-700 font-extrabold text-[9px] rounded-xl border border-purple-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🍼</span><span class="text-[5.5px] mt-0.5">FL</span></button>
+                            <button onclick="saveDirectDayStatus('Arbete')" class="bg-gradient-to-b from-sky-50 to-sky-100 text-[#0369a1] font-extrabold text-[9px] rounded-xl border border-sky-200/70 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"><span>⚒️</span><span class="text-[5.5px] mt-0.5">Jobb</span></button>
+                            <button onclick="saveDirectDayStatus('Ledig')" class="bg-gradient-to-b from-white to-slate-100 text-slate-600 font-extrabold text-[9px] rounded-xl border border-slate-200/70 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"><span>🏠</span><span class="text-[5.5px] mt-0.5">Ledig</span></button>
+                            <button onclick="saveDirectDayStatus('Semester')" class="bg-gradient-to-b from-teal-50 to-teal-100 text-[#0f766e] font-extrabold text-[9px] rounded-xl border border-teal-200/70 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"><span>✈️</span><span class="text-[5.5px] mt-0.5">Sem</span></button>
+                            <button onclick="saveDirectDayStatus('Sjuk')" class="bg-gradient-to-b from-rose-50 to-rose-100 text-rose-700 font-extrabold text-[9px] rounded-xl border border-rose-200/70 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"><span>🤒</span><span class="text-[5.5px] mt-0.5">Sjuk</span></button>
+                            <button onclick="saveDirectDayStatus('VAB')" class="bg-gradient-to-b from-amber-50 to-amber-100 text-amber-700 font-extrabold text-[9px] rounded-xl border border-amber-200/70 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"><span>👶</span><span class="text-[5.5px] mt-0.5">VAB</span></button>
+                            <button onclick="saveDirectDayStatus('Föräldraledig')" class="bg-gradient-to-b from-purple-50 to-purple-100 text-purple-700 font-extrabold text-[9px] rounded-xl border border-purple-200/70 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"><span>🍼</span><span class="text-[5.5px] mt-0.5">FL</span></button>
                         </div>
 
-                        <div class="text-center bg-slate-50 border border-slate-100 rounded-xl flex-shrink-0 flex items-center justify-center gap-1.5 h-[26px]">
+                        <div class="text-center bg-gradient-to-b from-white to-slate-50 border border-slate-200/70 rounded-xl flex-shrink-0 flex items-center justify-center gap-1.5 h-[26px] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#0ea5e9] shadow-[0_0_6px_rgba(14,165,233,0.6)]"></span>
                             <span class="text-[7.5px] font-extrabold uppercase tracking-widest text-slate-400">REGISTRERAT:</span><span id="dp-inline-status" class="text-[7.5px] font-black text-[#0ea5e9] uppercase tracking-wider">ARBETSPASS</span>
                         </div>
                     </div>
@@ -341,34 +359,36 @@
                             <div id="slide-next" class="w-full h-full flex-shrink-0 snap-center"></div>
                         </div>
 
-                        <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[20px] border border-slate-200 shadow-sm flex flex-col flex-1 relative z-20 min-h-0 overflow-hidden">
-                            <div class="flex justify-between items-end pb-2 border-b border-slate-100 flex-shrink-0">
+                        <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[22px] border border-slate-200/70 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_30px_-18px_rgba(15,23,42,0.25)] flex flex-col flex-1 relative z-20 min-h-0 overflow-hidden">
+                            <div class="flex justify-between items-end pb-2 border-b border-slate-100/70 flex-shrink-0">
                                 <div class="flex flex-col">
-                                    <span id="wp-date-range" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
+                                    <span id="wp-date-range" class="text-[10.5px] font-black uppercase tracking-tight text-slate-900">LADDAR...</span>
                                     <span id="wp-pass-count" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
                                 </div>
-                                <div class="flex flex-col text-right">
-                                    <p id="wp-quick-title" class="text-[8px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
+                                <div class="flex flex-col items-end text-right gap-1">
+                                    <p id="wp-quick-title" class="text-[8px] font-black text-[#0ea5e9] uppercase tracking-widest bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">VÄLJ DAG...</p>
                                     <p class="text-[10px] font-bold text-slate-400">För att redigera</p>
                                 </div>
                             </div>
                             
                             <div id="wp-week-summary" class="flex flex-col w-full flex-1 px-1 mt-1 transition-opacity duration-300 gap-1.5 justify-center">
-                                <div class="flex flex-col items-center flex-1 bg-[#f0f9ff] border border-[#bae6fd] rounded-[16px] p-2.5 shadow-sm justify-center w-full min-h-[60px]">
-                                    <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INKÖRT</span>
-                                    <span id="wp-sum-sales" class="text-[24px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 k</span>
+                                <div class="relative flex flex-col items-center flex-1 bg-gradient-to-br from-sky-50 via-white to-sky-100 border border-sky-200/70 rounded-[18px] p-2.5 shadow-[0_1px_2px_rgba(14,165,233,0.08),0_12px_28px_-14px_rgba(14,165,233,0.35),inset_0_1px_0_rgba(255,255,255,0.7)] justify-center w-full min-h-[60px] overflow-hidden">
+                                    <div class="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-sky-300/60 to-transparent"></div>
+                                    <span id="wp-lbl-sales" class="flex items-center gap-1.5 text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1"><span class="inline-block w-1.5 h-1.5 rounded-full bg-[#0ea5e9] shadow-[0_0_6px_rgba(14,165,233,0.6)]"></span>INKÖRT</span>
+                                    <span id="wp-sum-sales" class="text-[24px] font-black leading-none tracking-tight bg-gradient-to-b from-[#0ea5e9] to-[#0369a1] bg-clip-text text-transparent" style="filter:drop-shadow(0 2px 6px rgba(14,165,233,0.25));">0 k</span>
                                 </div>
                                 <div class="flex justify-between w-full gap-1.5 flex-1 min-h-[45px]">
-                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200/60 rounded-[12px] justify-center">
+                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-gradient-to-b from-white to-slate-50 border border-slate-200/70 rounded-[14px] justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(15,23,42,0.04)]">
                                         <span id="wp-lbl-target" class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">MÅL</span>
-                                        <span id="wp-sum-target" class="text-[14px] font-black text-slate-700">0 k</span>
+                                        <span id="wp-sum-target" class="text-[14px] font-black text-slate-700 tracking-tight">0 k</span>
                                     </div>
-                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200/60 rounded-[12px] justify-center">
+                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-gradient-to-b from-white to-slate-50 border border-slate-200/70 rounded-[14px] justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(15,23,42,0.04)]">
                                         <span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">DIFF</span>
-                                        <span id="wp-sum-diff" class="text-[14px] font-black text-slate-700">0 k</span>
+                                        <span id="wp-sum-diff" class="text-[14px] font-black text-slate-700 tracking-tight">0 k</span>
                                     </div>
                                 </div>
                             </div>
+
 
                             <div id="wp-day-actions" class="w-full flex-col transition-all duration-300 overflow-hidden max-h-0 opacity-0 flex-shrink-0 mt-0">
                                 <div class="relative w-full h-[40px] overflow-hidden rounded-xl border border-slate-200 shadow-sm mt-1">

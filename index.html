@@ -43,7 +43,6 @@
         .app-card { border-radius: 28px; box-shadow: 0 12px 35px -10px rgba(15,23,42,0.15); flex-shrink: 0; border: 1px solid var(--border-subtle); background: var(--white); }
         .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; }
         
-        /* Justerad: Tar bara det utrymme den behöver */
         .top-section { margin: 4px 12px 8px; padding: 12px 16px; position: relative; border: none; box-shadow: 0 20px 35px -10px rgba(15,23,42,0.3); flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; }
         
         .budget-header { text-align: center; margin-bottom: 2px; }
@@ -66,7 +65,6 @@
         .g-label-0 { position: absolute; bottom: 4px; left: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.4); }
         .g-label-240 { position: absolute; bottom: 4px; right: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.4); }
         
-        /* Justerad: Fyller ut allt kvarvarande utrymme (flex: 1 istället för flex: 4) */
         .bottom-section { flex: 1; margin: 0 12px calc(env(safe-area-inset-bottom) + 6px); display: flex; flex-direction: column; position: relative; min-height: 0; overflow: hidden; }
         
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 4px; padding: 2px 4px 6px; height: 100%; }
@@ -162,7 +160,13 @@
 
     <div id="budget-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[15000] hidden flex items-center justify-center p-4">
         <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-4">
-            <p class="text-[10px] font-black text-center uppercase tracking-widest text-slate-400">Välj Månadsmål</p>
+            <p class="text-[10px] font-black text-center uppercase tracking-widest text-slate-400">Inställningar</p>
+            
+            <button id="sync-btn" onclick="syncData()" class="w-full py-3.5 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all flex justify-center items-center gap-2"><span>⚡</span> Synkronisera Data</button>
+            
+            <div class="h-px w-full bg-slate-100 my-1"></div>
+            
+            <p class="text-[9px] font-black text-center uppercase tracking-widest text-slate-400">Välj Månadsmål</p>
             <div class="flex flex-col gap-2">
                 <button onclick="setGlobalBudget(100000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">100 000 kr</button>
                 <button onclick="setGlobalBudget(140000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">140 000 kr</button>
@@ -170,26 +174,28 @@
                 <button onclick="setGlobalBudget(240000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">240 000 kr</button>
                 <button onclick="setGlobalBudget(350000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">350 000 kr</button>
             </div>
-            <button onclick="closeBudgetModal()" class="mt-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Avbryt</button>
+            <button onclick="closeBudgetModal()" class="mt-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Stäng</button>
         </div>
     </div>
 
     <div id="app-shell">
         <div class="content-locker">
             
-            <header class="flex justify-between items-center px-5 pb-1.5 pt-3 relative z-20 flex-shrink-0">
-                <div class="flex items-center gap-1.5 flex-1">
-                    <span class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-700 drop-shadow-sm">Översikt</span>
-                    <button onclick="openBudgetModal()" class="text-slate-500 hover:text-slate-800 text-xs active:scale-75 transition-transform p-0.5 select-none drop-shadow-sm">⚙️</button>
+            <header class="flex justify-between items-center px-4 pb-1.5 pt-3 relative z-20 flex-shrink-0">
+                <div class="flex items-center gap-2 flex-1">
+                    <button onclick="openBudgetModal()" class="text-slate-400 hover:text-white text-xl active:scale-75 transition-transform p-0.5 select-none drop-shadow-sm">⚙️</button>
+                    <span class="text-[6.5px] font-black uppercase tracking-widest text-slate-700 bg-white/70 px-1.5 py-0.5 rounded shadow-sm border border-slate-200/50">V.2.5</span>
                 </div>
                 
-                <div class="flex flex-col items-center justify-center flex-1">
-                    <span class="text-[6.5px] font-black uppercase tracking-widest text-slate-500 bg-white/50 px-2 py-0.5 rounded-full mb-0.5 shadow-sm border border-slate-200/50">V.2.5 PWA</span>
-                    <span id="live-clock" class="text-[11px] font-black text-slate-800 tabular-nums tracking-tight">--:--</span>
+                <div class="flex flex-col items-center justify-center flex-[1.5]">
+                    <div class="flex items-center justify-center gap-1.5">
+                        <span class="text-lg">❄️</span>
+                        <span class="text-[12px] font-black uppercase tracking-[0.2em] text-slate-800 drop-shadow-sm">SalesFlow</span>
+                    </div>
                 </div>
 
                 <div class="flex justify-end flex-1">
-                    <button id="sync-btn" onclick="syncData()" class="text-[8.5px] font-black uppercase tracking-widest bg-[#0ea5e9] text-white px-2.5 py-1 rounded-full shadow-md border border-[#0284c7] select-none active:scale-95 transition-all">Synk ⚡</button>
+                    <span id="live-clock" class="text-[11px] font-black text-slate-600 tabular-nums tracking-tight">--:--</span>
                 </div>
             </header>
 
@@ -344,18 +350,20 @@
                                 </div>
                             </div>
                             
-                            <div id="wp-week-summary" class="flex justify-between items-center w-full flex-1 px-1 mt-2 transition-opacity duration-300">
-                                <div class="flex flex-col items-center flex-1 py-1">
-                                    <span id="wp-lbl-target" class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">MÅL</span>
-                                    <span id="wp-sum-target" class="text-[14px] font-black text-slate-700">0 k</span>
-                                </div>
-                                <div class="flex flex-col items-center flex-[1.2] bg-[#f0f9ff] border border-[#bae6fd] rounded-[14px] p-2.5 shadow-sm transform scale-105 mx-2 flex justify-center">
+                            <div id="wp-week-summary" class="flex flex-col w-full flex-1 px-1 mt-1 transition-opacity duration-300 gap-1.5 justify-center">
+                                <div class="flex flex-col items-center flex-1 bg-[#f0f9ff] border border-[#bae6fd] rounded-[16px] p-2.5 shadow-sm justify-center w-full min-h-[60px]">
                                     <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INKÖRT</span>
-                                    <span id="wp-sum-sales" class="text-[18px] font-black text-[#0ea5e9] leading-none">0 k</span>
+                                    <span id="wp-sum-sales" class="text-[24px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 k</span>
                                 </div>
-                                <div class="flex flex-col items-center flex-1 py-1">
-                                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">DIFF</span>
-                                    <span id="wp-sum-diff" class="text-[14px] font-black text-slate-700">0 k</span>
+                                <div class="flex justify-between w-full gap-1.5 flex-1 min-h-[45px]">
+                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200/60 rounded-[12px] justify-center">
+                                        <span id="wp-lbl-target" class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">MÅL</span>
+                                        <span id="wp-sum-target" class="text-[14px] font-black text-slate-700">0 k</span>
+                                    </div>
+                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200/60 rounded-[12px] justify-center">
+                                        <span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">DIFF</span>
+                                        <span id="wp-sum-diff" class="text-[14px] font-black text-slate-700">0 k</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -466,8 +474,8 @@
         async function syncData() {
             const btn = document.getElementById('sync-btn');
             if(!btn) return;
-            const oldTxt = btn.innerText;
-            btn.innerText = 'SYNKAR...';
+            const oldTxt = btn.innerHTML;
+            btn.innerHTML = '<span>⚡</span> SYNKAR...';
             try {
                 if(sb) {
                     const [s, q] = await Promise.all([sb.from('sales_data').select('*'), sb.from('schedule_data').select('*')]); 
@@ -480,7 +488,7 @@
             if (viewMode === 'day') updateInlineFocusDashboard();
             else if (viewMode === 'week') updateWeekPanel();
             else if (viewMode === 'absence') renderAbsence();
-            setTimeout(() => { btn.innerText = oldTxt; }, 800);
+            setTimeout(() => { btn.innerHTML = oldTxt; }, 800);
         }
 
         function pushMatrixSync(k, o) {
@@ -643,7 +651,6 @@
             const sdo = currentWeekStart.getDay() || 7;
             currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
             currentWeekStart.setHours(0,0,0,0);
-            activeK = getK(realToday);
             
             multiSelectKeys.clear();
             closeMonthEdit();
@@ -654,6 +661,12 @@
                 const b = document.getElementById(`tab-${m}`);
                 if(b) { if(m === mode) b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm"; else b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50"; }
             });
+
+            if (mode === 'week') {
+                activeK = null;
+            } else {
+                activeK = getK(realToday);
+            }
 
             calculateTimeline(); updateDash();
 
@@ -717,7 +730,6 @@
             const hCirc = document.getElementById('h-circle-prog'); if(hCirc) hCirc.style.strokeDashoffset = 326.7 - ((Math.min(monthlyPerc, 100) / 100) * (326.7 * 0.75));
             const progStr = Math.round((avg * tP)/1000); 
             
-            // Anpassade färger för mörk bakgrund (#34d399 = grön, #f87171 = röd)
             const progEl = document.getElementById('d-prog'); if(progEl) { progEl.innerText = progStr + " k"; progEl.style.color = progStr >= (db.b/1000) ? '#34d399' : '#f87171'; }
             const statEl = document.getElementById('d-status'); if(statEl) { statEl.innerText = progStr >= (db.b/1000) ? "I FAS" : "EFTER"; statEl.style.color = progStr >= (db.b/1000) ? '#34d399' : '#f87171'; }
             

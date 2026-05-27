@@ -92,9 +92,9 @@
         .status-today .date-num, .active-focus .date-num, .status-today .cell-main-val, .active-focus .cell-main-val { color: #ffffff !important; }
         .date-num { position: absolute; top: 3px; left: 0; width: 100%; text-align: center; font-size: 8.5px; font-weight: 800; letter-spacing: 0.02em; pointer-events: none; color: var(--text-main); }
         .u-badge { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; z-index: 35; border: 1.5px solid var(--white); pointer-events: none; box-shadow: 0 2px 6px rgba(15,23,42,0.22); }
-        .badge-abs { top: -4px; right: -4px; width: 14px; height: 14px; font-size: 8px; background: linear-gradient(180deg, #ffffff, #fff7ed); border: 1.5px solid #f97316; color: #c2410c; }
+        .badge-abs { top: 2px; right: 2px; width: 13px; height: 13px; font-size: 8px; background: linear-gradient(180deg, #ffffff, #fff7ed); border: 1.5px solid #f97316; color: #c2410c; }
         .badge-action { background: linear-gradient(180deg, #fef9c3, #fde68a) !important; border-color: #f59e0b !important; color: #b45309 !important; }
-        .week-tag { position: absolute; top: -3px; left: -3px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white !important; font-size: 5.5px; padding: 2px 5px; border-radius: 6px; font-weight: 800; letter-spacing: 0.06em; z-index: 10; pointer-events: none; box-shadow: 0 3px 8px rgba(37,99,235,0.4); }
+        .week-tag { position: absolute; top: 2px; left: 2px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white !important; font-size: 5.5px; padding: 1px 4px; border-radius: 5px; font-weight: 800; letter-spacing: 0.06em; z-index: 10; pointer-events: none; box-shadow: 0 2px 6px rgba(37,99,235,0.35); }
         .cell-main-val { font-size: 9px; font-weight: 800; line-height: 1; letter-spacing: -0.01em; pointer-events: none; color: inherit; margin-top: 4px; }
         
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -110,11 +110,12 @@
         .input-dark-theme { background: #ffffff; border: 1px solid #e2e8f0; color: var(--text-main); outline: none; transition: border-color 0.18s var(--ease-soft), box-shadow 0.18s var(--ease-soft); }
         .input-dark-theme:focus { border-color: var(--sting-blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
         
-        .cc-bg-default { background: #ffffff; }
-        .cc-bg-success { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-color: #10b981; }
-        .cc-bg-fail { background: linear-gradient(135deg, #fff5f5, #fee2e2); border-color: #f43f5e; }
-        .cc-bg-planned { background: linear-gradient(135deg, #eff6ff, #dbeafe); border-color: var(--sting-blue); }
-        .cc-bg-ledig { background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-color: #94a3b8; }
+        .cc-bg-default { background: linear-gradient(160deg,#ffffff 0%,#f8fafc 55%,#eff6ff 100%); }
+        .cc-bg-success { background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important; border-color: #10b981 !important; }
+        .cc-bg-fail { background: linear-gradient(135deg, #fff5f5, #fee2e2) !important; border-color: #f43f5e !important; }
+        .cc-bg-planned { background: linear-gradient(135deg, #eff6ff, #dbeafe) !important; border-color: var(--sting-blue) !important; }
+        .cc-bg-ledig { background: linear-gradient(135deg, #f8fafc, #f1f5f9) !important; border-color: #94a3b8 !important; }
+        .cc-bg-semester { background: linear-gradient(135deg, #f0fdfa, #ccfbf1) !important; border-color: #14b8a6 !important; }
         
         @keyframes pulse-cell {
             0% { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35), 0 0 0 0 rgba(37, 99, 235, 0.45); }
@@ -122,12 +123,13 @@
             100% { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35), 0 0 0 0 rgba(37, 99, 235, 0); }
         }
         @keyframes pulse-card {
-            0% { box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 0 rgba(37, 99, 235, 0.28); }
-            70% { box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 8px rgba(37, 99, 235, 0); }
-            100% { box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 0 rgba(37, 99, 235, 0); }
+            0% { box-shadow: 0 2px 10px rgba(14,165,233,0.08), 0 0 0 0 rgba(14, 165, 233, 0.35); }
+            70% { box-shadow: 0 2px 10px rgba(14,165,233,0.08), 0 0 0 10px rgba(14, 165, 233, 0); }
+            100% { box-shadow: 0 2px 10px rgba(14,165,233,0.08), 0 0 0 0 rgba(14, 165, 233, 0); }
         }
         .status-today.active-shift-pulse, .active-focus.active-shift-pulse { animation: pulse-cell 2s infinite; border: 1.5px solid var(--sting-blue) !important; }
-        .cc-bg-active-shift { background: linear-gradient(135deg, #eff6ff, #dbeafe) !important; border: 1.5px solid var(--sting-blue) !important; animation: pulse-card 2s infinite; }
+        #dp-cockpit-card.active-shift-pulse { animation: pulse-card 2.2s infinite; border: 1.5px solid rgba(14,165,233,0.5) !important; }
+        .cc-bg-active-shift { background: linear-gradient(135deg, #eff6ff, #dbeafe) !important; }
     </style>
 </head>
 <body class="mode-day">
@@ -291,41 +293,30 @@
                 </div>
 
                 <!-- SYMBOL ROW (visible when a day is selected) -->
-                <div id="cmd-symbols" class="hidden items-center px-1.5 py-1.5 gap-1">
-                    <div class="flex flex-col items-start leading-tight pr-1 pl-0.5 min-w-0">
-                        <span class="text-[6.5px] font-black uppercase tracking-widest text-[#0ea5e9]">Vald</span>
-                        <span id="cmd-sym-ctx" class="text-[8.5px] font-black uppercase tracking-tight text-slate-800 truncate max-w-[60px]">Idag</span>
-                    </div>
-                    <button onclick="topPickStatus('Arbete')" title="Arbete" class="sym-btn flex-1 h-9 rounded-[10px] text-[16px] flex items-center justify-center bg-gradient-to-b from-sky-50 to-sky-100 border border-sky-200/70 active:scale-90 transition-all">⚒️</button>
-                    <button onclick="topPickStatus('Semester')" title="Semester" class="sym-btn flex-1 h-9 rounded-[10px] text-[16px] flex items-center justify-center bg-gradient-to-b from-teal-50 to-teal-100 border border-teal-200/70 active:scale-90 transition-all">✈️</button>
-                    <button onclick="topPickStatus('Ledig')" title="Ledig" class="sym-btn flex-1 h-9 rounded-[10px] text-[16px] flex items-center justify-center bg-gradient-to-b from-white to-slate-100 border border-slate-200/70 active:scale-90 transition-all">🏠</button>
-                    <button onclick="openSellMode()" title="Sälj" class="flex-[1.6] h-10 rounded-[12px] text-[15px] font-black text-white flex items-center justify-center gap-1 active:scale-95 transition-all" style="background:linear-gradient(160deg,#38bdf8 0%,#0ea5e9 55%,#0284c7 100%); box-shadow:0 2px 6px rgba(14,165,233,0.4), 0 8px 18px -8px rgba(14,165,233,0.7), inset 0 1px 0 rgba(255,255,255,0.35);">💰<span class="text-[9px] tracking-widest">SÄLJ</span></button>
-                    <button onclick="topPickStatus('Sjuk')" title="Sjuk" class="sym-btn flex-1 h-9 rounded-[10px] text-[16px] flex items-center justify-center bg-gradient-to-b from-rose-50 to-rose-100 border border-rose-200/70 active:scale-90 transition-all">🤒</button>
-                    <button onclick="topPickStatus('VAB')" title="Vabb" class="sym-btn flex-1 h-9 rounded-[10px] text-[16px] flex items-center justify-center bg-gradient-to-b from-amber-50 to-amber-100 border border-amber-200/70 active:scale-90 transition-all">👶</button>
-                    <button onclick="topPickStatus('Föräldraledig')" title="Föräldraledig" class="sym-btn flex-1 h-9 rounded-[10px] text-[16px] flex items-center justify-center bg-gradient-to-b from-purple-50 to-purple-100 border border-purple-200/70 active:scale-90 transition-all">🍼</button>
-                    <button onclick="topPickStatus('delete')" title="Rensa dag" class="sym-btn w-9 h-9 rounded-[10px] text-[14px] flex items-center justify-center bg-gradient-to-b from-rose-50 to-rose-100 border border-rose-200/70 text-rose-500 active:scale-90 transition-all ml-0.5">🗑️</button>
+                <div id="cmd-symbols" class="hidden items-stretch p-1 gap-0.5">
+                    <button onclick="topPickStatus('Arbete')" title="Arbete" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[15px] flex items-center justify-center bg-gradient-to-b from-sky-50 to-sky-100 border border-sky-200/70 active:scale-90 transition-all">⚒️</button>
+                    <button onclick="topPickStatus('Semester')" title="Semester" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[15px] flex items-center justify-center bg-gradient-to-b from-teal-50 to-teal-100 border border-teal-200/70 active:scale-90 transition-all">✈️</button>
+                    <button onclick="topPickStatus('Ledig')" title="Ledig" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[15px] flex items-center justify-center bg-gradient-to-b from-white to-slate-100 border border-slate-200/70 active:scale-90 transition-all">🏠</button>
+                    <button onclick="openSellMode()" title="Sälj" class="flex-[1.5] h-[34px] rounded-[11px] text-[13px] font-black text-white flex items-center justify-center gap-1 active:scale-95 transition-all" style="background:linear-gradient(160deg,#38bdf8 0%,#0ea5e9 55%,#0284c7 100%); box-shadow:0 2px 6px rgba(14,165,233,0.4), inset 0 1px 0 rgba(255,255,255,0.35);">💰<span class="text-[8px] tracking-widest">SÄLJ</span></button>
+                    <button onclick="topPickStatus('Sjuk')" title="Sjuk" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[15px] flex items-center justify-center bg-gradient-to-b from-rose-50 to-rose-100 border border-rose-200/70 active:scale-90 transition-all">🤒</button>
+                    <button onclick="topPickStatus('VAB')" title="Vabb" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[15px] flex items-center justify-center bg-gradient-to-b from-amber-50 to-amber-100 border border-amber-200/70 active:scale-90 transition-all">👶</button>
+                    <button onclick="topPickStatus('Föräldraledig')" title="Föräldraledig" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[15px] flex items-center justify-center bg-gradient-to-b from-purple-50 to-purple-100 border border-purple-200/70 active:scale-90 transition-all">🍼</button>
+                    <button onclick="topPickStatus('delete')" title="Rensa dag" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[13px] flex items-center justify-center bg-gradient-to-b from-rose-50 to-rose-100 border border-rose-200/70 text-rose-500 active:scale-90 transition-all">🗑️</button>
                 </div>
 
                 <!-- CHILD ROW (Vabb / Föräldraledig → välj barn) -->
-                <div id="cmd-child" class="hidden items-center px-2 py-1.5 gap-1.5">
-                    <button onclick="renderSymbolMode()" title="Tillbaka" class="w-8 h-9 rounded-[11px] flex items-center justify-center text-[#0ea5e9] active:scale-90 transition-all" style="background:#f1f5f9; border:1px solid rgba(15,23,42,0.06);">‹</button>
-                    <div class="flex flex-col leading-tight pr-1">
-                        <span class="text-[6.5px] font-black uppercase tracking-widest text-[#0ea5e9]" id="cmd-child-lbl">Vabb</span>
-                        <span class="text-[8.5px] font-black uppercase tracking-tight text-slate-800">Vem?</span>
-                    </div>
-                    <button onclick="topPickChild('Wilma')" class="flex-1 h-9 rounded-[11px] text-[13px] font-black text-white flex items-center justify-center gap-1 active:scale-95 transition-all" style="background:linear-gradient(160deg,#f472b6 0%,#ec4899 100%); box-shadow:0 2px 6px rgba(236,72,153,0.35), inset 0 1px 0 rgba(255,255,255,0.3);">👧 WILMA</button>
-                    <button onclick="topPickChild('Belma')" class="flex-1 h-9 rounded-[11px] text-[13px] font-black text-white flex items-center justify-center gap-1 active:scale-95 transition-all" style="background:linear-gradient(160deg,#a78bfa 0%,#8b5cf6 100%); box-shadow:0 2px 6px rgba(139,92,246,0.35), inset 0 1px 0 rgba(255,255,255,0.3);">👶 BELMA</button>
+                <div id="cmd-child" class="hidden items-stretch p-1 gap-1">
+                    <button onclick="renderSymbolMode()" title="Tillbaka" class="w-9 h-[34px] rounded-[11px] flex items-center justify-center text-[#0ea5e9] active:scale-90 transition-all" style="background:#f1f5f9; border:1px solid rgba(15,23,42,0.06);">‹</button>
+                    <button onclick="topPickChild('Wilma')" class="flex-1 h-[34px] rounded-[11px] text-[12px] font-black text-white flex items-center justify-center gap-1 active:scale-95 transition-all" style="background:linear-gradient(160deg,#f472b6 0%,#ec4899 100%); box-shadow:0 2px 6px rgba(236,72,153,0.35), inset 0 1px 0 rgba(255,255,255,0.3);">👧 <span id="cmd-child-lbl-w">WILMA</span></button>
+                    <button onclick="topPickChild('Belma')" class="flex-1 h-[34px] rounded-[11px] text-[12px] font-black text-white flex items-center justify-center gap-1 active:scale-95 transition-all" style="background:linear-gradient(160deg,#a78bfa 0%,#8b5cf6 100%); box-shadow:0 2px 6px rgba(139,92,246,0.35), inset 0 1px 0 rgba(255,255,255,0.3);">👶 BELMA</button>
                 </div>
 
                 <!-- SALES STRIP (visible when numpad is open) -->
-                <div id="cmd-sales" class="hidden items-center px-2 py-1.5 gap-2">
-                    <button onclick="closeNumpad()" class="w-8 h-9 rounded-[11px] flex items-center justify-center text-slate-500 active:scale-90 transition-all" style="background:#f1f5f9; border:1px solid rgba(15,23,42,0.06);">‹</button>
-                    <div class="flex flex-col leading-tight">
-                        <span class="text-[6.5px] font-black uppercase tracking-widest text-[#0ea5e9]">Reg sälj</span>
-                        <span id="cmd-sales-ctx" class="text-[8.5px] font-black uppercase tracking-tight text-slate-800">Idag</span>
-                    </div>
-                    <div class="flex-1 text-right">
-                        <span id="cmd-sales-amount" class="text-[18px] font-black tabular-nums text-slate-900 tracking-tight">0 kr</span>
+                <div id="cmd-sales" class="hidden items-stretch p-1 gap-1">
+                    <button onclick="closeNumpad()" class="w-9 h-[34px] rounded-[11px] flex items-center justify-center text-slate-500 active:scale-90 transition-all" style="background:#f1f5f9; border:1px solid rgba(15,23,42,0.06);">‹</button>
+                    <div class="flex-1 h-[34px] rounded-[11px] flex items-center justify-between px-3 bg-slate-50 border border-slate-200/70">
+                        <span class="text-[8px] font-black uppercase tracking-widest text-[#0ea5e9]">Reg sälj</span>
+                        <span id="cmd-sales-amount" class="text-[16px] font-black tabular-nums text-slate-900 tracking-tight">0 kr</span>
                     </div>
                 </div>
             </div>
@@ -399,7 +390,7 @@
                             </div>
                         </div>
 
-                        <div id="dp-cockpit-card" class="cc-bg-default p-2 flex flex-col justify-between border border-slate-200/70 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors overflow-hidden" style="border-radius:20px; background:linear-gradient(160deg,#ffffff 0%,#f8fafc 55%,#eff6ff 100%); box-shadow:0 1px 2px rgba(15,23,42,0.04),0 14px 36px -20px rgba(14,165,233,0.35),inset 0 1px 0 rgba(255,255,255,0.7);">
+                        <div id="dp-cockpit-card" class="cc-bg-default p-2 flex flex-col justify-between border border-slate-200/70 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors overflow-hidden" style="border-radius:20px; box-shadow:0 1px 2px rgba(15,23,42,0.04),0 14px 36px -20px rgba(14,165,233,0.35),inset 0 1px 0 rgba(255,255,255,0.7);">
                             <div class="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-sky-300/60 to-transparent pointer-events-none"></div>
                             <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none relative">
                                 <div class="flex flex-col justify-center text-left pointer-events-auto flex-1 pl-1 gap-1.5">
@@ -1043,10 +1034,12 @@
             let cTot = o.s || 0; const cEl = document.getElementById('dp-cockpit-card'); let isShiftActive = (isToday && qData.exists && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sH && nH <= eH);
 
             if (cEl) { 
-                cEl.className = "cc-bg-default p-2 flex flex-col justify-between shadow-sm border border-slate-100 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors"; 
+                cEl.className = "cc-bg-default p-2 flex flex-col justify-between border border-slate-200/70 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors overflow-hidden"; 
                 if (state === 'absent') cEl.classList.add('cc-bg-fail'); else if (state === 'semester') cEl.classList.add('cc-bg-semester');
-                else if (state === 'ledig' || state === 'unplanned') cEl.classList.add('cc-bg-ledig'); else if (isShiftActive) cEl.classList.add('cc-bg-active-shift'); 
-                else if (cTot >= target && target > 0) cEl.classList.add('cc-bg-success'); else if (state === 'planned') cEl.classList.add('cc-bg-planned'); 
+                else if (state === 'ledig' || state === 'unplanned') cEl.classList.add('cc-bg-ledig'); 
+                else if (cTot >= target && target > 0) cEl.classList.add('cc-bg-success'); 
+                else if (state === 'planned') cEl.classList.add('cc-bg-planned');
+                if (isToday) cEl.classList.add('active-shift-pulse');
             }
             
             const inSalesDirect = document.getElementById('in-sales-direct-day'); if (inSalesDirect) { inSalesDirect.placeholder = `Försäljning (kr)...`; }
@@ -1181,7 +1174,7 @@
             window.multiSelectKeys = window.multiSelectKeys || new Set();
             window.multiSelectKeys.clear();
             if(k) window.multiSelectKeys.add(k);
-            document.getElementById('cmd-sym-ctx').innerText = fmtKey(k);
+            const ctxLbl = document.getElementById('cmd-sym-ctx'); if(ctxLbl) ctxLbl.innerText = fmtKey(k);
             document.querySelectorAll('.day-cell.active-focus').forEach(c=>c.classList.remove('active-focus'));
             if(el) el.classList.add('active-focus');
             if(window.viewMode === 'week' && k){ window.activeK = k; if(typeof window.updateWeekPanel==='function') window.updateWeekPanel(); }
@@ -1205,7 +1198,7 @@
             if(!currentKey) return;
             if(t === 'VAB' || t === 'Föräldraledig'){
                 pendingChildType = t;
-                document.getElementById('cmd-child-lbl').innerText = (t==='VAB'?'Vabb':'Föräldraledig');
+                const lbl = document.getElementById('cmd-child-lbl'); if(lbl) lbl.innerText = (t==='VAB'?'Vabb':'Föräldraledig');
                 setBarMode('child');
                 return;
             }
@@ -1243,8 +1236,8 @@
             if(!currentKey) return;
             const o = (window.db && window.db.d && window.db.d[currentKey]) || {};
             numpadBuf = (o.s && o.s > 0) ? String(o.s) : '';
-            dayLblEl.innerText = fmtKey(currentKey);
-            ctxEl.innerText = fmtKey(currentKey);
+            if(dayLblEl) dayLblEl.innerText = fmtKey(currentKey);
+            if(ctxEl) ctxEl.innerText = fmtKey(currentKey);
             renderNumpad();
             setBarMode('sales');
             backdrop.classList.add('open');
@@ -1311,7 +1304,9 @@
             closeCmdBar();
         }, true);
 
-        ['in-sales-month','in-sales-week-direct','in-sales-direct-day'].forEach(id=>{
+        // Only month-popup input is driven by the in-bar numpad. Cockpit and week-direct
+        // inputs use the device keyboard so users can register sales directly.
+        ['in-sales-month'].forEach(id=>{
             const el = document.getElementById(id);
             if(el){ el.setAttribute('inputmode','none'); el.setAttribute('readonly','readonly'); }
         });

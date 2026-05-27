@@ -33,10 +33,12 @@
             --pastel-blue-bg: #f0f9ff; 
             --pastel-gray-bg: #e2e8f0;
             --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
-            --shadow-sm: 0 1px 2px rgba(15,23,42,0.04), 0 2px 6px -2px rgba(15,23,42,0.06);
-            --shadow-md: 0 2px 6px -1px rgba(15,23,42,0.06), 0 12px 28px -10px rgba(15,23,42,0.18), inset 0 1px 0 rgba(255,255,255,0.7);
+            
+            /* NYA MODERNISERADE SKUGGOR (Premium 3D feel) */
+            --shadow-sm: 0 4px 12px -4px rgba(15,23,42,0.08), 0 2px 6px -2px rgba(15,23,42,0.04);
+            --shadow-md: 0 16px 32px -8px rgba(15,23,42,0.12), 0 4px 12px -4px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,1);
             --shadow-banner: 0 1px 0 rgba(255,255,255,0.04) inset, 0 -1px 0 rgba(0,0,0,0.3) inset, 0 18px 40px -12px rgba(2,6,23,0.45), 0 4px 12px -4px rgba(2,6,23,0.35);
-            --shadow-glow-blue: 0 6px 18px -6px rgba(14,165,233,0.55), 0 0 0 1px rgba(14,165,233,0.12);
+            --shadow-glow-blue: 0 8px 24px -6px rgba(14,165,233,0.45), 0 0 12px 2px rgba(14,165,233,0.15);
             --ring-focus: 0 0 0 3px rgba(14,165,233,0.18);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
@@ -106,32 +108,63 @@
         
         .bottom-section { flex: 1; margin: 0 12px calc(env(safe-area-inset-bottom) + 6px); display: flex; flex-direction: column; position: relative; min-height: 0; overflow: hidden; }
         
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 4px; padding: 2px 4px 6px; height: 100%; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 5px; padding: 4px 6px 8px; height: 100%; }
         .weekday-label { text-align: center; font-size: 8.5px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; padding-bottom: 2px; letter-spacing: 0.08em; }
         
-        .day-cell { width: 100%; height: 100%; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; background: #f8fafc; border: 1px solid rgba(15,23,42,0.04); box-shadow: 0 1px 1px rgba(15,23,42,0.02); transition: background 0.2s var(--ease-spring), opacity 0.25s ease, transform 0.18s var(--ease-spring), box-shadow 0.2s ease; }
-        .day-cell:hover { box-shadow: 0 2px 6px -2px rgba(15,23,42,0.08); }
-        .day-cell:active { transform: scale(0.94); }
+        /* NY: Flytande Dag-Celler med 3D känsla */
+        .day-cell { 
+            width: 100%; height: 100%; border-radius: 12px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            position: relative; cursor: pointer; 
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); 
+            border: 1px solid rgba(255,255,255,1);
+            box-shadow: 0 4px 10px -4px rgba(15,23,42,0.1), inset 0 -2px 6px rgba(15,23,42,0.02); 
+            transition: all 0.25s var(--ease-spring);
+        }
+        .day-cell:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -6px rgba(15,23,42,0.12), inset 0 -2px 4px rgba(15,23,42,0.02); 
+            z-index: 10;
+        }
+        .day-cell:active { 
+            transform: scale(0.92) translateY(1px); 
+            box-shadow: 0 2px 4px -2px rgba(15,23,42,0.08); 
+        }
         
-        .type-unplanned { background: #f1f5f9 !important; border: 1px dashed #cbd5e1 !important; color: var(--text-muted) !important; }
-        .type-planned { background: var(--pastel-blue-bg) !important; color: var(--sting-blue) !important; border-color: rgba(14, 165, 233, 0.18) !important; }
-        .type-ledig { background: var(--pastel-gray-bg) !important; color: var(--text-muted) !important; }
-        .type-semester { background: #ccfbf1 !important; color: #0f766e !important; border-color: #99f6e4 !important; z-index: 4; }
-        .cc-bg-semester { background: linear-gradient(135deg, #f0fdfa, #ccfbf1) !important; border-color: #14b8a6 !important; }
-        .type-absent { background: #ffedd5 !important; color: #c2410c !important; border: 1px dashed #fdb974 !important; z-index: 4; }
+        /* Justerade bakgrunder för dagstyperna för att behålla 3D-looken */
+        .type-unplanned { background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important; border: 1px solid #ffffff !important; color: var(--text-muted) !important; }
+        .type-planned { background: linear-gradient(180deg, #f0f9ff, #e0f2fe) !important; color: var(--sting-blue) !important; border: 1px solid #ffffff !important; box-shadow: 0 4px 10px -4px rgba(14, 165, 233, 0.2), inset 0 -2px 6px rgba(14, 165, 233, 0.05); }
+        .type-ledig { background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important; color: var(--text-muted) !important; border: 1px solid #ffffff !important; }
+        .type-semester { background: linear-gradient(180deg, #f0fdfa, #ccfbf1) !important; color: #0f766e !important; border: 1px solid #ffffff !important; z-index: 4; }
+        .cc-bg-semester { background: linear-gradient(135deg, #f0fdfa, #ccfbf1) !important; border: 1px solid #ffffff !important; }
+        .type-absent { background: linear-gradient(180deg, #fff7ed, #ffedd5) !important; color: #c2410c !important; border: 1px solid #ffffff !important; z-index: 4; }
         
-        .history-cell { opacity: 0.55 !important; }
-        .history-success { background: var(--pastel-green-bg) !important; color: #065f46 !important; }
-        .history-fail { background: var(--pastel-red-bg) !important; color: #9f1239 !important; }
-        .history-ledig { background: var(--pastel-gray-bg) !important; color: var(--text-muted) !important; }
-        .status-today { background: linear-gradient(135deg, var(--today-light), var(--today-dark)) !important; color: #ffffff !important; opacity: 1 !important; z-index: 5; box-shadow: 0 6px 16px -4px rgba(14, 165, 233, 0.45), inset 0 1px 0 rgba(255,255,255,0.25) !important; }
-        .active-focus { background: var(--selected-bg) !important; z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; box-shadow: 0 8px 20px -4px rgba(14, 165, 233, 0.5), inset 0 1px 0 rgba(255,255,255,0.3) !important; border: none !important; }
-        .status-today .date-num, .active-focus .date-num, .status-today .cell-main-val, .active-focus .cell-main-val { color: #ffffff !important; }
+        .history-cell { opacity: 0.65 !important; box-shadow: 0 2px 6px -4px rgba(15,23,42,0.05) !important; }
+        .history-success { background: linear-gradient(180deg, #f0fdf4, #d1fae5) !important; color: #065f46 !important; border-color: #ffffff !important; }
+        .history-fail { background: linear-gradient(180deg, #fff5f5, #fee2e2) !important; color: #9f1239 !important; border-color: #ffffff !important;}
+        .history-ledig { background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important; color: var(--text-muted) !important; border-color: #ffffff !important; }
+        
+        /* Uppgraderad fokus och IDAG-glöd */
+        .status-today { 
+            background: linear-gradient(135deg, var(--today-light), var(--today-dark)) !important; 
+            color: #ffffff !important; opacity: 1 !important; z-index: 5; 
+            box-shadow: 0 10px 24px -4px rgba(2, 132, 199, 0.6), inset 0 2px 4px rgba(255,255,255,0.4) !important; 
+            border: 1px solid #38bdf8 !important;
+            transform: translateY(-1px);
+        }
+        .active-focus { 
+            background: var(--selected-bg) !important; z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; 
+            box-shadow: var(--shadow-glow-blue), inset 0 2px 4px rgba(255,255,255,0.4) !important; 
+            border: 1px solid #7dd3fc !important; 
+            transform: translateY(-2px) scale(1.02);
+        }
+        
+        .status-today .date-num, .active-focus .date-num, .status-today .cell-main-val, .active-focus .cell-main-val { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         .date-num { position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 8.5px; font-weight: 800; pointer-events: none; color: var(--text-main); }
-        .u-badge { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; z-index: 35; border: 1.5px solid var(--white); pointer-events: none; box-shadow: 0 2px 4px rgba(15,23,42,0.15); }
-        .badge-abs { top: -3px; right: -3px; width: 14px; height: 14px; font-size: 8px; background: #f8fafc; border: 1px solid #f97316; }
+        .u-badge { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; z-index: 35; border: 1.5px solid var(--white); pointer-events: none; box-shadow: 0 4px 8px -2px rgba(15,23,42,0.2); }
+        .badge-abs { top: -4px; right: -4px; width: 16px; height: 16px; font-size: 9px; background: #ffffff; border: 1.5px solid #f97316; }
         .badge-action { background: #fef3c7 !important; border-color: #f59e0b !important; color: #b45309 !important; }
-        .week-tag { position: absolute; top: -2px; left: -2px; background: linear-gradient(135deg, #38bdf8, #0ea5e9); color: white !important; font-size: 5.5px; padding: 1.5px 3px; border-radius: 3px; font-weight: 900; z-index: 10; pointer-events: none; box-shadow: 0 2px 4px -1px rgba(14,165,233,0.4); letter-spacing: 0.04em; }
+        .week-tag { position: absolute; top: -3px; left: -3px; background: linear-gradient(135deg, #38bdf8, #0ea5e9); color: white !important; font-size: 6px; padding: 1.5px 4px; border-radius: 4px; font-weight: 900; z-index: 10; pointer-events: none; box-shadow: 0 4px 8px -2px rgba(14,165,233,0.5); letter-spacing: 0.04em; border: 1px solid #7dd3fc; }
         .cell-main-val { font-size: 9px; font-weight: 900; line-height: 1; pointer-events: none; color: inherit; }
         
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -141,19 +174,21 @@
         #container-dash-views { position: relative; flex: 1; min-height: 0; overflow: hidden; }
         .dash-view-pane { position: absolute; inset: 0; transition: opacity 0.3s var(--ease-spring), transform 0.3s var(--ease-spring); display: flex; flex-direction: column; visibility: hidden; opacity: 0; pointer-events: none; }
         .mode-day #pane-day, .mode-week #pane-week, .mode-month #pane-month, .mode-absence #pane-absence, .mode-notes #pane-notes { visibility: visible; opacity: 1; pointer-events: auto; transform: scale(1); }
-        .glass-panel-inline { border-radius: 20px; transition: all 0.25s var(--ease-spring); border: 1px solid var(--border-subtle); }
+        
         .focus-gauge-bg { fill: none; stroke: rgba(15,23,42,0.05); stroke-linecap: round; }
         .fg-sales { fill: none; stroke: var(--sting-blue); stroke-linecap: round; transition: stroke-dashoffset 0.7s var(--ease-spring); filter: drop-shadow(0 0 4px rgba(14,165,233,0.35)); }
         .input-dark-theme { background: #ffffff; border: 1px solid #cbd5e1; color: var(--text-main); outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
         .input-dark-theme:focus { border-color: var(--sting-blue); box-shadow: var(--ring-focus); }
         
-        .cc-bg-default { background: #ffffff; }
-        .cc-bg-success { background: linear-gradient(135deg, #f0fdf4, #d1fae5); border-color: #10b981; }
-        .cc-bg-fail { background: linear-gradient(135deg, #fff5f5, #fee2e2); border-color: #f43f5e; }
-        .cc-bg-planned { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-color: var(--sting-blue); }
-        .cc-bg-ledig { background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-color: #94a3b8; }
+        /* COCKPIT NYA GLOW OCH SKUGGOR */
+        .glass-panel-inline { border-radius: 24px; transition: all 0.3s var(--ease-spring); }
+        .cc-bg-default { background: linear-gradient(145deg, #ffffff, #f8fafc) !important; border: 1px solid #ffffff !important; box-shadow: 0 12px 30px -8px rgba(15,23,42,0.1), inset 0 2px 4px rgba(255,255,255,1) !important; }
+        .cc-bg-success { background: linear-gradient(145deg, #f0fdf4, #d1fae5) !important; border: 1px solid #ffffff !important; box-shadow: 0 12px 30px -8px rgba(16, 185, 129, 0.2), inset 0 2px 4px rgba(255,255,255,1) !important; }
+        .cc-bg-fail { background: linear-gradient(145deg, #fff5f5, #fee2e2) !important; border: 1px solid #ffffff !important; box-shadow: 0 12px 30px -8px rgba(244, 63, 94, 0.2), inset 0 2px 4px rgba(255,255,255,1) !important; }
+        .cc-bg-planned { background: linear-gradient(145deg, #f0f9ff, #e0f2fe) !important; border: 1px solid #ffffff !important; box-shadow: 0 12px 30px -8px rgba(14, 165, 233, 0.2), inset 0 2px 4px rgba(255,255,255,1) !important; }
+        .cc-bg-ledig { background: linear-gradient(145deg, #f8fafc, #f1f5f9) !important; border: 1px solid #ffffff !important; box-shadow: 0 8px 24px -8px rgba(15,23,42,0.06), inset 0 2px 4px rgba(255,255,255,1) !important; }
         
-        /* Modal-kort polish: gäller alla modaler som använder bg-white + rounded-[28px] */
+        /* Modal-kort polish */
         #note-confirm-modal > div, #child-select-modal > div, #budget-modal > div {
             background: rgba(255,255,255,0.94) !important;
             backdrop-filter: blur(24px) saturate(160%);
@@ -165,17 +200,20 @@
         #budget-modal { backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
         
         @keyframes pulse-cell {
-            0%   { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35), 0 0 0 0 rgba(14, 165, 233, 0.45); }
-            70%  { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35), 0 0 0 7px rgba(14, 165, 233, 0); }
-            100% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35), 0 0 0 0 rgba(14, 165, 233, 0); }
+            0%   { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0.5); }
+            70%  { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 8px rgba(14, 165, 233, 0); }
+            100% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0); }
         }
-        @keyframes pulse-card {
-            0%   { box-shadow: 0 2px 12px rgba(15,23,42,0.05), 0 0 0 0 rgba(14, 165, 233, 0.28); }
-            70%  { box-shadow: 0 2px 12px rgba(15,23,42,0.05), 0 0 0 8px rgba(14, 165, 233, 0); }
-            100% { box-shadow: 0 2px 12px rgba(15,23,42,0.05), 0 0 0 0 rgba(14, 165, 233, 0); }
+        @keyframes pulse-card-glow {
+            0% { box-shadow: 0 12px 30px -8px rgba(14, 165, 233, 0.3), 0 0 12px rgba(14, 165, 233, 0.15), inset 0 2px 4px rgba(255,255,255,1); }
+            100% { box-shadow: 0 16px 40px -8px rgba(14, 165, 233, 0.6), 0 0 24px rgba(14, 165, 233, 0.35), inset 0 2px 4px rgba(255,255,255,1); transform: translateY(-1px); }
         }
-        .status-today.active-shift-pulse, .active-focus.active-shift-pulse { animation: pulse-cell 2.2s var(--ease-spring) infinite; border: 1.5px solid var(--sting-blue) !important; }
-        .cc-bg-active-shift { background: linear-gradient(135deg, #f0f9ff, #e0f2fe) !important; border: 1.5px solid var(--sting-blue) !important; animation: pulse-card 2.2s var(--ease-spring) infinite; }
+        .status-today.active-shift-pulse, .active-focus.active-shift-pulse { animation: pulse-cell 2.2s var(--ease-spring) infinite; border: 1.5px solid #7dd3fc !important; }
+        .cc-bg-active-shift { 
+            background: linear-gradient(145deg, #f0f9ff, #e0f2fe) !important; 
+            border: 1px solid #ffffff !important; 
+            animation: pulse-card-glow 2.5s infinite alternate var(--ease-spring) !important; 
+        }
     </style>
 </head>
 <body class="mode-day">
@@ -219,11 +257,11 @@
             
             <p class="text-[9px] font-black text-center uppercase tracking-widest text-slate-400">Välj Månadsmål</p>
             <div class="flex flex-col gap-2">
-                <button onclick="setGlobalBudget(100000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">100 000 kr</button>
-                <button onclick="setGlobalBudget(140000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">140 000 kr</button>
-                <button onclick="setGlobalBudget(180000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">180 000 kr</button>
-                <button onclick="setGlobalBudget(240000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">240 000 kr</button>
-                <button onclick="setGlobalBudget(350000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all">350 000 kr</button>
+                <button onclick="setGlobalBudget(100000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">100 000 kr</button>
+                <button onclick="setGlobalBudget(140000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">140 000 kr</button>
+                <button onclick="setGlobalBudget(180000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">180 000 kr</button>
+                <button onclick="setGlobalBudget(240000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">240 000 kr</button>
+                <button onclick="setGlobalBudget(350000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">350 000 kr</button>
             </div>
             <button onclick="closeBudgetModal()" class="mt-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Stäng</button>
         </div>
@@ -301,13 +339,13 @@
                                 <button onclick="saveSalesFromPopup(); event.stopPropagation();" class="w-10 h-10 rounded-xl text-white font-black text-[16px] bg-[#0ea5e9] shadow-md active:scale-95 transition-all">✓</button>
                             </div>
                             <div class="flex items-center gap-1.5 border-l border-slate-200 pl-2 ml-1">
-                                <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">⚒️</button>
-                                <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">🏠</button>
-                                <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">✈️</button>
-                                <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">🤒</button>
-                                <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">👶</button>
-                                <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">🍼</button>
-                                <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="text-red-500 text-[18px] transform active:scale-90 border-l border-slate-200 pl-2 ml-1">🗑️</button>
+                                <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5 drop-shadow-sm">⚒️</button>
+                                <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5 drop-shadow-sm">🏠</button>
+                                <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5 drop-shadow-sm">✈️</button>
+                                <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5 drop-shadow-sm">🤒</button>
+                                <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5 drop-shadow-sm">👶</button>
+                                <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5 drop-shadow-sm">🍼</button>
+                                <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="text-red-500 text-[18px] transform active:scale-90 border-l border-slate-200 pl-2 ml-1 drop-shadow-sm">🗑️</button>
                             </div>
                         </div>
                     </div>
@@ -328,57 +366,57 @@
                             </div>
                         </div>
 
-                        <div id="dp-cockpit-card" class="cc-bg-default p-2 flex flex-col justify-between shadow-sm border border-slate-100 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors">
+                        <div id="dp-cockpit-card" class="cc-bg-default p-2 flex flex-col justify-between flex-1 relative glass-panel-inline min-h-0 w-full transition-colors">
                             <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none">
                                 <div class="flex flex-col justify-center text-left pointer-events-auto flex-1 pl-1">
                                     <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">DAGSMÅL</span>
-                                    <p id="dp-inline-target" class="text-[16px] font-black leading-none mb-1.5 text-slate-900">0 k</p>
+                                    <p id="dp-inline-target" class="text-[16px] font-black leading-none mb-1.5 text-slate-900 drop-shadow-sm">0 k</p>
                                     <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">KVAR TILL MÅL</span>
-                                    <p id="dp-inline-left" class="text-[16px] font-black leading-none text-rose-600">0 k</p>
+                                    <p id="dp-inline-left" class="text-[16px] font-black leading-none text-rose-600 drop-shadow-sm">0 k</p>
                                 </div>
                                 <div class="relative flex flex-col justify-center items-center pointer-events-none flex-[1.5] max-w-[110px] aspect-square mx-1">
-                                    <svg class="w-full h-full drop-shadow-sm" viewBox="0 0 120 120">
+                                    <svg class="w-full h-full drop-shadow-md" viewBox="0 0 120 120">
                                         <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
                                         <circle id="dp-gauge-sales" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
                                     </svg>
                                     <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5">
-                                        <span id="dp-inline-eff" class="text-[22px] font-black tracking-tighter text-slate-900 leading-none">0%</span>
+                                        <span id="dp-inline-eff" class="text-[22px] font-black tracking-tighter text-slate-900 leading-none drop-shadow-sm">0%</span>
                                         <span id="dp-inline-eff-lbl" class="text-[8px] font-black uppercase tracking-widest text-emerald-600 mt-1">I FAS</span>
                                     </div>
                                 </div>
                                 <div class="flex flex-col justify-center text-right pointer-events-auto flex-1 pr-1">
                                     <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">INKÖRT</span>
-                                    <p id="dp-inline-sales" class="text-[16px] font-black text-[#0ea5e9] leading-none mb-1.5">0 k</p>
+                                    <p id="dp-inline-sales" class="text-[16px] font-black text-[#0ea5e9] leading-none mb-1.5 drop-shadow-sm">0 k</p>
                                     <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">SNITT / PASS</span>
-                                    <p id="dp-inline-req" class="text-[16px] font-black text-slate-600 leading-none">0 k</p>
+                                    <p id="dp-inline-req" class="text-[16px] font-black text-slate-600 leading-none drop-shadow-sm">0 k</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="flex-shrink-0 flex gap-1.5 h-[38px]">
-                            <div class="bg-slate-50 border border-slate-200/60 rounded-[14px] p-1 flex items-center shadow-inner flex-1 h-full">
+                        <div class="flex-shrink-0 flex gap-1.5 h-[38px] mt-1">
+                            <div class="bg-slate-50 border border-slate-200/60 rounded-[16px] p-1 flex items-center shadow-inner flex-1 h-full">
                                 <span class="pl-2 pr-1 text-[11px] opacity-40">⚡</span>
                                 <input type="text" inputmode="decimal" id="in-sales-direct-day" class="flex-1 bg-transparent font-black text-[11px] text-slate-900 placeholder-slate-400 outline-none w-full text-center" placeholder="Försäljning (kr)...">
                                 <button onclick="saveDirectDaySales()" class="text-white font-black uppercase tracking-widest text-[8px] px-3.5 py-2 rounded-xl bg-[#0ea5e9] shadow-md flex-shrink-0 active:scale-95 transition-transform h-full">SPARA</button>
                             </div>
                         </div>
 
-                        <div class="flex-shrink-0 w-full grid grid-cols-6 gap-1 h-[36px]">
-                            <button onclick="saveDirectDayStatus('Arbete')" class="bg-[#f0f9ff] text-[#0ea5e9] font-extrabold text-[9px] rounded-xl border border-[#e0f2fe] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>⚒️</span><span class="text-[5.5px] mt-0.5">Jobb</span></button>
-                            <button onclick="saveDirectDayStatus('Ledig')" class="bg-slate-100 text-slate-600 font-extrabold text-[9px] rounded-xl border border-slate-200/60 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🏠</span><span class="text-[5.5px] mt-0.5">Ledig</span></button>
-                            <button onclick="saveDirectDayStatus('Semester')" class="bg-[#ccfbf1] text-[#0f766e] font-extrabold text-[9px] rounded-xl border border-[#99f6e4] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>✈️</span><span class="text-[5.5px] mt-0.5">Sem</span></button>
-                            <button onclick="saveDirectDayStatus('Sjuk')" class="bg-rose-50 text-rose-700 font-extrabold text-[9px] rounded-xl border border-rose-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🤒</span><span class="text-[5.5px] mt-0.5">Sjuk</span></button>
-                            <button onclick="saveDirectDayStatus('VAB')" class="bg-amber-50 text-amber-700 font-extrabold text-[9px] rounded-xl border border-amber-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>👶</span><span class="text-[5.5px] mt-0.5">VAB</span></button>
-                            <button onclick="saveDirectDayStatus('Föräldraledig')" class="bg-purple-50 text-purple-700 font-extrabold text-[9px] rounded-xl border border-purple-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🍼</span><span class="text-[5.5px] mt-0.5">FL</span></button>
+                        <div class="flex-shrink-0 w-full grid grid-cols-6 gap-1.5 h-[38px]">
+                            <button onclick="saveDirectDayStatus('Arbete')" class="bg-[#f0f9ff] text-[#0ea5e9] font-extrabold text-[9px] rounded-[14px] border border-[#bae6fd] uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>⚒️</span><span class="text-[5.5px] mt-0.5">Jobb</span></button>
+                            <button onclick="saveDirectDayStatus('Ledig')" class="bg-slate-100 text-slate-600 font-extrabold text-[9px] rounded-[14px] border border-slate-200 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>🏠</span><span class="text-[5.5px] mt-0.5">Ledig</span></button>
+                            <button onclick="saveDirectDayStatus('Semester')" class="bg-[#ccfbf1] text-[#0f766e] font-extrabold text-[9px] rounded-[14px] border border-[#99f6e4] uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>✈️</span><span class="text-[5.5px] mt-0.5">Sem</span></button>
+                            <button onclick="saveDirectDayStatus('Sjuk')" class="bg-rose-50 text-rose-700 font-extrabold text-[9px] rounded-[14px] border border-rose-200 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>🤒</span><span class="text-[5.5px] mt-0.5">Sjuk</span></button>
+                            <button onclick="saveDirectDayStatus('VAB')" class="bg-amber-50 text-amber-700 font-extrabold text-[9px] rounded-[14px] border border-amber-200 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>👶</span><span class="text-[5.5px] mt-0.5">VAB</span></button>
+                            <button onclick="saveDirectDayStatus('Föräldraledig')" class="bg-purple-50 text-purple-700 font-extrabold text-[9px] rounded-[14px] border border-purple-200 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>🍼</span><span class="text-[5.5px] mt-0.5">FL</span></button>
                         </div>
 
-                        <div class="text-center bg-slate-50 border border-slate-100 rounded-xl flex-shrink-0 flex items-center justify-center gap-1.5 h-[26px]">
-                            <span class="text-[7.5px] font-extrabold uppercase tracking-widest text-slate-400">REGISTRERAT:</span><span id="dp-inline-status" class="text-[7.5px] font-black text-[#0ea5e9] uppercase tracking-wider">ARBETSPASS</span>
+                        <div class="text-center bg-slate-50 border border-slate-100 rounded-[14px] flex-shrink-0 flex items-center justify-center gap-1.5 h-[28px] shadow-sm">
+                            <span class="text-[7.5px] font-extrabold uppercase tracking-widest text-slate-400">REGISTRERAT:</span><span id="dp-inline-status" class="text-[7.5px] font-black text-[#0ea5e9] uppercase tracking-wider drop-shadow-sm">ARBETSPASS</span>
                         </div>
                     </div>
 
                     <div id="pane-week" class="dash-view-pane h-full justify-start pt-1.5 flex flex-col overflow-hidden">
-                        <div class="grid grid-cols-7 gap-1 mb-0.5 px-3 flex-shrink-0">
+                        <div class="grid grid-cols-7 gap-1 px-3 mb-0.5 flex-shrink-0">
                             <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
                             <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
                         </div>
@@ -389,7 +427,7 @@
                             <div id="slide-next" class="w-full h-full flex-shrink-0 snap-center"></div>
                         </div>
 
-                        <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[20px] border border-slate-200 shadow-sm flex flex-col flex-1 relative z-20 min-h-0 overflow-hidden">
+                        <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[24px] border border-slate-100 shadow-md flex flex-col flex-1 relative z-20 min-h-0 overflow-hidden">
                             <div class="flex justify-between items-end pb-2 border-b border-slate-100 flex-shrink-0">
                                 <div class="flex flex-col">
                                     <span id="wp-date-range" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
@@ -402,16 +440,16 @@
                             </div>
                             
                             <div id="wp-week-summary" class="flex flex-col w-full flex-1 px-1 mt-1 transition-opacity duration-300 gap-1.5 justify-center">
-                                <div class="flex flex-col items-center flex-1 bg-[#f0f9ff] border border-[#bae6fd] rounded-[16px] p-2.5 shadow-sm justify-center w-full min-h-[60px]">
+                                <div class="flex flex-col items-center flex-1 bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-[20px] p-2.5 shadow-sm justify-center w-full min-h-[60px]">
                                     <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INKÖRT</span>
                                     <span id="wp-sum-sales" class="text-[24px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 k</span>
                                 </div>
-                                <div class="flex justify-between w-full gap-1.5 flex-1 min-h-[45px]">
-                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200/60 rounded-[12px] justify-center">
+                                <div class="flex justify-between w-full gap-2 flex-1 min-h-[45px]">
+                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200 rounded-[16px] justify-center shadow-sm">
                                         <span id="wp-lbl-target" class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">MÅL</span>
                                         <span id="wp-sum-target" class="text-[14px] font-black text-slate-700">0 k</span>
                                     </div>
-                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200/60 rounded-[12px] justify-center">
+                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200 rounded-[16px] justify-center shadow-sm">
                                         <span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">DIFF</span>
                                         <span id="wp-sum-diff" class="text-[14px] font-black text-slate-700">0 k</span>
                                     </div>
@@ -419,20 +457,20 @@
                             </div>
 
                             <div id="wp-day-actions" class="w-full flex-col transition-all duration-300 overflow-hidden max-h-0 opacity-0 flex-shrink-0 mt-0">
-                                <div class="relative w-full h-[40px] overflow-hidden rounded-xl border border-slate-200 shadow-sm mt-1">
+                                <div class="relative w-full h-[40px] overflow-hidden rounded-[14px] border border-slate-200 shadow-sm mt-1">
                                     <div id="wp-default-state" class="absolute inset-0 flex gap-0.5 transition-transform duration-200 transform translate-x-0 p-0.5 bg-slate-50">
-                                        <button onclick="toggleWeekInput(true)" class="flex-[1.2] text-[8px] font-black bg-[#f0f9ff] hover:bg-[#e0f2fe] text-[#0ea5e9] border border-[#bae6fd] rounded-lg active:scale-95 flex items-center justify-center gap-1 uppercase tracking-wider transition-colors">💰 Sälj</button>
-                                        <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">⚒️</button>
-                                        <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">🏠</button>
-                                        <button onclick="handleWeekDirectAction('Semester')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">✈️</button>
-                                        <button onclick="handleWeekDirectAction('Sjuk')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">🤒</button>
-                                        <button onclick="handleWeekDirectAction('VAB')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">👶</button>
-                                        <button onclick="handleWeekDirectAction('Föräldraledig')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">🍼</button>
+                                        <button onclick="toggleWeekInput(true)" class="flex-[1.2] text-[8px] font-black bg-[#f0f9ff] hover:bg-[#e0f2fe] text-[#0ea5e9] border border-[#bae6fd] rounded-xl active:scale-95 flex items-center justify-center gap-1 uppercase tracking-wider transition-colors shadow-sm">💰 Sälj</button>
+                                        <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-xl active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button>
+                                        <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-xl active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button>
+                                        <button onclick="handleWeekDirectAction('Semester')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-xl active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button>
+                                        <button onclick="handleWeekDirectAction('Sjuk')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-xl active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button>
+                                        <button onclick="handleWeekDirectAction('VAB')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-xl active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button>
+                                        <button onclick="handleWeekDirectAction('Föräldraledig')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-xl active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button>
                                     </div>
                                     <div id="wp-input-state" class="absolute inset-0 flex gap-1 transition-transform duration-200 transform translate-x-full bg-slate-50 z-10 p-0.5">
-                                        <input type="text" inputmode="decimal" id="in-sales-week-direct" class="flex-1 h-full px-3 text-center font-black rounded-lg text-xs bg-white border border-slate-200 text-slate-900 outline-none placeholder-slate-400 focus:border-[#0ea5e9] transition-colors" placeholder="Belopp (kr)...">
-                                        <button onclick="saveSalesFromWeekDirect()" class="h-full px-4 flex items-center justify-center rounded-lg text-white font-black text-[10px] bg-[#0ea5e9] active:scale-95 transition-transform uppercase tracking-wider">Spara</button>
-                                        <button onclick="toggleWeekInput(false)" class="h-full px-3 flex items-center justify-center rounded-lg text-slate-500 font-black text-[10px] bg-white border border-slate-200 active:scale-95 transition-transform uppercase tracking-wider">✕</button>
+                                        <input type="text" inputmode="decimal" id="in-sales-week-direct" class="flex-1 h-full px-3 text-center font-black rounded-xl text-xs bg-white border border-slate-200 text-slate-900 outline-none placeholder-slate-400 focus:border-[#0ea5e9] transition-colors shadow-inner" placeholder="Belopp (kr)...">
+                                        <button onclick="saveSalesFromWeekDirect()" class="h-full px-4 flex items-center justify-center rounded-xl text-white font-black text-[10px] bg-[#0ea5e9] active:scale-95 transition-transform uppercase tracking-wider shadow-sm">Spara</button>
+                                        <button onclick="toggleWeekInput(false)" class="h-full px-3 flex items-center justify-center rounded-xl text-slate-500 font-black text-[10px] bg-white border border-slate-200 active:scale-95 transition-transform uppercase tracking-wider shadow-sm">✕</button>
                                     </div>
                                 </div>
                             </div>
@@ -450,15 +488,15 @@
                     <div id="pane-absence" class="dash-view-pane h-full overflow-y-auto hide-scrollbar p-3 flex flex-col gap-2"></div>
 
                     <div id="pane-notes" class="dash-view-pane h-full overflow-hidden flex flex-col bg-slate-50/50">
-                        <div class="p-2.5 bg-white border-b border-slate-100 shadow-sm flex-shrink-0 flex flex-col gap-1.5 relative z-20">
+                        <div class="p-2.5 bg-white border-b border-slate-100 shadow-sm flex-shrink-0 flex flex-col gap-1.5 relative z-20 rounded-b-2xl">
                             <div class="flex gap-1.5">
-                                <input type="text" id="note-name" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Namn...">
-                                <input type="tel" id="note-phone" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Telefonnr...">
+                                <input type="text" id="note-name" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-inner" placeholder="Namn...">
+                                <input type="tel" id="note-phone" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-inner" placeholder="Telefonnr...">
                             </div>
                             <div class="flex gap-1.5">
-                                <input type="text" id="note-order" class="w-[65px] min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Ordernr...">
-                                <input type="text" id="note-text" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Anteckning...">
-                                <button id="note-submit-btn" onclick="addNote()" class="bg-[#0ea5e9] text-white font-black text-[9px] uppercase tracking-widest rounded-xl shadow-sm active:scale-95 transition-transform px-3">SPARA</button>
+                                <input type="text" id="note-order" class="w-[65px] min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-inner" placeholder="Ordernr...">
+                                <input type="text" id="note-text" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-inner" placeholder="Anteckning...">
+                                <button id="note-submit-btn" onclick="addNote()" class="bg-[#0ea5e9] text-white font-black text-[9px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-transform px-3">SPARA</button>
                             </div>
                         </div>
                         <div class="flex-1 overflow-y-auto hide-scrollbar p-2.5 relative flex flex-col gap-1.5" id="notes-list-container">
@@ -624,7 +662,7 @@
                 if (!n.done) {
                     const isExpanded = (activeCount <= 1) || (expandedNoteId === n.id);
                     if (isExpanded) {
-                        activeHTML += `<div class="bg-white rounded-[16px] border border-slate-200 shadow-sm p-3 flex flex-col gap-1.5 relative transition-all">
+                        activeHTML += `<div class="bg-white rounded-[20px] border border-slate-200 shadow-md p-3 flex flex-col gap-1.5 relative transition-all">
                                 ${activeCount > 1 ? `<button onclick="toggleExpandNote(${n.id})" class="absolute top-2 right-2 w-5 h-5 flex items-center justify-center text-slate-400 active:scale-90 transition-all text-[8px] border border-slate-100 rounded-full bg-slate-50">▲</button>` : ''}
                                 <div class="pr-8 ${activeCount > 1 ? 'cursor-pointer' : ''}" onclick="${activeCount > 1 ? `toggleExpandNote(${n.id})` : ''}">
                                     <span class="text-[8px] font-black uppercase text-slate-400 tracking-wider">${n.date}</span>
@@ -937,10 +975,10 @@
 
             if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
 
-            let summaryHTML = `<div class="mb-2.5 bg-white rounded-[16px] border border-slate-200 p-3 shadow-sm flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
+            let summaryHTML = `<div class="mb-2.5 bg-white rounded-[20px] border border-slate-200 p-3 shadow-md flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
             for (let reason in absCounts) { const icon = em[reason] || '•'; const tCol = col[reason] || 'text-slate-500'; summaryHTML += `<div class="flex justify-between items-center mb-1 last:mb-0"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; }
             summaryHTML += `</div>`;
-            pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="bg-white rounded-[16px] border border-slate-200 shadow-sm overflow-y-auto hide-scrollbar flex-1 mb-1">${absListHTML}</div></div>`;
+            pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="bg-white rounded-[20px] border border-slate-200 shadow-md overflow-y-auto hide-scrollbar flex-1 mb-1">${absListHTML}</div></div>`;
         }
 
         function updateInlineFocusDashboard() {
@@ -951,10 +989,10 @@
             let cTot = o.s || 0; const cEl = document.getElementById('dp-cockpit-card'); let isShiftActive = (isToday && qData.exists && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sH && nH <= eH);
 
             if (cEl) { 
-                cEl.className = "cc-bg-default p-2 flex flex-col justify-between shadow-sm border border-slate-100 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors"; 
+                cEl.className = "p-2 flex flex-col justify-between flex-1 relative glass-panel-inline min-h-0 w-full transition-colors"; 
                 if (state === 'absent') cEl.classList.add('cc-bg-fail'); else if (state === 'semester') cEl.classList.add('cc-bg-semester');
                 else if (state === 'ledig' || state === 'unplanned') cEl.classList.add('cc-bg-ledig'); else if (isShiftActive) cEl.classList.add('cc-bg-active-shift'); 
-                else if (cTot >= target && target > 0) cEl.classList.add('cc-bg-success'); else if (state === 'planned') cEl.classList.add('cc-bg-planned'); 
+                else if (cTot >= target && target > 0) cEl.classList.add('cc-bg-success'); else if (state === 'planned') cEl.classList.add('cc-bg-planned'); else cEl.classList.add('cc-bg-default');
             }
             
             const inSalesDirect = document.getElementById('in-sales-direct-day'); if (inSalesDirect) { inSalesDirect.placeholder = `Försäljning (kr)...`; }

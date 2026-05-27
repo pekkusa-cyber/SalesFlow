@@ -287,7 +287,7 @@
                             </div>
                         </div>
 
-                        <div id="dp-cockpit-card" onclick="openNumpad('day', db.d[activeK || getK(realToday)]?.s || 0, 'DAGSINKÖRT')" class="p-2 flex flex-col justify-between flex-1 relative glass-panel-inline min-h-0 w-full transition-colors mt-1 mb-1 cursor-pointer active:scale-[0.98]">
+                        <div id="dp-cockpit-card" onclick="openNumpad('day', db.d[activeK || getK(realToday)]?.s || 0, 'DAGSINTJÄNAT')" class="p-2 flex flex-col justify-between flex-1 relative glass-panel-inline min-h-0 w-full transition-colors mt-1 mb-1 cursor-pointer active:scale-[0.98]">
                             <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none">
                                 <div class="flex flex-col justify-center text-left pointer-events-auto flex-1 pl-1">
                                     <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">DAGSMÅL</span>
@@ -306,7 +306,7 @@
                                     </div>
                                 </div>
                                 <div class="flex flex-col justify-center text-right pointer-events-auto flex-1 pr-1">
-                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">INKÖRT</span>
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">INTJÄNAT</span>
                                     <p id="dp-inline-sales" class="text-[16px] font-black text-[#0ea5e9] leading-none mb-1.5 drop-shadow-sm">0 k</p>
                                     <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">SNITT / PASS</span>
                                     <p id="dp-inline-req" class="text-[16px] font-black text-slate-600 leading-none drop-shadow-sm">0 k</p>
@@ -353,8 +353,8 @@
                             </div>
                             
                             <div id="wp-week-summary" class="flex flex-col w-full px-1 mt-1 gap-1.5 justify-center flex-1 min-h-0">
-                                <div onclick="if(activeK) openNumpad('week', db.d[activeK]?.s || 0, 'INKÖRT (DAG)')" class="flex flex-col items-center flex-1 bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-[20px] p-2.5 shadow-sm justify-center w-full min-h-0 cursor-pointer active:scale-95 transition-transform">
-                                    <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INKÖRT</span>
+                                <div onclick="if(activeK) openNumpad('week', db.d[activeK]?.s || 0, 'INTJÄNAT (DAG)')" class="flex flex-col items-center flex-1 bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-[20px] p-2.5 shadow-sm justify-center w-full min-h-0 cursor-pointer active:scale-95 transition-transform">
+                                    <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INTJÄNAT</span>
                                     <span id="wp-sum-sales" class="text-[24px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 k</span>
                                     <span id="wp-edit-hint" class="text-[7.5px] font-black text-[#0ea5e9]/60 uppercase tracking-widest mt-1.5 hidden">✏️ TRYCK FÖR ATT ÄNDRA</span>
                                 </div>
@@ -416,39 +416,32 @@
         </div>
     </div>
 
-    <div id="custom-numpad" class="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-3xl rounded-t-[32px] shadow-[0_-12px_40px_rgba(15,23,42,0.15)] z-[30000] transform translate-y-full transition-transform duration-[0.45s] ease-spring border-t border-white" style="height: calc(270px + env(safe-area-inset-bottom, 16px));">
-        <div class="px-5 pt-3 flex flex-col h-full justify-between" style="padding-bottom: max(env(safe-area-inset-bottom), 16px);">
-            <div class="flex justify-between items-end px-2 mb-1">
-                <div class="flex flex-col">
-                    <span id="numpad-title" class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">INKÖRT</span>
-                </div>
-                <span id="numpad-display" class="text-3xl font-black text-slate-800 tracking-tight leading-none">0 <span class="text-[16px] text-slate-400">kr</span></span>
+    <div id="custom-numpad" class="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-3xl rounded-t-[32px] shadow-[0_-12px_40px_rgba(15,23,42,0.15)] z-[30000] transform translate-y-full transition-transform duration-[0.45s] ease-spring border-t border-white" style="height: calc(270px + env(safe-area-inset-bottom, 24px));">
+        <div class="px-5 flex flex-col h-full justify-center gap-3 pt-3" style="padding-bottom: max(env(safe-area-inset-bottom), 24px);">
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="numpadPress('1')" class="h-[44px] bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">1</button>
+                <button onclick="numpadPress('2')" class="h-[44px] bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">2</button>
+                <button onclick="numpadPress('3')" class="h-[44px] bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">3</button>
+                <button onclick="numpadPress('4')" class="h-[44px] bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">4</button>
+                <button onclick="numpadPress('5')" class="h-[44px] bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">5</button>
+                <button onclick="numpadPress('6')" class="h-[44px] bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">6</button>
+                <button onclick="numpadPress('7')" class="h-[44px] bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">7</button>
+                <button onclick="numpadPress('8')" class="h-[44px] bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">8</button>
+                <button onclick="numpadPress('9')" class="h-[44px] bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">9</button>
+                <button onclick="numpadPress('clear')" class="h-[44px] bg-slate-50 hover:bg-slate-100 rounded-[16px] text-sm font-black text-slate-400 shadow-sm border border-slate-100 active:scale-95 transition-transform uppercase tracking-wider">C</button>
+                <button onclick="numpadPress('0')" class="h-[44px] bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">0</button>
+                <button onclick="numpadPress('back')" class="h-[44px] bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-500 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">⌫</button>
             </div>
             
-            <div class="grid grid-cols-3 gap-1.5 flex-1 my-1.5">
-                <button onclick="numpadPress('1')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">1</button>
-                <button onclick="numpadPress('2')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">2</button>
-                <button onclick="numpadPress('3')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">3</button>
-                <button onclick="numpadPress('4')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">4</button>
-                <button onclick="numpadPress('5')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">5</button>
-                <button onclick="numpadPress('6')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">6</button>
-                <button onclick="numpadPress('7')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">7</button>
-                <button onclick="numpadPress('8')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">8</button>
-                <button onclick="numpadPress('9')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">9</button>
-                <button onclick="numpadPress('clear')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-sm font-black text-slate-400 shadow-sm border border-slate-100 active:scale-95 transition-transform uppercase tracking-wider">C</button>
-                <button onclick="numpadPress('0')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">0</button>
-                <button onclick="numpadPress('back')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-500 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">⌫</button>
-            </div>
-            
-            <div class="flex gap-2">
-                <button onclick="closeNumpad()" class="flex-1 h-[42px] bg-slate-100 hover:bg-slate-200 rounded-[14px] text-[11px] font-black text-slate-500 uppercase tracking-widest active:scale-95 transition-transform shadow-sm border border-slate-200">Avbryt</button>
-                <button onclick="numpadSave()" class="flex-[2] h-[42px] bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] rounded-[14px] text-[12px] font-black text-white uppercase tracking-widest shadow-md active:scale-95 transition-transform">Spara Belopp</button>
+            <div class="flex gap-2 mt-1">
+                <button onclick="closeNumpad()" class="flex-1 h-[48px] bg-slate-100 hover:bg-slate-200 rounded-[16px] text-[11px] font-black text-slate-500 uppercase tracking-widest active:scale-95 transition-transform shadow-sm border border-slate-200">Avbryt</button>
+                <button onclick="numpadSave()" class="flex-[2] h-[48px] bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] rounded-[16px] text-[12px] font-black text-white uppercase tracking-widest shadow-md active:scale-95 transition-transform">Spara Belopp</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CENTRALISERAD HISTORY API (Bakåtknapp) ---
+        // --- CENTRALISERAD HISTORY API (Säkerställer progressiv bakåt-knapp) ---
         function pushModalState() {
             history.pushState({view: 'modal'}, '');
         }
@@ -474,7 +467,6 @@
             pushModalState();
             numpadTarget = target;
             numpadValue = currentVal > 0 ? String(currentVal) : "";
-            document.getElementById('numpad-title').innerText = title || 'ANGE BELOPP';
             updateNumpadDisplay();
             document.body.classList.add('numpad-open');
             document.getElementById('custom-numpad').style.transform = 'translateY(0)';
@@ -485,6 +477,22 @@
             document.body.classList.remove('numpad-open');
             numpadTarget = null;
             if (!fromPopstate && history.state && history.state.view === 'modal') history.back();
+            
+            // Återställ rutan om användaren avbryter (Visar riktigt databas-värde)
+            if (viewMode === 'day') updateInlineFocusDashboard();
+            if (viewMode === 'week') updateWeekPanel();
+            if (viewMode === 'month') {
+                if (multiSelectKeys.size === 1) {
+                    const singleK = Array.from(multiSelectKeys)[0];
+                    const o = db.d[singleK] || {};
+                    const mText = document.getElementById('month-sales-text');
+                    if (mText) {
+                        mText.innerText = o.s > 0 ? o.s + ' kr' : '0 kr';
+                        if (o.s > 0) mText.classList.replace('text-slate-400', 'text-[#0ea5e9]');
+                        else mText.classList.replace('text-[#0ea5e9]', 'text-slate-400');
+                    }
+                }
+            }
         }
 
         const npEl = document.getElementById('custom-numpad');
@@ -502,8 +510,23 @@
         }
 
         function updateNumpadDisplay() {
-            const display = document.getElementById('numpad-display');
-            display.innerHTML = numpadValue === "" ? '0 <span class="text-[16px] text-slate-400">kr</span>' : Number(numpadValue).toLocaleString('sv-SE') + ' <span class="text-[16px] text-slate-400">kr</span>';
+            const valNum = Number(numpadValue) || 0;
+            const displayStr = numpadValue === "" ? "0 kr" : valNum.toLocaleString('sv-SE') + " kr";
+            
+            // Live Update direkt i den aktiva INTJÄNAT-rutan
+            if (numpadTarget === 'day') {
+                const el = document.getElementById('dp-inline-sales');
+                if (el) el.innerText = displayStr;
+            } else if (numpadTarget === 'week') {
+                const el = document.getElementById('wp-sum-sales');
+                if (el) el.innerText = displayStr;
+            } else if (numpadTarget === 'month') {
+                const el = document.getElementById('month-sales-text');
+                if (el) {
+                    el.innerText = displayStr;
+                    el.classList.replace('text-slate-400', 'text-[#0ea5e9]');
+                }
+            }
         }
 
         function numpadSave() {
@@ -895,7 +918,7 @@
                 
                 let dTarget = timeline[activeK]?.target || 0; let dSales = curO.s || 0; let dDiff = dSales - dTarget;
                 
-                if(lblTarget) lblTarget.innerText = "DAGSMÅL"; if(lblSales) lblSales.innerText = "INKÖRT (DAG)";
+                if(lblTarget) lblTarget.innerText = "DAGSMÅL"; if(lblSales) lblSales.innerText = "INTJÄNAT (DAG)";
                 if(sumTargetEl) sumTargetEl.innerText = (dTarget/1000).toFixed(1) + ' k';
                 if(sumSalesEl) sumSalesEl.innerText = (dSales/1000).toFixed(1) + ' k';
                 if(sumDiffEl) { sumDiffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; sumDiffEl.style.color = dDiff >= 0 ? "var(--pos)" : "var(--neg)"; }
@@ -905,7 +928,7 @@
                 if (wpEditHint) wpEditHint.classList.add('hidden');
 
                 let diff = wSales - wTarget; 
-                if(lblTarget) lblTarget.innerText = "VECKOMÅL"; if(lblSales) lblSales.innerText = "INKÖRT (VECKA)";
+                if(lblTarget) lblTarget.innerText = "VECKOMÅL"; if(lblSales) lblSales.innerText = "INTJÄNAT (VECKA)";
                 const qtEl = document.getElementById('wp-quick-title'); if(qtEl) qtEl.innerText = `VÄLJ DAG...`; 
                 if(sumTargetEl) sumTargetEl.innerText = (wTarget/1000).toFixed(1) + ' k'; if(sumSalesEl) sumSalesEl.innerText = (wSales/1000).toFixed(1) + ' k';
                 if(sumDiffEl) { sumDiffEl.innerText = (diff >= 0 ? "+" : "") + (diff/1000).toFixed(1) + " k"; sumDiffEl.style.color = diff >= 0 ? "var(--pos)" : "var(--neg)"; }

@@ -20,7 +20,7 @@
             --border-subtle: rgba(15, 23, 42, 0.06); 
             --sting-blue: #0ea5e9; 
             --pos: #059669; 
-            --neg: #dc2626; 
+            --neg: #ef4444; 
             --gold-main: #f59e0b; 
             --backdrop-gradient: linear-gradient(180deg, #94a3b8 0%, #b8c5d4 60%, #cbd5e1 100%);
             --input-bg: #f8fafc; 
@@ -32,8 +32,6 @@
             --shadow-sm: 0 4px 12px -4px rgba(15,23,42,0.08), 0 2px 6px -2px rgba(15,23,42,0.04);
             --shadow-md: 0 16px 32px -8px rgba(15,23,42,0.12), 0 4px 12px -4px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,1);
             --shadow-banner: 0 1px 0 rgba(255,255,255,0.04) inset, 0 -1px 0 rgba(0,0,0,0.3) inset, 0 18px 40px -12px rgba(2,6,23,0.45), 0 4px 12px -4px rgba(2,6,23,0.35);
-            --shadow-glow-blue: 0 8px 24px -6px rgba(14,165,233,0.45), 0 0 12px 2px rgba(14,165,233,0.15);
-            --shadow-glow-gold: 0 8px 24px -6px rgba(245, 158, 11, 0.45), 0 0 12px 2px rgba(245, 158, 11, 0.15);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
@@ -74,7 +72,7 @@
         .gauge-container { position: relative; width: 95px; height: 95px; display: flex; align-items: center; justify-content: center; margin: 0 4px;}
         .gauge-container svg { width: 100%; height: 100%; }
         .g-bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 8; stroke-linecap: round; }
-        .g-prog { fill: none; stroke: var(--sting-blue); stroke-width: 8; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.9s var(--ease-spring); filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.6)) drop-shadow(0 0 2px rgba(14,165,233,0.8)); }
+        .g-prog { fill: none; stroke-width: 8; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.9s var(--ease-spring), stroke 0.4s ease; }
         .g-marks { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 1.5; stroke-dasharray: 1, 15; transform: rotate(135deg); transform-origin: 50% 50%; opacity: 0.7; }
         .g-label-0 { position: absolute; bottom: 4px; left: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.35); letter-spacing: 0.05em; }
         .g-label-240 { position: absolute; bottom: 4px; right: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.35); letter-spacing: 0.05em; }
@@ -101,14 +99,16 @@
         .history-ledig { background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important; color: var(--text-muted) !important; border-color: #ffffff !important; }
         
         .status-today { background: linear-gradient(135deg, var(--today-light), var(--today-dark)) !important; color: #ffffff !important; opacity: 1 !important; z-index: 5; box-shadow: 0 10px 24px -4px rgba(2, 132, 199, 0.6), inset 0 2px 4px rgba(255,255,255,0.4) !important; border: 1px solid #38bdf8 !important; transform: translateY(-1px); }
-        .active-focus { background: linear-gradient(135deg, #f59e0b, #d97706) !important; z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; box-shadow: var(--shadow-glow-gold), inset 0 2px 4px rgba(255,255,255,0.4) !important; border: 1px solid #fcd34d !important; transform: translateY(-2px) scale(1.02); }
+        .active-focus { background: linear-gradient(135deg, #f59e0b, #d97706) !important; z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; box-shadow: 0 8px 24px -6px rgba(245, 158, 11, 0.45), 0 0 12px 2px rgba(245, 158, 11, 0.15), inset 0 2px 4px rgba(255,255,255,0.4) !important; border: 1px solid #fcd34d !important; transform: translateY(-2px) scale(1.02); }
         
         .status-today .date-num, .active-focus .date-num, .status-today .cell-main-val, .active-focus .cell-main-val { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         .date-num { position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 8.5px; font-weight: 800; pointer-events: none; color: var(--text-main); }
         .u-badge { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; z-index: 35; border: 1.5px solid var(--white); pointer-events: none; box-shadow: 0 4px 8px -2px rgba(15,23,42,0.2); }
         .badge-abs { top: -4px; right: -4px; width: 16px; height: 16px; font-size: 9px; background: #ffffff; border: 1.5px solid #f97316; }
         .badge-action { background: #fef3c7 !important; border-color: #f59e0b !important; color: #b45309 !important; }
-        .week-tag { position: absolute; top: -3px; left: -3px; background: linear-gradient(135deg, #38bdf8, #0ea5e9); color: white !important; font-size: 6px; padding: 1.5px 4px; border-radius: 4px; font-weight: 900; z-index: 10; pointer-events: none; box-shadow: 0 4px 8px -2px rgba(14,165,233,0.5); letter-spacing: 0.04em; border: 1px solid #7dd3fc; }
+        
+        /* Uppdaterad Week-tag för att inte täcka datumen */
+        .week-tag { position: absolute; top: -6px; left: -10px; background: linear-gradient(135deg, #38bdf8, #0ea5e9); color: white !important; font-size: 6px; padding: 1.5px 3px; border-radius: 4px; font-weight: 900; z-index: 10; pointer-events: none; box-shadow: 0 4px 8px -2px rgba(14,165,233,0.5); letter-spacing: 0.04em; border: 1px solid #7dd3fc; }
         .cell-main-val { font-size: 9px; font-weight: 900; line-height: 1; pointer-events: none; color: inherit; }
         
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -118,35 +118,24 @@
         
         #container-dash-views { position: relative; flex: 1; min-height: 0; overflow: hidden; }
         .dash-view-pane { position: absolute; inset: 0; transition: opacity 0.3s var(--ease-spring), transform 0.3s var(--ease-spring); display: flex; flex-direction: column; visibility: hidden; opacity: 0; pointer-events: none; }
-        .mode-day #pane-day, .mode-week #pane-week, .mode-month #pane-month, .mode-absence #pane-absence, .mode-notes #pane-notes { visibility: visible; opacity: 1; pointer-events: auto; transform: scale(1); }
+        .mode-dash #pane-dash, .mode-month #pane-month, .mode-absence #pane-absence, .mode-notes #pane-notes { visibility: visible; opacity: 1; pointer-events: auto; transform: scale(1); }
         
         .focus-gauge-bg { fill: none; stroke: rgba(15,23,42,0.05); stroke-linecap: round; }
-        .fg-sales { fill: none; stroke: var(--sting-blue); stroke-linecap: round; transition: stroke-dashoffset 0.7s var(--ease-spring); filter: drop-shadow(0 0 4px rgba(14,165,233,0.35)); }
-        
-        .glass-panel-inline { border-radius: 24px; transition: all 0.3s var(--ease-spring); cursor: pointer; }
-        .glass-panel-inline:active { transform: scale(0.98); }
-        .cc-bg-default { background: linear-gradient(145deg, #ffffff, #f8fafc) !important; border: 1px solid #ffffff !important; box-shadow: 0 12px 30px -8px rgba(15,23,42,0.1), inset 0 2px 4px rgba(255,255,255,1) !important; }
-        .cc-bg-success { background: linear-gradient(145deg, #f0fdf4, #d1fae5) !important; border: 1px solid #ffffff !important; box-shadow: 0 12px 30px -8px rgba(16, 185, 129, 0.2), inset 0 2px 4px rgba(255,255,255,1) !important; }
-        .cc-bg-fail { background: linear-gradient(145deg, #fff5f5, #fee2e2) !important; border: 1px solid #ffffff !important; box-shadow: 0 12px 30px -8px rgba(244, 63, 94, 0.2), inset 0 2px 4px rgba(255,255,255,1) !important; }
-        .cc-bg-planned { background: linear-gradient(145deg, #f0f9ff, #e0f2fe) !important; border: 1px solid #ffffff !important; box-shadow: 0 12px 30px -8px rgba(14, 165, 233, 0.2), inset 0 2px 4px rgba(255,255,255,1) !important; }
-        .cc-bg-ledig { background: linear-gradient(145deg, #f8fafc, #f1f5f9) !important; border: 1px solid #ffffff !important; box-shadow: 0 8px 24px -8px rgba(15,23,42,0.06), inset 0 2px 4px rgba(255,255,255,1) !important; }
+        .fg-sales { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.7s var(--ease-spring), stroke 0.4s ease; }
         
         #note-confirm-modal > div, #child-select-modal > div, #budget-modal > div { background: rgba(255,255,255,0.94) !important; backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%); border: 1px solid rgba(255,255,255,0.6) !important; box-shadow: 0 24px 60px -12px rgba(15,23,42,0.28), 0 2px 6px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important; }
         #note-confirm-modal, #child-select-modal, #budget-modal { backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
         
         @keyframes pulse-cell-blue { 0% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0.5); } 70% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 8px rgba(14, 165, 233, 0); } 100% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0); } }
         @keyframes pulse-cell-amber { 0% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 0 rgba(245, 158, 11, 0.5); } 70% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 8px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 0 rgba(245, 158, 11, 0); } }
-        @keyframes pulse-card-glow { 0% { box-shadow: 0 12px 30px -8px rgba(14, 165, 233, 0.3), 0 0 12px rgba(14, 165, 233, 0.15), inset 0 2px 4px rgba(255,255,255,1); } 100% { box-shadow: 0 16px 40px -8px rgba(14, 165, 233, 0.6), 0 0 24px rgba(14, 165, 233, 0.35), inset 0 2px 4px rgba(255,255,255,1); transform: translateY(-1px); } }
         
         .status-today.active-shift-pulse { animation: pulse-cell-blue 2.2s var(--ease-spring) infinite; border: 1.5px solid #7dd3fc !important; }
         .active-focus.active-shift-pulse { animation: pulse-cell-amber 2.2s var(--ease-spring) infinite; border: 1.5px solid #fcd34d !important; }
-        .cc-bg-active-shift { background: linear-gradient(145deg, #f0f9ff, #e0f2fe) !important; border: 1px solid #ffffff !important; animation: pulse-card-glow 2.5s infinite alternate var(--ease-spring) !important; }
 
-        /* CAROUSEL TWEAKS */
         .carousel-item { transition: transform 0.1s ease-out, opacity 0.1s ease-out; }
     </style>
 </head>
-<body class="mode-day">
+<body class="mode-dash">
     
     <div id="confirm-box"><p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p><div class="flex gap-3"><button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button><button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button></div></div>
 
@@ -193,6 +182,7 @@
             
             <div class="app-card top-section premium-slate-banner relative">
                 <button onclick="openBudgetModal()" class="absolute top-4 left-4 text-slate-300 hover:text-white text-[22px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">⚙️</button>
+                <button onclick="setMode('notes')" class="absolute top-4 right-4 text-slate-300 hover:text-white text-[20px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">✏️</button>
                 
                 <div id="top-monthly-ui" class="flex flex-col w-full h-full justify-center px-4 py-4 transition-opacity duration-300">
                     <div class="budget-header"><p class="budget-label mt-1">Månadsmål</p><p id="d-budget-val" class="budget-val">240,000 kr</p></div>
@@ -264,12 +254,11 @@
                         <button onclick="cycleView(-1)" class="text-slate-400 hover:text-[#0ea5e9] text-3xl px-1 active:scale-90 transition-colors">←</button>
                         <div id="cal-standard-header" class="flex-1 flex flex-col justify-center items-center w-full px-1">
                             <h3 id="dynamic-view-title" class="text-[9.5px] font-black uppercase tracking-widest text-slate-800 mb-1.5 text-center leading-none">LADDAR...</h3>
-                            <div class="flex gap-1 p-0.5 bg-slate-50 rounded-lg border border-slate-100 shadow-inner w-full">
-                                <button id="tab-week" onclick="setMode('week')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">VECKA</button>
-                                <button id="tab-day" onclick="setMode('day')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm">COCKPIT</button>
-                                <button id="tab-month" onclick="setMode('month')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">MÅNAD</button>
+                            
+                            <div class="flex gap-1 p-0.5 bg-slate-50 rounded-lg border border-slate-100 shadow-inner w-full max-w-[200px]">
                                 <button id="tab-absence" onclick="setMode('absence')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">FRÅNV.</button>
-                                <button id="tab-notes" onclick="setMode('notes')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">NOTER</button>
+                                <button id="tab-dash" onclick="toggleDashMode()" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm">VECKA</button>
+                                <button id="tab-month" onclick="setMode('month')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">MÅNAD</button>
                             </div>
                         </div>
                         <div id="month-edit-menu" class="hidden absolute inset-0 flex items-center justify-between px-3 z-50 bg-slate-50" style="border-radius: 28px 28px 0 0;">
@@ -294,60 +283,7 @@
 
                     <div id="container-dash-views">
                         
-                        <div id="pane-day" class="dash-view-pane p-2 flex flex-col justify-between h-full overflow-hidden gap-1.5">
-                            <div class="flex justify-between items-center flex-shrink-0">
-                                <div class="flex items-center gap-1 w-full justify-center relative h-[32px]">
-                                    <button onclick="navCal(-1)" class="absolute left-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl leading-none active:scale-75 transition-transform" style="margin-top:-2px;">‹</button>
-                                    <div class="text-center">
-                                        <h4 id="dp-inline-date" class="text-[10px] font-black uppercase tracking-widest text-slate-800">Laddar...</h4>
-                                        <p id="dp-inline-time" class="text-[9px] font-bold text-[#0ea5e9] mt-0.5">00:00 — 00:00</p>
-                                    </div>
-                                    <button onclick="navCal(1)" class="absolute right-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl leading-none active:scale-75 transition-transform" style="margin-top:-2px;">›</button>
-                                </div>
-                            </div>
-
-                            <div id="dp-cockpit-card" onclick="openNumpad('day', db.d[activeK || getK(realToday)]?.s || 0, 'DAGSINTJÄNAT')" class="p-2 flex flex-col justify-between flex-1 relative glass-panel-inline min-h-0 w-full transition-colors mt-1 mb-1 cursor-pointer active:scale-[0.98]">
-                                <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none">
-                                    <div class="flex flex-col justify-center text-left pointer-events-auto flex-1 pl-1">
-                                        <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">DAGSMÅL</span>
-                                        <p id="dp-inline-target" class="text-[16px] font-black leading-none mb-1.5 text-slate-900 drop-shadow-sm">0 k</p>
-                                        <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">KVAR TILL MÅL</span>
-                                        <p id="dp-inline-left" class="text-[16px] font-black leading-none text-rose-600 drop-shadow-sm">0 k</p>
-                                    </div>
-                                    <div class="relative flex flex-col justify-center items-center pointer-events-none flex-[1.5] max-w-[110px] aspect-square mx-1">
-                                        <svg class="w-full h-full drop-shadow-md" viewBox="0 0 120 120">
-                                            <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
-                                            <circle id="dp-gauge-sales" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
-                                        </svg>
-                                        <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5">
-                                            <span id="dp-inline-eff" class="text-[22px] font-black tracking-tighter text-slate-900 leading-none drop-shadow-sm">0%</span>
-                                            <span id="dp-inline-eff-lbl" class="text-[8px] font-black uppercase tracking-widest text-emerald-600 mt-1">I FAS</span>
-                                        </div>
-                                    </div>
-                                    <div class="flex flex-col justify-center text-right pointer-events-auto flex-1 pr-1">
-                                        <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">INTJÄNAT</span>
-                                        <p id="dp-inline-sales" class="text-[16px] font-black text-[#0ea5e9] leading-none mb-1.5 drop-shadow-sm">0 k</p>
-                                        <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">SNITT / PASS</span>
-                                        <p id="dp-inline-req" class="text-[16px] font-black text-slate-600 leading-none drop-shadow-sm">0 k</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex-shrink-0 w-full grid grid-cols-6 gap-1.5 h-[46px] mt-1">
-                                <button onclick="saveDirectDayStatus('Arbete')" class="bg-[#f0f9ff] text-[#0ea5e9] font-extrabold text-[9px] rounded-[14px] border border-[#bae6fd] uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>⚒️</span><span class="text-[5.5px] mt-0.5">Jobb</span></button>
-                                <button onclick="saveDirectDayStatus('Ledig')" class="bg-slate-100 text-slate-600 font-extrabold text-[9px] rounded-[14px] border border-slate-200 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>🏠</span><span class="text-[5.5px] mt-0.5">Ledig</span></button>
-                                <button onclick="saveDirectDayStatus('Semester')" class="bg-[#ccfbf1] text-[#0f766e] font-extrabold text-[9px] rounded-[14px] border border-[#99f6e4] uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>✈️</span><span class="text-[5.5px] mt-0.5">Sem</span></button>
-                                <button onclick="saveDirectDayStatus('Sjuk')" class="bg-rose-50 text-rose-700 font-extrabold text-[9px] rounded-[14px] border border-rose-200 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>🤒</span><span class="text-[5.5px] mt-0.5">Sjuk</span></button>
-                                <button onclick="saveDirectDayStatus('VAB')" class="bg-amber-50 text-amber-700 font-extrabold text-[9px] rounded-[14px] border border-amber-200 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>👶</span><span class="text-[5.5px] mt-0.5">VAB</span></button>
-                                <button onclick="saveDirectDayStatus('Föräldraledig')" class="bg-purple-50 text-purple-700 font-extrabold text-[9px] rounded-[14px] border border-purple-200 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>🍼</span><span class="text-[5.5px] mt-0.5">FL</span></button>
-                            </div>
-
-                            <div class="text-center bg-slate-50 border border-slate-100 rounded-[14px] flex-shrink-0 flex items-center justify-center gap-1.5 h-[30px] shadow-sm">
-                                <span class="text-[7.5px] font-extrabold uppercase tracking-widest text-slate-400">REGISTRERAT:</span><span id="dp-inline-status" class="text-[7.5px] font-black text-[#0ea5e9] uppercase tracking-wider drop-shadow-sm">ARBETSPASS</span>
-                            </div>
-                        </div>
-
-                        <div id="pane-week" class="dash-view-pane h-full justify-start pt-1.5 flex flex-col overflow-hidden">
+                        <div id="pane-dash" class="dash-view-pane h-full justify-start pt-1.5 flex flex-col overflow-hidden">
                             <div class="grid grid-cols-7 gap-1 px-3 mb-0.5 flex-shrink-0">
                                 <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
                                 <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
@@ -359,45 +295,54 @@
                                 <div id="slide-next" class="w-full h-full flex-shrink-0 snap-center"></div>
                             </div>
 
-                            <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[24px] border border-slate-100 shadow-md flex flex-col flex-shrink-0 relative z-20 flex-1 min-h-0">
+                            <div class="mx-3 mt-1 mb-2 p-3 bg-white rounded-[24px] border border-slate-100 shadow-md flex flex-col flex-shrink-0 relative z-20 flex-1 min-h-0 transition-all">
+                                
                                 <div class="flex justify-between items-end pb-2 border-b border-slate-100 flex-shrink-0">
                                     <div class="flex flex-col">
-                                        <span id="wp-date-range" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
-                                        <span id="wp-pass-count" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
+                                        <span id="dash-title" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
+                                        <span id="dash-subtitle" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
                                     </div>
                                     <div class="flex flex-col text-right">
-                                        <p id="wp-quick-title" class="text-[8px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
-                                        <p class="text-[10px] font-bold text-slate-400">För att redigera</p>
+                                        <p id="dash-status-text" class="text-[9px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
                                     </div>
                                 </div>
                                 
-                                <div id="wp-week-summary" class="flex flex-col w-full px-1 mt-1 gap-1.5 justify-center flex-1 min-h-0">
-                                    <div onclick="if(activeK) openNumpad('week', db.d[activeK]?.s || 0, 'INTJÄNAT (DAG)')" class="flex flex-col items-center flex-1 bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-[20px] p-2.5 shadow-sm justify-center w-full min-h-0 cursor-pointer active:scale-95 transition-transform">
-                                        <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INTJÄNAT</span>
-                                        <span id="wp-sum-sales" class="text-[24px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 k</span>
-                                        <span id="wp-edit-hint" class="text-[7.5px] font-black text-[#0ea5e9]/60 uppercase tracking-widest mt-1.5 hidden">✏️ TRYCK FÖR ATT ÄNDRA</span>
+                                <div id="dash-gauge-container" class="flex items-center justify-between w-full flex-1 my-2 relative">
+                                    
+                                    <div id="dash-abs-badge" class="absolute top-0 right-2 w-7 h-7 rounded-full border border-white shadow-sm flex items-center justify-center text-[14px] z-20 hidden"></div>
+
+                                    <div class="flex flex-col justify-center text-left flex-1 pl-1">
+                                        <span id="dash-lbl-target" class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">MÅL</span>
+                                        <p id="dash-val-target" class="text-[16px] font-black leading-none text-slate-700 drop-shadow-sm">0 k</p>
                                     </div>
-                                    <div class="flex justify-between w-full gap-2 h-[45px] flex-shrink-0">
-                                        <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200 rounded-[16px] justify-center shadow-sm">
-                                            <span id="wp-lbl-target" class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">MÅL</span>
-                                            <span id="wp-sum-target" class="text-[14px] font-black text-slate-700">0 k</span>
+                                    
+                                    <div class="relative flex flex-col justify-center items-center flex-[1.5] max-w-[100px] aspect-square mx-1">
+                                        <div class="absolute inset-0 cursor-pointer" onclick="openDashNumpad()" style="z-index: 30;"></div>
+                                        <svg class="w-full h-full drop-shadow-md" viewBox="0 0 120 120">
+                                            <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
+                                            <circle id="dash-gauge-prog" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
+                                        </svg>
+                                        <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5 pointer-events-none">
+                                            <span id="dash-val-sales" class="text-[20px] font-black tracking-tighter leading-none drop-shadow-sm">0 k</span>
+                                            <span id="dash-val-perc" class="text-[9px] font-black text-slate-400 mt-1">0%</span>
                                         </div>
-                                        <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200 rounded-[16px] justify-center shadow-sm">
-                                            <span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">DIFF</span>
-                                            <span id="wp-sum-diff" class="text-[14px] font-black text-slate-700">0 k</span>
-                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-col justify-center text-right flex-1 pr-1">
+                                        <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">DIFF</span>
+                                        <p id="dash-val-diff" class="text-[16px] font-black leading-none drop-shadow-sm">0 k</p>
                                     </div>
                                 </div>
 
-                                <div id="wp-day-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 mt-1.5 h-[46px] flex justify-end">
+                                <div id="dash-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 h-[42px] flex justify-end">
                                     <div class="relative w-full h-full overflow-hidden rounded-[14px] border border-slate-200 shadow-sm">
                                         <div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50">
-                                            <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button>
-                                            <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button>
-                                            <button onclick="handleWeekDirectAction('Semester')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button>
-                                            <button onclick="handleWeekDirectAction('Sjuk')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button>
-                                            <button onclick="handleWeekDirectAction('VAB')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button>
-                                            <button onclick="handleWeekDirectAction('Föräldraledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button>
+                                            <button onclick="handleDashAction('Arbete')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button>
+                                            <button onclick="handleDashAction('Ledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button>
+                                            <button onclick="handleDashAction('Semester')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button>
+                                            <button onclick="handleDashAction('Sjuk')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button>
+                                            <button onclick="handleDashAction('VAB')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button>
+                                            <button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button>
                                         </div>
                                     </div>
                                 </div>
@@ -482,35 +427,36 @@
         let currentCarouselKey = null;
         let isCarouselScrolling = false;
 
+        function openDashNumpad() {
+            if(activeK) openNumpad('dash', db.d[activeK]?.s || 0, 'INTJÄNAT (DAG)');
+        }
+
         function openNumpad(target, currentVal, title) {
             pushModalState();
             numpadTarget = target;
             
-            // Fada ut standard-vyer
             document.getElementById('top-monthly-ui').style.opacity = '0';
             document.getElementById('top-monthly-ui').style.pointerEvents = 'none';
             document.getElementById('bottom-standard-views').style.opacity = '0';
             document.getElementById('bottom-standard-views').style.pointerEvents = 'none';
             
-            // Bygg karusellen utifrån aktiv dag
-            const centerKey = activeK || getK(realToday);
-            buildCarousel(centerKey);
+            if(target === 'dash') {
+                const centerKey = activeK || getK(realToday);
+                buildCarousel(centerKey);
+                document.getElementById('top-typing-ui').style.opacity = '1';
+                document.getElementById('top-typing-ui').style.pointerEvents = 'auto';
+            }
             
-            // Fada in skriv-vyer
-            document.getElementById('top-typing-ui').style.opacity = '1';
-            document.getElementById('top-typing-ui').style.pointerEvents = 'auto';
             document.getElementById('bottom-numpad-view').style.opacity = '1';
             document.getElementById('bottom-numpad-view').style.pointerEvents = 'auto';
         }
 
         function closeNumpad(fromPopstate = false) {
-            // Återställ till standard-vyer
             document.getElementById('top-monthly-ui').style.opacity = '1';
             document.getElementById('top-monthly-ui').style.pointerEvents = 'auto';
             document.getElementById('bottom-standard-views').style.opacity = '1';
             document.getElementById('bottom-standard-views').style.pointerEvents = 'auto';
             
-            // Fada ut numpad
             document.getElementById('top-typing-ui').style.opacity = '0';
             document.getElementById('top-typing-ui').style.pointerEvents = 'none';
             document.getElementById('bottom-numpad-view').style.opacity = '0';
@@ -519,9 +465,7 @@
             numpadTarget = null;
             if (!fromPopstate && history.state && history.state.view === 'modal') history.back();
             
-            // Uppdatera vyerna under
-            if (viewMode === 'day') updateInlineFocusDashboard();
-            if (viewMode === 'week') updateWeekPanel();
+            if (viewMode === 'dash') updateDashboardView();
             if (viewMode === 'month') {
                 if (multiSelectKeys.size === 1) {
                     const singleK = Array.from(multiSelectKeys)[0]; const o = db.d[singleK] || {};
@@ -541,7 +485,6 @@
             const days = ['SÖ','MÅ','TI','ON','TO','FR','LÖ'];
             const months = ['JAN','FEB','MAR','APR','MAJ','JUN','JUL','AUG','SEP','OKT','NOV','DEC'];
             
-            // Vi genererar 61 dagar (-30 till +30) så man kan scrolla smidigt
             for (let i = -30; i <= 30; i++) {
                 let d = new Date(centerDate);
                 d.setDate(d.getDate() + i);
@@ -567,8 +510,6 @@
             }
 
             container.onscroll = () => { requestAnimationFrame(updateCarouselVisuals); };
-
-            // Centrera skärmen direkt på valt datum
             setTimeout(() => { scrollToCarouselKey(centerKey, false); }, 10);
         }
 
@@ -594,12 +535,9 @@
             children.forEach(child => {
                 const childCenter = child.offsetLeft + (child.clientWidth / 2);
                 const diff = Math.abs(center - childCenter);
-                
-                // Normalisera avståndet. 70px är en bredd på ett barn.
                 const ratio = Math.min(1, diff / 70); 
-                
-                const scale = 1.35 - (0.5 * ratio); // Stor i mitten, krymper ner mot kanterna
-                const opacity = 1 - (0.65 * ratio);  // Opak i mitten, genomskinlig mot kanterna
+                const scale = 1.35 - (0.5 * ratio); 
+                const opacity = 1 - (0.65 * ratio);  
                 
                 child.style.transform = `scale(${Math.max(0.7, scale)})`;
                 child.style.opacity = Math.max(0.15, opacity);
@@ -607,12 +545,9 @@
                 if (diff < minDiff) { minDiff = diff; closestChild = child; }
             });
 
-            // Om vi har snappat till en ny dag
             if (closestChild && closestChild.dataset.key !== currentCarouselKey) {
                 currentCarouselKey = closestChild.dataset.key;
-                activeK = currentCarouselKey; // Synka hela appen med karusellen!
-                
-                // Hämta det värdet som finns sparat på denna dagen
+                activeK = currentCarouselKey; 
                 const o = db.d[currentCarouselKey] || {s:0};
                 numpadValue = o.s > 0 ? String(o.s) : "";
                 updateNumpadDisplay();
@@ -640,11 +575,9 @@
             const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
             const months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
 
-            // Header text ovanför karusellen
             document.getElementById('typing-top-dayname').innerText = daysLong[dObj.getDay()];
             document.getElementById('typing-top-date').innerText = `${dObj.getDate()} ${months[dObj.getMonth()]} ${dObj.getFullYear()}`;
 
-            // Mål och Diff
             let dTarget = timeline[k]?.target || 0;
             let diff = valNum - dTarget;
             
@@ -652,16 +585,24 @@
             
             let diffEl = document.getElementById('typing-stat-diff');
             diffEl.innerText = (diff >= 0 ? "+" : "") + (diff/1000).toFixed(1) + " k";
-            diffEl.style.color = diff >= 0 ? "#34d399" : "#f87171";
+            diffEl.style.color = diff >= 0 ? "var(--sting-blue)" : "var(--neg)";
             
-            // Ändra live-textens färg om vi passerar målet
-            if (valNum >= dTarget && dTarget > 0) { liveStat.style.color = "#34d399"; } 
-            else { liveStat.style.color = "#38bdf8"; }
+            if (valNum >= dTarget && dTarget > 0) { liveStat.style.color = "var(--sting-blue)"; } 
+            else { liveStat.style.color = "var(--neg)"; }
         }
 
         function numpadSave() {
             const valNum = Number(numpadValue) || 0;
             if (activeK) { pushMatrixSync(activeK, { s: valNum }); } 
+            else if (numpadTarget === 'month') {
+                let upserts = []; const keys = Array.from(multiSelectKeys);
+                for (let k of keys) {
+                    const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: valNum, abs: old.abs || null };
+                    db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
+                }
+                multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit();
+                if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
+            }
             closeNumpad();
         }
 
@@ -677,7 +618,7 @@
         try { let bStore = localStorage.getItem('sf_budget'); if(bStore) initBudget = Number(bStore) || 240000; } catch(e) {}
         
         let db = { b: initBudget, d: {}, q: {} }, timeline = {}, viewDate = new Date(), realToday = new Date(); realToday.setHours(0,0,0,0);
-        let activeK = null, viewMode = 'day', currentWeekStart = new Date(realToday);
+        let activeK = null, viewMode = 'dash', currentWeekStart = new Date(realToday);
         let multiSelectKeys = new Set();
         
         const startDayOffset = currentWeekStart.getDay() || 7;
@@ -701,8 +642,8 @@
             } catch(e) { console.warn("Kunde inte hämta data vid uppstart", e); }
             
             calculateTimeline(); activeK = getK(realToday); 
-            renderWeekSlides(); updateDash(); setMode('day'); setupSwipeObserver(); renderNotes();
-            clearInterval(focusTimer); focusTimer = setInterval(updateInlineFocusDashboard, 2000);
+            renderWeekSlides(); updateDash(); setMode('dash'); setupSwipeObserver(); renderNotes();
+            clearInterval(focusTimer); focusTimer = setInterval(() => { if(viewMode === 'dash') updateDashboardView(); }, 2000);
         }
 
         async function syncData() {
@@ -719,8 +660,7 @@
             } catch(e) { console.warn("Synk misslyckades", e); }
             
             calculateTimeline(); updateDash(); 
-            if (viewMode === 'day') updateInlineFocusDashboard();
-            else if (viewMode === 'week') updateWeekPanel();
+            if (viewMode === 'dash') updateDashboardView();
             else if (viewMode === 'absence') renderAbsence();
             setTimeout(() => { btn.innerHTML = oldTxt; }, 800);
         }
@@ -730,8 +670,8 @@
             const merged = { st: o.st !== undefined ? o.st : (old.st || 'Arbete'), s: o.s !== undefined ? o.s : (old.s || 0), abs: o.abs !== undefined ? o.abs : (old.abs || null) };
             
             db.d[k] = merged; 
-            calculateTimeline(); updateDash(); updateInlineFocusDashboard();
-            if (viewMode === 'week') updateWeekPanel();
+            calculateTimeline(); updateDash(); 
+            if (viewMode === 'dash') updateDashboardView();
 
             if (sb) {
                 sb.from('sales_data')
@@ -748,8 +688,8 @@
                 else { if(['Arbete','Ledig'].includes(t)) { merged.st = t; merged.abs = null; } else { merged.st = 'Arbete'; merged.abs = t; } }
                 db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
             }
-            multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard();
-            if (viewMode === 'week') updateWeekPanel();
+            multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); 
+            if (viewMode === 'dash') updateDashboardView();
             if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
         }
 
@@ -838,8 +778,7 @@
 
         function selectChild(childName) {
             const fullAbs = `${pendingAbsenceType} ${childName}`; 
-            if (pendingAbsenceSource === 'direct') { finalizeDirectDayStatus(fullAbs); } 
-            else if (pendingAbsenceSource === 'week') { finalizeWeekDirectAction(fullAbs); } 
+            if (pendingAbsenceSource === 'dash') { finalizeDashAction(fullAbs); } 
             else if (pendingAbsenceSource === 'popup') { handleSaveFromPopup(fullAbs); }
             closeChildModal();
         }
@@ -852,11 +791,40 @@
             const t = document.getElementById('dynamic-view-title'); if(!t) return;
             const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']; const months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
             
-            if (viewMode === 'day') { const k = activeK || getK(realToday); const parts = k.split('-'); const d = new Date(parts[0], parts[1]-1, parts[2]); t.innerText = `${d.getDate()} ${months[d.getMonth()].toUpperCase()} ${daysLong[d.getDay()].toUpperCase()}`; } 
-            else if (viewMode === 'week') { t.innerText = `VECKA ${getWeekNumber(currentWeekStart)}`; } 
+            if (viewMode === 'dash') { 
+                if(activeK) {
+                    const parts = activeK.split('-'); const d = new Date(parts[0], parts[1]-1, parts[2]); 
+                    t.innerText = `${d.getDate()} ${months[d.getMonth()].toUpperCase()} ${daysLong[d.getDay()].toUpperCase()}`;
+                } else {
+                    t.innerText = `VECKA ${getWeekNumber(currentWeekStart)}`; 
+                }
+            } 
             else if (viewMode === 'month') { t.innerText = `${months[viewDate.getMonth()].toUpperCase()} ${viewDate.getFullYear()}`; } 
             else if (viewMode === 'absence') { t.innerText = `FRÅNVARO - ${months[viewDate.getMonth()].toUpperCase()} ${viewDate.getFullYear()}`; } 
             else if (viewMode === 'notes') { t.innerText = "ANTECKNINGAR"; }
+        }
+
+        function toggleDashMode() {
+            if (viewMode !== 'dash') {
+                setMode('dash');
+                return;
+            }
+            if (activeK) {
+                activeK = null; 
+            } else {
+                activeK = getK(realToday);
+                currentWeekStart = new Date(realToday);
+                const sdo = currentWeekStart.getDay() || 7;
+                currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
+                currentWeekStart.setHours(0,0,0,0);
+                renderWeekSlides();
+            }
+            updateDashboardView();
+            updateTopTitle();
+            document.querySelectorAll('.day-cell').forEach(c => {
+                if(activeK && c.dataset.key === activeK) c.classList.add('active-focus');
+                else c.classList.remove('active-focus');
+            });
         }
 
         function setMode(mode) {
@@ -872,17 +840,19 @@
 
             viewMode = mode; document.body.className = `mode-${mode}`;
 
-            ['week', 'day', 'month', 'absence', 'notes'].forEach(m => {
+            ['dash', 'month', 'absence'].forEach(m => {
                 const b = document.getElementById(`tab-${m}`);
-                if(b) { if(m === mode) b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm"; else b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50"; }
+                if(b) { 
+                    if(m === mode) b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm"; 
+                    else b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50"; 
+                }
             });
 
-            if (mode === 'week') { activeK = null; } else { activeK = getK(realToday); }
+            if (mode === 'dash') { if(!activeK) activeK = getK(realToday); }
 
             calculateTimeline(); updateDash();
 
-            if (mode === 'day') { updateInlineFocusDashboard(); } 
-            else if (mode === 'week') { renderWeekSlides(); updateWeekPanel(); } 
+            if (mode === 'dash') { renderWeekSlides(); updateDashboardView(); } 
             else if (mode === 'month') { renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1); } 
             else if (mode === 'absence') { renderAbsence(); } 
             else if (mode === 'notes') { renderNotes(); }
@@ -891,7 +861,7 @@
         }
 
         function cycleView(dir) {
-            const views = ['week', 'day', 'month', 'absence', 'notes'];
+            const views = ['dash', 'month', 'absence', 'notes'];
             let idx = views.indexOf(viewMode); idx += dir;
             if(idx < 0) idx = views.length - 1; if(idx > views.length - 1) idx = 0;
             setMode(views[idx]);
@@ -900,8 +870,7 @@
         function navCal(offset) {
             multiSelectKeys.clear(); closeMonthEdit(); if(numpadTarget) closeNumpad();
             if (viewMode === 'month' || viewMode === 'absence') { viewDate.setMonth(viewDate.getMonth() + offset); calculateTimeline(); updateDash(); if (viewMode === 'absence') renderAbsence(); } 
-            else if (viewMode === 'week') { currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); } 
-            else if (viewMode === 'day') { let p = (activeK || getK(realToday)).split('-'); let d = new Date(p[0], p[1]-1, p[2]); d.setDate(d.getDate() + offset); activeK = getK(d); updateInlineFocusDashboard(); }
+            else if (viewMode === 'dash') { currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); activeK = null; renderWeekSlides(); updateDashboardView(); } 
             updateTopTitle();
         }
 
@@ -938,23 +907,31 @@
             const totEl = document.getElementById('d-work-total'); if(totEl) totEl.innerText = `${tP} Totalt`; 
             const kvarEl = document.getElementById('d-kvar'); if(kvarEl) kvarEl.innerText = Math.max(0, Math.round((db.b - tS)/1000)) + " k";
             
-            const hCirc = document.getElementById('h-circle-prog'); if(hCirc) hCirc.style.strokeDashoffset = 326.7 - ((Math.min(monthlyPerc, 100) / 100) * (326.7 * 0.75));
+            const hCirc = document.getElementById('h-circle-prog'); 
+            if(hCirc) {
+                const isTopReached = tS >= db.b && db.b > 0;
+                hCirc.style.strokeDashoffset = 326.7 - ((Math.min(monthlyPerc, 100) / 100) * (326.7 * 0.75));
+                hCirc.style.stroke = isTopReached ? 'var(--sting-blue)' : 'var(--neg)';
+                hCirc.style.filter = isTopReached ? 'drop-shadow(0 0 8px rgba(14,165,233,0.6))' : 'drop-shadow(0 0 8px rgba(239,68,68,0.6))';
+            }
+            
             const progStr = Math.round((avg * tP)/1000); 
+            const progEl = document.getElementById('d-prog'); if(progEl) { progEl.innerText = progStr + " k"; progEl.style.color = progStr >= (db.b/1000) ? 'var(--sting-blue)' : 'var(--neg)'; }
+            const statEl = document.getElementById('d-status'); if(statEl) { statEl.innerText = progStr >= (db.b/1000) ? "I FAS" : "EFTER"; statEl.style.color = progStr >= (db.b/1000) ? 'var(--sting-blue)' : 'var(--neg)'; }
             
-            const progEl = document.getElementById('d-prog'); if(progEl) { progEl.innerText = progStr + " k"; progEl.style.color = progStr >= (db.b/1000) ? '#34d399' : '#f87171'; }
-            const statEl = document.getElementById('d-status'); if(statEl) { statEl.innerText = progStr >= (db.b/1000) ? "I FAS" : "EFTER"; statEl.style.color = progStr >= (db.b/1000) ? '#34d399' : '#f87171'; }
-            
-            if(viewMode === 'month') renderCal(cy, cm); else if(viewMode === 'week') { renderWeekSlides(); updateWeekPanel(); } else if(viewMode === 'absence') renderAbsence();
+            if(viewMode === 'month') renderCal(cy, cm); 
+            else if(viewMode === 'dash') { renderWeekSlides(); updateDashboardView(); } 
+            else if(viewMode === 'absence') renderAbsence();
             updateTopTitle();
         }
 
         function setupSwipeObserver() {
             if(!sc) return;
             sc.addEventListener('scroll', () => {
-                if(isResettingScroll || viewMode !== 'week') return; clearTimeout(scrollTimeout);
+                if(isResettingScroll || viewMode !== 'dash') return; clearTimeout(scrollTimeout);
                 scrollTimeout = setTimeout(() => {
                     const width = sc.clientWidth; if(width === 0) return; const idx = Math.round(sc.scrollLeft / width); 
-                    if (idx !== 1) { multiSelectKeys.clear(); closeMonthEdit(); if(numpadTarget) closeNumpad(); currentWeekStart.setDate(currentWeekStart.getDate() + ((idx === 0 ? -1 : 1) * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); updateTopTitle(); }
+                    if (idx !== 1) { multiSelectKeys.clear(); closeMonthEdit(); if(numpadTarget) closeNumpad(); currentWeekStart.setDate(currentWeekStart.getDate() + ((idx === 0 ? -1 : 1) * 7)); activeK = null; renderWeekSlides(); updateDashboardView(); updateTopTitle(); }
                 }, 50); 
             });
         }
@@ -977,25 +954,18 @@
                 } else { closeMonthEdit(); }
             } else {
                 const isSameDay = (activeK === k);
-                if (isSameDay) { activeK = null; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); if (viewMode === 'week') { updateWeekPanel(); } return; }
+                if (isSameDay) { activeK = null; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); if (viewMode === 'dash') { updateDashboardView(); } return; }
                 activeK = k; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); el.classList.add('active-focus');
-                if (viewMode === 'week') { updateWeekPanel(); }
+                if (viewMode === 'dash') { updateDashboardView(); }
             }
             if(numpadTarget) closeNumpad();
+            updateTopTitle();
         }
 
-        function handleWeekDirectAction(t) { if(!activeK) return; if (t === 'VAB' || t === 'Föräldraledig') { triggerChildSelection(t, 'week'); return; } finalizeWeekDirectAction(t); }
-        function finalizeWeekDirectAction(t) { if(['Arbete','Ledig'].includes(t)) pushMatrixSync(activeK, { st: t, abs: null }); else pushMatrixSync(activeK, { st: 'Arbete', abs: t }); }
+        function handleDashAction(t) { if(!activeK) return; if (t === 'VAB' || t === 'Föräldraledig') { triggerChildSelection(t, 'dash'); return; } finalizeDashAction(t); }
+        function finalizeDashAction(t) { if(['Arbete','Ledig'].includes(t)) pushMatrixSync(activeK, { st: t, abs: null }); else pushMatrixSync(activeK, { st: 'Arbete', abs: t }); }
         function closeMonthEdit() { const m = document.getElementById('month-edit-menu'); if(m) m.classList.add('hidden'); const h = document.getElementById('cal-standard-header'); if(h) h.classList.remove('hidden'); }
 
-        function saveDirectDayStatus(s) { if (s === 'VAB' || s === 'Föräldraledig') { triggerChildSelection(s, 'direct'); return; } finalizeDirectDayStatus(s); }
-        function finalizeDirectDayStatus(s) {
-            const k = activeK || getK(realToday);
-            if(s === 'Ledig') { pushMatrixSync(k, { st: 'Ledig', abs: null }); } 
-            else if (s === 'Sjuk' || s === 'Semester' || s.includes('VAB') || s.includes('Föräldraledig')) { pushMatrixSync(k, { st: 'Arbete', abs: s }); } 
-            else { pushMatrixSync(k, { st: 'Arbete', abs: null }); } 
-        }
-        
         function checkOverwriteFromPopup(t) { 
             let hasSales = Array.from(multiSelectKeys).some(k => (db.d[k]?.s > 0));
             if (hasSales && t === 'delete') { pushModalState(); document.getElementById('confirm-box').style.display='block'; document.getElementById('conf-yes').onclick = () => { handleSaveFromPopup(t); hideConfirm(); }; } 
@@ -1003,51 +973,112 @@
         }
         function hideConfirm(fromPopstate = false) { const cb = document.getElementById('confirm-box'); if(cb && cb.style.display !== 'none') { cb.style.display='none'; if(!fromPopstate && history.state && history.state.view === 'modal') history.back(); } }
 
-        function updateWeekPanel() {
-            let wSales = 0, wPass = 0, firstShiftTarget = null; 
-            let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6);
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec']; const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
-            
-            for(let i=0; i<7; i++) { 
-                const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); const k = getK(cd); const state = getCellState(k); 
-                wSales += (db.d[k]?.s || 0); 
-                if(state === 'worked' || state === 'planned') { if(firstShiftTarget === null) firstShiftTarget = (timeline[k]?.target || 0); wPass++; } 
-            }
-            
-            let wTarget = (firstShiftTarget || 0) * wPass;
-            
-            const rEl = document.getElementById('wp-date-range'); if(rEl) rEl.innerText = `${startD.getDate()} ${months[startD.getMonth()].toUpperCase()} - ${endD.getDate()} ${months[endD.getMonth()].toUpperCase()}`;
-            const cEl = document.getElementById('wp-pass-count'); if(cEl) cEl.innerText = `(V.${getWeekNumber(currentWeekStart)}) ${wPass} Pass`; 
-            
-            const sumTargetEl = document.getElementById('wp-sum-target'); const sumSalesEl = document.getElementById('wp-sum-sales'); const sumDiffEl = document.getElementById('wp-sum-diff');
-            const lblTarget = document.getElementById('wp-lbl-target'); const lblSales = document.getElementById('wp-lbl-sales');
-            const weekSummary = document.getElementById('wp-week-summary'); const dayActions = document.getElementById('wp-day-actions');
-            const wpEditHint = document.getElementById('wp-edit-hint');
-            
-            if (activeK && dayActions && weekSummary) {
-                dayActions.classList.remove('opacity-0', 'pointer-events-none');
-                dayActions.classList.add('opacity-100', 'pointer-events-auto');
-                if (wpEditHint) wpEditHint.classList.remove('hidden');
-                
-                const parts = activeK.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]); const curO = db.d[activeK] || {s:0}; 
-                const qtEl = document.getElementById('wp-quick-title'); if(qtEl) qtEl.innerText = `REDIGERA: ${daysLong[dObj.getDay()].toUpperCase()} ${dObj.getDate()}/${parts[1]}`; 
-                
-                let dTarget = timeline[activeK]?.target || 0; let dSales = curO.s || 0; let dDiff = dSales - dTarget;
-                
-                if(lblTarget) lblTarget.innerText = "DAGSMÅL"; if(lblSales) lblSales.innerText = "INTJÄNAT (DAG)";
-                if(sumTargetEl) sumTargetEl.innerText = (dTarget/1000).toFixed(1) + ' k';
-                if(sumSalesEl) sumSalesEl.innerText = (dSales/1000).toFixed(1) + ' k';
-                if(sumDiffEl) { sumDiffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; sumDiffEl.style.color = dDiff >= 0 ? "var(--pos)" : "var(--neg)"; }
-            } else if (dayActions && weekSummary) {
-                dayActions.classList.remove('opacity-100', 'pointer-events-auto');
-                dayActions.classList.add('opacity-0', 'pointer-events-none');
-                if (wpEditHint) wpEditHint.classList.add('hidden');
+        // --- THE UNIFIED DASHBOARD LOGIC ---
+        function updateDashboardView() {
+            const dashTab = document.getElementById('tab-dash');
+            if (dashTab) dashTab.innerText = activeK ? 'DAG' : 'VECKA';
 
-                let diff = wSales - wTarget; 
-                if(lblTarget) lblTarget.innerText = "VECKOMÅL"; if(lblSales) lblSales.innerText = "INTJÄNAT (VECKA)";
-                const qtEl = document.getElementById('wp-quick-title'); if(qtEl) qtEl.innerText = `VÄLJ DAG...`; 
-                if(sumTargetEl) sumTargetEl.innerText = (wTarget/1000).toFixed(1) + ' k'; if(sumSalesEl) sumSalesEl.innerText = (wSales/1000).toFixed(1) + ' k';
-                if(sumDiffEl) { sumDiffEl.innerText = (diff >= 0 ? "+" : "") + (diff/1000).toFixed(1) + " k"; sumDiffEl.style.color = diff >= 0 ? "var(--pos)" : "var(--neg)"; }
+            let dTarget = 0, dSales = 0, dDiff = 0;
+            let title = "", subtitle = "", statusText = "VÄLJ DAG";
+            let showActions = false;
+            let absType = null;
+            let isReached = false;
+
+            if (activeK) {
+                // DAG MODE
+                const parts = activeK.split('-'); 
+                const dObj = new Date(parts[0], parts[1]-1, parts[2]); 
+                const o = db.d[activeK] || {s:0}; 
+                const qData = db.q[activeK] || {};
+                const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+                
+                title = `${daysLong[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`;
+                subtitle = qData.exists ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
+                
+                dTarget = timeline[activeK]?.target || 0;
+                dSales = o.s || 0;
+                dDiff = dSales - dTarget;
+                absType = o.abs;
+                
+                const state = getCellState(activeK);
+                if (state === 'absent') statusText = absType.toUpperCase();
+                else if (state === 'semester') statusText = 'SEMESTER';
+                else if (state === 'ledig' || state === 'unplanned') statusText = 'LEDIG';
+                else statusText = 'ARBETSPASS';
+
+                showActions = true;
+                isReached = dTarget > 0 && dSales >= dTarget;
+            } else {
+                // VECKA MODE
+                let wPass = 0, firstShiftTarget = null;
+                let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6);
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+                
+                for(let i=0; i<7; i++) { 
+                    const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); 
+                    const k = getK(cd); const state = getCellState(k); 
+                    dSales += (db.d[k]?.s || 0); 
+                    if(state === 'worked' || state === 'planned') { if(firstShiftTarget === null) firstShiftTarget = (timeline[k]?.target || 0); wPass++; } 
+                }
+                
+                dTarget = (firstShiftTarget || 0) * wPass;
+                dDiff = dSales - dTarget;
+                
+                title = `VECKA ${getWeekNumber(currentWeekStart)}`;
+                subtitle = `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`;
+                statusText = "VÄLJ DAG...";
+                
+                showActions = false;
+                absType = null;
+                isReached = dTarget > 0 && dSales >= dTarget;
+            }
+
+            // Uppdatera text element
+            document.getElementById('dash-title').innerText = title.toUpperCase();
+            document.getElementById('dash-subtitle').innerText = subtitle;
+            document.getElementById('dash-status-text').innerText = statusText;
+
+            document.getElementById('dash-lbl-target').innerText = activeK ? "DAGSMÅL" : "VECKOMÅL";
+            document.getElementById('dash-val-target').innerText = (dTarget/1000).toFixed(1) + " k";
+            
+            const salesEl = document.getElementById('dash-val-sales');
+            salesEl.innerText = (dSales/1000).toFixed(1) + " k";
+            salesEl.style.color = isReached ? 'var(--sting-blue)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
+
+            const diffEl = document.getElementById('dash-val-diff');
+            diffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k";
+            diffEl.style.color = dDiff >= 0 ? "var(--sting-blue)" : "var(--neg)";
+
+            // Gauge och Procent
+            const p = dTarget > 0 ? Math.min(100, Math.round((dSales / dTarget) * 100)) : 0;
+            document.getElementById('dash-val-perc').innerText = p + "%";
+            const g = document.getElementById('dash-gauge-prog');
+            if(g) {
+                g.style.strokeDashoffset = 283 - ((p / 100) * 212); // Max 283 (dasharray), offset starts at 283. Length of arc is 212.
+                g.style.stroke = isReached ? 'var(--sting-blue)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
+                g.style.filter = isReached ? 'drop-shadow(0 0 4px rgba(14,165,233,0.4))' : (dTarget > 0 ? 'drop-shadow(0 0 4px rgba(239,68,68,0.4))' : 'none');
+            }
+
+            // Frånvaro Badge (visas inne i kalenderrutan bredvid gaugen)
+            const badgeEl = document.getElementById('dash-abs-badge');
+            if (absType) {
+                const em = { 'Sjuk': '🤒', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' };
+                badgeEl.innerText = em[absType] || '•';
+                badgeEl.classList.remove('hidden');
+                badgeEl.className = `absolute top-0 right-2 w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[14px] z-20 ${absType === 'Semester' ? 'bg-teal-100 text-teal-600' : (absType.includes('VAB') ? 'bg-amber-100 text-amber-600' : (absType.includes('Föräldraledig') ? 'bg-purple-100 text-purple-600' : 'bg-rose-100 text-rose-600'))}`;
+            } else {
+                badgeEl.classList.add('hidden');
+            }
+
+            // Actions panel
+            const acts = document.getElementById('dash-actions');
+            if (showActions) {
+                acts.classList.remove('opacity-0', 'pointer-events-none', 'h-0', 'mt-0');
+                acts.classList.add('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1');
+            } else {
+                acts.classList.remove('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1');
+                acts.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'mt-0');
             }
         }
 
@@ -1104,53 +1135,6 @@
             pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="bg-white rounded-[20px] border border-slate-200 shadow-md overflow-y-auto hide-scrollbar flex-1 mb-1">${absListHTML}</div></div>`;
         }
 
-        function updateInlineFocusDashboard() {
-            const k = activeK || getK(realToday); const state = getCellState(k); const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; const target = timeline[k]?.target || 0;
-            let isToday = (k === getK(realToday)); let nH = new Date().getHours();
-            let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let sH = Math.max(10, sStart); let eH = Math.min(20, sEnd);
-            
-            let cTot = o.s || 0; const cEl = document.getElementById('dp-cockpit-card'); let isShiftActive = (isToday && qData.exists && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sH && nH <= eH);
-
-            if (cEl) { 
-                cEl.className = "p-2 flex flex-col justify-between flex-1 relative glass-panel-inline min-h-0 w-full transition-colors mt-1 mb-1 cursor-pointer active:scale-[0.98]"; 
-                if (state === 'absent') cEl.classList.add('cc-bg-fail'); else if (state === 'semester') cEl.classList.add('cc-bg-semester');
-                else if (state === 'ledig' || state === 'unplanned') cEl.classList.add('cc-bg-ledig'); else if (isShiftActive) cEl.classList.add('cc-bg-active-shift'); 
-                else if (cTot >= target && target > 0) cEl.classList.add('cc-bg-success'); else if (state === 'planned') cEl.classList.add('cc-bg-planned'); else cEl.classList.add('cc-bg-default');
-            }
-            
-            const dObj = new Date(k.split('-')[0], k.split('-')[1]-1, k.split('-')[2]); const days = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'], months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
-            const dateEl = document.getElementById('dp-inline-date'), timeEl = document.getElementById('dp-inline-time'); if(dateEl) dateEl.innerText = `${days[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`; if(timeEl) timeEl.innerText = qData.exists ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
-            
-            const statEl = document.getElementById('dp-inline-status'); 
-            if(statEl) { 
-                if (state === 'absent') { 
-                    const absMap = { 'Sjuk': '🤒 SJUK', 'VAB Belma': '👶 VAB (BELMA)', 'VAB Wilma': '👶 VAB (WILMA)', 'Föräldraledig Belma': '🍼 FL (BELMA)', 'Föräldraledig Wilma': '🍼 FL (WILMA)', 'Tjänstledig': '🏢 TJÄNSTLEDIG', 'Åtgärd krävs': '⚠️ ÅTGÄRD KRÄVS' };
-                    statEl.innerText = absMap[o.abs] || o.abs.toUpperCase(); statEl.style.color = (o.abs === 'Åtgärd krävs') ? "#b45309" : "var(--neg)"; 
-                } else if (state === 'semester') { statEl.innerText = "✈️ SEMESTER"; statEl.style.color = "#0f766e"; } 
-                else if (state === 'ledig' || state === 'unplanned') { statEl.innerText = "🏠 LEDIG"; statEl.style.color = "var(--text-muted)"; } 
-                else { statEl.innerText = "⚒️ ARBETSPASS"; statEl.style.color = "var(--sting-blue)"; } 
-            }
-            
-            const tEl = document.getElementById('dp-inline-target'), lEl = document.getElementById('dp-inline-left'), sEl = document.getElementById('dp-inline-sales'), rEl = document.getElementById('dp-inline-req');
-            if(tEl) tEl.innerText = (target/1000).toFixed(1) + ' k'; if(lEl) lEl.innerText = (Math.max(0, target - cTot)/1000).toFixed(1) + ' k'; if(sEl) sEl.innerText = (cTot/1000).toFixed(1) + ' k';
-            
-            let sP = target > 0 ? Math.min(100, Math.round((cTot / target) * 100)) : 0; 
-            const gSales = document.getElementById('dp-gauge-sales'); 
-            if(gSales) gSales.style.strokeDashoffset = 212 - ((sP / 100) * 212);
-            
-            let eff = target > 0 ? Math.round((cTot / target) * 100) : 0;
-            const effEl = document.getElementById('dp-inline-eff'); if(effEl) effEl.innerText = eff + '%'; 
-            const effLbl = document.getElementById('dp-inline-eff-lbl'); 
-            if(effLbl) { 
-                if(cTot >= target && target > 0) { effLbl.innerText = "I MÅL"; effLbl.style.color = "#059669"; } 
-                else { effLbl.innerText = "KVAR"; effLbl.style.color = "#dc2626"; } 
-            }
-
-            let cm = dObj.getMonth() + 1, cy = dObj.getFullYear(), tS = 0, dP = 0; const daysM = new Date(cy, cm, 0).getDate();
-            for(let d=1; d<=daysM; d++) { const mk = `${cy}-${cm}-${d}`; if(db.d[mk] && db.d[mk].s > 0) { tS += db.d[mk].s; dP++; } }
-            let avg = dP ? (tS/dP) : 0; if(rEl) rEl.innerText = (avg/1000).toFixed(1) + ' k';
-        }
-
         function createDayCell(cd, k) {
             const o = db.d[k] || {s:0}, t = timeline[k] || {target:0}, qData = db.q[k] || {}; 
             let cls = 'day-cell', b = '', content = '', wt = ''; 
@@ -1189,7 +1173,7 @@
             if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) { if(dx > 0) navCal(-1); else navCal(1); }
         }
         
-        const pd = document.getElementById('pane-day'); if(pd) { pd.addEventListener('touchstart', handleSwipeStart, {passive: true}); pd.addEventListener('touchend', (e) => handleSwipeEnd(e, 'day'), {passive: true}); }
+        const pd = document.getElementById('pane-dash'); if(pd) { pd.addEventListener('touchstart', handleSwipeStart, {passive: true}); pd.addEventListener('touchend', (e) => handleSwipeEnd(e, 'dash'), {passive: true}); }
         const pm = document.getElementById('pane-month'); if(pm) { pm.addEventListener('touchstart', handleSwipeStart, {passive: true}); pm.addEventListener('touchend', (e) => handleSwipeEnd(e, 'month'), {passive: true}); }
         const pa = document.getElementById('pane-absence'); if(pa) { pa.addEventListener('touchstart', handleSwipeStart, {passive: true}); pa.addEventListener('touchend', (e) => handleSwipeEnd(e, 'absence'), {passive: true}); }
         const pn = document.getElementById('pane-notes'); if(pn) { pn.addEventListener('touchstart', handleSwipeStart, {passive: true}); pn.addEventListener('touchend', (e) => handleSwipeEnd(e, 'notes'), {passive: true}); }

@@ -29,7 +29,7 @@
             --top-banner-bg: linear-gradient(135deg, #0b1220 0%, #1e293b 55%, #334155 100%); 
             --selected-bg: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 55%, #0284c7 100%);
             
-            /* Matematisk exakt förskjutning. Flyttar upp exakt nog för att respektera top safe-area */
+            /* Matematisk exakt förskjutning */
             --swap-offset: 270px;
             
             --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
@@ -74,7 +74,7 @@
         .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; box-shadow: var(--shadow-banner) !important; border: 1px solid rgba(255,255,255,0.04) !important; }
         .premium-slate-banner::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(56,189,248,0.18), transparent 70%); mix-blend-mode: screen; }
         
-        /* TOP SECTION FAST LÅST TILL EXAKT 262px + 8px margin = 270px FÖR PERFEKT SWAP */
+        /* TOP SECTION FAST LÅST TILL EXAKT 262px + 8px margin = 270px */
         .top-section { height: 262px; margin: 0 12px 8px; padding: 16px 16px 12px; position: relative; border: none; box-shadow: var(--shadow-banner); flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
         
         .budget-header { text-align: center; margin-bottom: 2px; position: relative; z-index: 1; }
@@ -328,7 +328,7 @@
                         </div>
                     </div>
 
-                    <div id="pane-week" class="dash-view-pane h-full justify-start pt-1.5 flex flex-col overflow-y-auto hide-scrollbar">
+                    <div id="pane-week" class="dash-view-pane h-full justify-start pt-1.5 flex flex-col overflow-hidden">
                         <div class="grid grid-cols-7 gap-1 px-3 mb-0.5 flex-shrink-0">
                             <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
                             <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
@@ -340,7 +340,7 @@
                             <div id="slide-next" class="w-full h-full flex-shrink-0 snap-center"></div>
                         </div>
 
-                        <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[24px] border border-slate-100 shadow-md flex flex-col flex-shrink-0 relative z-20 min-h-[180px]">
+                        <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[24px] border border-slate-100 shadow-md flex flex-col flex-shrink-0 relative z-20 flex-1 min-h-0">
                             <div class="flex justify-between items-end pb-2 border-b border-slate-100 flex-shrink-0">
                                 <div class="flex flex-col">
                                     <span id="wp-date-range" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
@@ -352,13 +352,13 @@
                                 </div>
                             </div>
                             
-                            <div id="wp-week-summary" class="flex flex-col w-full px-1 mt-1 gap-1.5 justify-center flex-1">
-                                <div onclick="if(activeK) openNumpad('week', db.d[activeK]?.s || 0, 'INKÖRT (DAG)')" class="flex flex-col items-center flex-1 bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-[20px] p-2.5 shadow-sm justify-center w-full min-h-[60px] cursor-pointer active:scale-95 transition-transform">
+                            <div id="wp-week-summary" class="flex flex-col w-full px-1 mt-1 gap-1.5 justify-center flex-1 min-h-0">
+                                <div onclick="if(activeK) openNumpad('week', db.d[activeK]?.s || 0, 'INKÖRT (DAG)')" class="flex flex-col items-center flex-1 bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-[20px] p-2.5 shadow-sm justify-center w-full min-h-0 cursor-pointer active:scale-95 transition-transform">
                                     <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INKÖRT</span>
                                     <span id="wp-sum-sales" class="text-[24px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 k</span>
                                     <span id="wp-edit-hint" class="text-[7.5px] font-black text-[#0ea5e9]/60 uppercase tracking-widest mt-1.5 hidden">✏️ TRYCK FÖR ATT ÄNDRA</span>
                                 </div>
-                                <div class="flex justify-between w-full gap-2 min-h-[45px]">
+                                <div class="flex justify-between w-full gap-2 h-[45px] flex-shrink-0">
                                     <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200 rounded-[16px] justify-center shadow-sm">
                                         <span id="wp-lbl-target" class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">MÅL</span>
                                         <span id="wp-sum-target" class="text-[14px] font-black text-slate-700">0 k</span>
@@ -370,8 +370,8 @@
                                 </div>
                             </div>
 
-                            <div id="wp-day-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 mt-0 h-[52px] flex justify-end">
-                                <div class="relative w-full h-[46px] overflow-hidden rounded-[14px] border border-slate-200 shadow-sm">
+                            <div id="wp-day-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 mt-1.5 h-[46px] flex justify-end">
+                                <div class="relative w-full h-full overflow-hidden rounded-[14px] border border-slate-200 shadow-sm">
                                     <div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50">
                                         <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button>
                                         <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button>
@@ -416,8 +416,8 @@
         </div>
     </div>
 
-    <div id="custom-numpad" class="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-3xl rounded-t-[32px] shadow-[0_-12px_40px_rgba(15,23,42,0.15)] z-[30000] transform translate-y-full transition-transform duration-[0.45s] ease-spring border-t border-white" style="height: calc(270px + env(safe-area-inset-bottom, 20px)); padding-bottom: env(safe-area-inset-bottom, 20px);">
-        <div class="px-5 pt-3 pb-2 flex flex-col h-full justify-between">
+    <div id="custom-numpad" class="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-3xl rounded-t-[32px] shadow-[0_-12px_40px_rgba(15,23,42,0.15)] z-[30000] transform translate-y-full transition-transform duration-[0.45s] ease-spring border-t border-white" style="height: calc(270px + env(safe-area-inset-bottom, 16px));">
+        <div class="px-5 pt-3 flex flex-col h-full justify-between" style="padding-bottom: max(env(safe-area-inset-bottom), 16px);">
             <div class="flex justify-between items-end px-2 mb-1">
                 <div class="flex flex-col">
                     <span id="numpad-title" class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">INKÖRT</span>
@@ -425,75 +425,74 @@
                 <span id="numpad-display" class="text-3xl font-black text-slate-800 tracking-tight leading-none">0 <span class="text-[16px] text-slate-400">kr</span></span>
             </div>
             
-            <div class="grid grid-cols-3 gap-2 flex-1 my-1.5">
-                <button onclick="numpadPress('1')" class="h-10 bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">1</button>
-                <button onclick="numpadPress('2')" class="h-10 bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">2</button>
-                <button onclick="numpadPress('3')" class="h-10 bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">3</button>
-                <button onclick="numpadPress('4')" class="h-10 bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">4</button>
-                <button onclick="numpadPress('5')" class="h-10 bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">5</button>
-                <button onclick="numpadPress('6')" class="h-10 bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">6</button>
-                <button onclick="numpadPress('7')" class="h-10 bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">7</button>
-                <button onclick="numpadPress('8')" class="h-10 bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">8</button>
-                <button onclick="numpadPress('9')" class="h-10 bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">9</button>
-                <button onclick="numpadPress('clear')" class="h-10 bg-slate-50 hover:bg-slate-100 rounded-[14px] text-sm font-black text-slate-400 shadow-sm border border-slate-100 active:scale-95 transition-transform uppercase tracking-wider">C</button>
-                <button onclick="numpadPress('0')" class="h-10 bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">0</button>
-                <button onclick="numpadPress('back')" class="h-10 bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-500 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">⌫</button>
+            <div class="grid grid-cols-3 gap-1.5 flex-1 my-1.5">
+                <button onclick="numpadPress('1')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">1</button>
+                <button onclick="numpadPress('2')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">2</button>
+                <button onclick="numpadPress('3')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">3</button>
+                <button onclick="numpadPress('4')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">4</button>
+                <button onclick="numpadPress('5')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">5</button>
+                <button onclick="numpadPress('6')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">6</button>
+                <button onclick="numpadPress('7')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">7</button>
+                <button onclick="numpadPress('8')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">8</button>
+                <button onclick="numpadPress('9')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">9</button>
+                <button onclick="numpadPress('clear')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-sm font-black text-slate-400 shadow-sm border border-slate-100 active:scale-95 transition-transform uppercase tracking-wider">C</button>
+                <button onclick="numpadPress('0')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">0</button>
+                <button onclick="numpadPress('back')" class="h-[38px] bg-slate-50 hover:bg-slate-100 rounded-[14px] text-xl font-black text-slate-500 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">⌫</button>
             </div>
             
             <div class="flex gap-2">
-                <button onclick="closeNumpad()" class="flex-1 h-11 bg-slate-100 hover:bg-slate-200 rounded-[14px] text-[11px] font-black text-slate-500 uppercase tracking-widest active:scale-95 transition-transform shadow-sm border border-slate-200">Avbryt</button>
-                <button onclick="numpadSave()" class="flex-[2] h-11 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] rounded-[14px] text-[12px] font-black text-white uppercase tracking-widest shadow-md active:scale-95 transition-transform">Spara Belopp</button>
+                <button onclick="closeNumpad()" class="flex-1 h-[42px] bg-slate-100 hover:bg-slate-200 rounded-[14px] text-[11px] font-black text-slate-500 uppercase tracking-widest active:scale-95 transition-transform shadow-sm border border-slate-200">Avbryt</button>
+                <button onclick="numpadSave()" class="flex-[2] h-[42px] bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] rounded-[14px] text-[12px] font-black text-white uppercase tracking-widest shadow-md active:scale-95 transition-transform">Spara Belopp</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CUSTOM NUMPAD LOGIC (Med Svep & History API) ---
+        // --- CENTRALISERAD HISTORY API (Bakåtknapp) ---
+        function pushModalState() {
+            history.pushState({view: 'modal'}, '');
+        }
+
+        window.addEventListener('popstate', (e) => {
+            let handled = false;
+            if (document.body.classList.contains('numpad-open')) { closeNumpad(true); handled = true; }
+            const cm = document.getElementById('child-select-modal');
+            if (cm && !cm.classList.contains('hidden')) { closeChildModal(true); handled = true; }
+            const bm = document.getElementById('budget-modal');
+            if (bm && !bm.classList.contains('hidden')) { closeBudgetModal(true); handled = true; }
+            const nm = document.getElementById('note-confirm-modal');
+            if (nm && !nm.classList.contains('hidden')) { closeNoteModal(true); handled = true; }
+            const cb = document.getElementById('confirm-box');
+            if (cb && cb.style.display === 'block') { hideConfirm(true); handled = true; }
+        });
+
+        // --- CUSTOM NUMPAD LOGIC ---
         let numpadTarget = null; 
         let numpadValue = "";
 
         function openNumpad(target, currentVal, title) {
+            pushModalState();
             numpadTarget = target;
             numpadValue = currentVal > 0 ? String(currentVal) : "";
             document.getElementById('numpad-title').innerText = title || 'ANGE BELOPP';
             updateNumpadDisplay();
             document.body.classList.add('numpad-open');
             document.getElementById('custom-numpad').style.transform = 'translateY(0)';
-            
-            // Hantera bakåtknapp
-            if (!history.state || history.state.view !== 'numpadOpen') {
-                history.pushState({view: 'numpadOpen'}, '');
-            }
         }
 
         function closeNumpad(fromPopstate = false) {
             document.getElementById('custom-numpad').style.transform = 'translateY(100%)';
             document.body.classList.remove('numpad-open');
             numpadTarget = null;
-            
-            if (!fromPopstate && history.state && history.state.view === 'numpadOpen') {
-                history.back(); // Återställ telefonens historia
-            }
+            if (!fromPopstate && history.state && history.state.view === 'modal') history.back();
         }
 
-        // Svep nedåt för att stänga Numpad
         const npEl = document.getElementById('custom-numpad');
         let npTouchY = 0;
         npEl.addEventListener('touchstart', e => { npTouchY = e.touches[0].clientY; }, {passive: true});
         npEl.addEventListener('touchmove', e => {
-            if (e.touches[0].clientY - npTouchY > 60) {
-                closeNumpad();
-            }
+            if (e.touches[0].clientY - npTouchY > 60) { closeNumpad(); }
         }, {passive: true});
-
-        // Lyssna på telefonens bakåtknapp
-        window.addEventListener('popstate', (e) => {
-            if (document.body.classList.contains('numpad-open')) {
-                if (!e.state || e.state.view !== 'numpadOpen') {
-                    closeNumpad(true); // Argument 'true' förhindrar en loop
-                }
-            }
-        });
 
         function numpadPress(val) {
             if (val === 'back') { numpadValue = numpadValue.slice(0, -1); } 
@@ -644,8 +643,8 @@
             document.getElementById('note-submit-btn').innerText = 'UPPDAT.'; document.getElementById('note-text').focus();
         }
 
-        function askCloseNote(id) { pendingNoteId = id; const m = document.getElementById('note-confirm-modal'); const c = document.getElementById('note-modal-content'); if(!m || !c) return; m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); document.getElementById('btn-note-yes').onclick = () => confirmCloseNote(); }
-        function closeNoteModal() { const m = document.getElementById('note-confirm-modal'); const c = document.getElementById('note-modal-content'); if(!m || !c) return; m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); pendingNoteId = null; }, 300); }
+        function askCloseNote(id) { pushModalState(); pendingNoteId = id; const m = document.getElementById('note-confirm-modal'); const c = document.getElementById('note-modal-content'); if(!m || !c) return; m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); document.getElementById('btn-note-yes').onclick = () => confirmCloseNote(); }
+        function closeNoteModal(fromPopstate = false) { const m = document.getElementById('note-confirm-modal'); const c = document.getElementById('note-modal-content'); if(!m || !c) return; m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); pendingNoteId = null; }, 300); if(!fromPopstate && history.state && history.state.view === 'modal') history.back(); }
         function confirmCloseNote() { if(pendingNoteId) { const n = savedNotes.find(x => x.id === pendingNoteId); if(n) { n.done = true; n.doneDate = new Date().toLocaleDateString('sv-SE'); } try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){} renderNotes(); } closeNoteModal(); }
 
         function renderNotes() {
@@ -695,8 +694,8 @@
             container.innerHTML = fullHTML;
         }
 
-        function triggerChildSelection(absType, source) { pendingAbsenceType = absType; pendingAbsenceSource = source; document.getElementById('child-modal-title').innerText = `${absType.toUpperCase()} - VEM GÄLLER DET?`; const m = document.getElementById('child-select-modal'); const c = document.getElementById('child-modal-content'); m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); }
-        function closeChildModal() { const m = document.getElementById('child-select-modal'); const c = document.getElementById('child-modal-content'); m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); pendingAbsenceType = null; pendingAbsenceSource = null; }, 300); }
+        function triggerChildSelection(absType, source) { pushModalState(); pendingAbsenceType = absType; pendingAbsenceSource = source; document.getElementById('child-modal-title').innerText = `${absType.toUpperCase()} - VEM GÄLLER DET?`; const m = document.getElementById('child-select-modal'); const c = document.getElementById('child-modal-content'); m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); }
+        function closeChildModal(fromPopstate = false) { const m = document.getElementById('child-select-modal'); const c = document.getElementById('child-modal-content'); m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); pendingAbsenceType = null; pendingAbsenceSource = null; }, 300); if(!fromPopstate && history.state && history.state.view === 'modal') history.back(); }
 
         function selectChild(childName) {
             const fullAbs = `${pendingAbsenceType} ${childName}`; 
@@ -706,8 +705,8 @@
             closeChildModal();
         }
 
-        function openBudgetModal() { document.getElementById('budget-modal').classList.remove('hidden'); }
-        function closeBudgetModal() { document.getElementById('budget-modal').classList.add('hidden'); }
+        function openBudgetModal() { pushModalState(); document.getElementById('budget-modal').classList.remove('hidden'); }
+        function closeBudgetModal(fromPopstate = false) { document.getElementById('budget-modal').classList.add('hidden'); if(!fromPopstate && history.state && history.state.view === 'modal') history.back(); }
         function setGlobalBudget(amount) { db.b = amount; try{localStorage.setItem('sf_budget', amount);}catch(e){} calculateTimeline(); updateDash(); closeBudgetModal(); }
         
         function updateTopTitle() {
@@ -730,7 +729,7 @@
             
             multiSelectKeys.clear();
             closeMonthEdit();
-            closeNumpad();
+            if(document.body.classList.contains('numpad-open')) closeNumpad();
 
             viewMode = mode; document.body.className = `mode-${mode}`;
 
@@ -760,7 +759,7 @@
         }
 
         function navCal(offset) {
-            multiSelectKeys.clear(); closeMonthEdit(); closeNumpad();
+            multiSelectKeys.clear(); closeMonthEdit(); if(document.body.classList.contains('numpad-open')) closeNumpad();
             if (viewMode === 'month' || viewMode === 'absence') { viewDate.setMonth(viewDate.getMonth() + offset); calculateTimeline(); updateDash(); if (viewMode === 'absence') renderAbsence(); } 
             else if (viewMode === 'week') { currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); } 
             else if (viewMode === 'day') { let p = (activeK || getK(realToday)).split('-'); let d = new Date(p[0], p[1]-1, p[2]); d.setDate(d.getDate() + offset); activeK = getK(d); updateInlineFocusDashboard(); }
@@ -816,7 +815,7 @@
                 if(isResettingScroll || viewMode !== 'week') return; clearTimeout(scrollTimeout);
                 scrollTimeout = setTimeout(() => {
                     const width = sc.clientWidth; if(width === 0) return; const idx = Math.round(sc.scrollLeft / width); 
-                    if (idx !== 1) { multiSelectKeys.clear(); closeMonthEdit(); closeNumpad(); currentWeekStart.setDate(currentWeekStart.getDate() + ((idx === 0 ? -1 : 1) * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); updateTopTitle(); }
+                    if (idx !== 1) { multiSelectKeys.clear(); closeMonthEdit(); if(document.body.classList.contains('numpad-open')) closeNumpad(); currentWeekStart.setDate(currentWeekStart.getDate() + ((idx === 0 ? -1 : 1) * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); updateTopTitle(); }
                 }, 50); 
             });
         }
@@ -843,7 +842,7 @@
                 activeK = k; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); el.classList.add('active-focus');
                 if (viewMode === 'week') { updateWeekPanel(); }
             }
-            closeNumpad();
+            if(document.body.classList.contains('numpad-open')) closeNumpad();
         }
 
         function handleWeekDirectAction(t) { if(!activeK) return; if (t === 'VAB' || t === 'Föräldraledig') { triggerChildSelection(t, 'week'); return; } finalizeWeekDirectAction(t); }
@@ -860,9 +859,10 @@
         
         function checkOverwriteFromPopup(t) { 
             let hasSales = Array.from(multiSelectKeys).some(k => (db.d[k]?.s > 0));
-            if (hasSales && t === 'delete') { document.getElementById('confirm-box').style.display='block'; document.getElementById('conf-yes').onclick = () => { handleSaveFromPopup(t); hideConfirm(); }; } 
+            if (hasSales && t === 'delete') { pushModalState(); document.getElementById('confirm-box').style.display='block'; document.getElementById('conf-yes').onclick = () => { handleSaveFromPopup(t); hideConfirm(); }; } 
             else { if (t === 'VAB' || t === 'Föräldraledig') { triggerChildSelection(t, 'popup'); } else { handleSaveFromPopup(t); } } 
         }
+        function hideConfirm(fromPopstate = false) { const cb = document.getElementById('confirm-box'); if(cb && cb.style.display !== 'none') { cb.style.display='none'; if(!fromPopstate && history.state && history.state.view === 'modal') history.back(); } }
 
         function updateWeekPanel() {
             let wSales = 0, wPass = 0, firstShiftTarget = null; 
@@ -1042,7 +1042,6 @@
         function renderWeekSlides() { const ps = new Date(currentWeekStart); ps.setDate(ps.getDate() - 7); const ns = new Date(currentWeekStart); ns.setDate(ns.getDate() + 7); populateSlide('slide-prev', ps); populateSlide('slide-curr', currentWeekStart); populateSlide('slide-next', ns); isResettingScroll = true; if(!sc) return; sc.style.scrollBehavior = 'auto'; sc.scrollLeft = sc.clientWidth; setTimeout(() => { isResettingScroll = false; sc.style.scrollBehavior = 'smooth'; }, 50); }
         
         function getWeekNumber(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7); }
-        function hideConfirm() { const cb = document.getElementById('confirm-box'); if(cb) cb.style.display='none'; }
         
         let touchStartX = 0, touchStartY = 0;
         function handleSwipeStart(e) { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }

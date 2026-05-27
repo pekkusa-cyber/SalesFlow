@@ -12,124 +12,119 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg-canvas: #eef2f7; 
+            --bg-canvas: #cbd5e1; 
             --navy-card: #ffffff; 
             --white: #ffffff;
-            --text-main: #0b1220; 
-            --text-muted: #64748b; 
-            --border-subtle: rgba(15, 23, 42, 0.06); 
-            --sting-blue: #2563eb; 
-            --pos: #10b981; 
-            --neg: #ef4444; 
-            --gold-main: #d97706; 
-            --backdrop-gradient: linear-gradient(180deg, #1e293b 0%, #334155 55%, #eef2f7 100%);
+            --text-main: #0f172a; 
+            --text-muted: #475569; 
+            --border-subtle: rgba(15, 23, 42, 0.08); 
+            --sting-blue: #0ea5e9; 
+            --pos: #059669; 
+            --neg: #dc2626; 
+            --gold-main: #b45309; 
+            --backdrop-gradient: linear-gradient(to bottom, #94a3b8, #cbd5e1);
             --input-bg: #f8fafc; 
-            --today-light: #60a5fa; 
-            --today-dark: #2563eb;
-            --top-banner-bg: linear-gradient(135deg, #0b1220 0%, #1e293b 55%, #2563eb 140%); 
-            --selected-bg: linear-gradient(135deg, #3b82f6, #2563eb);
-            --pastel-green-bg: #dcfce7; 
+            --today-light: #38bdf8; 
+            --today-dark: #0284c7;
+            --top-banner-bg: linear-gradient(135deg, #020617, #334155); 
+            --selected-bg: linear-gradient(135deg, #38bdf8, #0ea5e9);
+            --pastel-green-bg: #d1fae5; 
             --pastel-red-bg: #fee2e2;
-            --pastel-blue-bg: #eff6ff; 
-            --pastel-gray-bg: #e5e7eb;
-            --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+            --pastel-blue-bg: #f0f9ff; 
+            --pastel-gray-bg: #e2e8f0;
         }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        body { background: var(--bg-canvas); font-family: 'Plus Jakarta Sans', sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; height: 100dvh; width: 100vw; overflow: hidden; display: flex; justify-content: center; color: var(--text-main); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
+        body { background: var(--bg-canvas); font-family: 'Plus Jakarta Sans', sans-serif; font-variant-numeric: tabular-nums; height: 100dvh; width: 100vw; overflow: hidden; display: flex; justify-content: center; color: var(--text-main); }
         
-        .dark-backdrop { position: absolute; top: 0; left: 0; right: 0; height: 240px; background: var(--backdrop-gradient); border-radius: 0 0 44px 44px; z-index: 0; opacity: 0.55; filter: saturate(1.05); }
+        .dark-backdrop { position: absolute; top: 0; left: 0; right: 0; height: 210px; background: var(--backdrop-gradient); border-radius: 0 0 40px 40px; z-index: 0; opacity: 0.6; }
         #app-shell { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
         .content-locker { width: 100%; max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding-top: max(env(safe-area-inset-top), 6px); }
         
-        .app-card { border-radius: 24px; box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 8px 24px -12px rgba(15,23,42,0.18), 0 24px 48px -24px rgba(15,23,42,0.12); flex-shrink: 0; border: 1px solid var(--border-subtle); background: var(--white); }
+        .app-card { border-radius: 28px; box-shadow: 0 12px 35px -10px rgba(15,23,42,0.15); flex-shrink: 0; border: 1px solid var(--border-subtle); background: var(--white); }
         .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; }
         
-        .top-section { margin: 4px 12px 10px; padding: 14px 18px; position: relative; border: none; box-shadow: 0 1px 2px rgba(15,23,42,0.06), 0 12px 28px -10px rgba(15,23,42,0.35), 0 28px 60px -28px rgba(37,99,235,0.35); flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
-        .top-section::before { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 80% at 100% 0%, rgba(96,165,250,0.18), transparent 60%), radial-gradient(80% 60% at 0% 100%, rgba(37,99,235,0.16), transparent 70%); pointer-events: none; }
+        .top-section { margin: 4px 12px 8px; padding: 12px 16px; position: relative; border: none; box-shadow: 0 20px 35px -10px rgba(15,23,42,0.3); flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; }
         
-        .budget-header { text-align: center; margin-bottom: 2px; position: relative; }
-        .budget-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.32em; margin-bottom: 3px; }
-        .budget-val { font-size: 22px; font-weight: 800; line-height: 1; letter-spacing: -0.02em; color: #ffffff !important; text-shadow: 0 1px 0 rgba(255,255,255,0.06); }
+        .budget-header { text-align: center; margin-bottom: 2px; }
+        .budget-label { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.3em; margin-bottom: 2px; }
+        .budget-val { font-size: 22px; font-weight: 900; line-height: 1; color: #ffffff !important; text-shadow: 0 2px 10px rgba(255,255,255,0.1); }
         
-        .gauge-layout { display: flex; align-items: center; justify-content: space-between; gap: 0; position: relative; }
+        .gauge-layout { display: flex; align-items: center; justify-content: space-between; gap: 0; }
         .side-col { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; min-width: 0; }
-        .micro-lbl { font-size: 7.5px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 5px; }
-        .val-display { font-size: 17px; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
-        .pop-highlight { color: #ffffff; text-shadow: 0 1px 12px rgba(96, 165, 250, 0.35); }
-        .status-pill { display: inline-flex; padding: 3px 9px; border-radius: 100px; font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 5px; border: 1px solid rgba(255,255,255,0.12); }
-        .pill-blue { background: rgba(255,255,255,0.1); color: white; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+        .micro-lbl { font-size: 7.5px; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .val-display { font-size: 17px; font-weight: 900; line-height: 1; }
+        .pop-highlight { color: #ffffff; text-shadow: 0 2px 8px rgba(255, 255, 255, 0.15); }
+        .status-pill { display: inline-flex; padding: 3px 8px; border-radius: 100px; font-size: 8px; font-weight: 900; text-transform: uppercase; margin-top: 4px; border: 1px solid rgba(255,255,255,0.1); }
+        .pill-blue { background: rgba(255,255,255,0.08); color: white; backdrop-filter: blur(5px); }
         
         .gauge-container { position: relative; width: 95px; height: 95px; display: flex; align-items: center; justify-content: center; margin: 0 4px;}
         .gauge-container svg { width: 100%; height: 100%; }
-        .g-bg { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 8; stroke-linecap: round; }
-        .g-prog { fill: none; stroke: #60a5fa; stroke-width: 8; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.9s var(--ease-soft); filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.55)); }
-        .g-marks { fill: none; stroke: rgba(255,255,255,0.14); stroke-width: 1.5; stroke-dasharray: 1, 15; transform: rotate(135deg); transform-origin: 50% 50%; opacity: 0.7; }
-        .g-label-0 { position: absolute; bottom: 4px; left: 8px; font-size: 8px; font-weight: 700; color: rgba(255,255,255,0.4); }
-        .g-label-240 { position: absolute; bottom: 4px; right: 8px; font-size: 8px; font-weight: 700; color: rgba(255,255,255,0.4); }
+        .g-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; stroke-linecap: round; }
+        .g-prog { fill: none; stroke: var(--sting-blue); stroke-width: 8; stroke-linecap: round; transform: rotate(135deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.5)); }
+        .g-marks { fill: none; stroke: rgba(255,255,255,0.15); stroke-width: 1.5; stroke-dasharray: 1, 15; transform: rotate(135deg); transform-origin: 50% 50%; opacity: 0.7; }
+        .g-label-0 { position: absolute; bottom: 4px; left: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.4); }
+        .g-label-240 { position: absolute; bottom: 4px; right: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.4); }
         
         .bottom-section { flex: 1; margin: 0 12px calc(env(safe-area-inset-bottom) + 6px); display: flex; flex-direction: column; position: relative; min-height: 0; overflow: hidden; }
         
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 5px; padding: 2px 4px 6px; height: 100%; }
-        .weekday-label { text-align: center; font-size: 8.5px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.18em; padding-bottom: 4px; opacity: 0.75; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 4px; padding: 2px 4px 6px; height: 100%; }
+        .weekday-label { text-align: center; font-size: 8.5px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; padding-bottom: 2px; }
         
-        .day-cell { width: 100%; height: 100%; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; background: linear-gradient(180deg, #ffffff 0%, #f6f8fc 100%); border: 1px solid rgba(15,23,42,0.06); box-shadow: 0 1px 2px rgba(15,23,42,0.03), inset 0 1px 0 rgba(255,255,255,0.6); transition: background 0.22s var(--ease-soft), opacity 0.25s var(--ease-soft), transform 0.18s var(--ease-soft), box-shadow 0.22s var(--ease-soft), border-color 0.22s var(--ease-soft); }
-        .day-cell:hover { border-color: rgba(37,99,235,0.22); box-shadow: 0 2px 6px rgba(15,23,42,0.05), 0 8px 18px -10px rgba(37,99,235,0.18); }
-        .day-cell:active { transform: scale(0.94); }
+        .day-cell { width: 100%; height: 100%; border-radius: 9px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; background: #f8fafc; border: 1px solid rgba(15,23,42,0.04); transition: background 0.15s ease, opacity 0.2s ease, transform 0.1s; }
+        .day-cell:active { transform: scale(0.95); }
         
-        .type-unplanned { background: repeating-linear-gradient(135deg, #f8fafc, #f8fafc 4px, #f1f5f9 4px, #f1f5f9 8px) !important; border: 1px dashed #cbd5e1 !important; color: var(--text-muted) !important; }
-        .type-planned { background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%) !important; color: var(--sting-blue) !important; border-color: rgba(37, 99, 235, 0.22) !important; }
-        .type-ledig { background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%) !important; color: var(--text-muted) !important; border-color: rgba(15,23,42,0.05) !important; }
-        .type-semester { background: linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 100%) !important; color: #0f766e !important; border-color: #5eead4 !important; z-index: 4; }
+        .type-unplanned { background: #f1f5f9 !important; border: 1px dashed #cbd5e1 !important; color: var(--text-muted) !important; }
+        .type-planned { background: var(--pastel-blue-bg) !important; color: var(--sting-blue) !important; border-color: rgba(14, 165, 233, 0.15) !important; }
+        .type-ledig { background: var(--pastel-gray-bg) !important; color: var(--text-muted) !important; }
+        .type-semester { background: #ccfbf1 !important; color: #0f766e !important; border-color: #99f6e4 !important; z-index: 4; }
         .cc-bg-semester { background: linear-gradient(135deg, #f0fdfa, #ccfbf1) !important; border-color: #14b8a6 !important; }
-        .type-absent { background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%) !important; color: #c2410c !important; border: 1px dashed #fdb974 !important; z-index: 4; }
+        .type-absent { background: #ffedd5 !important; color: #c2410c !important; border: 1px dashed #fdb974 !important; z-index: 4; }
         
-        .history-cell { opacity: 0.62 !important; }
-        .history-success { background: linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%) !important; color: #065f46 !important; border-color: rgba(16,185,129,0.22) !important; }
-        .history-fail { background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%) !important; color: #9f1239 !important; border-color: rgba(244,63,94,0.22) !important; }
-        .history-ledig { background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%) !important; color: var(--text-muted) !important; }
-        .status-today { background: linear-gradient(160deg, #60a5fa 0%, #3b82f6 55%, #2563eb 100%) !important; color: #ffffff !important; opacity: 1 !important; z-index: 5; border: none !important; box-shadow: 0 2px 4px rgba(37,99,235,0.25), 0 10px 22px -8px rgba(37,99,235,0.6), inset 0 1px 0 rgba(255,255,255,0.28); }
-        .active-focus { background: linear-gradient(160deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%) !important; z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; box-shadow: 0 2px 4px rgba(15,23,42,0.15), 0 14px 28px -10px rgba(37,99,235,0.6), inset 0 1px 0 rgba(255,255,255,0.22); border: none !important; transform: translateY(-1px); }
+        .history-cell { opacity: 0.55 !important; }
+        .history-success { background: var(--pastel-green-bg) !important; color: #065f46 !important; }
+        .history-fail { background: var(--pastel-red-bg) !important; color: #9f1239 !important; }
+        .history-ledig { background: var(--pastel-gray-bg) !important; color: var(--text-muted) !important; }
+        .status-today { background: linear-gradient(135deg, var(--today-light), var(--today-dark)) !important; color: #ffffff !important; opacity: 1 !important; z-index: 5; box-shadow: 0 4px 10px -3px rgba(14, 165, 233, 0.3); }
+        .active-focus { background: var(--selected-bg) !important; z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; box-shadow: 0 4px 12px -3px rgba(14, 165, 233, 0.4); border: none !important; }
         .status-today .date-num, .active-focus .date-num, .status-today .cell-main-val, .active-focus .cell-main-val { color: #ffffff !important; }
-        .date-num { position: absolute; top: 3px; left: 0; width: 100%; text-align: center; font-size: 8.5px; font-weight: 800; letter-spacing: 0.02em; pointer-events: none; color: var(--text-main); }
-        .u-badge { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; z-index: 35; border: 1.5px solid var(--white); pointer-events: none; box-shadow: 0 2px 6px rgba(15,23,42,0.22); }
-        .badge-abs { top: 2px; right: 2px; width: 13px; height: 13px; font-size: 8px; background: linear-gradient(180deg, #ffffff, #fff7ed); border: 1.5px solid #f97316; color: #c2410c; }
-        .badge-action { background: linear-gradient(180deg, #fef9c3, #fde68a) !important; border-color: #f59e0b !important; color: #b45309 !important; }
-        .week-tag { position: absolute; top: 2px; left: 2px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white !important; font-size: 5.5px; padding: 1px 4px; border-radius: 5px; font-weight: 800; letter-spacing: 0.06em; z-index: 10; pointer-events: none; box-shadow: 0 2px 6px rgba(37,99,235,0.35); }
-        .cell-main-val { font-size: 9px; font-weight: 800; line-height: 1; letter-spacing: -0.01em; pointer-events: none; color: inherit; margin-top: 4px; }
+        .date-num { position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 8.5px; font-weight: 800; pointer-events: none; color: var(--text-main); }
+        .u-badge { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; z-index: 35; border: 1.5px solid var(--white); pointer-events: none; }
+        .badge-abs { top: -3px; right: -3px; width: 14px; height: 14px; font-size: 8px; background: #f8fafc; border: 1px solid #f97316; }
+        .badge-action { background: #fef3c7 !important; border-color: #f59e0b !important; color: #b45309 !important; }
+        .week-tag { position: absolute; top: -2px; left: -2px; background: var(--sting-blue); color: white !important; font-size: 5.5px; padding: 1.5px 3px; border-radius: 3px; font-weight: 900; z-index: 10; pointer-events: none; }
+        .cell-main-val { font-size: 9px; font-weight: 900; line-height: 1; pointer-events: none; color: inherit; }
         
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        #confirm-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 14000; display: none; width: 280px; background: var(--white); border: 1px solid var(--border-subtle); border-radius: 24px; padding: 24px; box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 24px 60px -12px rgba(15,23,42,0.25); }
+        #confirm-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 14000; display: none; width: 280px; background: var(--white); border: 1px solid var(--border-subtle); border-radius: 28px; padding: 24px; box-shadow: 0 20px 50px rgba(15,23,42,0.15); }
         #container-dash-views { position: relative; flex: 1; min-height: 0; overflow: hidden; }
-        .dash-view-pane { position: absolute; inset: 0; transition: all 0.3s var(--ease-soft); display: flex; flex-direction: column; visibility: hidden; opacity: 0; pointer-events: none; }
+        .dash-view-pane { position: absolute; inset: 0; transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; flex-direction: column; visibility: hidden; opacity: 0; pointer-events: none; }
         .mode-day #pane-day, .mode-week #pane-week, .mode-month #pane-month, .mode-absence #pane-absence, .mode-notes #pane-notes { visibility: visible; opacity: 1; pointer-events: auto; transform: scale(1); }
-        .glass-panel-inline { border-radius: 18px; transition: all 0.2s var(--ease-soft); border: 1px solid var(--border-subtle); }
-        .focus-gauge-bg { fill: none; stroke: rgba(15,23,42,0.06); stroke-linecap: round; }
-        .fg-sales { fill: none; stroke: var(--sting-blue); stroke-linecap: round; transition: stroke-dashoffset 0.7s var(--ease-soft); }
-        .input-dark-theme { background: #ffffff; border: 1px solid #e2e8f0; color: var(--text-main); outline: none; transition: border-color 0.18s var(--ease-soft), box-shadow 0.18s var(--ease-soft); }
-        .input-dark-theme:focus { border-color: var(--sting-blue); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+        .glass-panel-inline { border-radius: 20px; transition: all 0.2s ease; border: 1px solid var(--border-subtle); }
+        .focus-gauge-bg { fill: none; stroke: rgba(15,23,42,0.05); stroke-linecap: round; }
+        .fg-sales { fill: none; stroke: var(--sting-blue); stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+        .input-dark-theme { background: #ffffff; border: 1px solid #cbd5e1; color: var(--text-main); outline: none; }
+        .input-dark-theme:focus { border-color: var(--sting-blue); }
         
-        .cc-bg-default { background: linear-gradient(160deg,#ffffff 0%,#f8fafc 55%,#eff6ff 100%); }
-        .cc-bg-success { background: linear-gradient(135deg, #f0fdf4, #dcfce7) !important; border-color: #10b981 !important; }
-        .cc-bg-fail { background: linear-gradient(135deg, #fff5f5, #fee2e2) !important; border-color: #f43f5e !important; }
-        .cc-bg-planned { background: linear-gradient(135deg, #eff6ff, #dbeafe) !important; border-color: var(--sting-blue) !important; }
-        .cc-bg-ledig { background: linear-gradient(135deg, #f8fafc, #f1f5f9) !important; border-color: #94a3b8 !important; }
-        .cc-bg-semester { background: linear-gradient(135deg, #f0fdfa, #ccfbf1) !important; border-color: #14b8a6 !important; }
+        .cc-bg-default { background: #ffffff; }
+        .cc-bg-success { background: linear-gradient(135deg, #f0fdf4, #d1fae5); border-color: #10b981; }
+        .cc-bg-fail { background: linear-gradient(135deg, #fff5f5, #fee2e2); border-color: #f43f5e; }
+        .cc-bg-planned { background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-color: var(--sting-blue); }
+        .cc-bg-ledig { background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-color: #94a3b8; }
         
         @keyframes pulse-cell {
-            0% { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35), 0 0 0 0 rgba(37, 99, 235, 0.45); }
-            70% { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35), 0 0 0 6px rgba(37, 99, 235, 0); }
-            100% { box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35), 0 0 0 0 rgba(37, 99, 235, 0); }
+            0% { box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3), 0 0 0 0 rgba(14, 165, 233, 0.5); }
+            70% { box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3), 0 0 0 5px rgba(14, 165, 233, 0); }
+            100% { box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3), 0 0 0 0 rgba(14, 165, 233, 0); }
         }
         @keyframes pulse-card {
-            0% { box-shadow: 0 2px 10px rgba(14,165,233,0.08), 0 0 0 0 rgba(14, 165, 233, 0.35); }
-            70% { box-shadow: 0 2px 10px rgba(14,165,233,0.08), 0 0 0 10px rgba(14, 165, 233, 0); }
-            100% { box-shadow: 0 2px 10px rgba(14,165,233,0.08), 0 0 0 0 rgba(14, 165, 233, 0); }
+            0% { box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 0 rgba(14, 165, 233, 0.3); }
+            70% { box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 6px rgba(14, 165, 233, 0); }
+            100% { box-shadow: 0 2px 10px rgba(0,0,0,0.05), 0 0 0 0 rgba(14, 165, 233, 0); }
         }
         .status-today.active-shift-pulse, .active-focus.active-shift-pulse { animation: pulse-cell 2s infinite; border: 1.5px solid var(--sting-blue) !important; }
-        #dp-cockpit-card.active-shift-pulse { animation: pulse-card 2.2s infinite; border: 1.5px solid rgba(14,165,233,0.5) !important; }
-        .cc-bg-active-shift { background: linear-gradient(135deg, #eff6ff, #dbeafe) !important; }
+        .cc-bg-active-shift { background: linear-gradient(135deg, #f0f9ff, #e0f2fe) !important; border: 1.5px solid var(--sting-blue) !important; animation: pulse-card 2s infinite; }
     </style>
 </head>
 <body class="mode-day">
@@ -188,6 +183,7 @@
             
             <header class="flex justify-between items-center px-4 pb-1.5 pt-3 relative z-20 flex-shrink-0">
                 <div class="flex items-center gap-2 flex-1">
+                    <button onclick="openBudgetModal()" class="text-slate-400 hover:text-white text-xl active:scale-75 transition-transform p-0.5 select-none drop-shadow-sm">⚙️</button>
                     <span class="text-[6.5px] font-black uppercase tracking-widest text-slate-700 bg-white/70 px-1.5 py-0.5 rounded shadow-sm border border-slate-200/50">V.2.5</span>
                 </div>
                 
@@ -198,42 +194,10 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end items-center gap-2 flex-1">
+                <div class="flex justify-end flex-1">
                     <span id="live-clock" class="text-[11px] font-black text-slate-600 tabular-nums tracking-tight">--:--</span>
-                    <button onclick="openBudgetModal()" class="text-slate-500 hover:text-[#0ea5e9] text-[18px] active:scale-75 transition-transform p-0.5 select-none drop-shadow-sm leading-none">⚙️</button>
                 </div>
             </header>
-
-            <!-- (command bar moved to between cockpit and calendar — see below) -->
-
-
-            <style>
-                #cmd-bar .bn-item.active { background: linear-gradient(160deg,#dbeafe 0%,#bfdbfe 100%); box-shadow: inset 0 0 0 1px rgba(14,165,233,0.25); }
-                #cmd-bar .bn-item.active span { color: #0369a1 !important; }
-                #cmd-bar.mode-symbols #cmd-tabs { display:none; } #cmd-bar.mode-symbols #cmd-symbols { display:flex; }
-                #cmd-bar.mode-child   #cmd-tabs { display:none; } #cmd-bar.mode-child   #cmd-child   { display:flex; }
-                #cmd-bar.mode-sales   #cmd-tabs { display:none; } #cmd-bar.mode-sales   #cmd-sales   { display:flex; }
-                /* Hide legacy reg surfaces */
-                #month-edit-menu { display: none !important; }
-                #wp-day-actions { display: none !important; }
-                #dp-cockpit-card { cursor: pointer; }
-
-                /* Calendar badge clipping fix */
-                .bottom-section, #calendar-wrapper, .cal-grid, .day-cell, #pane-week, #pane-month { overflow: visible !important; }
-                .cal-grid { padding-top: 10px !important; padding-bottom: 10px !important; }
-
-                /* NUMPAD SHEET — fixed to viewport so it's never clipped */
-                #numpad-sheet { position:fixed; left:0; right:0; bottom:0; height:55vh; max-height:440px; z-index:14500; transform:translateY(110%); transition:transform .28s cubic-bezier(.22,1,.36,1); background:linear-gradient(180deg,#0f172a 0%,#020617 100%); border-top:1px solid rgba(125,211,252,0.25); border-radius:22px 22px 0 0; box-shadow:0 -10px 30px -8px rgba(2,6,23,0.5), inset 0 1px 0 rgba(255,255,255,0.06); display:flex; flex-direction:column; padding:10px 12px max(env(safe-area-inset-bottom),10px); }
-                #numpad-sheet.open { transform:translateY(0); }
-                #numpad-sheet .np-grip { width:38px; height:4px; border-radius:2px; background:rgba(255,255,255,0.15); margin:0 auto 8px; }
-                #numpad-sheet .np-grid { flex:1; display:grid; grid-template-columns:repeat(3,1fr); grid-auto-rows:1fr; gap:6px; }
-                #numpad-sheet .np-key { background:linear-gradient(180deg,#1e293b 0%,#0f172a 100%); border:1px solid rgba(255,255,255,0.08); border-radius:12px; color:#fff; font-weight:900; font-size:20px; display:flex; align-items:center; justify-content:center; box-shadow:inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 2px rgba(0,0,0,0.3); transition:transform .08s; }
-                #numpad-sheet .np-key:active { transform:scale(0.94); background:linear-gradient(180deg,#334155 0%,#1e293b 100%); }
-                #numpad-sheet .np-key.np-save { grid-column:span 3; background:linear-gradient(160deg,#22c55e 0%,#16a34a 100%); border:none; font-size:14px; letter-spacing:.15em; box-shadow:0 4px 10px rgba(34,197,94,0.35), inset 0 1px 0 rgba(255,255,255,0.3); }
-                #numpad-sheet .np-key.np-back { color:#fbbf24; }
-                #numpad-backdrop { position:fixed; inset:0; background:rgba(2,6,23,0.45); backdrop-filter:blur(2px); z-index:14400; opacity:0; pointer-events:none; transition:opacity .25s; }
-                #numpad-backdrop.open { opacity:1; pointer-events:auto; }
-            </style>
 
             <div class="app-card top-section premium-slate-banner">
                 <div class="budget-header"><p class="budget-label">Månadsmål</p><p id="d-budget-val" class="budget-val">240,000 kr</p></div>
@@ -265,115 +229,38 @@
                 </div>
             </div>
 
-            <!-- COMMAND BAR — light theme, full width, between cockpit and calendar -->
-            <div id="cmd-bar" class="flex-shrink-0 relative overflow-visible" style="margin: 8px 12px 8px; border-radius:16px; background:#ffffff; border:1px solid rgba(15,23,42,0.06); box-shadow:0 1px 2px rgba(15,23,42,0.04), 0 8px 22px -12px rgba(15,23,42,0.18);">
-
-                <!-- TABS ROW (default view nav) -->
-                <div id="cmd-tabs" class="flex items-center justify-between p-1 gap-0.5">
-                    <button id="nav-week" onclick="setMode('week')" class="bn-item flex-1 flex flex-col items-center justify-center gap-0 py-1.5 rounded-[11px] transition-all active:scale-95">
-                        <span class="text-[14px] leading-none">📅</span>
-                        <span class="text-[7px] font-black uppercase tracking-widest text-slate-400 mt-0.5">Vecka</span>
-                    </button>
-                    <button id="nav-day" onclick="setMode('day')" class="bn-item flex-1 flex flex-col items-center justify-center gap-0 py-1.5 rounded-[11px] transition-all active:scale-95">
-                        <span class="text-[14px] leading-none">🚀</span>
-                        <span class="text-[7px] font-black uppercase tracking-widest text-slate-400 mt-0.5">Cockpit</span>
-                    </button>
-                    <button id="nav-month" onclick="setMode('month')" class="bn-item flex-1 flex flex-col items-center justify-center gap-0 py-1.5 rounded-[11px] transition-all active:scale-95">
-                        <span class="text-[14px] leading-none">🗓️</span>
-                        <span class="text-[7px] font-black uppercase tracking-widest text-slate-400 mt-0.5">Månad</span>
-                    </button>
-                    <button id="nav-absence" onclick="setMode('absence')" class="bn-item flex-1 flex flex-col items-center justify-center gap-0 py-1.5 rounded-[11px] transition-all active:scale-95">
-                        <span class="text-[14px] leading-none">🌴</span>
-                        <span class="text-[7px] font-black uppercase tracking-widest text-slate-400 mt-0.5">Frånv.</span>
-                    </button>
-                    <button id="nav-notes" onclick="setMode('notes')" class="bn-item flex-1 flex flex-col items-center justify-center gap-0 py-1.5 rounded-[11px] transition-all active:scale-95">
-                        <span class="text-[14px] leading-none">📝</span>
-                        <span class="text-[7px] font-black uppercase tracking-widest text-slate-400 mt-0.5">Noter</span>
-                    </button>
-                </div>
-
-                <!-- SYMBOL ROW (visible when a day is selected) -->
-                <div id="cmd-symbols" class="hidden items-stretch p-1 gap-0.5">
-                    <button onclick="topPickStatus('Arbete')" title="Arbete" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[15px] flex items-center justify-center bg-gradient-to-b from-sky-50 to-sky-100 border border-sky-200/70 active:scale-90 transition-all">⚒️</button>
-                    <button onclick="topPickStatus('Semester')" title="Semester" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[15px] flex items-center justify-center bg-gradient-to-b from-teal-50 to-teal-100 border border-teal-200/70 active:scale-90 transition-all">✈️</button>
-                    <button onclick="topPickStatus('Ledig')" title="Ledig" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[15px] flex items-center justify-center bg-gradient-to-b from-white to-slate-100 border border-slate-200/70 active:scale-90 transition-all">🏠</button>
-                    <button onclick="openSellMode()" title="Sälj" class="flex-[1.5] h-[34px] rounded-[11px] text-[13px] font-black text-white flex items-center justify-center gap-1 active:scale-95 transition-all" style="background:linear-gradient(160deg,#38bdf8 0%,#0ea5e9 55%,#0284c7 100%); box-shadow:0 2px 6px rgba(14,165,233,0.4), inset 0 1px 0 rgba(255,255,255,0.35);">💰<span class="text-[8px] tracking-widest">SÄLJ</span></button>
-                    <button onclick="topPickStatus('Sjuk')" title="Sjuk" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[15px] flex items-center justify-center bg-gradient-to-b from-rose-50 to-rose-100 border border-rose-200/70 active:scale-90 transition-all">🤒</button>
-                    <button onclick="topPickStatus('VAB')" title="Vabb" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[15px] flex items-center justify-center bg-gradient-to-b from-amber-50 to-amber-100 border border-amber-200/70 active:scale-90 transition-all">👶</button>
-                    <button onclick="topPickStatus('Föräldraledig')" title="Föräldraledig" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[15px] flex items-center justify-center bg-gradient-to-b from-purple-50 to-purple-100 border border-purple-200/70 active:scale-90 transition-all">🍼</button>
-                    <button onclick="topPickStatus('delete')" title="Rensa dag" class="sym-btn flex-1 h-[34px] rounded-[11px] text-[13px] flex items-center justify-center bg-gradient-to-b from-rose-50 to-rose-100 border border-rose-200/70 text-rose-500 active:scale-90 transition-all">🗑️</button>
-                </div>
-
-                <!-- CHILD ROW (Vabb / Föräldraledig → välj barn) -->
-                <div id="cmd-child" class="hidden items-stretch p-1 gap-1">
-                    <button onclick="renderSymbolMode()" title="Tillbaka" class="w-9 h-[34px] rounded-[11px] flex items-center justify-center text-[#0ea5e9] active:scale-90 transition-all" style="background:#f1f5f9; border:1px solid rgba(15,23,42,0.06);">‹</button>
-                    <button onclick="topPickChild('Wilma')" class="flex-1 h-[34px] rounded-[11px] text-[12px] font-black text-white flex items-center justify-center gap-1 active:scale-95 transition-all" style="background:linear-gradient(160deg,#f472b6 0%,#ec4899 100%); box-shadow:0 2px 6px rgba(236,72,153,0.35), inset 0 1px 0 rgba(255,255,255,0.3);">👧 <span id="cmd-child-lbl-w">WILMA</span></button>
-                    <button onclick="topPickChild('Belma')" class="flex-1 h-[34px] rounded-[11px] text-[12px] font-black text-white flex items-center justify-center gap-1 active:scale-95 transition-all" style="background:linear-gradient(160deg,#a78bfa 0%,#8b5cf6 100%); box-shadow:0 2px 6px rgba(139,92,246,0.35), inset 0 1px 0 rgba(255,255,255,0.3);">👶 BELMA</button>
-                </div>
-
-                <!-- SALES STRIP (visible when numpad is open) -->
-                <div id="cmd-sales" class="hidden items-stretch p-1 gap-1">
-                    <button onclick="closeNumpad()" class="w-9 h-[34px] rounded-[11px] flex items-center justify-center text-slate-500 active:scale-90 transition-all" style="background:#f1f5f9; border:1px solid rgba(15,23,42,0.06);">‹</button>
-                    <div class="flex-1 h-[34px] rounded-[11px] flex items-center justify-between px-3 bg-slate-50 border border-slate-200/70">
-                        <span class="text-[8px] font-black uppercase tracking-widest text-[#0ea5e9]">Reg sälj</span>
-                        <span id="cmd-sales-amount" class="text-[16px] font-black tabular-nums text-slate-900 tracking-tight">0 kr</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="app-card bottom-section" id="calendar-wrapper" style="background: var(--white); position:relative;">
-
-                <div id="numpad-backdrop" onclick="closeNumpad()"></div>
-                <div id="numpad-sheet" onclick="event.stopPropagation()">
-                    <div class="np-grip"></div>
-                    <div class="flex items-center justify-between mb-2 px-1">
-                        <div class="flex flex-col leading-tight">
-                            <span class="text-[7px] font-black uppercase tracking-widest text-sky-300/70">Reg sälj</span>
-                            <span id="np-day-label" class="text-[12px] font-black text-white">Idag</span>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-[7px] font-black uppercase tracking-widest text-sky-300/70 block">Belopp</span>
-                            <span id="np-display" class="text-[22px] font-black tabular-nums text-white tracking-tight">0 kr</span>
-                        </div>
-                        <button onclick="closeNumpad()" class="w-8 h-8 rounded-[10px] flex items-center justify-center text-slate-300 text-[14px] active:scale-90 transition-all" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);">✕</button>
-                    </div>
-                    <div class="np-grid">
-                        <button class="np-key" onclick="numpadInput('1')">1</button>
-                        <button class="np-key" onclick="numpadInput('2')">2</button>
-                        <button class="np-key" onclick="numpadInput('3')">3</button>
-                        <button class="np-key" onclick="numpadInput('4')">4</button>
-                        <button class="np-key" onclick="numpadInput('5')">5</button>
-                        <button class="np-key" onclick="numpadInput('6')">6</button>
-                        <button class="np-key" onclick="numpadInput('7')">7</button>
-                        <button class="np-key" onclick="numpadInput('8')">8</button>
-                        <button class="np-key" onclick="numpadInput('9')">9</button>
-                        <button class="np-key" onclick="numpadInput('00')">00</button>
-                        <button class="np-key" onclick="numpadInput('0')">0</button>
-                        <button class="np-key np-back" onclick="numpadInput('back')">⌫</button>
-                        <button class="np-key np-save" onclick="numpadSave()">✓ SPARA</button>
-                    </div>
-                </div>
-
+            <div class="app-card bottom-section" id="calendar-wrapper" style="background: var(--white);">
                 
-                <div class="relative flex-shrink-0" style="height:0;">
-                    <div id="cal-standard-header" class="hidden"><h3 id="dynamic-view-title" class="hidden">LADDAR...</h3></div>
-                    <div id="month-edit-menu" class="hidden absolute left-0 right-0 top-0 h-[54px] flex items-center justify-between px-3 z-50 bg-gradient-to-b from-white to-slate-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(15,23,42,0.04)]" style="border-radius: 28px 28px 0 0;">
+                <div class="flex justify-between items-center px-2 py-1 border-b flex-shrink-0 relative z-30 h-[54px]" style="border-color: rgba(15,23,42,0.05); background: var(--white); border-radius: 28px 28px 0 0;">
+                    <button onclick="cycleView(-1)" class="text-slate-400 hover:text-[#0ea5e9] text-3xl px-1 active:scale-90 transition-colors">←</button>
+                    <div id="cal-standard-header" class="flex-1 flex flex-col justify-center items-center w-full px-1">
+                        <h3 id="dynamic-view-title" class="text-[9.5px] font-black uppercase tracking-widest text-slate-800 mb-1.5 text-center leading-none">LADDAR...</h3>
+                        <div class="flex gap-1 p-0.5 bg-slate-50 rounded-lg border border-slate-100 shadow-inner w-full">
+                            <button id="tab-week" onclick="setMode('week')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">VECKA</button>
+                            <button id="tab-day" onclick="setMode('day')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm">COCKPIT</button>
+                            <button id="tab-month" onclick="setMode('month')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">MÅNAD</button>
+                            <button id="tab-absence" onclick="setMode('absence')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">FRÅNV.</button>
+                            <button id="tab-notes" onclick="setMode('notes')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">NOTER</button>
+                        </div>
+                    </div>
+                    <div id="month-edit-menu" class="hidden absolute inset-0 flex items-center justify-between px-3 z-50 bg-slate-50" style="border-radius: 28px 28px 0 0;">
                         <div class="flex items-center justify-between w-full h-full pb-0.5">
-                            <div class="flex items-center gap-1.5">
-                                <input type="text" inputmode="decimal" id="in-sales-month" onclick="event.stopPropagation()" class="w-16 h-10 text-center font-black rounded-xl text-[14px] bg-white border border-slate-200/70 text-slate-900 outline-none placeholder-slate-400 focus:border-[#0ea5e9] shadow-[inset_0_1px_2px_rgba(15,23,42,0.05)] tracking-tight transition-colors" placeholder="0 kr">
-                                <button onclick="saveSalesFromPopup(); event.stopPropagation();" class="w-10 h-10 rounded-xl text-white font-black text-[16px] bg-gradient-to-b from-[#38bdf8] to-[#0284c7] shadow-[0_2px_4px_rgba(14,165,233,0.25),0_6px_14px_-6px_rgba(14,165,233,0.6),inset_0_1px_0_rgba(255,255,255,0.35)] active:scale-95 transition-all">✓</button>
+                            <div class="flex items-center gap-2">
+                                <input type="text" inputmode="decimal" id="in-sales-month" onclick="event.stopPropagation()" class="w-16 h-10 text-center font-black rounded-xl text-[14px] input-dark-theme focus:border-[#0ea5e9] shadow-inner" placeholder="0 kr">
+                                <button onclick="saveSalesFromPopup(); event.stopPropagation();" class="w-10 h-10 rounded-xl text-white font-black text-[16px] bg-[#0ea5e9] shadow-md active:scale-95 transition-all">✓</button>
                             </div>
-                            <div class="flex items-center gap-0.5 border-l border-slate-200/70 pl-2 ml-1">
-                                <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="w-7 h-9 rounded-lg text-[18px] active:scale-90 flex items-center justify-center bg-gradient-to-b from-sky-50 to-sky-100 border border-sky-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-all">⚒️</button>
-                                <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="w-7 h-9 rounded-lg text-[18px] active:scale-90 flex items-center justify-center bg-gradient-to-b from-white to-slate-100 border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all ml-0.5">🏠</button>
-                                <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="w-7 h-9 rounded-lg text-[18px] active:scale-90 flex items-center justify-center bg-gradient-to-b from-teal-50 to-teal-100 border border-teal-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-all ml-0.5">✈️</button>
-                                <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="w-7 h-9 rounded-lg text-[18px] active:scale-90 flex items-center justify-center bg-gradient-to-b from-rose-50 to-rose-100 border border-rose-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-all ml-0.5">🤒</button>
-                                <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="w-7 h-9 rounded-lg text-[18px] active:scale-90 flex items-center justify-center bg-gradient-to-b from-amber-50 to-amber-100 border border-amber-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-all ml-0.5">👶</button>
-                                <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="w-7 h-9 rounded-lg text-[18px] active:scale-90 flex items-center justify-center bg-gradient-to-b from-purple-50 to-purple-100 border border-purple-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-all ml-0.5">🍼</button>
-                                <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="w-7 h-9 rounded-lg text-[16px] active:scale-90 flex items-center justify-center bg-gradient-to-b from-rose-50 to-rose-100 border border-rose-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] text-rose-500 border-l border-slate-200/70 ml-1">🗑️</button>
+                            <div class="flex items-center gap-1.5 border-l border-slate-200 pl-2 ml-1">
+                                <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">⚒️</button>
+                                <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">🏠</button>
+                                <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">✈️</button>
+                                <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">🤒</button>
+                                <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">👶</button>
+                                <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5">🍼</button>
+                                <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="text-red-500 text-[18px] transform active:scale-90 border-l border-slate-200 pl-2 ml-1">🗑️</button>
                             </div>
                         </div>
                     </div>
+                    <button onclick="cycleView(1)" class="text-slate-400 hover:text-[#0ea5e9] text-3xl px-1 active:scale-90 transition-colors">→</button>
                 </div>
 
                 <div id="container-dash-views">
@@ -383,76 +270,58 @@
                             <div class="flex items-center gap-1 w-full justify-center relative h-[32px]">
                                 <button onclick="navCal(-1)" class="absolute left-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl leading-none active:scale-75 transition-transform" style="margin-top:-2px;">‹</button>
                                 <div class="text-center">
-                                    <h4 id="dp-inline-date" class="text-[10px] font-black uppercase tracking-tight text-slate-900">Laddar...</h4>
-                                    <p id="dp-inline-time" class="text-[9px] font-bold text-[#0ea5e9] mt-0.5 inline-block bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">00:00 — 00:00</p>
+                                    <h4 id="dp-inline-date" class="text-[10px] font-black uppercase tracking-widest text-slate-800">Laddar...</h4>
+                                    <p id="dp-inline-time" class="text-[9px] font-bold text-[#0ea5e9] mt-0.5">00:00 — 00:00</p>
                                 </div>
                                 <button onclick="navCal(1)" class="absolute right-0 text-slate-400 hover:text-[#0ea5e9] px-2 text-2xl leading-none active:scale-75 transition-transform" style="margin-top:-2px;">›</button>
                             </div>
                         </div>
 
-                        <div id="dp-cockpit-card" class="cc-bg-default p-2 flex flex-col justify-between border border-slate-200/70 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors overflow-hidden" style="border-radius:20px; box-shadow:0 1px 2px rgba(15,23,42,0.04),0 14px 36px -20px rgba(14,165,233,0.35),inset 0 1px 0 rgba(255,255,255,0.7);">
-                            <div class="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-sky-300/60 to-transparent pointer-events-none"></div>
-                            <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none relative">
-                                <div class="flex flex-col justify-center text-left pointer-events-auto flex-1 pl-1 gap-1.5">
-                                    <div>
-                                        <span class="flex items-center gap-1 text-[7.5px] font-black uppercase tracking-widest text-slate-400"><span class="inline-block w-1 h-1 rounded-full bg-slate-300"></span>DAGSMÅL</span>
-                                        <p id="dp-inline-target" class="text-[16px] font-black leading-none mt-1 text-slate-900 tracking-tight">0 k</p>
-                                    </div>
-                                    <div>
-                                        <span class="flex items-center gap-1 text-[7.5px] font-black uppercase tracking-widest text-slate-400"><span class="inline-block w-1 h-1 rounded-full bg-rose-400"></span>KVAR TILL MÅL</span>
-                                        <p id="dp-inline-left" class="text-[16px] font-black leading-none mt-1 text-rose-600 tracking-tight">0 k</p>
-                                    </div>
+                        <div id="dp-cockpit-card" class="cc-bg-default p-2 flex flex-col justify-between shadow-sm border border-slate-100 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors">
+                            <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none">
+                                <div class="flex flex-col justify-center text-left pointer-events-auto flex-1 pl-1">
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">DAGSMÅL</span>
+                                    <p id="dp-inline-target" class="text-[16px] font-black leading-none mb-1.5 text-slate-900">0 k</p>
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">KVAR TILL MÅL</span>
+                                    <p id="dp-inline-left" class="text-[16px] font-black leading-none text-rose-600">0 k</p>
                                 </div>
                                 <div class="relative flex flex-col justify-center items-center pointer-events-none flex-[1.5] max-w-[110px] aspect-square mx-1">
-                                    <div class="absolute inset-[14%] rounded-full bg-gradient-to-br from-sky-100/60 to-transparent blur-md"></div>
-                                    <svg class="w-full h-full relative" viewBox="0 0 120 120" style="filter:drop-shadow(0 4px 10px rgba(14,165,233,0.25));">
-                                        <defs>
-                                            <linearGradient id="cockpitGaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                <stop offset="0%" stop-color="#7dd3fc"/>
-                                                <stop offset="60%" stop-color="#0ea5e9"/>
-                                                <stop offset="100%" stop-color="#0369a1"/>
-                                            </linearGradient>
-                                        </defs>
+                                    <svg class="w-full h-full drop-shadow-sm" viewBox="0 0 120 120">
                                         <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
-                                        <circle id="dp-gauge-sales" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)" stroke="url(#cockpitGaugeGrad)" stroke-linecap="round"></circle>
+                                        <circle id="dp-gauge-sales" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
                                     </svg>
                                     <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5">
-                                        <span id="dp-inline-eff" class="text-[22px] font-black tracking-tight leading-none bg-gradient-to-b from-slate-900 to-slate-700 bg-clip-text text-transparent">0%</span>
-                                        <span id="dp-inline-eff-lbl" class="text-[8px] font-black uppercase tracking-widest text-emerald-600 mt-1 px-1.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-100">I FAS</span>
+                                        <span id="dp-inline-eff" class="text-[22px] font-black tracking-tighter text-slate-900 leading-none">0%</span>
+                                        <span id="dp-inline-eff-lbl" class="text-[8px] font-black uppercase tracking-widest text-emerald-600 mt-1">I FAS</span>
                                     </div>
                                 </div>
-                                <div class="flex flex-col justify-center text-right pointer-events-auto flex-1 pr-1 gap-1.5">
-                                    <div>
-                                        <span class="flex items-center justify-end gap-1 text-[7.5px] font-black uppercase tracking-widest text-slate-400">INKÖRT<span class="inline-block w-1 h-1 rounded-full bg-[#0ea5e9] shadow-[0_0_5px_rgba(14,165,233,0.7)]"></span></span>
-                                        <p id="dp-inline-sales" class="text-[16px] font-black leading-none mt-1 tracking-tight bg-gradient-to-b from-[#0ea5e9] to-[#0369a1] bg-clip-text text-transparent">0 k</p>
-                                    </div>
-                                    <div>
-                                        <span class="flex items-center justify-end gap-1 text-[7.5px] font-black uppercase tracking-widest text-slate-400">SNITT / PASS<span class="inline-block w-1 h-1 rounded-full bg-slate-300"></span></span>
-                                        <p id="dp-inline-req" class="text-[16px] font-black text-slate-700 leading-none mt-1 tracking-tight">0 k</p>
-                                    </div>
+                                <div class="flex flex-col justify-center text-right pointer-events-auto flex-1 pr-1">
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">INKÖRT</span>
+                                    <p id="dp-inline-sales" class="text-[16px] font-black text-[#0ea5e9] leading-none mb-1.5">0 k</p>
+                                    <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">SNITT / PASS</span>
+                                    <p id="dp-inline-req" class="text-[16px] font-black text-slate-600 leading-none">0 k</p>
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex-shrink-0 flex gap-1.5 h-[38px]">
-                            <div class="bg-gradient-to-b from-white to-slate-50 border border-slate-200/70 rounded-[14px] p-1 flex items-center shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(15,23,42,0.04)] flex-1 h-full">
-                                <span class="pl-2 pr-1 text-[11px] opacity-50">⚡</span>
-                                <input type="text" inputmode="decimal" id="in-sales-direct-day" class="flex-1 bg-transparent font-black text-[11px] text-slate-900 placeholder-slate-400 outline-none w-full text-center tracking-tight" placeholder="Försäljning (kr)...">
-                                <button onclick="saveDirectDaySales()" class="text-white font-black uppercase tracking-widest text-[8px] px-3.5 py-2 rounded-xl bg-gradient-to-b from-[#38bdf8] to-[#0284c7] shadow-[0_2px_4px_rgba(14,165,233,0.25),0_6px_14px_-6px_rgba(14,165,233,0.6)] flex-shrink-0 active:scale-95 transition-transform h-full">SPARA</button>
+                            <div class="bg-slate-50 border border-slate-200/60 rounded-[14px] p-1 flex items-center shadow-inner flex-1 h-full">
+                                <span class="pl-2 pr-1 text-[11px] opacity-40">⚡</span>
+                                <input type="text" inputmode="decimal" id="in-sales-direct-day" class="flex-1 bg-transparent font-black text-[11px] text-slate-900 placeholder-slate-400 outline-none w-full text-center" placeholder="Försäljning (kr)...">
+                                <button onclick="saveDirectDaySales()" class="text-white font-black uppercase tracking-widest text-[8px] px-3.5 py-2 rounded-xl bg-[#0ea5e9] shadow-md flex-shrink-0 active:scale-95 transition-transform h-full">SPARA</button>
                             </div>
                         </div>
 
                         <div class="flex-shrink-0 w-full grid grid-cols-6 gap-1 h-[36px]">
-                            <button onclick="saveDirectDayStatus('Arbete')" class="bg-gradient-to-b from-sky-50 to-sky-100 text-[#0369a1] font-extrabold text-[9px] rounded-xl border border-sky-200/70 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"><span>⚒️</span><span class="text-[5.5px] mt-0.5">Jobb</span></button>
-                            <button onclick="saveDirectDayStatus('Ledig')" class="bg-gradient-to-b from-white to-slate-100 text-slate-600 font-extrabold text-[9px] rounded-xl border border-slate-200/70 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"><span>🏠</span><span class="text-[5.5px] mt-0.5">Ledig</span></button>
-                            <button onclick="saveDirectDayStatus('Semester')" class="bg-gradient-to-b from-teal-50 to-teal-100 text-[#0f766e] font-extrabold text-[9px] rounded-xl border border-teal-200/70 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"><span>✈️</span><span class="text-[5.5px] mt-0.5">Sem</span></button>
-                            <button onclick="saveDirectDayStatus('Sjuk')" class="bg-gradient-to-b from-rose-50 to-rose-100 text-rose-700 font-extrabold text-[9px] rounded-xl border border-rose-200/70 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"><span>🤒</span><span class="text-[5.5px] mt-0.5">Sjuk</span></button>
-                            <button onclick="saveDirectDayStatus('VAB')" class="bg-gradient-to-b from-amber-50 to-amber-100 text-amber-700 font-extrabold text-[9px] rounded-xl border border-amber-200/70 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"><span>👶</span><span class="text-[5.5px] mt-0.5">VAB</span></button>
-                            <button onclick="saveDirectDayStatus('Föräldraledig')" class="bg-gradient-to-b from-purple-50 to-purple-100 text-purple-700 font-extrabold text-[9px] rounded-xl border border-purple-200/70 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]"><span>🍼</span><span class="text-[5.5px] mt-0.5">FL</span></button>
+                            <button onclick="saveDirectDayStatus('Arbete')" class="bg-[#f0f9ff] text-[#0ea5e9] font-extrabold text-[9px] rounded-xl border border-[#e0f2fe] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>⚒️</span><span class="text-[5.5px] mt-0.5">Jobb</span></button>
+                            <button onclick="saveDirectDayStatus('Ledig')" class="bg-slate-100 text-slate-600 font-extrabold text-[9px] rounded-xl border border-slate-200/60 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🏠</span><span class="text-[5.5px] mt-0.5">Ledig</span></button>
+                            <button onclick="saveDirectDayStatus('Semester')" class="bg-[#ccfbf1] text-[#0f766e] font-extrabold text-[9px] rounded-xl border border-[#99f6e4] uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>✈️</span><span class="text-[5.5px] mt-0.5">Sem</span></button>
+                            <button onclick="saveDirectDayStatus('Sjuk')" class="bg-rose-50 text-rose-700 font-extrabold text-[9px] rounded-xl border border-rose-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🤒</span><span class="text-[5.5px] mt-0.5">Sjuk</span></button>
+                            <button onclick="saveDirectDayStatus('VAB')" class="bg-amber-50 text-amber-700 font-extrabold text-[9px] rounded-xl border border-amber-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>👶</span><span class="text-[5.5px] mt-0.5">VAB</span></button>
+                            <button onclick="saveDirectDayStatus('Föräldraledig')" class="bg-purple-50 text-purple-700 font-extrabold text-[9px] rounded-xl border border-purple-100 uppercase active:scale-95 transition-all flex flex-col items-center justify-center"><span>🍼</span><span class="text-[5.5px] mt-0.5">FL</span></button>
                         </div>
 
-                        <div class="text-center bg-gradient-to-b from-white to-slate-50 border border-slate-200/70 rounded-xl flex-shrink-0 flex items-center justify-center gap-1.5 h-[26px] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#0ea5e9] shadow-[0_0_6px_rgba(14,165,233,0.6)]"></span>
+                        <div class="text-center bg-slate-50 border border-slate-100 rounded-xl flex-shrink-0 flex items-center justify-center gap-1.5 h-[26px]">
                             <span class="text-[7.5px] font-extrabold uppercase tracking-widest text-slate-400">REGISTRERAT:</span><span id="dp-inline-status" class="text-[7.5px] font-black text-[#0ea5e9] uppercase tracking-wider">ARBETSPASS</span>
                         </div>
                     </div>
@@ -469,52 +338,50 @@
                             <div id="slide-next" class="w-full h-full flex-shrink-0 snap-center"></div>
                         </div>
 
-                        <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[22px] border border-slate-200/70 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_30px_-18px_rgba(15,23,42,0.25)] flex flex-col flex-1 relative z-20 min-h-0 overflow-hidden">
-                            <div class="flex justify-between items-end pb-2 border-b border-slate-100/70 flex-shrink-0">
+                        <div class="mx-3 mt-1 mb-3 p-3 bg-white rounded-[20px] border border-slate-200 shadow-sm flex flex-col flex-1 relative z-20 min-h-0 overflow-hidden">
+                            <div class="flex justify-between items-end pb-2 border-b border-slate-100 flex-shrink-0">
                                 <div class="flex flex-col">
-                                    <span id="wp-date-range" class="text-[10.5px] font-black uppercase tracking-tight text-slate-900">LADDAR...</span>
+                                    <span id="wp-date-range" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
                                     <span id="wp-pass-count" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
                                 </div>
-                                <div class="flex flex-col items-end text-right gap-1">
-                                    <p id="wp-quick-title" class="text-[8px] font-black text-[#0ea5e9] uppercase tracking-widest bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">VÄLJ DAG...</p>
+                                <div class="flex flex-col text-right">
+                                    <p id="wp-quick-title" class="text-[8px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
                                     <p class="text-[10px] font-bold text-slate-400">För att redigera</p>
                                 </div>
                             </div>
                             
                             <div id="wp-week-summary" class="flex flex-col w-full flex-1 px-1 mt-1 transition-opacity duration-300 gap-1.5 justify-center">
-                                <div class="relative flex flex-col items-center flex-1 bg-gradient-to-br from-sky-50 via-white to-sky-100 border border-sky-200/70 rounded-[18px] p-2.5 shadow-[0_1px_2px_rgba(14,165,233,0.08),0_12px_28px_-14px_rgba(14,165,233,0.35),inset_0_1px_0_rgba(255,255,255,0.7)] justify-center w-full min-h-[60px] overflow-hidden">
-                                    <div class="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-sky-300/60 to-transparent"></div>
-                                    <span id="wp-lbl-sales" class="flex items-center gap-1.5 text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1"><span class="inline-block w-1.5 h-1.5 rounded-full bg-[#0ea5e9] shadow-[0_0_6px_rgba(14,165,233,0.6)]"></span>INKÖRT</span>
-                                    <span id="wp-sum-sales" class="text-[24px] font-black leading-none tracking-tight bg-gradient-to-b from-[#0ea5e9] to-[#0369a1] bg-clip-text text-transparent" style="filter:drop-shadow(0 2px 6px rgba(14,165,233,0.25));">0 k</span>
+                                <div class="flex flex-col items-center flex-1 bg-[#f0f9ff] border border-[#bae6fd] rounded-[16px] p-2.5 shadow-sm justify-center w-full min-h-[60px]">
+                                    <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INKÖRT</span>
+                                    <span id="wp-sum-sales" class="text-[24px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 k</span>
                                 </div>
                                 <div class="flex justify-between w-full gap-1.5 flex-1 min-h-[45px]">
-                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-gradient-to-b from-white to-slate-50 border border-slate-200/70 rounded-[14px] justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(15,23,42,0.04)]">
+                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200/60 rounded-[12px] justify-center">
                                         <span id="wp-lbl-target" class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">MÅL</span>
-                                        <span id="wp-sum-target" class="text-[14px] font-black text-slate-700 tracking-tight">0 k</span>
+                                        <span id="wp-sum-target" class="text-[14px] font-black text-slate-700">0 k</span>
                                     </div>
-                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-gradient-to-b from-white to-slate-50 border border-slate-200/70 rounded-[14px] justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(15,23,42,0.04)]">
+                                    <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200/60 rounded-[12px] justify-center">
                                         <span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">DIFF</span>
-                                        <span id="wp-sum-diff" class="text-[14px] font-black text-slate-700 tracking-tight">0 k</span>
+                                        <span id="wp-sum-diff" class="text-[14px] font-black text-slate-700">0 k</span>
                                     </div>
                                 </div>
                             </div>
 
-
                             <div id="wp-day-actions" class="w-full flex-col transition-all duration-300 overflow-hidden max-h-0 opacity-0 flex-shrink-0 mt-0">
-                                <div class="relative w-full h-[40px] overflow-hidden rounded-[14px] border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(15,23,42,0.04)] mt-1 bg-gradient-to-b from-white to-slate-50">
-                                    <div id="wp-default-state" class="absolute inset-0 flex gap-1 transition-transform duration-200 transform translate-x-0 p-0.5">
-                                        <button onclick="toggleWeekInput(true)" class="flex-[1.2] text-[8px] font-black bg-gradient-to-b from-[#38bdf8] to-[#0284c7] text-white border border-sky-400/40 rounded-[10px] active:scale-95 flex items-center justify-center gap-1 uppercase tracking-wider transition-all shadow-[0_2px_4px_rgba(14,165,233,0.25),0_6px_14px_-6px_rgba(14,165,233,0.6),inset_0_1px_0_rgba(255,255,255,0.35)]">💰 Sälj</button>
-                                        <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[11px] bg-gradient-to-b from-sky-50 to-sky-100 border border-sky-200/70 rounded-[10px] active:scale-95 flex items-center justify-center transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">⚒️</button>
-                                        <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[11px] bg-gradient-to-b from-white to-slate-100 border border-slate-200/70 rounded-[10px] active:scale-95 flex items-center justify-center transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">🏠</button>
-                                        <button onclick="handleWeekDirectAction('Semester')" class="flex-1 text-[11px] bg-gradient-to-b from-teal-50 to-teal-100 border border-teal-200/70 rounded-[10px] active:scale-95 flex items-center justify-center transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">✈️</button>
-                                        <button onclick="handleWeekDirectAction('Sjuk')" class="flex-1 text-[11px] bg-gradient-to-b from-rose-50 to-rose-100 border border-rose-200/70 rounded-[10px] active:scale-95 flex items-center justify-center transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">🤒</button>
-                                        <button onclick="handleWeekDirectAction('VAB')" class="flex-1 text-[11px] bg-gradient-to-b from-amber-50 to-amber-100 border border-amber-200/70 rounded-[10px] active:scale-95 flex items-center justify-center transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">👶</button>
-                                        <button onclick="handleWeekDirectAction('Föräldraledig')" class="flex-1 text-[11px] bg-gradient-to-b from-purple-50 to-purple-100 border border-purple-200/70 rounded-[10px] active:scale-95 flex items-center justify-center transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">🍼</button>
+                                <div class="relative w-full h-[40px] overflow-hidden rounded-xl border border-slate-200 shadow-sm mt-1">
+                                    <div id="wp-default-state" class="absolute inset-0 flex gap-0.5 transition-transform duration-200 transform translate-x-0 p-0.5 bg-slate-50">
+                                        <button onclick="toggleWeekInput(true)" class="flex-[1.2] text-[8px] font-black bg-[#f0f9ff] hover:bg-[#e0f2fe] text-[#0ea5e9] border border-[#bae6fd] rounded-lg active:scale-95 flex items-center justify-center gap-1 uppercase tracking-wider transition-colors">💰 Sälj</button>
+                                        <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">⚒️</button>
+                                        <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">🏠</button>
+                                        <button onclick="handleWeekDirectAction('Semester')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">✈️</button>
+                                        <button onclick="handleWeekDirectAction('Sjuk')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">🤒</button>
+                                        <button onclick="handleWeekDirectAction('VAB')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">👶</button>
+                                        <button onclick="handleWeekDirectAction('Föräldraledig')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-lg active:scale-95 flex items-center justify-center transition-colors">🍼</button>
                                     </div>
-                                    <div id="wp-input-state" class="absolute inset-0 flex gap-1 transition-transform duration-200 transform translate-x-full bg-gradient-to-b from-white to-slate-50 z-10 p-0.5">
-                                        <input type="text" inputmode="decimal" id="in-sales-week-direct" class="flex-1 h-full px-3 text-center font-black rounded-[10px] text-xs bg-white border border-slate-200/70 text-slate-900 outline-none placeholder-slate-400 focus:border-[#0ea5e9] transition-colors shadow-[inset_0_1px_2px_rgba(15,23,42,0.05)]" placeholder="Belopp (kr)...">
-                                        <button onclick="saveSalesFromWeekDirect()" class="h-full px-4 flex items-center justify-center rounded-[10px] text-white font-black text-[10px] bg-gradient-to-b from-[#38bdf8] to-[#0284c7] active:scale-95 transition-transform uppercase tracking-wider shadow-[0_2px_4px_rgba(14,165,233,0.25),0_6px_14px_-6px_rgba(14,165,233,0.6),inset_0_1px_0_rgba(255,255,255,0.35)]">Spara</button>
-                                        <button onclick="toggleWeekInput(false)" class="h-full px-3 flex items-center justify-center rounded-[10px] text-slate-500 font-black text-[10px] bg-gradient-to-b from-white to-slate-100 border border-slate-200/70 active:scale-95 transition-transform uppercase tracking-wider shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">✕</button>
+                                    <div id="wp-input-state" class="absolute inset-0 flex gap-1 transition-transform duration-200 transform translate-x-full bg-slate-50 z-10 p-0.5">
+                                        <input type="text" inputmode="decimal" id="in-sales-week-direct" class="flex-1 h-full px-3 text-center font-black rounded-lg text-xs bg-white border border-slate-200 text-slate-900 outline-none placeholder-slate-400 focus:border-[#0ea5e9] transition-colors" placeholder="Belopp (kr)...">
+                                        <button onclick="saveSalesFromWeekDirect()" class="h-full px-4 flex items-center justify-center rounded-lg text-white font-black text-[10px] bg-[#0ea5e9] active:scale-95 transition-transform uppercase tracking-wider">Spara</button>
+                                        <button onclick="toggleWeekInput(false)" class="h-full px-3 flex items-center justify-center rounded-lg text-slate-500 font-black text-[10px] bg-white border border-slate-200 active:scale-95 transition-transform uppercase tracking-wider">✕</button>
                                     </div>
                                 </div>
                             </div>
@@ -532,15 +399,15 @@
                     <div id="pane-absence" class="dash-view-pane h-full overflow-y-auto hide-scrollbar p-3 flex flex-col gap-2"></div>
 
                     <div id="pane-notes" class="dash-view-pane h-full overflow-hidden flex flex-col bg-slate-50/50">
-                        <div class="p-2.5 bg-gradient-to-b from-white to-slate-50 border-b border-slate-200/70 shadow-[0_1px_2px_rgba(15,23,42,0.04)] flex-shrink-0 flex flex-col gap-1.5 relative z-20">
+                        <div class="p-2.5 bg-white border-b border-slate-100 shadow-sm flex-shrink-0 flex flex-col gap-1.5 relative z-20">
                             <div class="flex gap-1.5">
-                                <input type="text" id="note-name" class="flex-1 min-w-0 bg-white border border-slate-200/70 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-colors" placeholder="Namn...">
-                                <input type="tel" id="note-phone" class="flex-1 min-w-0 bg-white border border-slate-200/70 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-colors" placeholder="Telefonnr...">
+                                <input type="text" id="note-name" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Namn...">
+                                <input type="tel" id="note-phone" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Telefonnr...">
                             </div>
                             <div class="flex gap-1.5">
-                                <input type="text" id="note-order" class="w-[65px] min-w-0 bg-white border border-slate-200/70 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-colors" placeholder="Ordernr...">
-                                <input type="text" id="note-text" class="flex-1 min-w-0 bg-white border border-slate-200/70 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-[inset_0_1px_2px_rgba(15,23,42,0.04)] transition-colors" placeholder="Anteckning...">
-                                <button id="note-submit-btn" onclick="addNote()" class="bg-gradient-to-b from-[#38bdf8] to-[#0284c7] text-white font-black text-[9px] uppercase tracking-widest rounded-xl shadow-[0_2px_4px_rgba(14,165,233,0.25),0_6px_14px_-6px_rgba(14,165,233,0.6),inset_0_1px_0_rgba(255,255,255,0.35)] active:scale-95 transition-transform px-3">SPARA</button>
+                                <input type="text" id="note-order" class="w-[65px] min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Ordernr...">
+                                <input type="text" id="note-text" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Anteckning...">
+                                <button id="note-submit-btn" onclick="addNote()" class="bg-[#0ea5e9] text-white font-black text-[9px] uppercase tracking-widest rounded-xl shadow-sm active:scale-95 transition-transform px-3">SPARA</button>
                             </div>
                         </div>
                         <div class="flex-1 overflow-y-auto hide-scrollbar p-2.5 relative flex flex-col gap-1.5" id="notes-list-container">
@@ -549,7 +416,6 @@
 
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -578,7 +444,7 @@
         
         let db = { b: initBudget, d: {}, q: {} }, timeline = {}, viewDate = new Date(), realToday = new Date(); realToday.setHours(0,0,0,0);
         let activeK = null, viewMode = 'day', currentWeekStart = new Date(realToday);
-        let multiSelectKeys = window.multiSelectKeys = new Set();
+        let multiSelectKeys = new Set();
         
         const startDayOffset = currentWeekStart.getDay() || 7;
         currentWeekStart.setDate(currentWeekStart.getDate() - startDayOffset + 1);
@@ -707,29 +573,29 @@
                 if (!n.done) {
                     const isExpanded = (activeCount <= 1) || (expandedNoteId === n.id);
                     if (isExpanded) {
-                        activeHTML += `<div class="bg-gradient-to-b from-white to-slate-50 rounded-[16px] border border-slate-200/70 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_24px_-16px_rgba(15,23,42,0.25),inset_0_1px_0_rgba(255,255,255,0.8)] p-3 flex flex-col gap-1.5 relative transition-all">
-                                ${activeCount > 1 ? `<button onclick="toggleExpandNote(${n.id})" class="absolute top-2 right-2 w-5 h-5 flex items-center justify-center text-slate-400 active:scale-90 transition-all text-[8px] border border-slate-200/70 rounded-full bg-white shadow-sm">▲</button>` : ''}
+                        activeHTML += `<div class="bg-white rounded-[16px] border border-slate-200 shadow-sm p-3 flex flex-col gap-1.5 relative transition-all">
+                                ${activeCount > 1 ? `<button onclick="toggleExpandNote(${n.id})" class="absolute top-2 right-2 w-5 h-5 flex items-center justify-center text-slate-400 active:scale-90 transition-all text-[8px] border border-slate-100 rounded-full bg-slate-50">▲</button>` : ''}
                                 <div class="pr-8 ${activeCount > 1 ? 'cursor-pointer' : ''}" onclick="${activeCount > 1 ? `toggleExpandNote(${n.id})` : ''}">
                                     <span class="text-[8px] font-black uppercase text-slate-400 tracking-wider">${n.date}</span>
-                                    ${n.name ? `<div class="text-[11px] font-black bg-gradient-to-b from-[#0ea5e9] to-[#0369a1] bg-clip-text text-transparent mt-0.5">${n.name}</div>` : ''}
+                                    ${n.name ? `<div class="text-[11px] font-black text-[#0ea5e9] mt-0.5">${n.name}</div>` : ''}
                                     ${n.order ? `<div class="text-[10px] font-bold text-slate-500 mt-0.5">Order: <span class="text-slate-800 font-black">${n.order}</span></div>` : ''}
                                     ${n.phone ? `<div class="text-[10px] font-bold text-slate-500 mt-0.5">Tel: <a href="tel:${n.phone}" onclick="event.stopPropagation()" class="text-[#0ea5e9] font-black hover:underline">${n.phone}</a></div>` : ''}
                                     ${n.text ? `<div class="text-[12px] font-bold text-slate-800 mt-1.5 leading-snug pb-6">${n.text}</div>` : '<div class="pb-6"></div>'}
                                 </div>
                                 <div class="absolute bottom-2 right-2 flex gap-1.5">
-                                    <button onclick="editNote(${n.id}); event.stopPropagation();" class="w-6 h-6 rounded-full border border-slate-200/70 bg-gradient-to-b from-white to-slate-50 shadow-sm flex items-center justify-center hover:bg-slate-50 active:scale-90 transition-all text-[9px]">✏️</button>
-                                    <button onclick="askCloseNote(${n.id}); event.stopPropagation();" class="w-6 h-6 rounded-full border-2 border-slate-200/70 flex items-center justify-center hover:bg-[#f0f9ff] hover:border-[#bae6fd] active:scale-90 transition-all bg-gradient-to-b from-white to-slate-50 shadow-sm"></button>
+                                    <button onclick="editNote(${n.id}); event.stopPropagation();" class="w-6 h-6 rounded-full border border-slate-200 bg-white shadow-sm flex items-center justify-center hover:bg-slate-50 active:scale-90 transition-all text-[9px]">✏️</button>
+                                    <button onclick="askCloseNote(${n.id}); event.stopPropagation();" class="w-6 h-6 rounded-full border-2 border-slate-200 flex items-center justify-center hover:bg-[#f0f9ff] hover:border-[#bae6fd] active:scale-90 transition-all bg-white"></button>
                                 </div></div>`;
                     } else {
-                        activeHTML += `<div onclick="toggleExpandNote(${n.id})" class="bg-gradient-to-b from-white to-slate-50 rounded-2xl border border-slate-200/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_1px_2px_rgba(15,23,42,0.04)] p-2.5 flex justify-between items-center cursor-pointer hover:from-white hover:to-white active:scale-[0.98] transition-all">
+                        activeHTML += `<div onclick="toggleExpandNote(${n.id})" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-2.5 flex justify-between items-center cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all">
                                 <div class="flex flex-col overflow-hidden whitespace-nowrap pr-2">
                                     ${n.name ? `<span class="text-[10px] font-black text-[#0ea5e9] truncate">${n.name}</span>` : '<span class="text-[10px] font-black text-slate-400 italic">Inget namn</span>'}
                                     ${n.order ? `<span class="text-[9px] font-bold text-slate-500 truncate mt-0.5">Order: ${n.order}</span>` : ''}
                                 </div><div class="text-slate-300 text-[9px]">▼</div></div>`;
                     }
                 } else {
-                    histHTML += `<div class="bg-gradient-to-b from-white to-slate-50 rounded-[16px] border border-slate-200/60 opacity-75 p-2.5 flex flex-col relative transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-                            <button onclick="deleteHistoryNote(${n.id}, event)" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-gradient-to-b from-rose-50 to-rose-100 flex items-center justify-center hover:bg-rose-100 active:scale-90 transition-all text-[8px] border border-rose-200/70 text-rose-500 shadow-sm">✕</button>
+                    histHTML += `<div class="bg-white rounded-[16px] border border-slate-100 opacity-75 p-2.5 flex flex-col relative transition-all">
+                            <button onclick="deleteHistoryNote(${n.id}, event)" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-rose-50 flex items-center justify-center hover:bg-rose-100 active:scale-90 transition-all text-[8px] border border-rose-100 text-rose-500">✕</button>
                             <div class="pr-8"><span class="text-[8px] font-black uppercase text-slate-400 tracking-wider">KLAR ${n.doneDate||''}</span>
                                 ${n.name ? `<div class="text-[10px] font-black text-emerald-600 mt-0.5">${n.name}</div>` : ''}
                                 ${n.order ? `<div class="text-[9px] font-bold text-slate-500">Order: ${n.order}</div>` : ''}
@@ -1014,16 +880,16 @@
                 if (o.abs && ['Sjuk', 'VAB Belma', 'VAB Wilma', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig', 'Åtgärd krävs'].includes(o.abs)) {
                     let reason = o.abs; absCounts[reason] = (absCounts[reason] || 0) + 1; totalAbs++;
                     const dObj = new Date(cy, cm-1, d); const dayStr = `${daysLong[dObj.getDay()]} ${d}`; const icon = em[reason] || '•'; const tCol = col[reason] || 'text-slate-500';
-                    absListHTML += `<div class="flex justify-between items-center p-3.5 border-b border-slate-100/70 last:border-0 bg-white hover:bg-slate-50/50 transition-colors"><span class="text-[9px] font-black uppercase text-slate-600 tracking-wider flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-slate-300"></span>${dayStr}</span><span class="text-[10px] font-black ${tCol} uppercase tracking-widest">${icon} ${reason}</span></div>`;
+                    absListHTML += `<div class="flex justify-between items-center p-3.5 border-b border-slate-100 last:border-0 bg-white"><span class="text-[9px] font-black uppercase text-slate-600 tracking-wider">${dayStr}</span><span class="text-[10px] font-black ${tCol} uppercase tracking-widest">${icon} ${reason}</span></div>`;
                 }
             }
 
             if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
 
-            let summaryHTML = `<div class="mb-2.5 bg-gradient-to-b from-white to-slate-50 rounded-[18px] border border-slate-200/70 p-3 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_30px_-18px_rgba(15,23,42,0.25),inset_0_1px_0_rgba(255,255,255,0.8)] flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100/70 pb-1.5 flex items-center gap-1.5"><span class="inline-block w-1.5 h-1.5 rounded-full bg-[#0ea5e9] shadow-[0_0_6px_rgba(14,165,233,0.6)]"></span>SAMMANFATTNING</h4>`;
-            for (let reason in absCounts) { const icon = em[reason] || '•'; const tCol = col[reason] || 'text-slate-500'; summaryHTML += `<div class="flex justify-between items-center mb-1 last:mb-0"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800 tracking-tight">${absCounts[reason]} dagar</span></div>`; }
+            let summaryHTML = `<div class="mb-2.5 bg-white rounded-[16px] border border-slate-200 p-3 shadow-sm flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
+            for (let reason in absCounts) { const icon = em[reason] || '•'; const tCol = col[reason] || 'text-slate-500'; summaryHTML += `<div class="flex justify-between items-center mb-1 last:mb-0"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; }
             summaryHTML += `</div>`;
-            pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="bg-gradient-to-b from-white to-slate-50 rounded-[18px] border border-slate-200/70 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_30px_-18px_rgba(15,23,42,0.25),inset_0_1px_0_rgba(255,255,255,0.8)] overflow-y-auto hide-scrollbar flex-1 mb-1">${absListHTML}</div></div>`;
+            pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="bg-white rounded-[16px] border border-slate-200 shadow-sm overflow-y-auto hide-scrollbar flex-1 mb-1">${absListHTML}</div></div>`;
         }
 
         function updateInlineFocusDashboard() {
@@ -1034,12 +900,10 @@
             let cTot = o.s || 0; const cEl = document.getElementById('dp-cockpit-card'); let isShiftActive = (isToday && qData.exists && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sH && nH <= eH);
 
             if (cEl) { 
-                cEl.className = "cc-bg-default p-2 flex flex-col justify-between border border-slate-200/70 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors overflow-hidden"; 
+                cEl.className = "cc-bg-default p-2 flex flex-col justify-between shadow-sm border border-slate-100 flex-1 relative glass-panel-inline min-h-0 w-full transition-colors"; 
                 if (state === 'absent') cEl.classList.add('cc-bg-fail'); else if (state === 'semester') cEl.classList.add('cc-bg-semester');
-                else if (state === 'ledig' || state === 'unplanned') cEl.classList.add('cc-bg-ledig'); 
-                else if (cTot >= target && target > 0) cEl.classList.add('cc-bg-success'); 
-                else if (state === 'planned') cEl.classList.add('cc-bg-planned');
-                if (isToday) cEl.classList.add('active-shift-pulse');
+                else if (state === 'ledig' || state === 'unplanned') cEl.classList.add('cc-bg-ledig'); else if (isShiftActive) cEl.classList.add('cc-bg-active-shift'); 
+                else if (cTot >= target && target > 0) cEl.classList.add('cc-bg-success'); else if (state === 'planned') cEl.classList.add('cc-bg-planned'); 
             }
             
             const inSalesDirect = document.getElementById('in-sales-direct-day'); if (inSalesDirect) { inSalesDirect.placeholder = `Försäljning (kr)...`; }
@@ -1133,184 +997,6 @@
         let isResettingScroll = false; const sc = document.getElementById('swipe-wrapper'); let scrollTimeout;
         init();
         if ("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js"); }
-    </script>
-
-    <script>
-    /* === CMD-BAR + NUMPAD wiring === */
-    (function(){
-        const bar = document.getElementById('cmd-bar');
-        let currentKey = null;
-        let currentEl = null;
-        let pendingChildType = null;
-        let numpadBuf = '';
-
-        const _setMode = window.setMode;
-        window.setMode = function(m){
-            const r = _setMode.apply(this, arguments);
-            ['week','day','month','absence','notes'].forEach(k=>{
-                const el = document.getElementById('nav-'+k);
-                if(el) el.classList.toggle('active', k===m);
-            });
-            closeCmdBar();
-            return r;
-        };
-
-        function fmtKey(k){
-            try{
-                const [y,mo,d] = k.split('-').map(Number);
-                const dt = new Date(y, mo-1, d);
-                const dn = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'][dt.getDay()];
-                const mn = ['Jan','Feb','Mar','Apr','Maj','Jun','Jul','Aug','Sep','Okt','Nov','Dec'][dt.getMonth()];
-                return `${dn} ${d} ${mn}`;
-            } catch(e){ return k || 'Idag'; }
-        }
-        function setBarMode(mode){
-            bar.classList.remove('mode-symbols','mode-child','mode-sales');
-            if(mode) bar.classList.add('mode-'+mode);
-        }
-
-        function openCmdBar(k, el){
-            currentKey = k; currentEl = el || null;
-            window.multiSelectKeys = window.multiSelectKeys || new Set();
-            window.multiSelectKeys.clear();
-            if(k) window.multiSelectKeys.add(k);
-            const ctxLbl = document.getElementById('cmd-sym-ctx'); if(ctxLbl) ctxLbl.innerText = fmtKey(k);
-            document.querySelectorAll('.day-cell.active-focus').forEach(c=>c.classList.remove('active-focus'));
-            if(el) el.classList.add('active-focus');
-            if(window.viewMode === 'week' && k){ window.activeK = k; if(typeof window.updateWeekPanel==='function') window.updateWeekPanel(); }
-            setBarMode('symbols');
-        }
-        function closeCmdBar(){
-            currentKey = null; currentEl = null; pendingChildType = null;
-            closeNumpad(true);
-            setBarMode(null);
-            if(window.multiSelectKeys) window.multiSelectKeys.clear();
-            document.querySelectorAll('.day-cell.active-focus').forEach(c=>c.classList.remove('active-focus'));
-            if(window.viewMode === 'week'){ window.activeK = null; if(typeof window.updateWeekPanel==='function') window.updateWeekPanel(); }
-        }
-        window.closeCmdBar = closeCmdBar;
-        window.openCmdBar = openCmdBar;
-        window.openTopReg = function(keys){ openCmdBar((keys||[])[0], null); };
-        window.closeTopReg = closeCmdBar;
-
-        window.renderSymbolMode = function(){ setBarMode('symbols'); };
-        window.topPickStatus = function(t){
-            if(!currentKey) return;
-            if(t === 'VAB' || t === 'Föräldraledig'){
-                pendingChildType = t;
-                const lbl = document.getElementById('cmd-child-lbl'); if(lbl) lbl.innerText = (t==='VAB'?'Vabb':'Föräldraledig');
-                setBarMode('child');
-                return;
-            }
-            window.multiSelectKeys.clear(); window.multiSelectKeys.add(currentKey);
-            if(typeof window.checkOverwriteFromPopup === 'function'){
-                window.checkOverwriteFromPopup(t);
-            }
-            closeCmdBar();
-        };
-        window.topPickChild = function(child){
-            if(!currentKey || !pendingChildType) { closeCmdBar(); return; }
-            const fullAbs = `${pendingChildType} ${child}`;
-            window.multiSelectKeys.clear(); window.multiSelectKeys.add(currentKey);
-            if(typeof window.handleSaveFromPopup === 'function'){
-                window.handleSaveFromPopup(fullAbs);
-            }
-            closeCmdBar();
-        };
-
-        const sheet = document.getElementById('numpad-sheet');
-        const backdrop = document.getElementById('numpad-backdrop');
-        const dispEl = document.getElementById('np-display');
-        const dayLblEl = document.getElementById('np-day-label');
-        const ctxEl = document.getElementById('cmd-sales-ctx');
-        const amtEl = document.getElementById('cmd-sales-amount');
-
-        function renderNumpad(){
-            const n = parseInt(numpadBuf || '0', 10) || 0;
-            const formatted = n.toLocaleString('sv-SE') + ' kr';
-            if(dispEl) dispEl.innerText = formatted;
-            if(amtEl) amtEl.innerText = formatted;
-        }
-
-        window.openSellMode = function(){
-            if(!currentKey) return;
-            const o = (window.db && window.db.d && window.db.d[currentKey]) || {};
-            numpadBuf = (o.s && o.s > 0) ? String(o.s) : '';
-            if(dayLblEl) dayLblEl.innerText = fmtKey(currentKey);
-            if(ctxEl) ctxEl.innerText = fmtKey(currentKey);
-            renderNumpad();
-            setBarMode('sales');
-            backdrop.classList.add('open');
-            sheet.classList.add('open');
-        };
-        window.closeNumpad = function(silent){
-            sheet.classList.remove('open');
-            backdrop.classList.remove('open');
-            numpadBuf = '';
-            if(!silent){
-                if(currentKey) setBarMode('symbols'); else setBarMode(null);
-            }
-        };
-        window.numpadInput = function(k){
-            if(k === 'back'){ numpadBuf = numpadBuf.slice(0,-1); }
-            else { if(numpadBuf.length >= 9) return; numpadBuf = (numpadBuf + k).replace(/^0+(?=\d)/,''); }
-            renderNumpad();
-            if(navigator.vibrate) try{ navigator.vibrate(8); }catch(e){}
-        };
-        window.numpadSave = function(){
-            if(!currentKey) { closeNumpad(); return; }
-            const val = parseInt(numpadBuf || '0', 10) || 0;
-            const monthInp = document.getElementById('in-sales-month');
-            if(monthInp) monthInp.value = val;
-            window.multiSelectKeys.clear(); window.multiSelectKeys.add(currentKey);
-            if(typeof window.saveSalesFromPopup === 'function'){
-                window.saveSalesFromPopup();
-            }
-            closeCmdBar();
-        };
-
-        const _selectDay = window.selectDay;
-        if(typeof _selectDay === 'function'){
-            window.selectDay = function(k, el, e){
-                if(e && e.stopPropagation) e.stopPropagation();
-                if(currentKey === k){ closeCmdBar(); return; }
-                openCmdBar(k, el);
-            };
-        }
-
-        function bindCockpit(){
-            const card = document.getElementById('dp-cockpit-card');
-            if(!card || card._cmdBound) return;
-            card._cmdBound = true;
-            card.addEventListener('click', function(ev){
-                if(ev.target.closest('input,button')) return;
-                ev.stopPropagation();
-                const k = (typeof window.getK==='function' && window.realToday) ? window.getK(window.realToday) : null;
-                if(!k) return;
-                if(currentKey === k) closeCmdBar(); else openCmdBar(k, null);
-            });
-        }
-        bindCockpit();
-        setTimeout(bindCockpit, 500);
-        setTimeout(bindCockpit, 1500);
-
-        document.addEventListener('click', function(ev){
-            if(!currentKey && !bar.classList.contains('mode-symbols') && !bar.classList.contains('mode-child') && !bar.classList.contains('mode-sales')) return;
-            const t = ev.target;
-            if(t.closest('#cmd-bar')) return;
-            if(t.closest('#numpad-sheet')) return;
-            if(t.closest('.day-cell')) return;
-            if(t.closest('#dp-cockpit-card')) return;
-            closeCmdBar();
-        }, true);
-
-        // Only month-popup input is driven by the in-bar numpad. Cockpit and week-direct
-        // inputs use the device keyboard so users can register sales directly.
-        ['in-sales-month'].forEach(id=>{
-            const el = document.getElementById(id);
-            if(el){ el.setAttribute('inputmode','none'); el.setAttribute('readonly','readonly'); }
-        });
-    })();
     </script>
 </body>
 </html>

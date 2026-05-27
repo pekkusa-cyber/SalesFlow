@@ -29,8 +29,8 @@
             --top-banner-bg: linear-gradient(135deg, #0b1220 0%, #1e293b 55%, #334155 100%); 
             --selected-bg: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 55%, #0284c7 100%);
             
-            /* Matematisk perfekt 1:1 Swap höjd för Numpad vs Topbar */
-            --swap-offset: calc(274px + max(env(safe-area-inset-top), 12px));
+            /* Matematisk exakt förskjutning. Flyttar upp exakt nog för att respektera top safe-area */
+            --swap-offset: 270px;
             
             --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
             --shadow-sm: 0 4px 12px -4px rgba(15,23,42,0.08), 0 2px 6px -2px rgba(15,23,42,0.04);
@@ -74,8 +74,8 @@
         .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; box-shadow: var(--shadow-banner) !important; border: 1px solid rgba(255,255,255,0.04) !important; }
         .premium-slate-banner::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(56,189,248,0.18), transparent 70%); mix-blend-mode: screen; }
         
-        /* TOP SECTION FAST LÅST TILL EXAKT 262px FÖR PERFEKT SWAP */
-        .top-section { height: 262px; margin: 0 12px 12px; padding: 16px 16px 12px; position: relative; border: none; box-shadow: var(--shadow-banner); flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+        /* TOP SECTION FAST LÅST TILL EXAKT 262px + 8px margin = 270px FÖR PERFEKT SWAP */
+        .top-section { height: 262px; margin: 0 12px 8px; padding: 16px 16px 12px; position: relative; border: none; box-shadow: var(--shadow-banner); flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
         
         .budget-header { text-align: center; margin-bottom: 2px; position: relative; z-index: 1; }
         .budget-label { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.32em; margin-bottom: 2px; }
@@ -97,7 +97,7 @@
         .g-label-0 { position: absolute; bottom: 4px; left: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.35); letter-spacing: 0.05em; }
         .g-label-240 { position: absolute; bottom: 4px; right: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.35); letter-spacing: 0.05em; }
         
-        .bottom-section { flex: 1; margin: 0 12px calc(env(safe-area-inset-bottom) + 6px); display: flex; flex-direction: column; position: relative; min-height: 0; overflow: hidden; }
+        .bottom-section { flex: 1; margin: 0 12px calc(env(safe-area-inset-bottom, 12px) + 6px); display: flex; flex-direction: column; position: relative; min-height: 0; overflow: hidden; }
         
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 5px; padding: 4px 6px 8px; height: 100%; }
         .weekday-label { text-align: center; font-size: 8.5px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; padding-bottom: 2px; letter-spacing: 0.08em; }
@@ -352,7 +352,7 @@
                                 </div>
                             </div>
                             
-                            <div id="wp-week-summary" class="flex flex-col w-full px-1 mt-1 transition-opacity duration-300 gap-1.5 justify-center flex-1">
+                            <div id="wp-week-summary" class="flex flex-col w-full px-1 mt-1 gap-1.5 justify-center flex-1">
                                 <div onclick="if(activeK) openNumpad('week', db.d[activeK]?.s || 0, 'INKÖRT (DAG)')" class="flex flex-col items-center flex-1 bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-[20px] p-2.5 shadow-sm justify-center w-full min-h-[60px] cursor-pointer active:scale-95 transition-transform">
                                     <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INKÖRT</span>
                                     <span id="wp-sum-sales" class="text-[24px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 k</span>
@@ -370,8 +370,8 @@
                                 </div>
                             </div>
 
-                            <div id="wp-day-actions" class="w-full flex-col transition-all duration-300 overflow-hidden max-h-0 opacity-0 flex-shrink-0 mt-0">
-                                <div class="relative w-full h-[44px] overflow-hidden rounded-[14px] border border-slate-200 shadow-sm mt-1.5">
+                            <div id="wp-day-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 mt-0 h-[52px] flex justify-end">
+                                <div class="relative w-full h-[46px] overflow-hidden rounded-[14px] border border-slate-200 shadow-sm">
                                     <div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50">
                                         <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button>
                                         <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button>
@@ -416,7 +416,7 @@
         </div>
     </div>
 
-    <div id="custom-numpad" class="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-3xl rounded-t-[32px] shadow-[0_-12px_40px_rgba(15,23,42,0.15)] z-[30000] transform translate-y-full transition-transform duration-[0.45s] ease-spring border-t border-white" style="height: var(--swap-offset); padding-bottom: max(env(safe-area-inset-bottom), 12px);">
+    <div id="custom-numpad" class="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-3xl rounded-t-[32px] shadow-[0_-12px_40px_rgba(15,23,42,0.15)] z-[30000] transform translate-y-full transition-transform duration-[0.45s] ease-spring border-t border-white" style="height: calc(270px + env(safe-area-inset-bottom, 20px)); padding-bottom: env(safe-area-inset-bottom, 20px);">
         <div class="px-5 pt-3 pb-2 flex flex-col h-full justify-between">
             <div class="flex justify-between items-end px-2 mb-1">
                 <div class="flex flex-col">
@@ -448,7 +448,7 @@
     </div>
 
     <script>
-        // --- CUSTOM NUMPAD LOGIC ---
+        // --- CUSTOM NUMPAD LOGIC (Med Svep & History API) ---
         let numpadTarget = null; 
         let numpadValue = "";
 
@@ -459,13 +459,41 @@
             updateNumpadDisplay();
             document.body.classList.add('numpad-open');
             document.getElementById('custom-numpad').style.transform = 'translateY(0)';
+            
+            // Hantera bakåtknapp
+            if (!history.state || history.state.view !== 'numpadOpen') {
+                history.pushState({view: 'numpadOpen'}, '');
+            }
         }
 
-        function closeNumpad() {
+        function closeNumpad(fromPopstate = false) {
             document.getElementById('custom-numpad').style.transform = 'translateY(100%)';
             document.body.classList.remove('numpad-open');
             numpadTarget = null;
+            
+            if (!fromPopstate && history.state && history.state.view === 'numpadOpen') {
+                history.back(); // Återställ telefonens historia
+            }
         }
+
+        // Svep nedåt för att stänga Numpad
+        const npEl = document.getElementById('custom-numpad');
+        let npTouchY = 0;
+        npEl.addEventListener('touchstart', e => { npTouchY = e.touches[0].clientY; }, {passive: true});
+        npEl.addEventListener('touchmove', e => {
+            if (e.touches[0].clientY - npTouchY > 60) {
+                closeNumpad();
+            }
+        }, {passive: true});
+
+        // Lyssna på telefonens bakåtknapp
+        window.addEventListener('popstate', (e) => {
+            if (document.body.classList.contains('numpad-open')) {
+                if (!e.state || e.state.view !== 'numpadOpen') {
+                    closeNumpad(true); // Argument 'true' förhindrar en loop
+                }
+            }
+        });
 
         function numpadPress(val) {
             if (val === 'back') { numpadValue = numpadValue.slice(0, -1); } 
@@ -858,8 +886,8 @@
             const wpEditHint = document.getElementById('wp-edit-hint');
             
             if (activeK && dayActions && weekSummary) {
-                dayActions.classList.remove('max-h-0', 'opacity-0', 'mt-0');
-                dayActions.classList.add('max-h-[56px]', 'opacity-100', 'mt-2', 'flex');
+                dayActions.classList.remove('opacity-0', 'pointer-events-none');
+                dayActions.classList.add('opacity-100', 'pointer-events-auto');
                 if (wpEditHint) wpEditHint.classList.remove('hidden');
                 
                 const parts = activeK.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]); const curO = db.d[activeK] || {s:0}; 
@@ -872,8 +900,8 @@
                 if(sumSalesEl) sumSalesEl.innerText = (dSales/1000).toFixed(1) + ' k';
                 if(sumDiffEl) { sumDiffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; sumDiffEl.style.color = dDiff >= 0 ? "var(--pos)" : "var(--neg)"; }
             } else if (dayActions && weekSummary) {
-                dayActions.classList.remove('max-h-[56px]', 'opacity-100', 'mt-2');
-                dayActions.classList.add('max-h-0', 'opacity-0', 'mt-0');
+                dayActions.classList.remove('opacity-100', 'pointer-events-auto');
+                dayActions.classList.add('opacity-0', 'pointer-events-none');
                 if (wpEditHint) wpEditHint.classList.add('hidden');
 
                 let diff = wSales - wTarget; 

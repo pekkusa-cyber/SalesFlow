@@ -21,7 +21,7 @@
             --sting-blue: #0ea5e9; 
             --pos: #059669; 
             --neg: #dc2626; 
-            --gold-main: #b45309; 
+            --gold-main: #f59e0b; 
             --backdrop-gradient: linear-gradient(180deg, #94a3b8 0%, #b8c5d4 60%, #cbd5e1 100%);
             --input-bg: #f8fafc; 
             --today-light: #38bdf8; 
@@ -38,6 +38,7 @@
             --shadow-md: 0 16px 32px -8px rgba(15,23,42,0.12), 0 4px 12px -4px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,1);
             --shadow-banner: 0 1px 0 rgba(255,255,255,0.04) inset, 0 -1px 0 rgba(0,0,0,0.3) inset, 0 18px 40px -12px rgba(2,6,23,0.45), 0 4px 12px -4px rgba(2,6,23,0.35);
             --shadow-glow-blue: 0 8px 24px -6px rgba(14,165,233,0.45), 0 0 12px 2px rgba(14,165,233,0.15);
+            --shadow-glow-gold: 0 8px 24px -6px rgba(245, 158, 11, 0.45), 0 0 12px 2px rgba(245, 158, 11, 0.15);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
@@ -60,8 +61,16 @@
         }
         
         .dark-backdrop { position: absolute; top: 0; left: 0; right: 0; height: 210px; background: var(--backdrop-gradient); border-radius: 0 0 40px 40px; z-index: 0; opacity: 0.5; }
-        #app-shell { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
-        .content-locker { width: 100%; max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding-top: max(env(safe-area-inset-top), 6px); }
+        
+        /* App shell and viewport shift logic */
+        #app-shell { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; transition: transform 0.4s var(--ease-spring); }
+        .numpad-open #app-shell { transform: translateY(-220px); }
+        
+        /* Backdrop for clicking outside numpad */
+        #numpad-backdrop { position: fixed; inset: 0; z-index: 29000; display: none; }
+        .numpad-open #numpad-backdrop { display: block; }
+        
+        .content-locker { width: 100%; max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding-top: max(env(safe-area-inset-top), 12px); }
         
         .app-card { 
             border-radius: 28px; 
@@ -82,7 +91,7 @@
             mix-blend-mode: screen;
         }
         
-        .top-section { margin: 4px 12px 8px; padding: 12px 16px; position: relative; border: none; box-shadow: var(--shadow-banner); flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+        .top-section { margin: 0 12px 8px; padding: 16px 16px 12px; position: relative; border: none; box-shadow: var(--shadow-banner); flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
         
         .budget-header { text-align: center; margin-bottom: 2px; position: relative; z-index: 1; }
         .budget-label { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.32em; margin-bottom: 2px; }
@@ -139,10 +148,12 @@
             box-shadow: 0 10px 24px -4px rgba(2, 132, 199, 0.6), inset 0 2px 4px rgba(255,255,255,0.4) !important; 
             border: 1px solid #38bdf8 !important; transform: translateY(-1px);
         }
+        
+        /* UNIK FÄRG FÖR MARKERAD DAG (Amber/Guld) */
         .active-focus { 
-            background: var(--selected-bg) !important; z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; 
-            box-shadow: var(--shadow-glow-blue), inset 0 2px 4px rgba(255,255,255,0.4) !important; 
-            border: 1px solid #7dd3fc !important; transform: translateY(-2px) scale(1.02);
+            background: linear-gradient(135deg, #f59e0b, #d97706) !important; z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; 
+            box-shadow: var(--shadow-glow-gold), inset 0 2px 4px rgba(255,255,255,0.4) !important; 
+            border: 1px solid #fcd34d !important; transform: translateY(-2px) scale(1.02);
         }
         
         .status-today .date-num, .active-focus .date-num, .status-today .cell-main-val, .active-focus .cell-main-val { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
@@ -180,21 +191,30 @@
         }
         #note-confirm-modal, #child-select-modal, #budget-modal { backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
         
-        @keyframes pulse-cell {
+        @keyframes pulse-cell-blue {
             0%   { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0.5); }
             70%  { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 8px rgba(14, 165, 233, 0); }
             100% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0); }
+        }
+        @keyframes pulse-cell-amber {
+            0%   { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 0 rgba(245, 158, 11, 0.5); }
+            70%  { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 8px rgba(245, 158, 11, 0); }
+            100% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 0 rgba(245, 158, 11, 0); }
         }
         @keyframes pulse-card-glow {
             0% { box-shadow: 0 12px 30px -8px rgba(14, 165, 233, 0.3), 0 0 12px rgba(14, 165, 233, 0.15), inset 0 2px 4px rgba(255,255,255,1); }
             100% { box-shadow: 0 16px 40px -8px rgba(14, 165, 233, 0.6), 0 0 24px rgba(14, 165, 233, 0.35), inset 0 2px 4px rgba(255,255,255,1); transform: translateY(-1px); }
         }
-        .status-today.active-shift-pulse, .active-focus.active-shift-pulse { animation: pulse-cell 2.2s var(--ease-spring) infinite; border: 1.5px solid #7dd3fc !important; }
+        
+        .status-today.active-shift-pulse { animation: pulse-cell-blue 2.2s var(--ease-spring) infinite; border: 1.5px solid #7dd3fc !important; }
+        .active-focus.active-shift-pulse { animation: pulse-cell-amber 2.2s var(--ease-spring) infinite; border: 1.5px solid #fcd34d !important; }
         .cc-bg-active-shift { background: linear-gradient(145deg, #f0f9ff, #e0f2fe) !important; border: 1px solid #ffffff !important; animation: pulse-card-glow 2.5s infinite alternate var(--ease-spring) !important; }
     </style>
 </head>
 <body class="mode-day">
     <div class="dark-backdrop"></div>
+    <div id="numpad-backdrop" onclick="closeNumpad()"></div>
+    
     <div id="confirm-box"><p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p><div class="flex gap-3"><button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button><button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button></div></div>
 
     <div id="note-confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
@@ -244,26 +264,10 @@
     <div id="app-shell">
         <div class="content-locker">
             
-            <header class="flex justify-between items-center px-4 pb-1.5 pt-3 relative z-20 flex-shrink-0">
-                <div class="flex items-center gap-2 flex-1">
-                    <button onclick="openBudgetModal()" class="text-slate-400 hover:text-white text-xl active:scale-75 transition-transform p-0.5 select-none drop-shadow-sm">⚙️</button>
-                    <span class="text-[6.5px] font-black uppercase tracking-widest text-slate-700 bg-white/70 px-1.5 py-0.5 rounded shadow-sm border border-slate-200/50">V.2.5</span>
-                </div>
-                
-                <div class="flex flex-col items-center justify-center flex-[1.5]">
-                    <div class="flex items-center justify-center gap-1.5">
-                        <span class="text-lg">❄️</span>
-                        <span class="text-[12px] font-black uppercase tracking-[0.2em] text-slate-800 drop-shadow-sm">SalesFlow</span>
-                    </div>
-                </div>
-
-                <div class="flex justify-end flex-1">
-                    <span id="live-clock" class="text-[11px] font-black text-slate-600 tabular-nums tracking-tight">--:--</span>
-                </div>
-            </header>
-
             <div class="app-card top-section premium-slate-banner">
-                <div class="budget-header"><p class="budget-label">Månadsmål</p><p id="d-budget-val" class="budget-val">240,000 kr</p></div>
+                <button onclick="openBudgetModal()" class="absolute top-4 left-4 text-slate-300 hover:text-white text-[22px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">⚙️</button>
+                
+                <div class="budget-header"><p class="budget-label mt-1">Månadsmål</p><p id="d-budget-val" class="budget-val">240,000 kr</p></div>
                 <div class="gauge-layout">
                     <div class="side-col">
                         <p class="micro-lbl">Dagens Krav</p><p id="d-today-target" class="val-display pop-highlight">0 k</p>
@@ -341,7 +345,7 @@
                             </div>
                         </div>
 
-                        <div id="dp-cockpit-card" onclick="openNumpad('day', db.d[activeK || getK(realToday)]?.s || 0, 'DAGSINKÖRT')" class="p-2 flex flex-col justify-between flex-1 relative glass-panel-inline min-h-0 w-full transition-colors mt-1 mb-1">
+                        <div id="dp-cockpit-card" onclick="openNumpad('day', db.d[activeK || getK(realToday)]?.s || 0, 'DAGSINKÖRT')" class="p-2 flex flex-col justify-between flex-1 relative glass-panel-inline min-h-0 w-full transition-colors mt-1 mb-1 cursor-pointer active:scale-[0.98]">
                             <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none">
                                 <div class="flex flex-col justify-center text-left pointer-events-auto flex-1 pl-1">
                                     <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">DAGSMÅL</span>
@@ -368,7 +372,7 @@
                             </div>
                         </div>
 
-                        <div class="flex-shrink-0 w-full grid grid-cols-6 gap-1.5 h-[42px]">
+                        <div class="flex-shrink-0 w-full grid grid-cols-6 gap-1.5 h-[46px] mt-1">
                             <button onclick="saveDirectDayStatus('Arbete')" class="bg-[#f0f9ff] text-[#0ea5e9] font-extrabold text-[9px] rounded-[14px] border border-[#bae6fd] uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>⚒️</span><span class="text-[5.5px] mt-0.5">Jobb</span></button>
                             <button onclick="saveDirectDayStatus('Ledig')" class="bg-slate-100 text-slate-600 font-extrabold text-[9px] rounded-[14px] border border-slate-200 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>🏠</span><span class="text-[5.5px] mt-0.5">Ledig</span></button>
                             <button onclick="saveDirectDayStatus('Semester')" class="bg-[#ccfbf1] text-[#0f766e] font-extrabold text-[9px] rounded-[14px] border border-[#99f6e4] uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>✈️</span><span class="text-[5.5px] mt-0.5">Sem</span></button>
@@ -410,7 +414,7 @@
                                 <div onclick="if(activeK) openNumpad('week', db.d[activeK]?.s || 0, 'INKÖRT (DAG)')" class="flex flex-col items-center flex-1 bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-[20px] p-2.5 shadow-sm justify-center w-full min-h-[60px] cursor-pointer active:scale-95 transition-transform">
                                     <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INKÖRT</span>
                                     <span id="wp-sum-sales" class="text-[24px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 k</span>
-                                    <span id="wp-edit-hint" class="text-[7.5px] font-black text-[#0ea5e9]/50 uppercase tracking-widest mt-1 hidden">TRYCK FÖR ATT ÄNDRA</span>
+                                    <span id="wp-edit-hint" class="text-[7.5px] font-black text-[#0ea5e9]/60 uppercase tracking-widest mt-1.5 hidden">✏️ TRYCK FÖR ATT ÄNDRA</span>
                                 </div>
                                 <div class="flex justify-between w-full gap-2 flex-1 min-h-[45px]">
                                     <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200 rounded-[16px] justify-center shadow-sm">
@@ -425,8 +429,8 @@
                             </div>
 
                             <div id="wp-day-actions" class="w-full flex-col transition-all duration-300 overflow-hidden max-h-0 opacity-0 flex-shrink-0 mt-0">
-                                <div class="relative w-full h-[44px] overflow-hidden rounded-[14px] border border-slate-200 shadow-sm mt-1">
-                                    <div id="wp-default-state" class="absolute inset-0 flex gap-0.5 p-1 bg-slate-50">
+                                <div class="relative w-full h-[48px] overflow-hidden rounded-[14px] border border-slate-200 shadow-sm mt-1.5">
+                                    <div class="absolute inset-0 flex gap-1 p-1 bg-slate-50">
                                         <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button>
                                         <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button>
                                         <button onclick="handleWeekDirectAction('Semester')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button>
@@ -470,8 +474,8 @@
         </div>
     </div>
 
-    <div id="custom-numpad" class="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-2xl rounded-t-[32px] shadow-[0_-12px_40px_rgba(15,23,42,0.15)] z-[30000] transform translate-y-full transition-transform duration-300 border-t border-white" style="padding-bottom: max(env(safe-area-inset-bottom), 16px);">
-        <div class="p-5 flex flex-col gap-3">
+    <div id="custom-numpad" class="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-3xl rounded-t-[32px] shadow-[0_-12px_40px_rgba(15,23,42,0.15)] z-[30000] transform translate-y-full transition-transform duration-300 border-t border-white" style="padding-bottom: max(env(safe-area-inset-bottom), 12px);">
+        <div class="p-4 flex flex-col gap-2">
             <div class="flex justify-between items-end px-2 mb-1">
                 <div class="flex flex-col">
                     <span id="numpad-title" class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">INKÖRT</span>
@@ -479,24 +483,24 @@
                 <span id="numpad-display" class="text-3xl font-black text-slate-800 tracking-tight">0 <span class="text-[16px] text-slate-400">kr</span></span>
             </div>
             
-            <div class="grid grid-cols-3 gap-2.5">
-                <button onclick="numpadPress('1')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">1</button>
-                <button onclick="numpadPress('2')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">2</button>
-                <button onclick="numpadPress('3')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">3</button>
-                <button onclick="numpadPress('4')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">4</button>
-                <button onclick="numpadPress('5')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">5</button>
-                <button onclick="numpadPress('6')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">6</button>
-                <button onclick="numpadPress('7')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">7</button>
-                <button onclick="numpadPress('8')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">8</button>
-                <button onclick="numpadPress('9')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">9</button>
-                <button onclick="numpadPress('clear')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-sm font-black text-slate-400 shadow-sm border border-slate-100 active:scale-95 transition-transform uppercase tracking-wider">C</button>
-                <button onclick="numpadPress('0')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">0</button>
-                <button onclick="numpadPress('back')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-500 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">⌫</button>
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="numpadPress('1')" class="h-11 bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">1</button>
+                <button onclick="numpadPress('2')" class="h-11 bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">2</button>
+                <button onclick="numpadPress('3')" class="h-11 bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">3</button>
+                <button onclick="numpadPress('4')" class="h-11 bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">4</button>
+                <button onclick="numpadPress('5')" class="h-11 bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">5</button>
+                <button onclick="numpadPress('6')" class="h-11 bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">6</button>
+                <button onclick="numpadPress('7')" class="h-11 bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">7</button>
+                <button onclick="numpadPress('8')" class="h-11 bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">8</button>
+                <button onclick="numpadPress('9')" class="h-11 bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">9</button>
+                <button onclick="numpadPress('clear')" class="h-11 bg-slate-50 hover:bg-slate-100 rounded-[16px] text-sm font-black text-slate-400 shadow-sm border border-slate-100 active:scale-95 transition-transform uppercase tracking-wider">C</button>
+                <button onclick="numpadPress('0')" class="h-11 bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">0</button>
+                <button onclick="numpadPress('back')" class="h-11 bg-slate-50 hover:bg-slate-100 rounded-[16px] text-xl font-black text-slate-500 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">⌫</button>
             </div>
             
-            <div class="flex gap-2.5 mt-1">
-                <button onclick="closeNumpad()" class="flex-1 h-14 bg-slate-100 hover:bg-slate-200 rounded-[20px] text-[11px] font-black text-slate-500 uppercase tracking-widest active:scale-95 transition-transform">Avbryt</button>
-                <button onclick="numpadSave()" class="flex-[2] h-14 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] rounded-[20px] text-[12px] font-black text-white uppercase tracking-widest shadow-md active:scale-95 transition-transform">Spara Belopp</button>
+            <div class="flex gap-2 mt-1">
+                <button onclick="closeNumpad()" class="flex-1 h-12 bg-slate-100 hover:bg-slate-200 rounded-[16px] text-[11px] font-black text-slate-500 uppercase tracking-widest active:scale-95 transition-transform shadow-sm border border-slate-200">Avbryt</button>
+                <button onclick="numpadSave()" class="flex-[2] h-12 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] rounded-[16px] text-[12px] font-black text-white uppercase tracking-widest shadow-md active:scale-95 transition-transform">Spara Belopp</button>
             </div>
         </div>
     </div>
@@ -511,11 +515,13 @@
             numpadValue = currentVal > 0 ? String(currentVal) : "";
             document.getElementById('numpad-title').innerText = title || 'ANGE BELOPP';
             updateNumpadDisplay();
+            document.body.classList.add('numpad-open');
             document.getElementById('custom-numpad').classList.remove('translate-y-full');
         }
 
         function closeNumpad() {
             document.getElementById('custom-numpad').classList.add('translate-y-full');
+            document.body.classList.remove('numpad-open');
             numpadTarget = null;
         }
 
@@ -550,18 +556,6 @@
             }
             closeNumpad();
         }
-        // --- NUMPAD END ---
-
-        // --- LIVE KLOCKA START ---
-        function updateLiveClock() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('sv-SE', {hour: '2-digit', minute:'2-digit'});
-            const clockEl = document.getElementById('live-clock');
-            if(clockEl) clockEl.innerText = timeStr;
-        }
-        setInterval(updateLiveClock, 1000);
-        updateLiveClock();
-        // --- LIVE KLOCKA SLUT ---
 
         function getK(d) { return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
         function parseNum(val) { if (val === undefined || val === null || val === '') return 0; if (typeof val === 'number') return val; let str = String(val).replace(/\s/g, '').replace(',', '.'); let num = parseFloat(str); return isNaN(num) ? 0 : num; }
@@ -923,7 +917,7 @@
             
             if (activeK && dayActions && weekSummary) {
                 dayActions.classList.remove('max-h-0', 'opacity-0', 'mt-0');
-                dayActions.classList.add('max-h-[48px]', 'opacity-100', 'mt-2', 'flex');
+                dayActions.classList.add('max-h-[56px]', 'opacity-100', 'mt-2', 'flex');
                 if (wpEditHint) wpEditHint.classList.remove('hidden');
                 
                 const parts = activeK.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]); const curO = db.d[activeK] || {s:0}; 
@@ -936,7 +930,7 @@
                 if(sumSalesEl) sumSalesEl.innerText = (dSales/1000).toFixed(1) + ' k';
                 if(sumDiffEl) { sumDiffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; sumDiffEl.style.color = dDiff >= 0 ? "var(--pos)" : "var(--neg)"; }
             } else if (dayActions && weekSummary) {
-                dayActions.classList.remove('max-h-[48px]', 'opacity-100', 'mt-2');
+                dayActions.classList.remove('max-h-[56px]', 'opacity-100', 'mt-2');
                 dayActions.classList.add('max-h-0', 'opacity-0', 'mt-0');
                 if (wpEditHint) wpEditHint.classList.add('hidden');
 

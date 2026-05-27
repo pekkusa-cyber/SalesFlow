@@ -107,7 +107,6 @@
         .badge-abs { top: -4px; right: -4px; width: 16px; height: 16px; font-size: 9px; background: #ffffff; border: 1.5px solid #f97316; }
         .badge-action { background: #fef3c7 !important; border-color: #f59e0b !important; color: #b45309 !important; }
         
-        /* Uppdaterad Week-tag för att inte täcka datumen */
         .week-tag { position: absolute; top: -6px; left: -10px; background: linear-gradient(135deg, #38bdf8, #0ea5e9); color: white !important; font-size: 6px; padding: 1.5px 3px; border-radius: 4px; font-weight: 900; z-index: 10; pointer-events: none; box-shadow: 0 4px 8px -2px rgba(14,165,233,0.5); letter-spacing: 0.04em; border: 1px solid #7dd3fc; }
         .cell-main-val { font-size: 9px; font-weight: 900; line-height: 1; pointer-events: none; color: inherit; }
         
@@ -214,37 +213,6 @@
                     </div>
                 </div>
 
-                <div id="top-typing-ui" class="absolute inset-0 flex flex-col w-full h-full justify-between pt-4 pb-2 px-2 transition-opacity duration-300 opacity-0 pointer-events-none z-20">
-                    
-                    <div class="text-center flex-shrink-0 z-20 relative">
-                        <h2 id="typing-top-dayname" class="text-[18px] font-black text-white tracking-widest drop-shadow-md uppercase">MÅNDAG</h2>
-                        <p id="typing-top-date" class="text-[10px] font-extrabold text-[#38bdf8] uppercase tracking-widest mt-0.5">15 MAJ 2026</p>
-                    </div>
-
-                    <div class="relative flex-1 w-full flex items-center justify-center overflow-hidden my-1 z-10">
-                        <div class="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#0f172a] to-transparent z-10 pointer-events-none rounded-l-2xl"></div>
-                        <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#0f172a] to-transparent z-10 pointer-events-none rounded-r-2xl"></div>
-                        
-                        <div id="numpad-carousel" class="flex items-center overflow-x-auto hide-scrollbar snap-x snap-mandatory w-full h-full" style="padding-left: calc(50% - 35px); padding-right: calc(50% - 35px); scroll-behavior: smooth;">
-                            </div>
-                    </div>
-
-                    <div class="flex justify-between items-center pt-2 border-t border-white/10 px-2 flex-shrink-0 z-20">
-                        <div class="flex-1 text-center">
-                            <p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">DAGSMÅL</p>
-                            <p id="typing-stat-target" class="text-[14px] font-black text-slate-300">0 k</p>
-                        </div>
-                        <div class="flex-1 text-center border-l border-white/10 relative">
-                            <p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">GJORD SUMMA</p>
-                            <p id="typing-stat-live" class="text-[18px] font-black text-[#38bdf8] drop-shadow-md leading-none">0 kr</p>
-                        </div>
-                        <div class="flex-1 text-center border-l border-white/10">
-                            <p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">DIFF</p>
-                            <p id="typing-stat-diff" class="text-[14px] font-black text-white">0 k</p>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
             <div class="app-card bottom-section" style="background: var(--white);">
@@ -295,57 +263,92 @@
                                 <div id="slide-next" class="w-full h-full flex-shrink-0 snap-center"></div>
                             </div>
 
-                            <div class="mx-3 mt-1 mb-2 p-3 bg-white rounded-[24px] border border-slate-100 shadow-md flex flex-col flex-shrink-0 relative z-20 flex-1 min-h-0 transition-all">
+                            <div class="mx-3 mt-1 mb-2 bg-white rounded-[24px] border border-slate-100 shadow-md flex flex-col flex-shrink-0 relative z-20 flex-1 min-h-0 overflow-hidden">
                                 
-                                <div class="flex justify-between items-end pb-2 border-b border-slate-100 flex-shrink-0">
-                                    <div class="flex flex-col">
-                                        <span id="dash-title" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
-                                        <span id="dash-subtitle" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
+                                <div id="dash-standard-content" class="absolute inset-0 flex flex-col p-3 transition-all duration-300 transform origin-top opacity-100 scale-100 pointer-events-auto">
+                                    <div class="flex justify-between items-end pb-2 border-b border-slate-100 flex-shrink-0">
+                                        <div class="flex flex-col">
+                                            <span id="dash-title" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
+                                            <span id="dash-subtitle" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
+                                        </div>
+                                        <div class="flex flex-col text-right">
+                                            <p id="dash-status-text" class="text-[9px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
+                                        </div>
                                     </div>
-                                    <div class="flex flex-col text-right">
-                                        <p id="dash-status-text" class="text-[9px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
-                                    </div>
-                                </div>
-                                
-                                <div id="dash-gauge-container" class="flex items-center justify-between w-full flex-1 my-2 relative">
                                     
-                                    <div id="dash-abs-badge" class="absolute top-0 right-2 w-7 h-7 rounded-full border border-white shadow-sm flex items-center justify-center text-[14px] z-20 hidden"></div>
+                                    <div id="dash-gauge-container" class="flex items-center justify-between w-full flex-1 my-2 relative">
+                                        <div id="dash-abs-badge" class="absolute top-0 right-2 w-7 h-7 rounded-full border border-white shadow-sm flex items-center justify-center text-[14px] z-20 hidden"></div>
 
-                                    <div class="flex flex-col justify-center text-left flex-1 pl-1">
-                                        <span id="dash-lbl-target" class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">MÅL</span>
-                                        <p id="dash-val-target" class="text-[16px] font-black leading-none text-slate-700 drop-shadow-sm">0 k</p>
-                                    </div>
-                                    
-                                    <div class="relative flex flex-col justify-center items-center flex-[1.5] max-w-[100px] aspect-square mx-1">
-                                        <div class="absolute inset-0 cursor-pointer" onclick="openDashNumpad()" style="z-index: 30;"></div>
-                                        <svg class="w-full h-full drop-shadow-md" viewBox="0 0 120 120">
-                                            <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
-                                            <circle id="dash-gauge-prog" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
-                                        </svg>
-                                        <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5 pointer-events-none">
-                                            <span id="dash-val-sales" class="text-[20px] font-black tracking-tighter leading-none drop-shadow-sm">0 k</span>
-                                            <span id="dash-val-perc" class="text-[9px] font-black text-slate-400 mt-1">0%</span>
+                                        <div class="flex flex-col justify-center text-left flex-1 pl-1">
+                                            <span id="dash-lbl-target" class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">MÅL</span>
+                                            <p id="dash-val-target" class="text-[16px] font-black leading-none text-slate-700 drop-shadow-sm">0 k</p>
+                                        </div>
+                                        
+                                        <div class="relative flex flex-col justify-center items-center flex-[1.5] max-w-[100px] aspect-square mx-1">
+                                            <div class="absolute inset-0 cursor-pointer z-30" onclick="openInlineNumpad()"></div>
+                                            <svg class="w-full h-full drop-shadow-md" viewBox="0 0 120 120">
+                                                <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
+                                                <circle id="dash-gauge-prog" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
+                                            </svg>
+                                            <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5 pointer-events-none">
+                                                <span id="dash-val-sales" class="text-[20px] font-black tracking-tighter leading-none drop-shadow-sm">0 k</span>
+                                                <span id="dash-val-perc" class="text-[9px] font-black text-slate-400 mt-1">0%</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex flex-col justify-center text-right flex-1 pr-1">
+                                            <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">DIFF</span>
+                                            <p id="dash-val-diff" class="text-[16px] font-black leading-none drop-shadow-sm">0 k</p>
                                         </div>
                                     </div>
 
-                                    <div class="flex flex-col justify-center text-right flex-1 pr-1">
-                                        <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">DIFF</span>
-                                        <p id="dash-val-diff" class="text-[16px] font-black leading-none drop-shadow-sm">0 k</p>
-                                    </div>
-                                </div>
-
-                                <div id="dash-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 h-[42px] flex justify-end">
-                                    <div class="relative w-full h-full overflow-hidden rounded-[14px] border border-slate-200 shadow-sm">
-                                        <div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50">
-                                            <button onclick="handleDashAction('Arbete')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button>
-                                            <button onclick="handleDashAction('Ledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button>
-                                            <button onclick="handleDashAction('Semester')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button>
-                                            <button onclick="handleDashAction('Sjuk')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button>
-                                            <button onclick="handleDashAction('VAB')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button>
-                                            <button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button>
+                                    <div id="dash-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 h-[42px] flex justify-end">
+                                        <div class="relative w-full h-full overflow-hidden rounded-[14px] border border-slate-200 shadow-sm">
+                                            <div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50">
+                                                <button onclick="handleDashAction('Arbete')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button>
+                                                <button onclick="handleDashAction('Ledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button>
+                                                <button onclick="handleDashAction('Semester')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button>
+                                                <button onclick="handleDashAction('Sjuk')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button>
+                                                <button onclick="handleDashAction('VAB')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button>
+                                                <button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <div id="dash-inline-numpad" class="absolute inset-0 bg-white z-40 flex flex-col p-2.5 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4">
+                                    
+                                    <div class="flex items-center justify-between mb-2 flex-shrink-0">
+                                        <button onclick="closeInlineNumpad()" class="text-slate-400 font-bold px-2 py-1.5 bg-slate-50 rounded-lg active:scale-95 text-[10px] uppercase tracking-wider border border-slate-100">✕ Avbryt</button>
+                                        <div class="text-center flex-1">
+                                            <p id="inline-numpad-display" class="text-[22px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 kr</p>
+                                        </div>
+                                        <button onclick="saveInlineNumpad()" class="text-white font-black px-3 py-1.5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-lg shadow-sm active:scale-95 text-[10px] uppercase tracking-wider">✓ SPARA</button>
+                                    </div>
+                                    
+                                    <div class="flex-1 flex gap-2 min-h-0">
+                                        <div class="flex-[3] grid grid-cols-3 gap-1">
+                                            <button onclick="inlinePress('1')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">1</button>
+                                            <button onclick="inlinePress('2')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">2</button>
+                                            <button onclick="inlinePress('3')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">3</button>
+                                            <button onclick="inlinePress('4')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">4</button>
+                                            <button onclick="inlinePress('5')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">5</button>
+                                            <button onclick="inlinePress('6')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">6</button>
+                                            <button onclick="inlinePress('7')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">7</button>
+                                            <button onclick="inlinePress('8')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">8</button>
+                                            <button onclick="inlinePress('9')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">9</button>
+                                            <button onclick="inlinePress('clear')" class="bg-rose-50 flex items-center justify-center text-rose-500 font-black text-sm rounded-xl border border-rose-100 active:scale-95 shadow-sm">C</button>
+                                            <button onclick="inlinePress('0')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">0</button>
+                                            <button onclick="inlinePress('back')" class="bg-slate-50 flex items-center justify-center text-slate-500 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">⌫</button>
+                                        </div>
+                                        <div class="flex-[1] flex flex-col gap-1">
+                                            <button onclick="inlineTarget()" class="flex-[1.5] bg-[#fffbeb] text-[#d97706] font-black text-[9px] uppercase tracking-widest rounded-xl border border-[#fde68a] shadow-sm active:scale-95 flex flex-col items-center justify-center leading-tight"><span>🎯</span><span class="mt-0.5">Nå Mål</span></button>
+                                            <button onclick="inlineAdd(5000)" class="flex-1 bg-[#f0f9ff] text-[#0ea5e9] font-black text-[10px] rounded-xl border border-[#bae6fd] shadow-sm active:scale-95 flex items-center justify-center">+5k</button>
+                                            <button onclick="inlineAdd(10000)" class="flex-1 bg-[#f0f9ff] text-[#0ea5e9] font-black text-[10px] rounded-xl border border-[#bae6fd] shadow-sm active:scale-95 flex items-center justify-center">+10k</button>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
 
@@ -393,10 +396,9 @@
                         <button onclick="numpadPress('0')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">0</button>
                         <button onclick="numpadPress('back')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-500 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">⌫</button>
                     </div>
-                    
                     <div class="flex gap-2 h-[52px] flex-shrink-0">
                         <button onclick="closeNumpad()" class="flex-1 h-full bg-slate-100 hover:bg-slate-200 rounded-2xl text-[12px] font-black text-slate-500 uppercase tracking-widest active:scale-95 transition-transform shadow-sm border border-slate-200">Avbryt</button>
-                        <button onclick="numpadSave()" class="flex-[2] h-full bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] rounded-2xl text-[13px] font-black text-white uppercase tracking-widest shadow-md active:scale-95 transition-transform">Spara Intjänat</button>
+                        <button onclick="numpadSave()" class="flex-[2] h-full bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] rounded-2xl text-[13px] font-black text-white uppercase tracking-widest shadow-md active:scale-95 transition-transform">Spara</button>
                     </div>
                 </div>
 
@@ -411,6 +413,8 @@
         window.addEventListener('popstate', (e) => {
             let handled = false;
             if (numpadTarget) { closeNumpad(true); handled = true; }
+            const inpn = document.getElementById('dash-inline-numpad');
+            if (inpn && inpn.classList.contains('opacity-100')) { closeInlineNumpad(true); handled = true; }
             const cm = document.getElementById('child-select-modal');
             if (cm && !cm.classList.contains('hidden')) { closeChildModal(true); handled = true; }
             const bm = document.getElementById('budget-modal');
@@ -421,34 +425,97 @@
             if (cb && cb.style.display === 'block') { hideConfirm(true); handled = true; }
         });
 
-        // --- IN-PLACE NUMPAD LOGIC MED KARUSELL ---
+
+        // ==========================================
+        //  NEW INLINE NUMPAD (Dashboard Quick-Input)
+        // ==========================================
+        let inlineNumpadValue = "";
+
+        function openInlineNumpad() {
+            if(!activeK) return; // Måste ha valt en dag först
+            pushModalState();
+            
+            const o = db.d[activeK] || {s:0};
+            inlineNumpadValue = o.s > 0 ? String(o.s) : "";
+            updateInlineNumpadDisplay();
+            
+            // Fada ut vanliga innehållet i rutan
+            document.getElementById('dash-standard-content').classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+            document.getElementById('dash-standard-content').classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+            
+            // Fada in In-line Numpaden
+            const numpad = document.getElementById('dash-inline-numpad');
+            numpad.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+            numpad.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+        }
+
+        function closeInlineNumpad(fromPopstate = false) {
+            // Återställ vanliga rutan
+            document.getElementById('dash-standard-content').classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+            document.getElementById('dash-standard-content').classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+            
+            // Dölj numpaden
+            const numpad = document.getElementById('dash-inline-numpad');
+            numpad.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+            numpad.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
+            
+            if (!fromPopstate && history.state && history.state.view === 'modal') history.back();
+            if (viewMode === 'dash') updateDashboardView();
+        }
+
+        function inlinePress(val) {
+            if (val === 'back') { inlineNumpadValue = inlineNumpadValue.slice(0, -1); } 
+            else if (val === 'clear') { inlineNumpadValue = ""; } 
+            else { if (inlineNumpadValue.length < 7) inlineNumpadValue += val; }
+            updateInlineNumpadDisplay();
+        }
+
+        function inlineAdd(amount) {
+            let current = Number(inlineNumpadValue) || 0;
+            current += amount;
+            if (current > 9999999) current = 9999999;
+            inlineNumpadValue = String(current);
+            updateInlineNumpadDisplay();
+        }
+
+        function inlineTarget() {
+            if(!activeK) return;
+            let target = timeline[activeK]?.target || 0;
+            if (target > 0) {
+                inlineNumpadValue = String(Math.round(target));
+                updateInlineNumpadDisplay();
+            }
+        }
+
+        function updateInlineNumpadDisplay() {
+            const valNum = Number(inlineNumpadValue) || 0;
+            const displayStr = inlineNumpadValue === "" ? "0 kr" : valNum.toLocaleString('sv-SE') + " kr";
+            document.getElementById('inline-numpad-display').innerText = displayStr;
+        }
+
+        function saveInlineNumpad() {
+            const valNum = Number(inlineNumpadValue) || 0;
+            if (activeK) { pushMatrixSync(activeK, { s: valNum }); } 
+            closeInlineNumpad();
+        }
+
+
+        // ==========================================
+        //  OLD BOTTOM NUMPAD (För Månadsvy Edit)
+        // ==========================================
         let numpadTarget = null; 
         let numpadValue = "";
-        let currentCarouselKey = null;
-        let isCarouselScrolling = false;
-
-        function openDashNumpad() {
-            if(activeK) openNumpad('dash', db.d[activeK]?.s || 0, 'INTJÄNAT (DAG)');
-        }
 
         function openNumpad(target, currentVal, title) {
             pushModalState();
             numpadTarget = target;
-            
             document.getElementById('top-monthly-ui').style.opacity = '0';
             document.getElementById('top-monthly-ui').style.pointerEvents = 'none';
             document.getElementById('bottom-standard-views').style.opacity = '0';
             document.getElementById('bottom-standard-views').style.pointerEvents = 'none';
-            
-            if(target === 'dash') {
-                const centerKey = activeK || getK(realToday);
-                buildCarousel(centerKey);
-                document.getElementById('top-typing-ui').style.opacity = '1';
-                document.getElementById('top-typing-ui').style.pointerEvents = 'auto';
-            }
-            
             document.getElementById('bottom-numpad-view').style.opacity = '1';
             document.getElementById('bottom-numpad-view').style.pointerEvents = 'auto';
+            numpadValue = currentVal > 0 ? String(currentVal) : ""; // Basic init
         }
 
         function closeNumpad(fromPopstate = false) {
@@ -456,16 +523,10 @@
             document.getElementById('top-monthly-ui').style.pointerEvents = 'auto';
             document.getElementById('bottom-standard-views').style.opacity = '1';
             document.getElementById('bottom-standard-views').style.pointerEvents = 'auto';
-            
-            document.getElementById('top-typing-ui').style.opacity = '0';
-            document.getElementById('top-typing-ui').style.pointerEvents = 'none';
             document.getElementById('bottom-numpad-view').style.opacity = '0';
             document.getElementById('bottom-numpad-view').style.pointerEvents = 'none';
-            
             numpadTarget = null;
             if (!fromPopstate && history.state && history.state.view === 'modal') history.back();
-            
-            if (viewMode === 'dash') updateDashboardView();
             if (viewMode === 'month') {
                 if (multiSelectKeys.size === 1) {
                     const singleK = Array.from(multiSelectKeys)[0]; const o = db.d[singleK] || {};
@@ -475,126 +536,15 @@
             }
         }
 
-        // --- KARUSELL-LOGIK ---
-        function buildCarousel(centerKey) {
-            const container = document.getElementById('numpad-carousel');
-            if (!container) return;
-            container.innerHTML = '';
-            
-            let centerDate = new Date(centerKey.split('-')[0], centerKey.split('-')[1]-1, centerKey.split('-')[2]);
-            const days = ['SÖ','MÅ','TI','ON','TO','FR','LÖ'];
-            const months = ['JAN','FEB','MAR','APR','MAJ','JUN','JUL','AUG','SEP','OKT','NOV','DEC'];
-            
-            for (let i = -30; i <= 30; i++) {
-                let d = new Date(centerDate);
-                d.setDate(d.getDate() + i);
-                const k = getK(d);
-                
-                const div = document.createElement('div');
-                div.className = 'carousel-item snap-center w-[70px] flex-shrink-0 flex flex-col items-center justify-center cursor-pointer';
-                div.dataset.key = k;
-                div.onclick = () => scrollToCarouselKey(k);
-                
-                const state = getCellState(k);
-                let color = 'text-white';
-                if(state === 'worked' || state === 'planned') color = 'text-[#38bdf8]';
-                if(state === 'absent') color = 'text-rose-400';
-                if(state === 'semester') color = 'text-[#0f766e]';
-                
-                div.innerHTML = `
-                    <span class="text-[9px] font-extrabold text-white/50 mb-0.5 tracking-widest">${days[d.getDay()]}</span>
-                    <span class="text-[26px] font-black leading-none ${color}">${d.getDate()}</span>
-                    <span class="text-[8px] font-bold text-white/40 mt-1 tracking-widest">${months[d.getMonth()]}</span>
-                `;
-                container.appendChild(div);
-            }
-
-            container.onscroll = () => { requestAnimationFrame(updateCarouselVisuals); };
-            setTimeout(() => { scrollToCarouselKey(centerKey, false); }, 10);
-        }
-
-        function scrollToCarouselKey(k, smooth = true) {
-            const container = document.getElementById('numpad-carousel');
-            const item = Array.from(container.children).find(c => c.dataset.key === k);
-            if (item) {
-                const scrollPos = item.offsetLeft - (container.clientWidth / 2) + (item.clientWidth / 2);
-                container.scrollTo({ left: scrollPos, behavior: smooth ? 'smooth' : 'auto' });
-                updateCarouselVisuals();
-            }
-        }
-
-        function updateCarouselVisuals() {
-            const container = document.getElementById('numpad-carousel');
-            if (!container) return;
-            const center = container.scrollLeft + (container.clientWidth / 2);
-            const children = Array.from(container.children);
-            
-            let closestChild = null;
-            let minDiff = Infinity;
-
-            children.forEach(child => {
-                const childCenter = child.offsetLeft + (child.clientWidth / 2);
-                const diff = Math.abs(center - childCenter);
-                const ratio = Math.min(1, diff / 70); 
-                const scale = 1.35 - (0.5 * ratio); 
-                const opacity = 1 - (0.65 * ratio);  
-                
-                child.style.transform = `scale(${Math.max(0.7, scale)})`;
-                child.style.opacity = Math.max(0.15, opacity);
-
-                if (diff < minDiff) { minDiff = diff; closestChild = child; }
-            });
-
-            if (closestChild && closestChild.dataset.key !== currentCarouselKey) {
-                currentCarouselKey = closestChild.dataset.key;
-                activeK = currentCarouselKey; 
-                const o = db.d[currentCarouselKey] || {s:0};
-                numpadValue = o.s > 0 ? String(o.s) : "";
-                updateNumpadDisplay();
-            }
-        }
-
         function numpadPress(val) {
             if (val === 'back') { numpadValue = numpadValue.slice(0, -1); } 
             else if (val === 'clear') { numpadValue = ""; } 
             else { if (numpadValue.length < 7) numpadValue += val; }
-            updateNumpadDisplay();
-        }
-
-        function updateNumpadDisplay() {
-            const valNum = Number(numpadValue) || 0;
-            const displayStr = numpadValue === "" ? "0 kr" : valNum.toLocaleString('sv-SE') + " kr";
-            
-            const liveStat = document.getElementById('typing-stat-live');
-            if (liveStat) liveStat.innerText = displayStr;
-
-            if(!currentCarouselKey) return;
-            
-            const k = currentCarouselKey;
-            const p = k.split('-'); const dObj = new Date(p[0], p[1]-1, p[2]);
-            const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
-            const months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
-
-            document.getElementById('typing-top-dayname').innerText = daysLong[dObj.getDay()];
-            document.getElementById('typing-top-date').innerText = `${dObj.getDate()} ${months[dObj.getMonth()]} ${dObj.getFullYear()}`;
-
-            let dTarget = timeline[k]?.target || 0;
-            let diff = valNum - dTarget;
-            
-            document.getElementById('typing-stat-target').innerText = (dTarget/1000).toFixed(1) + " k";
-            
-            let diffEl = document.getElementById('typing-stat-diff');
-            diffEl.innerText = (diff >= 0 ? "+" : "") + (diff/1000).toFixed(1) + " k";
-            diffEl.style.color = diff >= 0 ? "var(--sting-blue)" : "var(--neg)";
-            
-            if (valNum >= dTarget && dTarget > 0) { liveStat.style.color = "var(--sting-blue)"; } 
-            else { liveStat.style.color = "var(--neg)"; }
         }
 
         function numpadSave() {
             const valNum = Number(numpadValue) || 0;
-            if (activeK) { pushMatrixSync(activeK, { s: valNum }); } 
-            else if (numpadTarget === 'month') {
+            if (numpadTarget === 'month') {
                 let upserts = []; const keys = Array.from(multiSelectKeys);
                 for (let k of keys) {
                     const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: valNum, abs: old.abs || null };
@@ -973,7 +923,6 @@
         }
         function hideConfirm(fromPopstate = false) { const cb = document.getElementById('confirm-box'); if(cb && cb.style.display !== 'none') { cb.style.display='none'; if(!fromPopstate && history.state && history.state.view === 'modal') history.back(); } }
 
-        // --- THE UNIFIED DASHBOARD LOGIC ---
         function updateDashboardView() {
             const dashTab = document.getElementById('tab-dash');
             if (dashTab) dashTab.innerText = activeK ? 'DAG' : 'VECKA';
@@ -985,7 +934,6 @@
             let isReached = false;
 
             if (activeK) {
-                // DAG MODE
                 const parts = activeK.split('-'); 
                 const dObj = new Date(parts[0], parts[1]-1, parts[2]); 
                 const o = db.d[activeK] || {s:0}; 
@@ -1010,7 +958,6 @@
                 showActions = true;
                 isReached = dTarget > 0 && dSales >= dTarget;
             } else {
-                // VECKA MODE
                 let wPass = 0, firstShiftTarget = null;
                 let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6);
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
@@ -1034,7 +981,6 @@
                 isReached = dTarget > 0 && dSales >= dTarget;
             }
 
-            // Uppdatera text element
             document.getElementById('dash-title').innerText = title.toUpperCase();
             document.getElementById('dash-subtitle').innerText = subtitle;
             document.getElementById('dash-status-text').innerText = statusText;
@@ -1050,17 +996,15 @@
             diffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k";
             diffEl.style.color = dDiff >= 0 ? "var(--sting-blue)" : "var(--neg)";
 
-            // Gauge och Procent
             const p = dTarget > 0 ? Math.min(100, Math.round((dSales / dTarget) * 100)) : 0;
             document.getElementById('dash-val-perc').innerText = p + "%";
             const g = document.getElementById('dash-gauge-prog');
             if(g) {
-                g.style.strokeDashoffset = 283 - ((p / 100) * 212); // Max 283 (dasharray), offset starts at 283. Length of arc is 212.
+                g.style.strokeDashoffset = 283 - ((p / 100) * 212);
                 g.style.stroke = isReached ? 'var(--sting-blue)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
                 g.style.filter = isReached ? 'drop-shadow(0 0 4px rgba(14,165,233,0.4))' : (dTarget > 0 ? 'drop-shadow(0 0 4px rgba(239,68,68,0.4))' : 'none');
             }
 
-            // Frånvaro Badge (visas inne i kalenderrutan bredvid gaugen)
             const badgeEl = document.getElementById('dash-abs-badge');
             if (absType) {
                 const em = { 'Sjuk': '🤒', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' };
@@ -1071,7 +1015,6 @@
                 badgeEl.classList.add('hidden');
             }
 
-            // Actions panel
             const acts = document.getElementById('dash-actions');
             if (showActions) {
                 acts.classList.remove('opacity-0', 'pointer-events-none', 'h-0', 'mt-0');

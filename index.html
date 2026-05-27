@@ -38,17 +38,11 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
         body { 
-            background: var(--bg-canvas); 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            font-variant-numeric: tabular-nums; 
-            font-feature-settings: "ss01", "cv11", "tnum";
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            text-rendering: optimizeLegibility;
-            height: 100dvh; width: 100vw; overflow: hidden; 
-            display: flex; justify-content: center; 
-            color: var(--text-main); 
-            position: relative;
+            background: var(--bg-canvas); font-family: 'Plus Jakarta Sans', sans-serif; 
+            font-variant-numeric: tabular-nums; font-feature-settings: "ss01", "cv11", "tnum";
+            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility;
+            height: 100dvh; width: 100vw; overflow: hidden; display: flex; justify-content: center; 
+            color: var(--text-main); position: relative;
         }
         body::before {
             content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -147,6 +141,9 @@
         .status-today.active-shift-pulse { animation: pulse-cell-blue 2.2s var(--ease-spring) infinite; border: 1.5px solid #7dd3fc !important; }
         .active-focus.active-shift-pulse { animation: pulse-cell-amber 2.2s var(--ease-spring) infinite; border: 1.5px solid #fcd34d !important; }
         .cc-bg-active-shift { background: linear-gradient(145deg, #f0f9ff, #e0f2fe) !important; border: 1px solid #ffffff !important; animation: pulse-card-glow 2.5s infinite alternate var(--ease-spring) !important; }
+
+        /* CAROUSEL TWEAKS */
+        .carousel-item { transition: transform 0.1s ease-out, opacity 0.1s ease-out; }
     </style>
 </head>
 <body class="mode-day">
@@ -227,31 +224,34 @@
                     </div>
                 </div>
 
-                <div id="top-typing-ui" class="absolute inset-0 flex flex-col w-full h-full justify-center px-4 py-4 transition-opacity duration-300 opacity-0 pointer-events-none">
-                    <div class="budget-header"><p class="budget-label mt-1" id="typing-title">MÅNDAG 15 MAJ</p><p id="typing-live-val" class="budget-val text-white !important">0 kr</p></div>
-                    <div class="gauge-layout">
-                        <div class="side-col">
-                            <p class="micro-lbl">Dagens Mål</p><p id="typing-target" class="val-display pop-highlight">0 k</p>
-                        </div>
-                        <div class="gauge-container">
-                            <span class="g-label-0">0</span>
-                            <svg viewBox="0 0 130 130">
-                                <circle class="g-bg" cx="65" cy="65" r="52" stroke-dasharray="245 326.7" transform="rotate(135 65 65)"></circle>
-                                <circle class="g-marks" cx="65" cy="65" r="44" stroke-dasharray="1 18" transform="rotate(135 65 65)"></circle>
-                                <circle id="typing-circle-prog" class="g-prog" cx="65" cy="65" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"></circle>
-                            </svg>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center pt-0.5"><span id="typing-perc-val" class="text-[20px] font-black tracking-tighter text-white drop-shadow-md">0%</span><span id="typing-status-lbl" class="text-[8px] font-extrabold text-white/90 uppercase mt-0.5">I FAS</span></div>
-                            <span id="typing-max-lbl" class="g-label-240">MAX</span>
-                        </div>
-                        <div class="side-col">
-                            <p class="micro-lbl">Dagens Diff</p><p id="typing-diff" class="val-display pop-highlight">0 k</p>
-                        </div>
-                    </div>
+                <div id="top-typing-ui" class="absolute inset-0 flex flex-col w-full h-full justify-between pt-4 pb-2 px-2 transition-opacity duration-300 opacity-0 pointer-events-none z-20">
                     
-                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-white/10 px-1">
-                        <div class="flex-1 text-center"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">Snitt / Pass</p><p id="typing-avg" class="text-[14px] font-black text-[#38bdf8]">0 k</p></div>
-                        <div class="flex-1 text-center border-l border-white/10"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">Prognos</p><p id="typing-prog" class="text-[14px] font-black text-white">0</p></div>
-                        <div class="flex-1 text-center border-l border-white/10"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">Status</p><p id="typing-status" class="text-[12px] font-black mt-0.5 uppercase tracking-wider text-white">LADDAR</p></div>
+                    <div class="text-center flex-shrink-0 z-20 relative">
+                        <h2 id="typing-top-dayname" class="text-[18px] font-black text-white tracking-widest drop-shadow-md uppercase">MÅNDAG</h2>
+                        <p id="typing-top-date" class="text-[10px] font-extrabold text-[#38bdf8] uppercase tracking-widest mt-0.5">15 MAJ 2026</p>
+                    </div>
+
+                    <div class="relative flex-1 w-full flex items-center justify-center overflow-hidden my-1 z-10">
+                        <div class="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#0f172a] to-transparent z-10 pointer-events-none rounded-l-2xl"></div>
+                        <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-[#0f172a] to-transparent z-10 pointer-events-none rounded-r-2xl"></div>
+                        
+                        <div id="numpad-carousel" class="flex items-center overflow-x-auto hide-scrollbar snap-x snap-mandatory w-full h-full" style="padding-left: calc(50% - 35px); padding-right: calc(50% - 35px); scroll-behavior: smooth;">
+                            </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-2 border-t border-white/10 px-2 flex-shrink-0 z-20">
+                        <div class="flex-1 text-center">
+                            <p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">DAGSMÅL</p>
+                            <p id="typing-stat-target" class="text-[14px] font-black text-slate-300">0 k</p>
+                        </div>
+                        <div class="flex-1 text-center border-l border-white/10 relative">
+                            <p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">GJORD SUMMA</p>
+                            <p id="typing-stat-live" class="text-[18px] font-black text-[#38bdf8] drop-shadow-md leading-none">0 kr</p>
+                        </div>
+                        <div class="flex-1 text-center border-l border-white/10">
+                            <p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">DIFF</p>
+                            <p id="typing-stat-diff" class="text-[14px] font-black text-white">0 k</p>
+                        </div>
                     </div>
                 </div>
 
@@ -460,7 +460,7 @@
     </div>
 
     <script>
-        // --- CENTRALISERAD HISTORY API ---
+        // --- HISTORY & NAVIGATION ---
         function pushModalState() { history.pushState({view: 'modal'}, ''); }
 
         window.addEventListener('popstate', (e) => {
@@ -476,14 +476,15 @@
             if (cb && cb.style.display === 'block') { hideConfirm(true); handled = true; }
         });
 
-        // --- IN-PLACE NUMPAD LOGIC ---
+        // --- IN-PLACE NUMPAD LOGIC MED KARUSELL ---
         let numpadTarget = null; 
         let numpadValue = "";
+        let currentCarouselKey = null;
+        let isCarouselScrolling = false;
 
         function openNumpad(target, currentVal, title) {
             pushModalState();
             numpadTarget = target;
-            numpadValue = currentVal > 0 ? String(currentVal) : "";
             
             // Fada ut standard-vyer
             document.getElementById('top-monthly-ui').style.opacity = '0';
@@ -491,23 +492,25 @@
             document.getElementById('bottom-standard-views').style.opacity = '0';
             document.getElementById('bottom-standard-views').style.pointerEvents = 'none';
             
+            // Bygg karusellen utifrån aktiv dag
+            const centerKey = activeK || getK(realToday);
+            buildCarousel(centerKey);
+            
             // Fada in skriv-vyer
             document.getElementById('top-typing-ui').style.opacity = '1';
             document.getElementById('top-typing-ui').style.pointerEvents = 'auto';
             document.getElementById('bottom-numpad-view').style.opacity = '1';
             document.getElementById('bottom-numpad-view').style.pointerEvents = 'auto';
-            
-            updateNumpadDisplay();
         }
 
         function closeNumpad(fromPopstate = false) {
-            // Fada in standard-vyer
+            // Återställ till standard-vyer
             document.getElementById('top-monthly-ui').style.opacity = '1';
             document.getElementById('top-monthly-ui').style.pointerEvents = 'auto';
             document.getElementById('bottom-standard-views').style.opacity = '1';
             document.getElementById('bottom-standard-views').style.pointerEvents = 'auto';
             
-            // Fada ut skriv-vyer
+            // Fada ut numpad
             document.getElementById('top-typing-ui').style.opacity = '0';
             document.getElementById('top-typing-ui').style.pointerEvents = 'none';
             document.getElementById('bottom-numpad-view').style.opacity = '0';
@@ -516,6 +519,7 @@
             numpadTarget = null;
             if (!fromPopstate && history.state && history.state.view === 'modal') history.back();
             
+            // Uppdatera vyerna under
             if (viewMode === 'day') updateInlineFocusDashboard();
             if (viewMode === 'week') updateWeekPanel();
             if (viewMode === 'month') {
@@ -524,6 +528,94 @@
                     const mText = document.getElementById('month-sales-text');
                     if (mText) { mText.innerText = o.s > 0 ? o.s + ' kr' : '0 kr'; if (o.s > 0) mText.classList.replace('text-slate-400', 'text-[#0ea5e9]'); else mText.classList.replace('text-[#0ea5e9]', 'text-slate-400'); }
                 }
+            }
+        }
+
+        // --- KARUSELL-LOGIK ---
+        function buildCarousel(centerKey) {
+            const container = document.getElementById('numpad-carousel');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            let centerDate = new Date(centerKey.split('-')[0], centerKey.split('-')[1]-1, centerKey.split('-')[2]);
+            const days = ['SÖ','MÅ','TI','ON','TO','FR','LÖ'];
+            const months = ['JAN','FEB','MAR','APR','MAJ','JUN','JUL','AUG','SEP','OKT','NOV','DEC'];
+            
+            // Vi genererar 61 dagar (-30 till +30) så man kan scrolla smidigt
+            for (let i = -30; i <= 30; i++) {
+                let d = new Date(centerDate);
+                d.setDate(d.getDate() + i);
+                const k = getK(d);
+                
+                const div = document.createElement('div');
+                div.className = 'carousel-item snap-center w-[70px] flex-shrink-0 flex flex-col items-center justify-center cursor-pointer';
+                div.dataset.key = k;
+                div.onclick = () => scrollToCarouselKey(k);
+                
+                const state = getCellState(k);
+                let color = 'text-white';
+                if(state === 'worked' || state === 'planned') color = 'text-[#38bdf8]';
+                if(state === 'absent') color = 'text-rose-400';
+                if(state === 'semester') color = 'text-[#0f766e]';
+                
+                div.innerHTML = `
+                    <span class="text-[9px] font-extrabold text-white/50 mb-0.5 tracking-widest">${days[d.getDay()]}</span>
+                    <span class="text-[26px] font-black leading-none ${color}">${d.getDate()}</span>
+                    <span class="text-[8px] font-bold text-white/40 mt-1 tracking-widest">${months[d.getMonth()]}</span>
+                `;
+                container.appendChild(div);
+            }
+
+            container.onscroll = () => { requestAnimationFrame(updateCarouselVisuals); };
+
+            // Centrera skärmen direkt på valt datum
+            setTimeout(() => { scrollToCarouselKey(centerKey, false); }, 10);
+        }
+
+        function scrollToCarouselKey(k, smooth = true) {
+            const container = document.getElementById('numpad-carousel');
+            const item = Array.from(container.children).find(c => c.dataset.key === k);
+            if (item) {
+                const scrollPos = item.offsetLeft - (container.clientWidth / 2) + (item.clientWidth / 2);
+                container.scrollTo({ left: scrollPos, behavior: smooth ? 'smooth' : 'auto' });
+                updateCarouselVisuals();
+            }
+        }
+
+        function updateCarouselVisuals() {
+            const container = document.getElementById('numpad-carousel');
+            if (!container) return;
+            const center = container.scrollLeft + (container.clientWidth / 2);
+            const children = Array.from(container.children);
+            
+            let closestChild = null;
+            let minDiff = Infinity;
+
+            children.forEach(child => {
+                const childCenter = child.offsetLeft + (child.clientWidth / 2);
+                const diff = Math.abs(center - childCenter);
+                
+                // Normalisera avståndet. 70px är en bredd på ett barn.
+                const ratio = Math.min(1, diff / 70); 
+                
+                const scale = 1.35 - (0.5 * ratio); // Stor i mitten, krymper ner mot kanterna
+                const opacity = 1 - (0.65 * ratio);  // Opak i mitten, genomskinlig mot kanterna
+                
+                child.style.transform = `scale(${Math.max(0.7, scale)})`;
+                child.style.opacity = Math.max(0.15, opacity);
+
+                if (diff < minDiff) { minDiff = diff; closestChild = child; }
+            });
+
+            // Om vi har snappat till en ny dag
+            if (closestChild && closestChild.dataset.key !== currentCarouselKey) {
+                currentCarouselKey = closestChild.dataset.key;
+                activeK = currentCarouselKey; // Synka hela appen med karusellen!
+                
+                // Hämta det värdet som finns sparat på denna dagen
+                const o = db.d[currentCarouselKey] || {s:0};
+                numpadValue = o.s > 0 ? String(o.s) : "";
+                updateNumpadDisplay();
             }
         }
 
@@ -538,75 +630,38 @@
             const valNum = Number(numpadValue) || 0;
             const displayStr = numpadValue === "" ? "0 kr" : valNum.toLocaleString('sv-SE') + " kr";
             
-            // Updaterar live-värdet i Top Baren
-            document.getElementById('typing-live-val').innerText = displayStr;
+            const liveStat = document.getElementById('typing-stat-live');
+            if (liveStat) liveStat.innerText = displayStr;
 
-            // Beräkna dagens statistik för Typ-vyn
-            let dTarget = 0, dTitle = "";
+            if(!currentCarouselKey) return;
+            
+            const k = currentCarouselKey;
+            const p = k.split('-'); const dObj = new Date(p[0], p[1]-1, p[2]);
             const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+            const months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
 
-            if (numpadTarget === 'day') {
-                const k = activeK || getK(realToday);
-                dTarget = timeline[k]?.target || 0;
-                const p = k.split('-'); const dObj = new Date(p[0], p[1]-1, p[2]);
-                dTitle = `${daysLong[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`.toUpperCase();
-            } else if (numpadTarget === 'week') {
-                let wPass = 0, firstShiftTarget = null;
-                for(let i=0; i<7; i++) { 
-                    const cd = new Date(currentWeekStart); cd.setDate(cd.getDate() + i); const k = getK(cd);
-                    const state = getCellState(k);
-                    if(state === 'worked' || state === 'planned') { if(firstShiftTarget === null) firstShiftTarget = (timeline[k]?.target || 0); wPass++; }
-                }
-                dTarget = (firstShiftTarget || 0) * wPass;
-                dTitle = `VECKA ${getWeekNumber(currentWeekStart)}`;
-            } else if (numpadTarget === 'month') {
-                dTitle = `VALDA DAGAR`; dTarget = 0;
-                for (let k of Array.from(multiSelectKeys)) { dTarget += (timeline[k]?.target || 0); }
-            }
+            // Header text ovanför karusellen
+            document.getElementById('typing-top-dayname').innerText = daysLong[dObj.getDay()];
+            document.getElementById('typing-top-date').innerText = `${dObj.getDate()} ${months[dObj.getMonth()]} ${dObj.getFullYear()}`;
 
-            document.getElementById('typing-title').innerText = dTitle;
-            document.getElementById('typing-target').innerText = (dTarget/1000).toFixed(1) + " k";
-            document.getElementById('typing-max-lbl').innerText = Math.round(dTarget/1000);
-
-            // Diff och mätare
+            // Mål och Diff
+            let dTarget = timeline[k]?.target || 0;
             let diff = valNum - dTarget;
-            let diffEl = document.getElementById('typing-diff');
+            
+            document.getElementById('typing-stat-target').innerText = (dTarget/1000).toFixed(1) + " k";
+            
+            let diffEl = document.getElementById('typing-stat-diff');
             diffEl.innerText = (diff >= 0 ? "+" : "") + (diff/1000).toFixed(1) + " k";
             diffEl.style.color = diff >= 0 ? "#34d399" : "#f87171";
             
-            let perc = dTarget > 0 ? Math.min(100, Math.round((valNum / dTarget) * 100)) : 0;
-            document.getElementById('typing-perc-val').innerText = perc + "%";
-            
-            const gProg = document.getElementById('typing-circle-prog');
-            if (gProg) gProg.style.strokeDashoffset = 326.7 - ((perc / 100) * (326.7 * 0.75));
-
-            let statLbl = document.getElementById('typing-status-lbl');
-            if (valNum >= dTarget && dTarget > 0) { statLbl.innerText = "I MÅL"; statLbl.style.color = "#34d399"; }
-            else { statLbl.innerText = "KVAR"; statLbl.style.color = "#f87171"; }
-
-            // Kopiera Snitt/Prognos/Status från den vanliga top-baren så designen bibehålls
-            document.getElementById('typing-avg').innerText = document.getElementById('d-avg-val').innerText;
-            document.getElementById('typing-prog').innerText = document.getElementById('d-prog').innerText;
-            document.getElementById('typing-prog').style.color = document.getElementById('d-prog').style.color;
-            document.getElementById('typing-status').innerText = document.getElementById('d-status').innerText;
-            document.getElementById('typing-status').style.color = document.getElementById('d-status').style.color;
+            // Ändra live-textens färg om vi passerar målet
+            if (valNum >= dTarget && dTarget > 0) { liveStat.style.color = "#34d399"; } 
+            else { liveStat.style.color = "#38bdf8"; }
         }
 
         function numpadSave() {
             const valNum = Number(numpadValue) || 0;
-            if (numpadTarget === 'day') { const k = activeK || getK(realToday); pushMatrixSync(k, { s: valNum }); } 
-            else if (numpadTarget === 'week') { if (activeK) pushMatrixSync(activeK, { s: valNum }); } 
-            else if (numpadTarget === 'month') {
-                let upserts = []; const keys = Array.from(multiSelectKeys);
-                for (let k of keys) {
-                    const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: valNum, abs: old.abs || null };
-                    db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
-                }
-                multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard();
-                if (viewMode === 'week') updateWeekPanel();
-                if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
-            }
+            if (activeK) { pushMatrixSync(activeK, { s: valNum }); } 
             closeNumpad();
         }
 

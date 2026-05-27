@@ -34,12 +34,10 @@
             --pastel-gray-bg: #e2e8f0;
             --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
             
-            /* NYA MODERNISERADE SKUGGOR (Premium 3D feel) */
             --shadow-sm: 0 4px 12px -4px rgba(15,23,42,0.08), 0 2px 6px -2px rgba(15,23,42,0.04);
             --shadow-md: 0 16px 32px -8px rgba(15,23,42,0.12), 0 4px 12px -4px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,1);
             --shadow-banner: 0 1px 0 rgba(255,255,255,0.04) inset, 0 -1px 0 rgba(0,0,0,0.3) inset, 0 18px 40px -12px rgba(2,6,23,0.45), 0 4px 12px -4px rgba(2,6,23,0.35);
             --shadow-glow-blue: 0 8px 24px -6px rgba(14,165,233,0.45), 0 0 12px 2px rgba(14,165,233,0.15);
-            --ring-focus: 0 0 0 3px rgba(14,165,233,0.18);
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
@@ -111,7 +109,6 @@
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 5px; padding: 4px 6px 8px; height: 100%; }
         .weekday-label { text-align: center; font-size: 8.5px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; padding-bottom: 2px; letter-spacing: 0.08em; }
         
-        /* NY: Flytande Dag-Celler med 3D känsla */
         .day-cell { 
             width: 100%; height: 100%; border-radius: 12px; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; 
@@ -121,17 +118,9 @@
             box-shadow: 0 4px 10px -4px rgba(15,23,42,0.1), inset 0 -2px 6px rgba(15,23,42,0.02); 
             transition: all 0.25s var(--ease-spring);
         }
-        .day-cell:hover { 
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px -6px rgba(15,23,42,0.12), inset 0 -2px 4px rgba(15,23,42,0.02); 
-            z-index: 10;
-        }
-        .day-cell:active { 
-            transform: scale(0.92) translateY(1px); 
-            box-shadow: 0 2px 4px -2px rgba(15,23,42,0.08); 
-        }
+        .day-cell:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -6px rgba(15,23,42,0.12), inset 0 -2px 4px rgba(15,23,42,0.02); z-index: 10; }
+        .day-cell:active { transform: scale(0.92) translateY(1px); box-shadow: 0 2px 4px -2px rgba(15,23,42,0.08); }
         
-        /* Justerade bakgrunder för dagstyperna för att behålla 3D-looken */
         .type-unplanned { background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important; border: 1px solid #ffffff !important; color: var(--text-muted) !important; }
         .type-planned { background: linear-gradient(180deg, #f0f9ff, #e0f2fe) !important; color: var(--sting-blue) !important; border: 1px solid #ffffff !important; box-shadow: 0 4px 10px -4px rgba(14, 165, 233, 0.2), inset 0 -2px 6px rgba(14, 165, 233, 0.05); }
         .type-ledig { background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important; color: var(--text-muted) !important; border: 1px solid #ffffff !important; }
@@ -144,19 +133,16 @@
         .history-fail { background: linear-gradient(180deg, #fff5f5, #fee2e2) !important; color: #9f1239 !important; border-color: #ffffff !important;}
         .history-ledig { background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important; color: var(--text-muted) !important; border-color: #ffffff !important; }
         
-        /* Uppgraderad fokus och IDAG-glöd */
         .status-today { 
             background: linear-gradient(135deg, var(--today-light), var(--today-dark)) !important; 
             color: #ffffff !important; opacity: 1 !important; z-index: 5; 
             box-shadow: 0 10px 24px -4px rgba(2, 132, 199, 0.6), inset 0 2px 4px rgba(255,255,255,0.4) !important; 
-            border: 1px solid #38bdf8 !important;
-            transform: translateY(-1px);
+            border: 1px solid #38bdf8 !important; transform: translateY(-1px);
         }
         .active-focus { 
             background: var(--selected-bg) !important; z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; 
             box-shadow: var(--shadow-glow-blue), inset 0 2px 4px rgba(255,255,255,0.4) !important; 
-            border: 1px solid #7dd3fc !important; 
-            transform: translateY(-2px) scale(1.02);
+            border: 1px solid #7dd3fc !important; transform: translateY(-2px) scale(1.02);
         }
         
         .status-today .date-num, .active-focus .date-num, .status-today .cell-main-val, .active-focus .cell-main-val { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
@@ -177,27 +163,22 @@
         
         .focus-gauge-bg { fill: none; stroke: rgba(15,23,42,0.05); stroke-linecap: round; }
         .fg-sales { fill: none; stroke: var(--sting-blue); stroke-linecap: round; transition: stroke-dashoffset 0.7s var(--ease-spring); filter: drop-shadow(0 0 4px rgba(14,165,233,0.35)); }
-        .input-dark-theme { background: #ffffff; border: 1px solid #cbd5e1; color: var(--text-main); outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
-        .input-dark-theme:focus { border-color: var(--sting-blue); box-shadow: var(--ring-focus); }
         
-        /* COCKPIT NYA GLOW OCH SKUGGOR */
-        .glass-panel-inline { border-radius: 24px; transition: all 0.3s var(--ease-spring); }
+        .glass-panel-inline { border-radius: 24px; transition: all 0.3s var(--ease-spring); cursor: pointer; }
+        .glass-panel-inline:active { transform: scale(0.98); }
         .cc-bg-default { background: linear-gradient(145deg, #ffffff, #f8fafc) !important; border: 1px solid #ffffff !important; box-shadow: 0 12px 30px -8px rgba(15,23,42,0.1), inset 0 2px 4px rgba(255,255,255,1) !important; }
         .cc-bg-success { background: linear-gradient(145deg, #f0fdf4, #d1fae5) !important; border: 1px solid #ffffff !important; box-shadow: 0 12px 30px -8px rgba(16, 185, 129, 0.2), inset 0 2px 4px rgba(255,255,255,1) !important; }
         .cc-bg-fail { background: linear-gradient(145deg, #fff5f5, #fee2e2) !important; border: 1px solid #ffffff !important; box-shadow: 0 12px 30px -8px rgba(244, 63, 94, 0.2), inset 0 2px 4px rgba(255,255,255,1) !important; }
         .cc-bg-planned { background: linear-gradient(145deg, #f0f9ff, #e0f2fe) !important; border: 1px solid #ffffff !important; box-shadow: 0 12px 30px -8px rgba(14, 165, 233, 0.2), inset 0 2px 4px rgba(255,255,255,1) !important; }
         .cc-bg-ledig { background: linear-gradient(145deg, #f8fafc, #f1f5f9) !important; border: 1px solid #ffffff !important; box-shadow: 0 8px 24px -8px rgba(15,23,42,0.06), inset 0 2px 4px rgba(255,255,255,1) !important; }
         
-        /* Modal-kort polish */
         #note-confirm-modal > div, #child-select-modal > div, #budget-modal > div {
             background: rgba(255,255,255,0.94) !important;
-            backdrop-filter: blur(24px) saturate(160%);
-            -webkit-backdrop-filter: blur(24px) saturate(160%);
+            backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%);
             border: 1px solid rgba(255,255,255,0.6) !important;
             box-shadow: 0 24px 60px -12px rgba(15,23,42,0.28), 0 2px 6px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important;
         }
-        #note-confirm-modal, #child-select-modal { backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
-        #budget-modal { backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
+        #note-confirm-modal, #child-select-modal, #budget-modal { backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
         
         @keyframes pulse-cell {
             0%   { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0.5); }
@@ -209,11 +190,7 @@
             100% { box-shadow: 0 16px 40px -8px rgba(14, 165, 233, 0.6), 0 0 24px rgba(14, 165, 233, 0.35), inset 0 2px 4px rgba(255,255,255,1); transform: translateY(-1px); }
         }
         .status-today.active-shift-pulse, .active-focus.active-shift-pulse { animation: pulse-cell 2.2s var(--ease-spring) infinite; border: 1.5px solid #7dd3fc !important; }
-        .cc-bg-active-shift { 
-            background: linear-gradient(145deg, #f0f9ff, #e0f2fe) !important; 
-            border: 1px solid #ffffff !important; 
-            animation: pulse-card-glow 2.5s infinite alternate var(--ease-spring) !important; 
-        }
+        .cc-bg-active-shift { background: linear-gradient(145deg, #f0f9ff, #e0f2fe) !important; border: 1px solid #ffffff !important; animation: pulse-card-glow 2.5s infinite alternate var(--ease-spring) !important; }
     </style>
 </head>
 <body class="mode-day">
@@ -250,11 +227,8 @@
     <div id="budget-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[15000] hidden flex items-center justify-center p-4">
         <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-4">
             <p class="text-[10px] font-black text-center uppercase tracking-widest text-slate-400">Inställningar</p>
-            
             <button id="sync-btn" onclick="syncData()" class="w-full py-3.5 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all flex justify-center items-center gap-2"><span>⚡</span> Synkronisera Data</button>
-            
             <div class="h-px w-full bg-slate-100 my-1"></div>
-            
             <p class="text-[9px] font-black text-center uppercase tracking-widest text-slate-400">Välj Månadsmål</p>
             <div class="flex flex-col gap-2">
                 <button onclick="setGlobalBudget(100000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">100 000 kr</button>
@@ -334,18 +308,19 @@
                     </div>
                     <div id="month-edit-menu" class="hidden absolute inset-0 flex items-center justify-between px-3 z-50 bg-slate-50" style="border-radius: 28px 28px 0 0;">
                         <div class="flex items-center justify-between w-full h-full pb-0.5">
-                            <div class="flex items-center gap-2">
-                                <input type="text" inputmode="decimal" id="in-sales-month" onclick="event.stopPropagation()" class="w-16 h-10 text-center font-black rounded-xl text-[14px] input-dark-theme focus:border-[#0ea5e9] shadow-inner" placeholder="0 kr">
-                                <button onclick="saveSalesFromPopup(); event.stopPropagation();" class="w-10 h-10 rounded-xl text-white font-black text-[16px] bg-[#0ea5e9] shadow-md active:scale-95 transition-all">✓</button>
-                            </div>
-                            <div class="flex items-center gap-1.5 border-l border-slate-200 pl-2 ml-1">
-                                <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5 drop-shadow-sm">⚒️</button>
-                                <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5 drop-shadow-sm">🏠</button>
-                                <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5 drop-shadow-sm">✈️</button>
-                                <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5 drop-shadow-sm">🤒</button>
-                                <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5 drop-shadow-sm">👶</button>
-                                <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="text-[18px] transform active:scale-90 px-0.5 drop-shadow-sm">🍼</button>
-                                <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="text-red-500 text-[18px] transform active:scale-90 border-l border-slate-200 pl-2 ml-1 drop-shadow-sm">🗑️</button>
+                            <button onclick="openNumpad('month', 0, 'VÄLJ BELOPP'); event.stopPropagation();" class="flex items-center justify-between gap-2 px-3 py-2 bg-white border border-slate-200 rounded-[12px] shadow-sm active:scale-95 transition-transform flex-1 max-w-[100px]">
+                                <span class="text-[13px] font-black text-slate-400" id="month-sales-text">0 kr</span>
+                                <span class="text-slate-400 text-[10px]">✏️</span>
+                            </button>
+                            
+                            <div class="flex items-center gap-1 border-l border-slate-200 pl-2 ml-1">
+                                <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm">⚒️</button>
+                                <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm">🏠</button>
+                                <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm">✈️</button>
+                                <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm">🤒</button>
+                                <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm">👶</button>
+                                <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm">🍼</button>
+                                <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="text-red-500 text-[16px] transform active:scale-90 border-l border-slate-200 pl-2 ml-1 drop-shadow-sm">🗑️</button>
                             </div>
                         </div>
                     </div>
@@ -366,7 +341,7 @@
                             </div>
                         </div>
 
-                        <div id="dp-cockpit-card" class="cc-bg-default p-2 flex flex-col justify-between flex-1 relative glass-panel-inline min-h-0 w-full transition-colors">
+                        <div id="dp-cockpit-card" onclick="openNumpad('day', db.d[activeK || getK(realToday)]?.s || 0, 'DAGSINKÖRT')" class="p-2 flex flex-col justify-between flex-1 relative glass-panel-inline min-h-0 w-full transition-colors mt-1 mb-1">
                             <div id="dp-gauge-view" class="flex items-center justify-between w-full h-full pointer-events-none">
                                 <div class="flex flex-col justify-center text-left pointer-events-auto flex-1 pl-1">
                                     <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400">DAGSMÅL</span>
@@ -393,15 +368,7 @@
                             </div>
                         </div>
 
-                        <div class="flex-shrink-0 flex gap-1.5 h-[38px] mt-1">
-                            <div class="bg-slate-50 border border-slate-200/60 rounded-[16px] p-1 flex items-center shadow-inner flex-1 h-full">
-                                <span class="pl-2 pr-1 text-[11px] opacity-40">⚡</span>
-                                <input type="text" inputmode="decimal" id="in-sales-direct-day" class="flex-1 bg-transparent font-black text-[11px] text-slate-900 placeholder-slate-400 outline-none w-full text-center" placeholder="Försäljning (kr)...">
-                                <button onclick="saveDirectDaySales()" class="text-white font-black uppercase tracking-widest text-[8px] px-3.5 py-2 rounded-xl bg-[#0ea5e9] shadow-md flex-shrink-0 active:scale-95 transition-transform h-full">SPARA</button>
-                            </div>
-                        </div>
-
-                        <div class="flex-shrink-0 w-full grid grid-cols-6 gap-1.5 h-[38px]">
+                        <div class="flex-shrink-0 w-full grid grid-cols-6 gap-1.5 h-[42px]">
                             <button onclick="saveDirectDayStatus('Arbete')" class="bg-[#f0f9ff] text-[#0ea5e9] font-extrabold text-[9px] rounded-[14px] border border-[#bae6fd] uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>⚒️</span><span class="text-[5.5px] mt-0.5">Jobb</span></button>
                             <button onclick="saveDirectDayStatus('Ledig')" class="bg-slate-100 text-slate-600 font-extrabold text-[9px] rounded-[14px] border border-slate-200 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>🏠</span><span class="text-[5.5px] mt-0.5">Ledig</span></button>
                             <button onclick="saveDirectDayStatus('Semester')" class="bg-[#ccfbf1] text-[#0f766e] font-extrabold text-[9px] rounded-[14px] border border-[#99f6e4] uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>✈️</span><span class="text-[5.5px] mt-0.5">Sem</span></button>
@@ -410,7 +377,7 @@
                             <button onclick="saveDirectDayStatus('Föräldraledig')" class="bg-purple-50 text-purple-700 font-extrabold text-[9px] rounded-[14px] border border-purple-200 uppercase active:scale-95 transition-all flex flex-col items-center justify-center shadow-sm"><span>🍼</span><span class="text-[5.5px] mt-0.5">FL</span></button>
                         </div>
 
-                        <div class="text-center bg-slate-50 border border-slate-100 rounded-[14px] flex-shrink-0 flex items-center justify-center gap-1.5 h-[28px] shadow-sm">
+                        <div class="text-center bg-slate-50 border border-slate-100 rounded-[14px] flex-shrink-0 flex items-center justify-center gap-1.5 h-[30px] shadow-sm">
                             <span class="text-[7.5px] font-extrabold uppercase tracking-widest text-slate-400">REGISTRERAT:</span><span id="dp-inline-status" class="text-[7.5px] font-black text-[#0ea5e9] uppercase tracking-wider drop-shadow-sm">ARBETSPASS</span>
                         </div>
                     </div>
@@ -421,7 +388,7 @@
                             <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
                         </div>
                         
-                        <div id="swipe-wrapper" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full h-[52px] flex-shrink-0 mb-1" style="touch-action: pan-x; overscroll-behavior: contain;">
+                        <div id="swipe-wrapper" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full h-[64px] flex-shrink-0 mb-1 py-1" style="touch-action: pan-x; overscroll-behavior: contain;">
                             <div id="slide-prev" class="w-full h-full flex-shrink-0 snap-center"></div>
                             <div id="slide-curr" class="w-full h-full flex-shrink-0 snap-center"></div>
                             <div id="slide-next" class="w-full h-full flex-shrink-0 snap-center"></div>
@@ -440,9 +407,10 @@
                             </div>
                             
                             <div id="wp-week-summary" class="flex flex-col w-full flex-1 px-1 mt-1 transition-opacity duration-300 gap-1.5 justify-center">
-                                <div class="flex flex-col items-center flex-1 bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-[20px] p-2.5 shadow-sm justify-center w-full min-h-[60px]">
+                                <div onclick="if(activeK) openNumpad('week', db.d[activeK]?.s || 0, 'INKÖRT (DAG)')" class="flex flex-col items-center flex-1 bg-gradient-to-b from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-[20px] p-2.5 shadow-sm justify-center w-full min-h-[60px] cursor-pointer active:scale-95 transition-transform">
                                     <span id="wp-lbl-sales" class="text-[8.5px] font-black text-[#0ea5e9] uppercase tracking-widest mb-1">INKÖRT</span>
                                     <span id="wp-sum-sales" class="text-[24px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 k</span>
+                                    <span id="wp-edit-hint" class="text-[7.5px] font-black text-[#0ea5e9]/50 uppercase tracking-widest mt-1 hidden">TRYCK FÖR ATT ÄNDRA</span>
                                 </div>
                                 <div class="flex justify-between w-full gap-2 flex-1 min-h-[45px]">
                                     <div class="flex flex-col items-center flex-1 py-1.5 bg-slate-50 border border-slate-200 rounded-[16px] justify-center shadow-sm">
@@ -457,20 +425,14 @@
                             </div>
 
                             <div id="wp-day-actions" class="w-full flex-col transition-all duration-300 overflow-hidden max-h-0 opacity-0 flex-shrink-0 mt-0">
-                                <div class="relative w-full h-[40px] overflow-hidden rounded-[14px] border border-slate-200 shadow-sm mt-1">
-                                    <div id="wp-default-state" class="absolute inset-0 flex gap-0.5 transition-transform duration-200 transform translate-x-0 p-0.5 bg-slate-50">
-                                        <button onclick="toggleWeekInput(true)" class="flex-[1.2] text-[8px] font-black bg-[#f0f9ff] hover:bg-[#e0f2fe] text-[#0ea5e9] border border-[#bae6fd] rounded-xl active:scale-95 flex items-center justify-center gap-1 uppercase tracking-wider transition-colors shadow-sm">💰 Sälj</button>
-                                        <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-xl active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button>
-                                        <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-xl active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button>
-                                        <button onclick="handleWeekDirectAction('Semester')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-xl active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button>
-                                        <button onclick="handleWeekDirectAction('Sjuk')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-xl active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button>
-                                        <button onclick="handleWeekDirectAction('VAB')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-xl active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button>
-                                        <button onclick="handleWeekDirectAction('Föräldraledig')" class="flex-1 text-[11px] bg-white hover:bg-slate-50 border border-slate-200 rounded-xl active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button>
-                                    </div>
-                                    <div id="wp-input-state" class="absolute inset-0 flex gap-1 transition-transform duration-200 transform translate-x-full bg-slate-50 z-10 p-0.5">
-                                        <input type="text" inputmode="decimal" id="in-sales-week-direct" class="flex-1 h-full px-3 text-center font-black rounded-xl text-xs bg-white border border-slate-200 text-slate-900 outline-none placeholder-slate-400 focus:border-[#0ea5e9] transition-colors shadow-inner" placeholder="Belopp (kr)...">
-                                        <button onclick="saveSalesFromWeekDirect()" class="h-full px-4 flex items-center justify-center rounded-xl text-white font-black text-[10px] bg-[#0ea5e9] active:scale-95 transition-transform uppercase tracking-wider shadow-sm">Spara</button>
-                                        <button onclick="toggleWeekInput(false)" class="h-full px-3 flex items-center justify-center rounded-xl text-slate-500 font-black text-[10px] bg-white border border-slate-200 active:scale-95 transition-transform uppercase tracking-wider shadow-sm">✕</button>
+                                <div class="relative w-full h-[44px] overflow-hidden rounded-[14px] border border-slate-200 shadow-sm mt-1">
+                                    <div id="wp-default-state" class="absolute inset-0 flex gap-0.5 p-1 bg-slate-50">
+                                        <button onclick="handleWeekDirectAction('Arbete')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button>
+                                        <button onclick="handleWeekDirectAction('Ledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button>
+                                        <button onclick="handleWeekDirectAction('Semester')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button>
+                                        <button onclick="handleWeekDirectAction('Sjuk')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button>
+                                        <button onclick="handleWeekDirectAction('VAB')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button>
+                                        <button onclick="handleWeekDirectAction('Föräldraledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button>
                                     </div>
                                 </div>
                             </div>
@@ -508,7 +470,88 @@
         </div>
     </div>
 
+    <div id="custom-numpad" class="fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur-2xl rounded-t-[32px] shadow-[0_-12px_40px_rgba(15,23,42,0.15)] z-[30000] transform translate-y-full transition-transform duration-300 border-t border-white" style="padding-bottom: max(env(safe-area-inset-bottom), 16px);">
+        <div class="p-5 flex flex-col gap-3">
+            <div class="flex justify-between items-end px-2 mb-1">
+                <div class="flex flex-col">
+                    <span id="numpad-title" class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">INKÖRT</span>
+                </div>
+                <span id="numpad-display" class="text-3xl font-black text-slate-800 tracking-tight">0 <span class="text-[16px] text-slate-400">kr</span></span>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-2.5">
+                <button onclick="numpadPress('1')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">1</button>
+                <button onclick="numpadPress('2')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">2</button>
+                <button onclick="numpadPress('3')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">3</button>
+                <button onclick="numpadPress('4')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">4</button>
+                <button onclick="numpadPress('5')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">5</button>
+                <button onclick="numpadPress('6')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">6</button>
+                <button onclick="numpadPress('7')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">7</button>
+                <button onclick="numpadPress('8')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">8</button>
+                <button onclick="numpadPress('9')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">9</button>
+                <button onclick="numpadPress('clear')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-sm font-black text-slate-400 shadow-sm border border-slate-100 active:scale-95 transition-transform uppercase tracking-wider">C</button>
+                <button onclick="numpadPress('0')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform">0</button>
+                <button onclick="numpadPress('back')" class="h-14 bg-slate-50 hover:bg-slate-100 rounded-[20px] text-xl font-black text-slate-500 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">⌫</button>
+            </div>
+            
+            <div class="flex gap-2.5 mt-1">
+                <button onclick="closeNumpad()" class="flex-1 h-14 bg-slate-100 hover:bg-slate-200 rounded-[20px] text-[11px] font-black text-slate-500 uppercase tracking-widest active:scale-95 transition-transform">Avbryt</button>
+                <button onclick="numpadSave()" class="flex-[2] h-14 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] rounded-[20px] text-[12px] font-black text-white uppercase tracking-widest shadow-md active:scale-95 transition-transform">Spara Belopp</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // --- CUSTOM NUMPAD LOGIC ---
+        let numpadTarget = null; 
+        let numpadValue = "";
+
+        function openNumpad(target, currentVal, title) {
+            numpadTarget = target;
+            numpadValue = currentVal > 0 ? String(currentVal) : "";
+            document.getElementById('numpad-title').innerText = title || 'ANGE BELOPP';
+            updateNumpadDisplay();
+            document.getElementById('custom-numpad').classList.remove('translate-y-full');
+        }
+
+        function closeNumpad() {
+            document.getElementById('custom-numpad').classList.add('translate-y-full');
+            numpadTarget = null;
+        }
+
+        function numpadPress(val) {
+            if (val === 'back') { numpadValue = numpadValue.slice(0, -1); } 
+            else if (val === 'clear') { numpadValue = ""; } 
+            else { if (numpadValue.length < 7) numpadValue += val; }
+            updateNumpadDisplay();
+        }
+
+        function updateNumpadDisplay() {
+            const display = document.getElementById('numpad-display');
+            display.innerHTML = numpadValue === "" ? '0 <span class="text-[16px] text-slate-400">kr</span>' : Number(numpadValue).toLocaleString('sv-SE') + ' <span class="text-[16px] text-slate-400">kr</span>';
+        }
+
+        function numpadSave() {
+            const valNum = Number(numpadValue) || 0;
+            if (numpadTarget === 'day') {
+                const k = activeK || getK(realToday);
+                pushMatrixSync(k, { s: valNum });
+            } else if (numpadTarget === 'week') {
+                if (activeK) pushMatrixSync(activeK, { s: valNum });
+            } else if (numpadTarget === 'month') {
+                let upserts = []; const keys = Array.from(multiSelectKeys);
+                for (let k of keys) {
+                    const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: valNum, abs: old.abs || null };
+                    db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
+                }
+                multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard();
+                if (viewMode === 'week') updateWeekPanel();
+                if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
+            }
+            closeNumpad();
+        }
+        // --- NUMPAD END ---
+
         // --- LIVE KLOCKA START ---
         function updateLiveClock() {
             const now = new Date();
@@ -597,23 +640,10 @@
 
         function handleSaveFromPopup(t) { 
             let upserts = []; const keys = Array.from(multiSelectKeys);
-            
             for (let k of keys) {
                 const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: old.s || 0, abs: old.abs || null };
                 if(t==='delete') { merged = { st: 'Arbete', s: 0, abs: null }; } 
                 else { if(['Arbete','Ledig'].includes(t)) { merged.st = t; merged.abs = null; } else { merged.st = 'Arbete'; merged.abs = t; } }
-                db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
-            }
-            
-            multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard();
-            if (viewMode === 'week') updateWeekPanel();
-            if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
-        }
-
-        function saveSalesFromPopup() { 
-            const val = document.getElementById('in-sales-month').value; let sVal = parseNum(val); let upserts = []; const keys = Array.from(multiSelectKeys);
-            for (let k of keys) {
-                const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: sVal, abs: old.abs || null };
                 db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
             }
             multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); updateInlineFocusDashboard();
@@ -716,13 +746,6 @@
         function closeBudgetModal() { document.getElementById('budget-modal').classList.add('hidden'); }
         function setGlobalBudget(amount) { db.b = amount; try{localStorage.setItem('sf_budget', amount);}catch(e){} calculateTimeline(); updateDash(); closeBudgetModal(); }
         
-        function toggleWeekInput(show) {
-            const def = document.getElementById('wp-default-state'); const inp = document.getElementById('wp-input-state'); const inputField = document.getElementById('in-sales-week-direct');
-            if(!def || !inp) return;
-            if(show) { def.classList.add('-translate-x-full'); def.classList.remove('translate-x-0'); inp.classList.remove('translate-x-full'); inp.classList.add('translate-x-0'); setTimeout(() => inputField.focus(), 200); } 
-            else { inp.classList.add('translate-x-full'); inp.classList.remove('translate-x-0'); def.classList.remove('-translate-x-full'); def.classList.add('translate-x-0'); inputField.value = ''; }
-        }
-
         function updateTopTitle() {
             const t = document.getElementById('dynamic-view-title'); if(!t) return;
             const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']; const months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
@@ -743,6 +766,7 @@
             
             multiSelectKeys.clear();
             closeMonthEdit();
+            closeNumpad();
 
             viewMode = mode; document.body.className = `mode-${mode}`;
 
@@ -751,16 +775,12 @@
                 if(b) { if(m === mode) b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm"; else b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50"; }
             });
 
-            if (mode === 'week') {
-                activeK = null;
-            } else {
-                activeK = getK(realToday);
-            }
+            if (mode === 'week') { activeK = null; } else { activeK = getK(realToday); }
 
             calculateTimeline(); updateDash();
 
             if (mode === 'day') { updateInlineFocusDashboard(); } 
-            else if (mode === 'week') { renderWeekSlides(); updateWeekPanel(); toggleWeekInput(false); } 
+            else if (mode === 'week') { renderWeekSlides(); updateWeekPanel(); } 
             else if (mode === 'month') { renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1); } 
             else if (mode === 'absence') { renderAbsence(); } 
             else if (mode === 'notes') { renderNotes(); }
@@ -776,9 +796,9 @@
         }
 
         function navCal(offset) {
-            multiSelectKeys.clear(); closeMonthEdit();
+            multiSelectKeys.clear(); closeMonthEdit(); closeNumpad();
             if (viewMode === 'month' || viewMode === 'absence') { viewDate.setMonth(viewDate.getMonth() + offset); calculateTimeline(); updateDash(); if (viewMode === 'absence') renderAbsence(); } 
-            else if (viewMode === 'week') { currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); toggleWeekInput(false); } 
+            else if (viewMode === 'week') { currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); } 
             else if (viewMode === 'day') { let p = (activeK || getK(realToday)).split('-'); let d = new Date(p[0], p[1]-1, p[2]); d.setDate(d.getDate() + offset); activeK = getK(d); updateInlineFocusDashboard(); }
             updateTopTitle();
         }
@@ -832,7 +852,7 @@
                 if(isResettingScroll || viewMode !== 'week') return; clearTimeout(scrollTimeout);
                 scrollTimeout = setTimeout(() => {
                     const width = sc.clientWidth; if(width === 0) return; const idx = Math.round(sc.scrollLeft / width); 
-                    if (idx !== 1) { multiSelectKeys.clear(); closeMonthEdit(); currentWeekStart.setDate(currentWeekStart.getDate() + ((idx === 0 ? -1 : 1) * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); toggleWeekInput(false); updateTopTitle(); }
+                    if (idx !== 1) { multiSelectKeys.clear(); closeMonthEdit(); closeNumpad(); currentWeekStart.setDate(currentWeekStart.getDate() + ((idx === 0 ? -1 : 1) * 7)); activeK = null; renderWeekSlides(); updateWeekPanel(); updateTopTitle(); }
                 }, 50); 
             });
         }
@@ -845,26 +865,26 @@
 
                 if (multiSelectKeys.size > 0) {
                     document.getElementById('cal-standard-header').classList.add('hidden'); document.getElementById('month-edit-menu').classList.remove('hidden');
-                    if(multiSelectKeys.size === 1) { const singleK = Array.from(multiSelectKeys)[0]; const o = db.d[singleK] || {}; document.getElementById('in-sales-month').value = o.s > 0 ? o.s : ''; } 
-                    else { document.getElementById('in-sales-month').value = ''; }
+                    const mText = document.getElementById('month-sales-text');
+                    if(multiSelectKeys.size === 1) { 
+                        const singleK = Array.from(multiSelectKeys)[0]; const o = db.d[singleK] || {}; 
+                        if (mText) { if (o.s > 0) { mText.innerText = o.s + ' kr'; mText.classList.replace('text-slate-400', 'text-[#0ea5e9]'); } else { mText.innerText = '0 kr'; mText.classList.replace('text-[#0ea5e9]', 'text-slate-400'); } }
+                    } else { 
+                        if (mText) { mText.innerText = '0 kr'; mText.classList.replace('text-[#0ea5e9]', 'text-slate-400'); }
+                    }
                 } else { closeMonthEdit(); }
             } else {
                 const isSameDay = (activeK === k);
-                if (isSameDay) { activeK = null; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); if (viewMode === 'week') { updateWeekPanel(); toggleWeekInput(false); } return; }
+                if (isSameDay) { activeK = null; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); if (viewMode === 'week') { updateWeekPanel(); } return; }
                 activeK = k; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); el.classList.add('active-focus');
-                if (viewMode === 'week') { updateWeekPanel(); toggleWeekInput(false); }
+                if (viewMode === 'week') { updateWeekPanel(); }
             }
+            closeNumpad();
         }
 
-        function saveSalesFromWeekDirect() { if(!activeK) return; const val = document.getElementById('in-sales-week-direct').value; let sVal = parseNum(val); pushMatrixSync(activeK, { s: sVal }); toggleWeekInput(false); }
         function handleWeekDirectAction(t) { if(!activeK) return; if (t === 'VAB' || t === 'Föräldraledig') { triggerChildSelection(t, 'week'); return; } finalizeWeekDirectAction(t); }
         function finalizeWeekDirectAction(t) { if(['Arbete','Ledig'].includes(t)) pushMatrixSync(activeK, { st: t, abs: null }); else pushMatrixSync(activeK, { st: 'Arbete', abs: t }); }
         function closeMonthEdit() { const m = document.getElementById('month-edit-menu'); if(m) m.classList.add('hidden'); const h = document.getElementById('cal-standard-header'); if(h) h.classList.remove('hidden'); }
-
-        function saveDirectDaySales() {
-            const k = activeK || getK(realToday); const val = document.getElementById('in-sales-direct-day').value; let sVal = parseNum(val); 
-            pushMatrixSync(k, { s: sVal }); document.getElementById('in-sales-direct-day').value = '';
-        }
 
         function saveDirectDayStatus(s) { if (s === 'VAB' || s === 'Föräldraledig') { triggerChildSelection(s, 'direct'); return; } finalizeDirectDayStatus(s); }
         function finalizeDirectDayStatus(s) {
@@ -899,13 +919,15 @@
             const sumTargetEl = document.getElementById('wp-sum-target'); const sumSalesEl = document.getElementById('wp-sum-sales'); const sumDiffEl = document.getElementById('wp-sum-diff');
             const lblTarget = document.getElementById('wp-lbl-target'); const lblSales = document.getElementById('wp-lbl-sales');
             const weekSummary = document.getElementById('wp-week-summary'); const dayActions = document.getElementById('wp-day-actions');
+            const wpEditHint = document.getElementById('wp-edit-hint');
             
             if (activeK && dayActions && weekSummary) {
                 dayActions.classList.remove('max-h-0', 'opacity-0', 'mt-0');
-                dayActions.classList.add('max-h-[44px]', 'opacity-100', 'mt-2', 'flex');
+                dayActions.classList.add('max-h-[48px]', 'opacity-100', 'mt-2', 'flex');
+                if (wpEditHint) wpEditHint.classList.remove('hidden');
                 
                 const parts = activeK.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]); const curO = db.d[activeK] || {s:0}; 
-                const qtEl = document.getElementById('wp-quick-title'); if(qtEl) qtEl.innerText = `REDIGERA: ${daysLong[dObj.getDay()].toUpperCase()} ${dObj.getDate()}/${parts[1]} (${curO.s > 0 ? (curO.s/1000).toFixed(1)+' k' : 'EJ REGGAD'})`; 
+                const qtEl = document.getElementById('wp-quick-title'); if(qtEl) qtEl.innerText = `REDIGERA: ${daysLong[dObj.getDay()].toUpperCase()} ${dObj.getDate()}/${parts[1]}`; 
                 
                 let dTarget = timeline[activeK]?.target || 0; let dSales = curO.s || 0; let dDiff = dSales - dTarget;
                 
@@ -914,8 +936,9 @@
                 if(sumSalesEl) sumSalesEl.innerText = (dSales/1000).toFixed(1) + ' k';
                 if(sumDiffEl) { sumDiffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; sumDiffEl.style.color = dDiff >= 0 ? "var(--pos)" : "var(--neg)"; }
             } else if (dayActions && weekSummary) {
-                dayActions.classList.remove('max-h-[44px]', 'opacity-100', 'mt-2');
+                dayActions.classList.remove('max-h-[48px]', 'opacity-100', 'mt-2');
                 dayActions.classList.add('max-h-0', 'opacity-0', 'mt-0');
+                if (wpEditHint) wpEditHint.classList.add('hidden');
 
                 let diff = wSales - wTarget; 
                 if(lblTarget) lblTarget.innerText = "VECKOMÅL"; if(lblSales) lblSales.innerText = "INKÖRT (VECKA)";
@@ -932,25 +955,22 @@
             const lastDate = new Date(y, m, 0).getDate(); 
             const firstDay = new Date(y, m-1, 1).getDay() || 7; 
             
-            // Prev month padding
             const prevMonthLastDate = new Date(y, m-1, 0).getDate();
             for(let i = 1; i < firstDay; i++) { 
                 const d = prevMonthLastDate - (firstDay - 1) + i;
                 const cell = document.createElement('div');
-                cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent';
+                cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none';
                 cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`;
                 g.appendChild(cell);
             } 
             
-            // Current month days
             for(let d=1; d<=lastDate; d++) g.appendChild(createDayCell(new Date(y, m-1, d), `${y}-${m}-${d}`)); 
             
-            // Next month padding (Fill to 42 cells = 6 rows)
             const totalCellsSoFar = (firstDay - 1) + lastDate;
             const remainingCells = 42 - totalCellsSoFar;
             for(let d=1; d<=remainingCells; d++) {
                 const cell = document.createElement('div');
-                cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent';
+                cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none';
                 cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`;
                 g.appendChild(cell);
             }
@@ -989,13 +1009,11 @@
             let cTot = o.s || 0; const cEl = document.getElementById('dp-cockpit-card'); let isShiftActive = (isToday && qData.exists && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sH && nH <= eH);
 
             if (cEl) { 
-                cEl.className = "p-2 flex flex-col justify-between flex-1 relative glass-panel-inline min-h-0 w-full transition-colors"; 
+                cEl.className = "p-2 flex flex-col justify-between flex-1 relative glass-panel-inline min-h-0 w-full transition-colors mt-1 mb-1 cursor-pointer active:scale-[0.98]"; 
                 if (state === 'absent') cEl.classList.add('cc-bg-fail'); else if (state === 'semester') cEl.classList.add('cc-bg-semester');
                 else if (state === 'ledig' || state === 'unplanned') cEl.classList.add('cc-bg-ledig'); else if (isShiftActive) cEl.classList.add('cc-bg-active-shift'); 
                 else if (cTot >= target && target > 0) cEl.classList.add('cc-bg-success'); else if (state === 'planned') cEl.classList.add('cc-bg-planned'); else cEl.classList.add('cc-bg-default');
             }
-            
-            const inSalesDirect = document.getElementById('in-sales-direct-day'); if (inSalesDirect) { inSalesDirect.placeholder = `Försäljning (kr)...`; }
             
             const dObj = new Date(k.split('-')[0], k.split('-')[1]-1, k.split('-')[2]); const days = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'], months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
             const dateEl = document.getElementById('dp-inline-date'), timeEl = document.getElementById('dp-inline-time'); if(dateEl) dateEl.innerText = `${days[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`; if(timeEl) timeEl.innerText = qData.exists ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
@@ -1013,7 +1031,6 @@
             const tEl = document.getElementById('dp-inline-target'), lEl = document.getElementById('dp-inline-left'), sEl = document.getElementById('dp-inline-sales'), rEl = document.getElementById('dp-inline-req');
             if(tEl) tEl.innerText = (target/1000).toFixed(1) + ' k'; if(lEl) lEl.innerText = (Math.max(0, target - cTot)/1000).toFixed(1) + ' k'; if(sEl) sEl.innerText = (cTot/1000).toFixed(1) + ' k';
             
-            // Cockpit Gauge logic
             let sP = target > 0 ? Math.min(100, Math.round((cTot / target) * 100)) : 0; 
             const gSales = document.getElementById('dp-gauge-sales'); 
             if(gSales) gSales.style.strokeDashoffset = 212 - ((sP / 100) * 212);
@@ -1026,7 +1043,6 @@
                 else { effLbl.innerText = "KVAR"; effLbl.style.color = "#dc2626"; } 
             }
 
-            // Snitt / Pass (prognos)
             let cm = dObj.getMonth() + 1, cy = dObj.getFullYear(), tS = 0, dP = 0; const daysM = new Date(cy, cm, 0).getDate();
             for(let d=1; d<=daysM; d++) { const mk = `${cy}-${cm}-${d}`; if(db.d[mk] && db.d[mk].s > 0) { tS += db.d[mk].s; dP++; } }
             let avg = dP ? (tS/dP) : 0; if(rEl) rEl.innerText = (avg/1000).toFixed(1) + ' k';
@@ -1058,7 +1074,7 @@
             cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[6px] text-center tracking-tighter">${b}${content}</div>`; return cell;
         }
 
-        function populateSlide(cId, sD) { const c = document.getElementById(cId); if(!c) return; c.innerHTML = ''; c.className = "w-full h-full flex-shrink-0 snap-center grid grid-cols-7 gap-1 px-3 items-center"; for(let i=0; i<7; i++) { const cd = new Date(sD); cd.setDate(cd.getDate() + i); c.appendChild(createDayCell(cd, getK(cd))); } }
+        function populateSlide(cId, sD) { const c = document.getElementById(cId); if(!c) return; c.innerHTML = ''; c.className = "w-full h-full flex-shrink-0 snap-center grid grid-cols-7 gap-1 px-3 items-center py-1"; for(let i=0; i<7; i++) { const cd = new Date(sD); cd.setDate(cd.getDate() + i); c.appendChild(createDayCell(cd, getK(cd))); } }
         function renderWeekSlides() { const ps = new Date(currentWeekStart); ps.setDate(ps.getDate() - 7); const ns = new Date(currentWeekStart); ns.setDate(ns.getDate() + 7); populateSlide('slide-prev', ps); populateSlide('slide-curr', currentWeekStart); populateSlide('slide-next', ns); isResettingScroll = true; if(!sc) return; sc.style.scrollBehavior = 'auto'; sc.scrollLeft = sc.clientWidth; setTimeout(() => { isResettingScroll = false; sc.style.scrollBehavior = 'smooth'; }, 50); }
         
         function getWeekNumber(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7); }
@@ -1078,9 +1094,7 @@
 
         document.addEventListener('click', (e) => {
             const mMenu = document.getElementById('month-edit-menu');
-            if (mMenu && !mMenu.classList.contains('hidden') && !e.target.closest('#month-edit-menu') && !e.target.closest('.day-cell')) { multiSelectKeys.clear(); document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); closeMonthEdit(); }
-            const wInput = document.getElementById('wp-input-state');
-            if (wInput && wInput.classList.contains('translate-x-0') && !e.target.closest('#wp-input-state') && !e.target.closest('button[onclick="toggleWeekInput(true)"]')) { toggleWeekInput(false); }
+            if (mMenu && !mMenu.classList.contains('hidden') && !e.target.closest('#month-edit-menu') && !e.target.closest('.day-cell') && !e.target.closest('#custom-numpad')) { multiSelectKeys.clear(); document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); closeMonthEdit(); }
         });
 
         let isResettingScroll = false; const sc = document.getElementById('swipe-wrapper'); let scrollTimeout;

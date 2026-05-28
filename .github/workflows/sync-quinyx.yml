@@ -1,0 +1,23 @@
+name: Sync Quinyx Schedule
+on:
+  schedule:
+    - cron: '0 20 * * *' # Körs varje kväll kl 20:00
+  workflow_dispatch:      # Gör att du kan köra den manuellt från GitHub-appen
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Fetch and Save
+        run: |
+          curl -L "https://app.quinyx.com/webcal/?id=a4bee41611fc30679551a7a595abe310" -o schema.ics
+      - name: Commit and push
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add schema.ics
+          git commit -m "Auto-uppdaterat schema via GitHub Action"
+          git push

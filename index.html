@@ -90,13 +90,17 @@
         .type-planned { background: linear-gradient(180deg, #f0f9ff, #e0f2fe) !important; color: var(--sting-blue) !important; border: 1px solid #ffffff !important; box-shadow: 0 4px 10px -4px rgba(14, 165, 233, 0.2), inset 0 -2px 6px rgba(14, 165, 233, 0.05); }
         .type-ledig { background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important; color: var(--text-muted) !important; border: 1px solid #ffffff !important; }
         .type-semester { background: linear-gradient(180deg, #f0fdfa, #ccfbf1) !important; color: #0f766e !important; border: 1px solid #ffffff !important; z-index: 4; }
-        .cc-bg-semester { background: linear-gradient(135deg, #f0fdfa, #ccfbf1) !important; border: 1px solid #ffffff !important; }
         .type-absent { background: linear-gradient(180deg, #fff7ed, #ffedd5) !important; color: #c2410c !important; border: 1px solid #ffffff !important; z-index: 4; }
         
+        /* SPLIT COLORS FOR PARTIAL / MISSED SHIFTS */
+        .bg-split-sjuk { background: linear-gradient(135deg, #e0f2fe 50%, #fee2e2 50%) !important; border: 1px solid #ffffff !important; color: #9f1239 !important; z-index: 4; }
+        .bg-split-vab { background: linear-gradient(135deg, #e0f2fe 50%, #fef3c7 50%) !important; border: 1px solid #ffffff !important; color: #b45309 !important; z-index: 4; }
+        .bg-split-fledig { background: linear-gradient(135deg, #e0f2fe 50%, #f3e8ff 50%) !important; border: 1px solid #ffffff !important; color: #7e22ce !important; z-index: 4; }
+        .bg-split-sem { background: linear-gradient(135deg, #e0f2fe 50%, #ccfbf1 50%) !important; border: 1px solid #ffffff !important; color: #0f766e !important; z-index: 4; }
+
         .history-cell { opacity: 0.65 !important; box-shadow: 0 2px 6px -4px rgba(15,23,42,0.05) !important; }
         .history-success { background: linear-gradient(180deg, #f0fdf4, #d1fae5) !important; color: #065f46 !important; border-color: #ffffff !important; }
         .history-fail { background: linear-gradient(180deg, #fff5f5, #fee2e2) !important; color: #9f1239 !important; border-color: #ffffff !important;}
-        .history-ledig { background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important; color: var(--text-muted) !important; border-color: #ffffff !important; }
         
         .status-today { background: linear-gradient(135deg, var(--today-light), var(--today-dark)) !important; color: #ffffff !important; opacity: 1 !important; z-index: 5; box-shadow: 0 10px 24px -4px rgba(2, 132, 199, 0.6), inset 0 2px 4px rgba(255,255,255,0.4) !important; border: 1px solid #38bdf8 !important; transform: translateY(-1px); }
         .active-focus { background: linear-gradient(135deg, #f59e0b, #d97706) !important; z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; box-shadow: 0 8px 24px -6px rgba(245, 158, 11, 0.45), 0 0 12px 2px rgba(245, 158, 11, 0.15), inset 0 2px 4px rgba(255,255,255,0.4) !important; border: 1px solid #fcd34d !important; transform: translateY(-2px) scale(1.02); }
@@ -105,7 +109,7 @@
         .date-num { position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 8.5px; font-weight: 800; pointer-events: none; color: var(--text-main); }
         .u-badge { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; z-index: 35; border: 1.5px solid var(--white); pointer-events: none; box-shadow: 0 4px 8px -2px rgba(15,23,42,0.2); }
         .badge-abs { top: -4px; right: -4px; width: 16px; height: 16px; font-size: 9px; background: #ffffff; border: 1.5px solid #f97316; }
-        .badge-action { background: #fef3c7 !important; border-color: #f59e0b !important; color: #b45309 !important; }
+        .badge-late { background: #fef08a !important; border-color: #eab308 !important; color: #854d0e !important; top: -4px; left: -4px; width: 16px; height: 16px; font-size: 8px;}
         
         .week-tag { position: absolute; top: -6px; left: -10px; background: linear-gradient(135deg, #38bdf8, #0ea5e9); color: white !important; font-size: 6px; padding: 1.5px 3px; border-radius: 4px; font-weight: 900; z-index: 10; pointer-events: none; box-shadow: 0 4px 8px -2px rgba(14,165,233,0.5); letter-spacing: 0.04em; border: 1px solid #7dd3fc; }
         .cell-main-val { font-size: 9px; font-weight: 900; line-height: 1; pointer-events: none; color: inherit; }
@@ -303,16 +307,8 @@
                                     </div>
 
                                     <div id="dash-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 h-[42px] flex justify-end">
-                                        <div class="relative w-full h-full overflow-hidden rounded-[14px] border border-slate-200 shadow-sm">
-                                            <div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50">
-                                                <button onclick="handleDashAction('Arbete')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button>
-                                                <button onclick="handleDashAction('Ledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button>
-                                                <button onclick="handleDashAction('Semester')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button>
-                                                <button onclick="handleDashAction('Sjuk')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button>
-                                                <button onclick="handleDashAction('VAB')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button>
-                                                <button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button>
+                                        <div class="relative w-full h-full overflow-hidden rounded-[14px] border border-slate-200 shadow-sm" id="dash-actions-grid">
                                             </div>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -541,7 +537,7 @@
             if (numpadTarget === 'month') {
                 let upserts = []; const keys = Array.from(multiSelectKeys);
                 for (let k of keys) {
-                    const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: valNum, abs: old.abs || null };
+                    const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: valNum, abs: old.abs || null, src: 'Manual', raw: old.raw || '' };
                     db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
                 }
                 multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit();
@@ -576,7 +572,6 @@
         try { savedNotes = JSON.parse(localStorage.getItem('sf_notes')) || []; } catch(e) { savedNotes = []; }
         let pendingNoteId = null; let editingNoteId = null; let expandedNoteId = null;
 
-        // --- NY LOGIK FÖR ATT LÄSA SCHEMA LOKALT ---
         function extractDateTime(line) {
             const match = line.match(/:(\d{8})(T\d{6})?/);
             if (match) {
@@ -596,21 +591,31 @@
             return null;
         }
 
+        // --- UPPDATERAD PARSER FÖR FRÅNVARO OCH SEN ANKOMST ---
         function processParsedEvent(ev, desc) {
             if (!ev.start) return;
             const fullText = desc.toLowerCase();
-            let isWork = false; let absType = null;
             
-            if (fullText.includes("sales") || fullText.includes("cross tech")) {
+            let isWork = false;
+            let qAbs = null;
+            let isLate = false;
+            let rawReason = "";
+
+            if (fullText.includes("sen ankomst") || fullText.includes("tidig hemgång")) {
+                isWork = true; isLate = true; rawReason = "Sen ankomst/Tidig hemgång";
+            } else if (fullText.includes("del av dag")) {
+                if (fullText.includes("sjuk")) { qAbs = "Sjuk"; rawReason = "Sjuk del av dag"; }
+                else if (fullText.includes("vård av barn") || fullText.includes("vab")) { qAbs = "VAB"; rawReason = "Vård av Barn del av dag"; }
+                else if (fullText.includes("föräldraledig")) { qAbs = "Föräldraledig"; rawReason = "Föräldraledig del av dag"; }
+                else if (fullText.includes("tjänstledig")) { qAbs = "Tjänstledig"; rawReason = "Tjänstledig del av dag"; }
+            } else if (fullText.includes("hel dag") || fullText.includes("mer än 5 dagar") || fullText.includes("upp till 5 dagar") || fullText.includes("tio dgr vid barns födelse")) {
+                if (fullText.includes("sjuk")) { qAbs = "Sjuk"; rawReason = "Sjuk hel dag"; }
+                else if (fullText.includes("vård av barn") || fullText.includes("vab")) { qAbs = "VAB"; rawReason = "Vård av Barn hel dag"; }
+                else if (fullText.includes("föräldraledig") || fullText.includes("tio dgr vid barns födelse")) { qAbs = "Föräldraledig"; rawReason = "Föräldraledig hel dag"; }
+                else if (fullText.includes("semester")) { qAbs = "Semester"; rawReason = "Semester"; }
+                else if (fullText.includes("tjänstledig")) { qAbs = "Tjänstledig"; rawReason = "Tjänstledig hel dag"; }
+            } else if (fullText.includes("sales") || fullText.includes("cross tech") || fullText.includes("arbetspass")) {
                 isWork = true;
-            } else if (fullText.includes("ledighet") || fullText.includes("semester")) {
-                absType = "Semester";
-            } else if (fullText.includes("sjuk")) {
-                absType = "Sjuk";
-            } else if (fullText.includes("vab")) {
-                absType = "VAB"; 
-            } else {
-                absType = "Åtgärd krävs";
             }
 
             let sdParts = ev.start.dateKey.split('-');
@@ -620,17 +625,30 @@
             let curr = new Date(sd);
             while (curr <= ed) {
                 const k = `${curr.getFullYear()}-${curr.getMonth() + 1}-${curr.getDate()}`;
+                if (!db.q[k]) db.q[k] = {};
                 
-                if (isWork) {
-                    db.q[k] = { exists: true, start: ev.start.time, end: ev.end ? ev.end.time : "17:00" };
-                    if (!db.d[k]) db.d[k] = { st: 'Arbete', s: 0, abs: null };
-                } else if (absType) {
-                    db.q[k] = { exists: true, start: "", end: "" };
+                if (isWork && !isLate) {
+                    db.q[k].exists = true; 
+                    db.q[k].start = ev.start.time; 
+                    db.q[k].end = ev.end ? ev.end.time : "17:00";
+                }
+                
+                if (isLate) {
+                    db.q[k].exists = true; 
+                    db.q[k].late = true;
+                }
+                
+                if (qAbs) {
+                    db.q[k].auto = true;
                     if (!db.d[k]) {
-                        db.d[k] = { st: 'Arbete', s: 0, abs: absType };
-                    } else if (!db.d[k].abs && db.d[k].s === 0) {
-                        db.d[k].abs = absType; 
+                        db.d[k] = { st: 'Arbete', s: 0, abs: qAbs, src: 'Auto', raw: rawReason };
+                    } else if (db.d[k].src !== 'Manual' && (!db.d[k].abs || db.d[k].abs === qAbs)) {
+                        db.d[k].abs = qAbs;
+                        db.d[k].src = 'Auto';
+                        db.d[k].raw = rawReason;
                     }
+                } else if (isWork && !db.d[k]) {
+                    db.d[k] = { st: 'Arbete', s: 0, abs: null, src: 'Auto', raw: '' };
                 }
                 curr.setDate(curr.getDate() + 1);
             }
@@ -638,17 +656,16 @@
 
         async function loadAllData() {
             try {
-                // 1. Ladda försäljning från Supabase
                 if (sb) {
-                    const { data, error } = await sb.from('sales_data').select('*');
+                    const { data } = await sb.from('sales_data').select('*');
                     if (data) {
                         db.d = {};
-                        data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent });
+                        data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent, src: 'Manual', raw: r.is_absent || '' });
                     }
                 }
 
-                // 2. Ladda schema direkt från schema.ics (som Github uppdaterar)
-                const response = await fetch("schema.ics?t=" + Date.now()); 
+                const response = await fetch("https://raw.githubusercontent.com/pekkusa-cyber/SalesFlow/main/schema.ics?t=" + Date.now()); 
+                if(!response.ok) throw new Error("Kunde inte hämta från GitHub");
                 const text = await response.text();
                 
                 db.q = {}; 
@@ -668,7 +685,7 @@
                         else if (!line.includes(":")) { fullDesc += " " + line; }
                     }
                 }
-                console.log("Data hämtad utan CORS-problem!");
+                console.log("Data hämtad och auto-kategoriserad!");
             } catch(e) { 
                 console.warn("Kunde inte hämta data", e); 
             }
@@ -695,11 +712,16 @@
             else if (viewMode === 'absence') renderAbsence();
             setTimeout(() => { btn.innerHTML = oldTxt; }, 800);
         }
-        // --- SLUT PÅ NY LOGIK ---
 
         function pushMatrixSync(k, o) {
             const old = db.d[k] || {}; 
-            const merged = { st: o.st !== undefined ? o.st : (old.st || 'Arbete'), s: o.s !== undefined ? o.s : (old.s || 0), abs: o.abs !== undefined ? o.abs : (old.abs || null) };
+            const merged = { 
+                st: o.st !== undefined ? o.st : (old.st || 'Arbete'), 
+                s: o.s !== undefined ? o.s : (old.s || 0), 
+                abs: o.abs !== undefined ? o.abs : (old.abs || null),
+                src: o.src !== undefined ? o.src : 'Manual',
+                raw: o.raw !== undefined ? o.raw : (old.raw || '')
+            };
             
             db.d[k] = merged; 
             calculateTimeline(); updateDash(); 
@@ -715,8 +737,8 @@
         function handleSaveFromPopup(t) { 
             let upserts = []; const keys = Array.from(multiSelectKeys);
             for (let k of keys) {
-                const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: old.s || 0, abs: old.abs || null };
-                if(t==='delete') { merged = { st: 'Arbete', s: 0, abs: null }; } 
+                const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: old.s || 0, abs: old.abs || null, src: 'Manual', raw: t };
+                if(t==='delete') { merged = { st: 'Arbete', s: 0, abs: null, src: 'Manual', raw: '' }; } 
                 else { if(['Arbete','Ledig'].includes(t)) { merged.st = t; merged.abs = null; } else { merged.st = 'Arbete'; merged.abs = t; } }
                 db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
             }
@@ -810,7 +832,7 @@
 
         function selectChild(childName) {
             const fullAbs = `${pendingAbsenceType} ${childName}`; 
-            if (pendingAbsenceSource === 'dash') { finalizeDashAction(fullAbs); } 
+            if (pendingAbsenceSource === 'dash') { pushMatrixSync(activeK, { st: 'Arbete', abs: fullAbs, src: 'Manual', raw: fullAbs }); } 
             else if (pendingAbsenceSource === 'popup') { handleSaveFromPopup(fullAbs); }
             closeChildModal();
         }
@@ -908,24 +930,60 @@
 
         function getCellState(k) { 
             const o = db.d[k] || {}, qData = db.q[k] || {}; 
-            if (o.abs && o.abs === 'Semester') return 'semester';
-            if (o.abs) return 'absent'; if (o.st === 'Ledig') return 'ledig'; if (o.s > 0) return 'worked'; if (qData.exists) return 'planned'; return 'unplanned'; 
+            if (o.abs && o.abs.includes('Semester')) return 'semester';
+            if (o.abs) return 'absent'; 
+            if (o.st === 'Ledig') return 'ledig'; 
+            if (o.s > 0) return 'worked'; 
+            if (qData.start) return 'planned'; 
+            return 'unplanned'; 
         }
 
+        // --- UPPDATERAD BUDGET-LOGIK ---
         function calculateTimeline() {
             const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate(); timeline = {};
-            let tW = 0; for(let d=1; d<=daysM; d++) { const state = getCellState(`${cy}-${cm}-${d}`); if(state === 'planned' || state === 'worked') tW++; }
+            let tW = 0; 
+            for(let d=1; d<=daysM; d++) { 
+                const k = `${cy}-${cm}-${d}`;
+                const o = db.d[k] || {};
+                const qData = db.q[k] || {};
+                // Budget räknas MED OM dagen har en tid i Quinyx, eller manuellt försäljningsbelopp
+                if (qData.start || o.s > 0) tW++; 
+            }
             let rB = db.b, rP = tW;
             
             for(let d=1; d<=daysM; d++) { 
-                const k = `${cy}-${cm}-${d}`; const state = getCellState(k); const isW = (state === 'planned' || state === 'worked'); const o = db.d[k] || {s:0}; 
-                if (isW) { const target = rP > 0 ? rB / rP : 0; timeline[k] = { target: Math.max(0, target) }; rB -= o.s; rP--; } else { timeline[k] = { target: 0 }; rB -= o.s; } 
+                const k = `${cy}-${cm}-${d}`; 
+                const o = db.d[k] || {s:0}; 
+                const qData = db.q[k] || {};
+                const isW = (qData.start || o.s > 0); 
+                
+                if (isW) { 
+                    const target = rP > 0 ? rB / rP : 0; 
+                    timeline[k] = { target: Math.max(0, target) }; 
+                    rB -= o.s; 
+                    rP--; 
+                } else { 
+                    timeline[k] = { target: 0 }; 
+                    rB -= o.s; 
+                } 
             }
         }
 
         function updateDash() { 
             const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); let tS = 0, dP = 0, tP = 0, rW = 0; const daysM = new Date(cy, cm, 0).getDate();
-            for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`, o = db.d[k] || {s:0}, state = getCellState(k); tS += o.s; if (o.s > 0) dP++; if (state === 'planned' || state === 'worked' || (state === 'absent' && db.q[k]?.exists)) { tP++; const dObj = new Date(cy, cm-1, d); if (dObj >= realToday && state !== 'absent' && state !== 'semester') rW++; } }
+            for(let d=1; d<=daysM; d++) { 
+                const k = `${cy}-${cm}-${d}`;
+                const o = db.d[k] || {s:0}; 
+                const qData = db.q[k] || {};
+                
+                tS += o.s; 
+                if (o.s > 0) dP++; 
+                if (qData.start || o.s > 0) { 
+                    tP++; 
+                    const dObj = new Date(cy, cm-1, d); 
+                    if (dObj >= realToday) rW++; 
+                } 
+            }
             const monthlyPerc = db.b > 0 ? Math.round((tS/db.b)*100) : 0; const avg = dP ? (tS / dP) : 0;
             
             const bValEl = document.getElementById('d-budget-val'); if(bValEl) bValEl.innerText = db.b.toLocaleString('sv-SE') + " kr";
@@ -995,7 +1053,7 @@
         }
 
         function handleDashAction(t) { if(!activeK) return; if (t === 'VAB' || t === 'Föräldraledig') { triggerChildSelection(t, 'dash'); return; } finalizeDashAction(t); }
-        function finalizeDashAction(t) { if(['Arbete','Ledig'].includes(t)) pushMatrixSync(activeK, { st: t, abs: null }); else pushMatrixSync(activeK, { st: 'Arbete', abs: t }); }
+        function finalizeDashAction(t) { if(['Arbete','Ledig'].includes(t)) pushMatrixSync(activeK, { st: t, abs: null, src: 'Manual', raw: t }); else pushMatrixSync(activeK, { st: 'Arbete', abs: t, src: 'Manual', raw: t }); }
         function closeMonthEdit() { const m = document.getElementById('month-edit-menu'); if(m) m.classList.add('hidden'); const h = document.getElementById('cal-standard-header'); if(h) h.classList.remove('hidden'); }
 
         function checkOverwriteFromPopup(t) { 
@@ -1024,7 +1082,7 @@
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
                 
                 title = `${daysLong[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`;
-                subtitle = qData.exists ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
+                subtitle = qData.start ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
                 
                 dTarget = timeline[activeK]?.target || 0;
                 dSales = o.s || 0;
@@ -1039,6 +1097,16 @@
 
                 showActions = true;
                 isReached = dTarget > 0 && dSales >= dTarget;
+
+                // --- SMARTA ACTIONS: VARNING FÖR ATT VÄLJA BARN ---
+                const actsGrid = document.getElementById('dash-actions-grid');
+                if (absType === 'VAB' || absType === 'Föräldraledig') {
+                    statusText = "VAL AV BARN KRÄVS";
+                    actsGrid.innerHTML = `<div class="p-0.5 bg-slate-50 w-full h-full"><button onclick="triggerChildSelection('${absType}', 'dash')" class="w-full h-full bg-[#fef3c7] hover:bg-[#fde68a] text-[#d97706] font-black text-[10px] rounded-[10px] border border-[#fcd34d] shadow-sm flex items-center justify-center uppercase tracking-widest active:scale-95 transition-all">⚠️ Välj Barn (Klicka här)</button></div>`;
+                } else {
+                    actsGrid.innerHTML = `<div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50"><button onclick="handleDashAction('Arbete')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button><button onclick="handleDashAction('Ledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button><button onclick="handleDashAction('Semester')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button><button onclick="handleDashAction('Sjuk')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button><button onclick="handleDashAction('VAB')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button><button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button></div>`;
+                }
+
             } else {
                 let wPass = 0, firstShiftTarget = null;
                 let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6);
@@ -1089,10 +1157,11 @@
 
             const badgeEl = document.getElementById('dash-abs-badge');
             if (absType) {
-                const em = { 'Sjuk': '🤒', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' };
-                badgeEl.innerText = em[absType] || '•';
+                const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' };
+                let bKey = absType.split(' ')[0];
+                badgeEl.innerText = em[absType] || em[bKey] || '•';
                 badgeEl.classList.remove('hidden');
-                badgeEl.className = `absolute top-0 right-2 w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[14px] z-20 ${absType === 'Semester' ? 'bg-teal-100 text-teal-600' : (absType.includes('VAB') ? 'bg-amber-100 text-amber-600' : (absType.includes('Föräldraledig') ? 'bg-purple-100 text-purple-600' : 'bg-rose-100 text-rose-600'))}`;
+                badgeEl.className = `absolute top-0 right-2 w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[14px] z-20 ${absType.includes('Semester') ? 'bg-teal-100 text-teal-600' : (absType.includes('VAB') ? 'bg-amber-100 text-amber-600' : (absType.includes('Föräldraledig') ? 'bg-purple-100 text-purple-600' : 'bg-rose-100 text-rose-600'))}`;
             } else {
                 badgeEl.classList.add('hidden');
             }
@@ -1140,44 +1209,88 @@
             const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate();
             let absCounts = {}; let absListHTML = ''; let totalAbs = 0;
             const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
-            const em = { 'Sjuk': '🤒', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; 
-            const col = { 'Sjuk': 'text-rose-500', 'VAB Belma': 'text-amber-500', 'VAB Wilma': 'text-amber-500', 'Föräldraledig Belma': 'text-purple-500', 'Föräldraledig Wilma': 'text-purple-500', 'Semester': 'text-[#0f766e]', 'Tjänstledig': 'text-slate-500', 'Åtgärd krävs': 'text-amber-500' };
+            const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; 
+            const col = { 'Sjuk': 'text-rose-500', 'VAB': 'text-amber-500', 'VAB Belma': 'text-amber-500', 'VAB Wilma': 'text-amber-500', 'Föräldraledig': 'text-purple-500', 'Föräldraledig Belma': 'text-purple-500', 'Föräldraledig Wilma': 'text-purple-500', 'Semester': 'text-[#0f766e]', 'Tjänstledig': 'text-slate-500', 'Åtgärd krävs': 'text-amber-500' };
 
             for (let d = 1; d <= daysM; d++) {
                 const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {};
-                if (o.abs && ['Sjuk', 'VAB Belma', 'VAB Wilma', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig', 'Åtgärd krävs'].includes(o.abs)) {
+                if (o.abs && ['Sjuk', 'VAB', 'VAB Belma', 'VAB Wilma', 'Föräldraledig', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig', 'Åtgärd krävs'].some(a => o.abs.includes(a))) {
                     let reason = o.abs; absCounts[reason] = (absCounts[reason] || 0) + 1; totalAbs++;
-                    const dObj = new Date(cy, cm-1, d); const dayStr = `${daysLong[dObj.getDay()]} ${d}`; const icon = em[reason] || '•'; const tCol = col[reason] || 'text-slate-500';
-                    absListHTML += `<div class="flex justify-between items-center p-3.5 border-b border-slate-100 last:border-0 bg-white"><span class="text-[9px] font-black uppercase text-slate-600 tracking-wider">${dayStr}</span><span class="text-[10px] font-black ${tCol} uppercase tracking-widest">${icon} ${reason}</span></div>`;
+                    const dObj = new Date(cy, cm-1, d); const dayStr = `${daysLong[dObj.getDay()]} ${d}`; 
+                    let bKey = reason.split(' ')[0];
+                    const icon = em[reason] || em[bKey] || '•'; 
+                    const tCol = col[reason] || col[bKey] || 'text-slate-500';
+                    
+                    const srcTag = o.src === 'Auto' ? '🤖 AUTO (QUINYX)' : '👤 MANUELL';
+                    const rawTxt = o.raw || reason;
+
+                    absListHTML += `<div class="flex flex-col p-3.5 border-b border-slate-100 last:border-0 bg-white"><div class="flex justify-between items-center mb-1"><span class="text-[9px] font-black uppercase text-slate-600 tracking-wider">${dayStr}</span><span class="text-[10px] font-black ${tCol} uppercase tracking-widest">${icon} ${reason}</span></div><div class="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border border-slate-100 mt-1"><span class="text-[7.5px] font-black uppercase tracking-widest text-slate-400">${srcTag}</span><span class="text-[7.5px] font-black uppercase tracking-widest text-slate-500" style="max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Orsak: ${rawTxt}</span></div></div>`;
                 }
             }
 
             if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
 
             let summaryHTML = `<div class="mb-2.5 bg-white rounded-[20px] border border-slate-200 p-3 shadow-md flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
-            for (let reason in absCounts) { const icon = em[reason] || '•'; const tCol = col[reason] || 'text-slate-500'; summaryHTML += `<div class="flex justify-between items-center mb-1 last:mb-0"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; }
+            for (let reason in absCounts) { 
+                let bKey = reason.split(' ')[0];
+                const icon = em[reason] || em[bKey] || '•'; 
+                const tCol = col[reason] || col[bKey] || 'text-slate-500'; 
+                summaryHTML += `<div class="flex justify-between items-center mb-1 last:mb-0"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; 
+            }
             summaryHTML += `</div>`;
             pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="bg-white rounded-[20px] border border-slate-200 shadow-md overflow-y-auto hide-scrollbar flex-1 mb-1">${absListHTML}</div></div>`;
         }
 
+        // --- UPPDATERAD VISUELL REPR. AV DAG ---
         function createDayCell(cd, k) {
             const o = db.d[k] || {s:0}, t = timeline[k] || {target:0}, qData = db.q[k] || {}; 
             let cls = 'day-cell', b = '', content = '', wt = ''; 
-            const em = { 'Sjuk': '🤒', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; 
+            const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; 
             const isPast = cd < realToday, isToday = cd.getTime() === realToday.getTime(), state = getCellState(k);
-            let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let nH = new Date().getHours();
-            let isShiftActive = (isToday && qData.exists && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sStart && nH <= sEnd);
+            
+            let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; 
+            let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; 
+            let nH = new Date().getHours();
+            let isShiftActive = (isToday && qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sStart && nH <= sEnd);
             
             if (cd.getDay() === 1 && viewMode === 'month') wt = `<div class="week-tag">${getWeekNumber(cd)}</div>`;
-            if (o.abs) { if (o.abs === 'Åtgärd krävs') { b = `<div class="u-badge badge-abs badge-action">${em[o.abs] || '•'}</div>`; } else { b = `<div class="u-badge badge-abs">${em[o.abs] || '•'}</div>`; } }
+            
+            if (qData.late) { b += `<div class="u-badge badge-late">⏱️</div>`; }
+            
+            if (o.abs) { 
+                let bKey = o.abs.split(' ')[0];
+                if (o.abs === 'Åtgärd krävs') { b += `<div class="u-badge badge-abs badge-action">${em[o.abs] || '•'}</div>`; } 
+                else { b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; } 
+            }
 
             if (o.s > 0) { content = `<span class="cell-main-val mt-1">${(o.s/1000).toFixed(1)} k</span>`; } 
-            else if (state === 'planned' || (isToday && qData.exists && state !== 'ledig' && !o.abs)) { if (qData.start && qData.end) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`; } } 
+            else if (qData.start && !o.abs) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`; } 
             else if (state === 'unplanned') { content = `<span class="text-[7px] font-black text-slate-400 mt-1 uppercase tracking-widest opacity-50">Ledig</span>`; } 
             else if (state === 'ledig' && o.s === 0) { content = `<span class="cell-main-val mt-1" style="font-size:9px; opacity:0.4;">🏠</span>`; }
 
-            if (state === 'absent') { cls += ' type-absent'; } else if (state === 'semester') { cls += ' type-semester'; } else if (state === 'ledig') { cls += ' type-ledig'; } else if (state === 'unplanned') { cls += ' type-unplanned'; }
-            else if (isPast) { cls += ' history-cell'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; } else { if (isToday) cls += ' status-today'; else if (state === 'planned') cls += ' type-planned'; }
+            // Färglogik med Split-colors
+            if (o.abs) {
+                let baseAbs = o.abs.split(' ')[0];
+                if (qData.start) {
+                    // Om det finns ett arbetspass i grunden = Split
+                    if (baseAbs === 'Sjuk') cls += ' bg-split-sjuk';
+                    else if (baseAbs === 'VAB') cls += ' bg-split-vab';
+                    else if (baseAbs === 'Föräldraledig') cls += ' bg-split-fledig';
+                    else if (baseAbs === 'Semester') cls += ' bg-split-sem';
+                    else cls += ' type-absent'; // Fallback
+                } else {
+                    // Ren frånvaro
+                    if (baseAbs === 'Sjuk') cls += ' type-absent';
+                    else if (baseAbs === 'Semester') cls += ' type-semester';
+                    else cls += ' type-absent';
+                }
+            } else if (state === 'ledig' || state === 'unplanned') { 
+                cls += ' type-unplanned'; 
+            } else if (isPast) { 
+                cls += ' history-cell'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; 
+            } else { 
+                if (isToday) cls += ' status-today'; else if (qData.start) cls += ' type-planned'; 
+            }
             
             if (isShiftActive) cls += ' active-shift-pulse'; 
             if (viewMode === 'month' && multiSelectKeys.has(k)) { cls += ' active-focus'; } else if (viewMode !== 'month' && activeK === k) { cls += ' active-focus'; }

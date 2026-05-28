@@ -425,36 +425,31 @@
             if (cb && cb.style.display === 'block') { hideConfirm(true); handled = true; }
         });
 
-
         // ==========================================
         //  NEW INLINE NUMPAD (Dashboard Quick-Input)
         // ==========================================
         let inlineNumpadValue = "";
 
         function openInlineNumpad() {
-            if(!activeK) return; // Måste ha valt en dag först
+            if(!activeK) return; 
             pushModalState();
             
             const o = db.d[activeK] || {s:0};
             inlineNumpadValue = o.s > 0 ? String(o.s) : "";
             updateInlineNumpadDisplay();
             
-            // Fada ut vanliga innehållet i rutan
             document.getElementById('dash-standard-content').classList.add('opacity-0', 'pointer-events-none', 'scale-95');
             document.getElementById('dash-standard-content').classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
             
-            // Fada in In-line Numpaden
             const numpad = document.getElementById('dash-inline-numpad');
             numpad.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
             numpad.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
         }
 
         function closeInlineNumpad(fromPopstate = false) {
-            // Återställ vanliga rutan
             document.getElementById('dash-standard-content').classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
             document.getElementById('dash-standard-content').classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
             
-            // Dölj numpaden
             const numpad = document.getElementById('dash-inline-numpad');
             numpad.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
             numpad.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
@@ -499,7 +494,6 @@
             closeInlineNumpad();
         }
 
-
         // ==========================================
         //  OLD BOTTOM NUMPAD (För Månadsvy Edit)
         // ==========================================
@@ -515,7 +509,7 @@
             document.getElementById('bottom-standard-views').style.pointerEvents = 'none';
             document.getElementById('bottom-numpad-view').style.opacity = '1';
             document.getElementById('bottom-numpad-view').style.pointerEvents = 'auto';
-            numpadValue = currentVal > 0 ? String(currentVal) : ""; // Basic init
+            numpadValue = currentVal > 0 ? String(currentVal) : ""; 
         }
 
         function closeNumpad(fromPopstate = false) {
@@ -582,14 +576,106 @@
         try { savedNotes = JSON.parse(localStorage.getItem('sf_notes')) || []; } catch(e) { savedNotes = []; }
         let pendingNoteId = null; let editingNoteId = null; let expandedNoteId = null;
 
-        async function init() { 
-            try {
-                if (sb) {
-                    const [s, q] = await Promise.all([sb.from('sales_data').select('*'), sb.from('schedule_data').select('*')]); 
-                    if (s && s.data) s.data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent }); 
-                    if (q && q.data) q.data.forEach(r => { db.q[r.date_key] = { exists: true, start: r.start_time, end: r.end_time }; }); 
+        // --- NY LOGIK FÖR ATT LÄSA SCHEMA LOKALT ---
+        function extractDateTime(line) {
+            const match = line.match(/:(\d{8})(T\d{6})?/);
+            if (match) {
+                const dateStr = match[1]; 
+                const timeStr = match[2]; 
+                const y = dateStr.substring(0, 4);
+                const m = dateStr.substring(4, 6);
+                const d = dateStr.substring(6, 8);
+                let hh = "00"; let mm = "00"; let hasTime = false;
+                if (timeStr) {
+                    hh = timeStr.substring(1, 3);
+                    mm = timeStr.substring(3, 5);
+                    hasTime = true;
                 }
-            } catch(e) { console.warn("Kunde inte hämta data vid uppstart", e); }
+                return { dateKey: `${parseInt(y, 10)}-${parseInt(m, 10)}-${parseInt(d, 10)}`, time: `${hh}:${mm}`, hasTime: hasTime };
+            }
+            return null;
+        }
+
+        function processParsedEvent(ev, desc) {
+            if (!ev.start) return;
+            const fullText = desc.toLowerCase();
+            let isWork = false; let absType = null;
+            
+            if (fullText.includes("sales") || fullText.includes("cross tech")) {
+                isWork = true;
+            } else if (fullText.includes("ledighet") || fullText.includes("semester")) {
+                absType = "Semester";
+            } else if (fullText.includes("sjuk")) {
+                absType = "Sjuk";
+            } else if (fullText.includes("vab")) {
+                absType = "VAB"; 
+            } else {
+                absType = "Åtgärd krävs";
+            }
+
+            let sdParts = ev.start.dateKey.split('-');
+            let sd = new Date(sdParts[0], parseInt(sdParts[1])-1, sdParts[2]);
+            let ed = ev.end ? new Date(ev.end.dateKey.split('-')[0], parseInt(ev.end.dateKey.split('-')[1])-1, ev.end.dateKey.split('-')[2]) : new Date(sd);
+
+            let curr = new Date(sd);
+            while (curr <= ed) {
+                const k = `${curr.getFullYear()}-${curr.getMonth() + 1}-${curr.getDate()}`;
+                
+                if (isWork) {
+                    db.q[k] = { exists: true, start: ev.start.time, end: ev.end ? ev.end.time : "17:00" };
+                    if (!db.d[k]) db.d[k] = { st: 'Arbete', s: 0, abs: null };
+                } else if (absType) {
+                    db.q[k] = { exists: true, start: "", end: "" };
+                    if (!db.d[k]) {
+                        db.d[k] = { st: 'Arbete', s: 0, abs: absType };
+                    } else if (!db.d[k].abs && db.d[k].s === 0) {
+                        db.d[k].abs = absType; 
+                    }
+                }
+                curr.setDate(curr.getDate() + 1);
+            }
+        }
+
+        async function loadAllData() {
+            try {
+                // 1. Ladda försäljning från Supabase
+                if (sb) {
+                    const { data, error } = await sb.from('sales_data').select('*');
+                    if (data) {
+                        db.d = {};
+                        data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent });
+                    }
+                }
+
+                // 2. Ladda schema direkt från schema.ics (som Github uppdaterar)
+                const response = await fetch("schema.ics?t=" + Date.now()); 
+                const text = await response.text();
+                
+                db.q = {}; 
+                const lines = text.split(/\r?\n/);
+                let inEvent = false; let event = {}; let fullDesc = "";
+                
+                for (let i = 0; i < lines.length; i++) {
+                    let line = lines[i];
+                    if (line === "BEGIN:VEVENT") {
+                        inEvent = true; event = {}; fullDesc = "";
+                    } else if (line === "END:VEVENT") {
+                        inEvent = false; processParsedEvent(event, fullDesc);
+                    } else if (inEvent) {
+                        if (line.startsWith("DTSTART")) { event.start = extractDateTime(line); } 
+                        else if (line.startsWith("DTEND")) { event.end = extractDateTime(line); } 
+                        else if (line.startsWith("SUMMARY:") || line.startsWith("DESCRIPTION:")) { fullDesc += " " + line; } 
+                        else if (!line.includes(":")) { fullDesc += " " + line; }
+                    }
+                }
+                console.log("Data hämtad utan CORS-problem!");
+            } catch(e) { 
+                console.warn("Kunde inte hämta data", e); 
+            }
+        }
+
+        async function init() { 
+            await loadAllData();
             
             calculateTimeline(); activeK = getK(realToday); 
             renderWeekSlides(); updateDash(); setMode('dash'); setupSwipeObserver(); renderNotes();
@@ -601,19 +687,15 @@
             if(!btn) return;
             const oldTxt = btn.innerHTML;
             btn.innerHTML = '<span>⚡</span> SYNKAR...';
-            try {
-                if(sb) {
-                    const [s, q] = await Promise.all([sb.from('sales_data').select('*'), sb.from('schedule_data').select('*')]); 
-                    if (s && s.data) s.data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent }); 
-                    if (q && q.data) q.data.forEach(r => { db.q[r.date_key] = { exists: true, start: r.start_time, end: r.end_time }; }); 
-                }
-            } catch(e) { console.warn("Synk misslyckades", e); }
+            
+            await loadAllData();
             
             calculateTimeline(); updateDash(); 
             if (viewMode === 'dash') updateDashboardView();
             else if (viewMode === 'absence') renderAbsence();
             setTimeout(() => { btn.innerHTML = oldTxt; }, 800);
         }
+        // --- SLUT PÅ NY LOGIK ---
 
         function pushMatrixSync(k, o) {
             const old = db.d[k] || {}; 

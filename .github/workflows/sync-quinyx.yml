@@ -13,10 +13,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Fetch Quinyx Webcal with User-Agent
+      - name: Fetch Quinyx Webcal
         run: |
-          curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
-          "https://app.quinyx.com/webcal/?id=a4bee41611fc30679551a7a595abe310" -o schema.ics
+          # Vi kör utan User-Agent för att Quinyx ska skicka med fullständig data
+          curl -L "https://app.quinyx.com/webcal/?id=a4bee41611fc30679551a7a595abe310" -o schema.ics
       
       - name: Commit and push changes
         run: |

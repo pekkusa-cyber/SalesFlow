@@ -54,8 +54,8 @@
         .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; box-shadow: var(--shadow-banner) !important; border: 1px solid rgba(255,255,255,0.04) !important; }
         .premium-slate-banner::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(56,189,248,0.18), transparent 70%); mix-blend-mode: screen; }
         
-        /* TOP SECTION */
-        .top-section { height: 262px; margin: 0 12px 8px; position: relative; border: none; box-shadow: var(--shadow-banner); flex-shrink: 0; overflow: hidden; }
+        /* TOP SECTION - Något högre för att snyggt rymma nya inforutan */
+        .top-section { height: 304px; margin: 0 12px 8px; position: relative; border: none; box-shadow: var(--shadow-banner); flex-shrink: 0; overflow: hidden; }
         
         .budget-header { text-align: center; margin-bottom: 2px; position: relative; z-index: 1; }
         .budget-label { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.32em; margin-bottom: 2px; }
@@ -77,22 +77,28 @@
         .g-label-0 { position: absolute; bottom: 4px; left: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.35); letter-spacing: 0.05em; }
         .g-label-240 { position: absolute; bottom: 4px; right: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.35); letter-spacing: 0.05em; }
         
+        /* INFO BAR ANIMATION */
+        @keyframes infoPop {
+            0% { opacity: 0; transform: translateY(6px) scale(0.98); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-info-pop { animation: infoPop 0.4s var(--ease-spring) forwards; }
+
         .bottom-section { flex: 1; margin: 0 12px calc(env(safe-area-inset-bottom, 12px) + 6px); position: relative; min-height: 0; overflow: hidden; }
         
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 5px; padding: 4px 6px 8px; height: 100%; }
         .weekday-label { text-align: center; font-size: 8.5px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; padding-bottom: 2px; letter-spacing: 0.08em; }
         
-        .day-cell { width: 100%; height: 100%; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1px solid rgba(255,255,255,1); box-shadow: 0 4px 10px -4px rgba(15,23,42,0.1), inset 0 -2px 6px rgba(15,23,42,0.02); transition: all 0.25s var(--ease-spring); }
+        .day-cell { width: 100%; height: 100%; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1px solid rgba(255,255,255,1); box-shadow: 0 4px 10px -4px rgba(15,23,42,0.1), inset 0 -2px 6px rgba(15,23,42,0.02); transition: transform 0.25s var(--ease-spring), box-shadow 0.25s var(--ease-spring), opacity 0.25s; }
         .day-cell:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -6px rgba(15,23,42,0.12), inset 0 -2px 4px rgba(15,23,42,0.02); z-index: 10; }
-        .day-cell:active { transform: scale(0.92) translateY(1px); box-shadow: 0 2px 4px -2px rgba(15,23,42,0.08); }
-        
+        .day-cell:active { transform: scale(0.9) translateY(1px); box-shadow: 0 2px 4px -2px rgba(15,23,42,0.08); transition: transform 0.1s ease; }
+
         .type-unplanned { background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important; border: 1px solid #ffffff !important; color: var(--text-muted) !important; }
         .type-planned { background: linear-gradient(180deg, #f0f9ff, #e0f2fe) !important; color: var(--sting-blue) !important; border: 1px solid #ffffff !important; box-shadow: 0 4px 10px -4px rgba(14, 165, 233, 0.2), inset 0 -2px 6px rgba(14, 165, 233, 0.05); }
         .type-ledig { background: linear-gradient(180deg, #f8fafc, #f1f5f9) !important; color: var(--text-muted) !important; border: 1px solid #ffffff !important; }
         .type-semester { background: linear-gradient(180deg, #f0fdfa, #ccfbf1) !important; color: #0f766e !important; border: 1px solid #ffffff !important; z-index: 4; }
         .type-absent { background: linear-gradient(180deg, #fff7ed, #ffedd5) !important; color: #c2410c !important; border: 1px solid #ffffff !important; z-index: 4; }
         
-        /* SPLIT COLORS FOR PARTIAL / MISSED SHIFTS */
         .bg-split-sjuk { background: linear-gradient(135deg, #e0f2fe 50%, #fee2e2 50%) !important; border: 1px solid #ffffff !important; color: #9f1239 !important; z-index: 4; }
         .bg-split-vab { background: linear-gradient(135deg, #e0f2fe 50%, #fef3c7 50%) !important; border: 1px solid #ffffff !important; color: #b45309 !important; z-index: 4; }
         .bg-split-fledig { background: linear-gradient(135deg, #e0f2fe 50%, #f3e8ff 50%) !important; border: 1px solid #ffffff !important; color: #7e22ce !important; z-index: 4; }
@@ -135,7 +141,12 @@
         .status-today.active-shift-pulse { animation: pulse-cell-blue 2.2s var(--ease-spring) infinite; border: 1.5px solid #7dd3fc !important; }
         .active-focus.active-shift-pulse { animation: pulse-cell-amber 2.2s var(--ease-spring) infinite; border: 1.5px solid #fcd34d !important; }
 
-        .carousel-item { transition: transform 0.1s ease-out, opacity 0.1s ease-out; }
+        body.focus-mode-active .top-section { filter: blur(5px); opacity: 0.5; pointer-events: none; transition: all 0.4s var(--ease-spring); }
+        body.focus-mode-active .weekday-label { opacity: 0.4; transition: all 0.4s ease; }
+        body.focus-mode-active .day-cell { transition: all 0.4s var(--ease-spring); }
+        body.focus-mode-active .day-cell:not(.focus-highlight) { opacity: 0.25; filter: blur(2px) grayscale(60%); pointer-events: none; }
+        body.focus-mode-active .day-cell.focus-highlight { z-index: 50; transform: scale(1.05); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), inset 0 0 0 2px var(--sting-blue); }
+
     </style>
 </head>
 <body class="mode-dash">
@@ -187,7 +198,7 @@
                 <button onclick="openBudgetModal()" class="absolute top-4 left-4 text-slate-300 hover:text-white text-[22px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">⚙️</button>
                 <button onclick="setMode('notes')" class="absolute top-4 right-4 text-slate-300 hover:text-white text-[20px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">✏️</button>
                 
-                <div id="top-monthly-ui" class="flex flex-col w-full h-full justify-center px-4 py-4 transition-opacity duration-300">
+                <div id="top-monthly-ui" class="flex flex-col w-full h-full justify-center px-4 py-3.5 transition-opacity duration-300">
                     <div class="budget-header"><p class="budget-label mt-1">Månadsmål</p><p id="d-budget-val" class="budget-val">240,000 kr</p></div>
                     <div class="gauge-layout">
                         <div class="side-col">
@@ -215,22 +226,29 @@
                         <div class="flex-1 text-center border-l border-white/10"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">Prognos</p><p id="d-prog" class="text-[14px] font-black text-white">0</p></div>
                         <div class="flex-1 text-center border-l border-white/10"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">Status</p><p id="d-status" class="text-[12px] font-black mt-0.5 uppercase tracking-wider text-white">LADDAR</p></div>
                     </div>
-                </div>
 
+                    <!-- NY INFO BAR -->
+                    <div id="top-info-bar" class="mt-3.5 px-3 py-2.5 rounded-[12px] mx-1 flex items-center justify-center transition-all duration-300 cursor-pointer active:scale-95" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1);">
+                         <span id="top-info-text" class="text-[9px] font-black uppercase tracking-widest text-white/90 w-full text-center flex items-center justify-center gap-1.5 leading-none">LADDAR INFO...</span>
+                    </div>
+
+                </div>
             </div>
 
             <div class="app-card bottom-section" style="background: var(--white);">
                 
                 <div id="bottom-standard-views" class="flex flex-col w-full h-full transition-opacity duration-300">
                     <div class="flex justify-between items-center px-2 py-1 border-b flex-shrink-0 relative z-30 h-[54px]" style="border-color: rgba(15,23,42,0.05); background: var(--white); border-radius: 28px 28px 0 0;">
-                        <button onclick="cycleView(-1)" class="text-slate-400 hover:text-[#0ea5e9] text-3xl px-1 active:scale-90 transition-colors">←</button>
+                        <button onclick="cycleView(-1)" class="text-slate-400 hover:text-[#0ea5e9] text-3xl px-1 active:scale-90 transition-transform">←</button>
                         <div id="cal-standard-header" class="flex-1 flex flex-col justify-center items-center w-full px-1">
                             <h3 id="dynamic-view-title" class="text-[9.5px] font-black uppercase tracking-widest text-slate-800 mb-1.5 text-center leading-none">LADDAR...</h3>
                             
-                            <div class="flex gap-1 p-0.5 bg-slate-50 rounded-lg border border-slate-100 shadow-inner w-full max-w-[200px]">
+                            <div class="relative flex gap-1 p-0.5 bg-slate-50 rounded-lg border border-slate-100 shadow-inner w-full max-w-[200px] overflow-hidden">
                                 <button id="tab-absence" onclick="setMode('absence')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">FRÅNV.</button>
                                 <button id="tab-dash" onclick="toggleDashMode()" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm">VECKA</button>
                                 <button id="tab-month" onclick="setMode('month')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">MÅNAD</button>
+                                
+                                <button id="btn-close-focus" onclick="closeFocusMode()" class="absolute inset-0 m-[2px] bg-gradient-to-r from-rose-500 to-rose-600 text-white font-black text-[9px] uppercase tracking-widest flex items-center justify-center transition-transform duration-300 translate-y-[110%] rounded-md shadow-sm z-50">✕ STÄNG FOKUS</button>
                             </div>
                         </div>
                         <div id="month-edit-menu" class="hidden absolute inset-0 flex items-center justify-between px-3 z-50 bg-slate-50" style="border-radius: 28px 28px 0 0;">
@@ -240,31 +258,28 @@
                                 </button>
                                 
                                 <div class="flex items-center gap-1 border-l border-slate-200 pl-2 ml-1">
-                                    <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm">⚒️</button>
-                                    <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm">🏠</button>
-                                    <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm">✈️</button>
-                                    <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm">🤒</button>
-                                    <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm">👶</button>
-                                    <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm">🍼</button>
-                                    <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="text-red-500 text-[16px] transform active:scale-90 border-l border-slate-200 pl-2 ml-1 drop-shadow-sm">🗑️</button>
+                                    <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">⚒️</button>
+                                    <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">🏠</button>
+                                    <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">✈️</button>
+                                    <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">🤒</button>
+                                    <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">👶</button>
+                                    <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">🍼</button>
+                                    <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="text-red-500 text-[16px] transform active:scale-90 border-l border-slate-200 pl-2 ml-1 drop-shadow-sm transition-transform">🗑️</button>
                                 </div>
                             </div>
                         </div>
-                        <button onclick="cycleView(1)" class="text-slate-400 hover:text-[#0ea5e9] text-3xl px-1 active:scale-90 transition-colors">→</button>
+                        <button onclick="cycleView(1)" class="text-slate-400 hover:text-[#0ea5e9] text-3xl px-1 active:scale-90 transition-transform">→</button>
                     </div>
 
                     <div id="container-dash-views">
                         
-                        <div id="pane-dash" class="dash-view-pane h-full justify-start pt-1.5 flex flex-col overflow-hidden">
+                        <div id="pane-dash" class="dash-view-pane h-full justify-start pt-1.5 flex flex-col overflow-hidden" style="touch-action: pan-y;">
                             <div class="grid grid-cols-7 gap-1 px-3 mb-0.5 flex-shrink-0">
                                 <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
                                 <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
                             </div>
                             
-                            <div id="swipe-wrapper" class="flex overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full h-[64px] flex-shrink-0 mb-1 py-1" style="touch-action: pan-x; overscroll-behavior: contain;">
-                                <div id="slide-prev" class="w-full h-full flex-shrink-0 snap-center"></div>
-                                <div id="slide-curr" class="w-full h-full flex-shrink-0 snap-center"></div>
-                                <div id="slide-next" class="w-full h-full flex-shrink-0 snap-center"></div>
+                            <div id="slide-curr" class="w-full h-[64px] flex-shrink-0 mb-1 py-1 grid grid-cols-7 gap-1 px-3 items-center">
                             </div>
 
                             <div class="mx-3 mt-1 mb-2 bg-white rounded-[24px] border border-slate-100 shadow-md flex flex-col flex-shrink-0 relative z-20 flex-1 min-h-0 overflow-hidden">
@@ -275,8 +290,9 @@
                                             <span id="dash-title" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
                                             <span id="dash-subtitle" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
                                         </div>
-                                        <div class="flex flex-col text-right">
-                                            <p id="dash-status-text" class="text-[9px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
+                                        <div class="flex flex-col text-right justify-end">
+                                            <p id="dash-status-meta" class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5 min-h-[12px]"></p>
+                                            <p id="dash-status-text" class="text-[10px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
                                         </div>
                                     </div>
                                     
@@ -315,32 +331,32 @@
                                 <div id="dash-inline-numpad" class="absolute inset-0 bg-white z-40 flex flex-col p-2.5 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4">
                                     
                                     <div class="flex items-center justify-between mb-2 flex-shrink-0">
-                                        <button onclick="closeInlineNumpad()" class="text-slate-400 font-bold px-2 py-1.5 bg-slate-50 rounded-lg active:scale-95 text-[10px] uppercase tracking-wider border border-slate-100">✕ Avbryt</button>
+                                        <button onclick="closeInlineNumpad()" class="text-slate-400 font-bold px-2 py-1.5 bg-slate-50 rounded-lg active:scale-95 text-[10px] uppercase tracking-wider border border-slate-100 transition-transform">✕ Avbryt</button>
                                         <div class="text-center flex-1">
                                             <p id="inline-numpad-display" class="text-[22px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 kr</p>
                                         </div>
-                                        <button onclick="saveInlineNumpad()" class="text-white font-black px-3 py-1.5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-lg shadow-sm active:scale-95 text-[10px] uppercase tracking-wider">✓ SPARA</button>
+                                        <button onclick="saveInlineNumpad()" class="text-white font-black px-3 py-1.5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-lg shadow-sm active:scale-95 text-[10px] uppercase tracking-wider transition-transform">✓ SPARA</button>
                                     </div>
                                     
                                     <div class="flex-1 flex gap-2 min-h-0">
                                         <div class="flex-[3] grid grid-cols-3 gap-1">
-                                            <button onclick="inlinePress('1')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">1</button>
-                                            <button onclick="inlinePress('2')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">2</button>
-                                            <button onclick="inlinePress('3')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">3</button>
-                                            <button onclick="inlinePress('4')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">4</button>
-                                            <button onclick="inlinePress('5')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">5</button>
-                                            <button onclick="inlinePress('6')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">6</button>
-                                            <button onclick="inlinePress('7')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">7</button>
-                                            <button onclick="inlinePress('8')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">8</button>
-                                            <button onclick="inlinePress('9')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">9</button>
-                                            <button onclick="inlinePress('clear')" class="bg-rose-50 flex items-center justify-center text-rose-500 font-black text-sm rounded-xl border border-rose-100 active:scale-95 shadow-sm">C</button>
-                                            <button onclick="inlinePress('0')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">0</button>
-                                            <button onclick="inlinePress('back')" class="bg-slate-50 flex items-center justify-center text-slate-500 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm">⌫</button>
+                                            <button onclick="inlinePress('1')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">1</button>
+                                            <button onclick="inlinePress('2')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">2</button>
+                                            <button onclick="inlinePress('3')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">3</button>
+                                            <button onclick="inlinePress('4')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">4</button>
+                                            <button onclick="inlinePress('5')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">5</button>
+                                            <button onclick="inlinePress('6')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">6</button>
+                                            <button onclick="inlinePress('7')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">7</button>
+                                            <button onclick="inlinePress('8')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">8</button>
+                                            <button onclick="inlinePress('9')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">9</button>
+                                            <button onclick="inlinePress('clear')" class="bg-rose-50 flex items-center justify-center text-rose-500 font-black text-sm rounded-xl border border-rose-100 active:scale-95 shadow-sm transition-transform">C</button>
+                                            <button onclick="inlinePress('0')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">0</button>
+                                            <button onclick="inlinePress('back')" class="bg-slate-50 flex items-center justify-center text-slate-500 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">⌫</button>
                                         </div>
                                         <div class="flex-[1] flex flex-col gap-1">
-                                            <button onclick="inlineTarget()" class="flex-[1.5] bg-[#fffbeb] text-[#d97706] font-black text-[9px] uppercase tracking-widest rounded-xl border border-[#fde68a] shadow-sm active:scale-95 flex flex-col items-center justify-center leading-tight"><span>🎯</span><span class="mt-0.5">Nå Mål</span></button>
-                                            <button onclick="inlineAdd(5000)" class="flex-1 bg-[#f0f9ff] text-[#0ea5e9] font-black text-[10px] rounded-xl border border-[#bae6fd] shadow-sm active:scale-95 flex items-center justify-center">+5k</button>
-                                            <button onclick="inlineAdd(10000)" class="flex-1 bg-[#f0f9ff] text-[#0ea5e9] font-black text-[10px] rounded-xl border border-[#bae6fd] shadow-sm active:scale-95 flex items-center justify-center">+10k</button>
+                                            <button onclick="inlineTarget()" class="flex-[1.5] bg-[#fffbeb] text-[#d97706] font-black text-[9px] uppercase tracking-widest rounded-xl border border-[#fde68a] shadow-sm active:scale-95 flex flex-col items-center justify-center leading-tight transition-transform"><span>🎯</span><span class="mt-0.5">Nå Mål</span></button>
+                                            <button onclick="inlineAdd(5000)" class="flex-1 bg-[#f0f9ff] text-[#0ea5e9] font-black text-[10px] rounded-xl border border-[#bae6fd] shadow-sm active:scale-95 flex items-center justify-center transition-transform">+5k</button>
+                                            <button onclick="inlineAdd(10000)" class="flex-1 bg-[#f0f9ff] text-[#0ea5e9] font-black text-[10px] rounded-xl border border-[#bae6fd] shadow-sm active:scale-95 flex items-center justify-center transition-transform">+10k</button>
                                         </div>
                                     </div>
                                 </div>
@@ -353,7 +369,7 @@
                                 <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
                                 <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
                             </div>
-                            <div id="d-cal" class="cal-grid w-full flex-1"></div>
+                            <div id="d-cal" class="cal-grid w-full flex-1 relative"></div>
                         </div>
                         
                         <div id="pane-absence" class="dash-view-pane h-full overflow-y-auto hide-scrollbar p-3 flex flex-col gap-2"></div>
@@ -422,7 +438,37 @@
         });
 
         // ==========================================
-        //  NEW INLINE NUMPAD (Dashboard Quick-Input)
+        //  FOKUS LÄGE
+        // ==========================================
+        let currentFocusReason = null;
+
+        function triggerFocusMode(reason) {
+            currentFocusReason = reason;
+            setMode('month');
+            document.body.classList.add('focus-mode-active');
+            const btn = document.getElementById('btn-close-focus');
+            if(btn) {
+                btn.classList.remove('translate-y-[110%]');
+                btn.classList.add('translate-y-0');
+            }
+            renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1);
+        }
+
+        function closeFocusMode(skipRender = false) {
+            currentFocusReason = null;
+            document.body.classList.remove('focus-mode-active');
+            const btn = document.getElementById('btn-close-focus');
+            if(btn) {
+                btn.classList.add('translate-y-[110%]');
+                btn.classList.remove('translate-y-0');
+            }
+            if(!skipRender && viewMode === 'month') {
+                renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1);
+            }
+        }
+
+        // ==========================================
+        //  INLINE NUMPAD
         // ==========================================
         let inlineNumpadValue = "";
 
@@ -491,7 +537,7 @@
         }
 
         // ==========================================
-        //  OLD BOTTOM NUMPAD (För Månadsvy Edit)
+        //  BOTTOM NUMPAD (För Edit Mode)
         // ==========================================
         let numpadTarget = null; 
         let numpadValue = "";
@@ -537,8 +583,27 @@
             if (numpadTarget === 'month') {
                 let upserts = []; const keys = Array.from(multiSelectKeys);
                 for (let k of keys) {
-                    const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: valNum, abs: old.abs || null, src: 'Manual', raw: old.raw || '' };
-                    db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
+                    const old = db.d[k] || {}; 
+                    const qd = db.q[k] || {};
+                    let merged = { 
+                        st: old.st || 'Arbete', 
+                        s: valNum, 
+                        abs: old.abs || null, 
+                        src: 'Manual', 
+                        raw: old.raw || '',
+                        fk_perc: old.fk_perc || qd.fk_perc || null,
+                        abs_hours: old.abs_hours || qd.abs_hours || null
+                    };
+                    db.d[k] = merged; 
+                    upserts.push({ 
+                        date_key: k, 
+                        status: merged.st, 
+                        sales: merged.s, 
+                        is_absent: merged.abs,
+                        raw_reason: merged.raw,
+                        fk_perc: merged.fk_perc,
+                        abs_hours: merged.abs_hours
+                    });
                 }
                 multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit();
                 if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
@@ -591,30 +656,21 @@
             return null;
         }
 
-        // --- UPPDATERAD PARSER FÖR FRÅNVARO OCH SEN ANKOMST ---
+        // ==========================================
+        //  PARSER OCH DETEKTOR
+        // ==========================================
         function processParsedEvent(ev, desc) {
             if (!ev.start) return;
             const fullText = desc.toLowerCase();
             
             let isWork = false;
-            let qAbs = null;
-            let isLate = false;
-            let rawReason = "";
+            let isLedig = false;
 
             if (fullText.includes("sen ankomst") || fullText.includes("tidig hemgång")) {
-                isWork = true; isLate = true; rawReason = "Sen ankomst/Tidig hemgång";
-            } else if (fullText.includes("del av dag")) {
-                if (fullText.includes("sjuk")) { qAbs = "Sjuk"; rawReason = "Sjuk del av dag"; }
-                else if (fullText.includes("vård av barn") || fullText.includes("vab")) { qAbs = "VAB"; rawReason = "Vård av Barn del av dag"; }
-                else if (fullText.includes("föräldraledig")) { qAbs = "Föräldraledig"; rawReason = "Föräldraledig del av dag"; }
-                else if (fullText.includes("tjänstledig")) { qAbs = "Tjänstledig"; rawReason = "Tjänstledig del av dag"; }
-            } else if (fullText.includes("hel dag") || fullText.includes("mer än 5 dagar") || fullText.includes("upp till 5 dagar") || fullText.includes("tio dgr vid barns födelse")) {
-                if (fullText.includes("sjuk")) { qAbs = "Sjuk"; rawReason = "Sjuk hel dag"; }
-                else if (fullText.includes("vård av barn") || fullText.includes("vab")) { qAbs = "VAB"; rawReason = "Vård av Barn hel dag"; }
-                else if (fullText.includes("föräldraledig") || fullText.includes("tio dgr vid barns födelse")) { qAbs = "Föräldraledig"; rawReason = "Föräldraledig hel dag"; }
-                else if (fullText.includes("semester")) { qAbs = "Semester"; rawReason = "Semester"; }
-                else if (fullText.includes("tjänstledig")) { qAbs = "Tjänstledig"; rawReason = "Tjänstledig hel dag"; }
-            } else if (fullText.includes("sales") || fullText.includes("cross tech") || fullText.includes("arbetspass")) {
+                isWork = true;
+            } else if (fullText.includes("q: ledighet") || fullText.includes("ledighet")) {
+                isLedig = true;
+            } else if (fullText.includes("sales") || fullText.includes("cross tech") || fullText.includes("arbetspass") || fullText.includes("q:")) {
                 isWork = true;
             }
 
@@ -622,33 +678,28 @@
             let sd = new Date(sdParts[0], parseInt(sdParts[1])-1, sdParts[2]);
             let ed = ev.end ? new Date(ev.end.dateKey.split('-')[0], parseInt(ev.end.dateKey.split('-')[1])-1, ev.end.dateKey.split('-')[2]) : new Date(sd);
 
+            let duration = 0;
+            if (ev.start.hasTime && ev.end && ev.end.hasTime) {
+                let [h1, m1] = ev.start.time.split(':').map(Number);
+                let [h2, m2] = ev.end.time.split(':').map(Number);
+                duration = (h2 + m2/60) - (h1 + m1/60);
+            }
+
             let curr = new Date(sd);
             while (curr <= ed) {
                 const k = `${curr.getFullYear()}-${curr.getMonth() + 1}-${curr.getDate()}`;
-                if (!db.q[k]) db.q[k] = {};
+                if (!db.q[k]) db.q[k] = { work_h: 0, ledig_h: 0 };
                 
-                if (isWork && !isLate) {
+                if (isWork) {
                     db.q[k].exists = true; 
-                    db.q[k].start = ev.start.time; 
-                    db.q[k].end = ev.end ? ev.end.time : "17:00";
+                    if(!db.q[k].start || ev.start.time < db.q[k].start) db.q[k].start = ev.start.time;
+                    if(!db.q[k].end || ev.end.time > db.q[k].end) db.q[k].end = ev.end.time;
+                    db.q[k].work_h += duration;
                 }
                 
-                if (isLate) {
-                    db.q[k].exists = true; 
-                    db.q[k].late = true;
-                }
-                
-                if (qAbs) {
-                    db.q[k].auto = true;
-                    if (!db.d[k]) {
-                        db.d[k] = { st: 'Arbete', s: 0, abs: qAbs, src: 'Auto', raw: rawReason };
-                    } else if (db.d[k].src !== 'Manual' && (!db.d[k].abs || db.d[k].abs === qAbs)) {
-                        db.d[k].abs = qAbs;
-                        db.d[k].src = 'Auto';
-                        db.d[k].raw = rawReason;
-                    }
-                } else if (isWork && !db.d[k]) {
-                    db.d[k] = { st: 'Arbete', s: 0, abs: null, src: 'Auto', raw: '' };
+                if (isLedig) {
+                    db.q[k].exists = true;
+                    db.q[k].ledig_h += duration;
                 }
                 curr.setDate(curr.getDate() + 1);
             }
@@ -660,7 +711,15 @@
                     const { data } = await sb.from('sales_data').select('*');
                     if (data) {
                         db.d = {};
-                        data.forEach(r => db.d[r.date_key] = { st: r.status, s: parseNum(r.sales), abs: r.is_absent, src: 'Manual', raw: r.is_absent || '' });
+                        data.forEach(r => db.d[r.date_key] = { 
+                            st: r.status, 
+                            s: parseNum(r.sales), 
+                            abs: r.is_absent, 
+                            src: r.is_absent === 'Åtgärd krävs' ? 'Auto' : 'Manual', 
+                            raw: r.raw_reason || r.is_absent || '',
+                            fk_perc: r.fk_perc,
+                            abs_hours: r.abs_hours
+                        });
                     }
                 }
 
@@ -685,7 +744,76 @@
                         else if (!line.includes(":")) { fullDesc += " " + line; }
                     }
                 }
-                console.log("Data hämtad och auto-kategoriserad!");
+
+                let upserts = [];
+                for (let k in db.q) {
+                    let qd = db.q[k];
+                    if (qd.ledig_h > 0) {
+                        let total = qd.work_h + qd.ledig_h;
+                        let actual_perc = total > 0 ? (qd.ledig_h / total) * 100 : 100;
+                        
+                        let fk_perc = 0;
+                        if (actual_perc >= 100) fk_perc = 100;
+                        else if (actual_perc >= 75) fk_perc = 75;
+                        else if (actual_perc >= 50) fk_perc = 50;
+                        else if (actual_perc >= 25) fk_perc = 25;
+                        else fk_perc = 0;
+                        
+                        qd.actual_perc = actual_perc;
+                        qd.fk_perc = fk_perc;
+                        qd.abs_hours = qd.ledig_h;
+                        
+                        let existing = db.d[k];
+                        let needsFlag = false;
+
+                        if (!existing) {
+                            needsFlag = true;
+                        } else if (existing.src !== 'Manual') { 
+                            if (!existing.abs || existing.abs === 'Åtgärd krävs') {
+                                needsFlag = true;
+                            }
+                        }
+
+                        if (needsFlag) {
+                            db.d[k] = { 
+                                st: 'Arbete', 
+                                s: existing?.s || 0, 
+                                abs: 'Åtgärd krävs', 
+                                src: 'Auto', 
+                                raw: `Frånvaro ${qd.ledig_h.toFixed(2)}h`,
+                                fk_perc: fk_perc,
+                                abs_hours: qd.ledig_h
+                            };
+                            upserts.push({
+                                date_key: k,
+                                status: 'Arbete',
+                                sales: existing?.s || 0,
+                                is_absent: 'Åtgärd krävs',
+                                raw_reason: `Frånvaro ${qd.ledig_h.toFixed(2)}h`,
+                                fk_perc: fk_perc,
+                                abs_hours: qd.ledig_h
+                            });
+                        } else if (existing && existing.src === 'Manual') {
+                            if(existing.fk_perc == null || existing.abs_hours == null) {
+                                 existing.fk_perc = fk_perc;
+                                 existing.abs_hours = qd.ledig_h;
+                                 upserts.push({
+                                    date_key: k,
+                                    status: existing.st,
+                                    sales: existing.s,
+                                    is_absent: existing.abs,
+                                    raw_reason: existing.raw,
+                                    fk_perc: fk_perc,
+                                    abs_hours: qd.ledig_h
+                                 });
+                            }
+                        }
+                    }
+                }
+                
+                if(sb && upserts.length > 0) {
+                    sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); });
+                }
             } catch(e) { 
                 console.warn("Kunde inte hämta data", e); 
             }
@@ -693,9 +821,8 @@
 
         async function init() { 
             await loadAllData();
-            
             calculateTimeline(); activeK = getK(realToday); 
-            renderWeekSlides(); updateDash(); setMode('dash'); setupSwipeObserver(); renderNotes();
+            renderWeekSlides(); updateDash(); setMode('dash'); renderNotes();
             clearInterval(focusTimer); focusTimer = setInterval(() => { if(viewMode === 'dash') updateDashboardView(); }, 2000);
         }
 
@@ -715,12 +842,15 @@
 
         function pushMatrixSync(k, o) {
             const old = db.d[k] || {}; 
+            const qd = db.q[k] || {};
             const merged = { 
                 st: o.st !== undefined ? o.st : (old.st || 'Arbete'), 
                 s: o.s !== undefined ? o.s : (old.s || 0), 
                 abs: o.abs !== undefined ? o.abs : (old.abs || null),
                 src: o.src !== undefined ? o.src : 'Manual',
-                raw: o.raw !== undefined ? o.raw : (old.raw || '')
+                raw: o.raw !== undefined ? o.raw : (old.raw || ''),
+                fk_perc: o.fk_perc !== undefined ? o.fk_perc : (old.fk_perc || qd.fk_perc || null),
+                abs_hours: o.abs_hours !== undefined ? o.abs_hours : (old.abs_hours || qd.abs_hours || null)
             };
             
             db.d[k] = merged; 
@@ -729,7 +859,15 @@
 
             if (sb) {
                 sb.from('sales_data')
-                  .upsert({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs })
+                  .upsert({ 
+                      date_key: k, 
+                      status: merged.st, 
+                      sales: merged.s, 
+                      is_absent: merged.abs,
+                      raw_reason: merged.raw,
+                      fk_perc: merged.fk_perc,
+                      abs_hours: merged.abs_hours
+                  })
                   .then(({error}) => { if(error) console.warn("Supabase fel", error); });
             }
         }
@@ -740,7 +878,21 @@
                 const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: old.s || 0, abs: old.abs || null, src: 'Manual', raw: t };
                 if(t==='delete') { merged = { st: 'Arbete', s: 0, abs: null, src: 'Manual', raw: '' }; } 
                 else { if(['Arbete','Ledig'].includes(t)) { merged.st = t; merged.abs = null; } else { merged.st = 'Arbete'; merged.abs = t; } }
-                db.d[k] = merged; upserts.push({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs });
+                
+                const qd = db.q[k] || {};
+                merged.fk_perc = qd.fk_perc || old.fk_perc || null;
+                merged.abs_hours = qd.abs_hours || old.abs_hours || null;
+
+                db.d[k] = merged; 
+                upserts.push({ 
+                    date_key: k, 
+                    status: merged.st, 
+                    sales: merged.s, 
+                    is_absent: merged.abs,
+                    raw_reason: merged.raw,
+                    fk_perc: merged.fk_perc,
+                    abs_hours: merged.abs_hours
+                });
             }
             multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); 
             if (viewMode === 'dash') updateDashboardView();
@@ -858,6 +1010,92 @@
             else if (viewMode === 'notes') { t.innerText = "ANTECKNINGAR"; }
         }
 
+        function updateTopInfoBar() {
+            const infoTextEl = document.getElementById('top-info-text');
+            if(!infoTextEl) return;
+            
+            infoTextEl.classList.remove('animate-info-pop');
+            void infoTextEl.offsetWidth; 
+            infoTextEl.classList.add('animate-info-pop');
+
+            let displayDay = null;
+            if (viewMode === 'dash' && activeK) { displayDay = activeK; } 
+            else if (viewMode === 'month' && multiSelectKeys.size === 1) { displayDay = Array.from(multiSelectKeys)[0]; }
+            
+            const daysShort = ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör'];
+            const em = { 'Sjuk': '🤒 SJUK', 'VAB': '👶 VAB', 'Föräldraledig': '🍼 F-LEDIG', 'Semester': '✈️ SEMESTER', 'Tjänstledig': '🏢 T-LEDIG', 'Åtgärd krävs': '⚠️ ÅTGÄRD' };
+
+            if (displayDay) {
+                const o = db.d[displayDay] || {s:0}; 
+                const qData = db.q[displayDay] || {};
+                const t = timeline[displayDay] || {target:0};
+                const state = getCellState(displayDay);
+                
+                const dObj = new Date(displayDay.split('-')[0], displayDay.split('-')[1]-1, displayDay.split('-')[2]);
+                const dayName = daysShort[dObj.getDay()].toUpperCase();
+                const dDate = `${dObj.getDate()}/${dObj.getMonth()+1}`;
+
+                if (o.abs) {
+                    let bKey = o.abs.split(' ')[0];
+                    let txt = em[o.abs] || em[bKey] || `⚠️ ${o.abs.toUpperCase()}`;
+                    if (o.abs_hours && o.abs !== 'Åtgärd krävs') {
+                        let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours;
+                        let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100;
+                        txt += ` • ${o.abs_hours.toFixed(2).replace('.00','')}h • ${actualP}% FK`;
+                    }
+                    infoTextEl.innerHTML = `<span class="text-rose-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">${txt}</span>`;
+                } else if (qData.start && !o.abs) {
+                    infoTextEl.innerHTML = `<span class="text-[#38bdf8] font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">PASS ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span> <span class="text-white/20">|</span> <span class="text-[#fcd34d]">MÅL ${(t.target/1000).toFixed(1)}k</span>`;
+                } else if (state === 'ledig' || state === 'unplanned') {
+                    infoTextEl.innerHTML = `<span class="text-slate-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-slate-300">🏠 LEDIG</span>`;
+                } else {
+                    infoTextEl.innerHTML = `<span class="text-slate-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-slate-400">INGEN DATA</span>`;
+                }
+            } else {
+                let nextShiftDate = null;
+                let cDate = new Date(realToday);
+                for(let i=0; i<30; i++) {
+                    const k = getK(cDate);
+                    const qData = db.q[k] || {};
+                    const state = getCellState(k);
+                    if (qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester') {
+                        nextShiftDate = new Date(cDate);
+                        break;
+                    }
+                    cDate.setDate(cDate.getDate() + 1);
+                }
+                
+                if (nextShiftDate) {
+                    const k = getK(nextShiftDate);
+                    const qData = db.q[k];
+                    const t = timeline[k] || {target:0};
+                    const dayName = daysShort[nextShiftDate.getDay()].toUpperCase();
+                    const dDate = `${nextShiftDate.getDate()}/${nextShiftDate.getMonth()+1}`;
+                    let prefix = (nextShiftDate.getTime() === realToday.getTime()) ? 'IDAG' : 'NÄSTA PASS';
+
+                    infoTextEl.innerHTML = `<span class="text-[#38bdf8] font-bold">${prefix}</span> <span class="text-white/20">|</span> <span class="text-white">${dayName} ${dDate} • ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span> <span class="text-white/20">|</span> <span class="text-[#fcd34d]">MÅL ${(t.target/1000).toFixed(1)}k</span>`;
+                } else {
+                    infoTextEl.innerHTML = `<span class="text-slate-400">INGA PLANERADE PASS HITTADES</span>`;
+                }
+            }
+        }
+
+        // Klicka på inforutan för att gå till den dagen om den är identifierad som nästa pass
+        document.getElementById('top-info-bar').addEventListener('click', () => {
+            if (viewMode !== 'dash' && !multiSelectKeys.size) return;
+            let cDate = new Date(realToday);
+            for(let i=0; i<30; i++) {
+                const k = getK(cDate);
+                const qData = db.q[k] || {};
+                const state = getCellState(k);
+                if (qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester') {
+                    if(!activeK) { goToDayFromMonth(k); }
+                    break;
+                }
+                cDate.setDate(cDate.getDate() + 1);
+            }
+        });
+
         function toggleDashMode() {
             if (viewMode !== 'dash') {
                 setMode('dash');
@@ -871,6 +1109,8 @@
                 const sdo = currentWeekStart.getDay() || 7;
                 currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
                 currentWeekStart.setHours(0,0,0,0);
+                viewDate = new Date(realToday); 
+                calculateTimeline();
                 renderWeekSlides();
             }
             updateDashboardView();
@@ -882,17 +1122,25 @@
         }
 
         function setMode(mode) {
-            viewDate = new Date(realToday);
-            currentWeekStart = new Date(realToday);
-            const sdo = currentWeekStart.getDay() || 7;
-            currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
-            currentWeekStart.setHours(0,0,0,0);
+            if (currentFocusReason && mode !== 'month') { closeFocusMode(true); }
+
+            if (!viewDate) viewDate = new Date(realToday);
+            if (!currentWeekStart) currentWeekStart = new Date(realToday);
             
+            if (mode === 'dash' && viewMode === 'month') {
+                if (currentWeekStart.getMonth() !== viewDate.getMonth()) {
+                    currentWeekStart = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+                    const sdo = currentWeekStart.getDay() || 7;
+                    currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
+                    currentWeekStart.setHours(0,0,0,0);
+                }
+            }
+
             multiSelectKeys.clear();
             closeMonthEdit();
             if(numpadTarget) closeNumpad();
 
-            viewMode = mode; document.body.className = `mode-${mode}`;
+            viewMode = mode; document.body.className = `mode-${mode} ${currentFocusReason ? 'focus-mode-active' : ''}`;
 
             ['dash', 'month', 'absence'].forEach(m => {
                 const b = document.getElementById(`tab-${m}`);
@@ -902,7 +1150,7 @@
                 }
             });
 
-            if (mode === 'dash') { if(!activeK) activeK = getK(realToday); }
+            if (mode === 'dash' && !activeK) { activeK = getK(realToday); }
 
             calculateTimeline(); updateDash();
 
@@ -923,8 +1171,27 @@
 
         function navCal(offset) {
             multiSelectKeys.clear(); closeMonthEdit(); if(numpadTarget) closeNumpad();
-            if (viewMode === 'month' || viewMode === 'absence') { viewDate.setMonth(viewDate.getMonth() + offset); calculateTimeline(); updateDash(); if (viewMode === 'absence') renderAbsence(); } 
-            else if (viewMode === 'dash') { currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); activeK = null; renderWeekSlides(); updateDashboardView(); } 
+            if (viewMode === 'month' || viewMode === 'absence') { 
+                viewDate.setMonth(viewDate.getMonth() + offset); 
+                currentWeekStart = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+                const sdo = currentWeekStart.getDay() || 7;
+                currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
+                currentWeekStart.setHours(0,0,0,0);
+                
+                calculateTimeline(); updateDash(); 
+                if (viewMode === 'absence') renderAbsence(); 
+            } 
+            else if (viewMode === 'dash') { 
+                currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); 
+                activeK = null; 
+                
+                const newMonth = currentWeekStart.getMonth();
+                if (newMonth !== viewDate.getMonth()) {
+                    viewDate = new Date(currentWeekStart);
+                    calculateTimeline();
+                }
+                renderWeekSlides(); updateDashboardView(); 
+            } 
             updateTopTitle();
         }
 
@@ -938,34 +1205,43 @@
             return 'unplanned'; 
         }
 
-        // --- UPPDATERAD BUDGET-LOGIK ---
         function calculateTimeline() {
-            const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate(); timeline = {};
-            let tW = 0; 
-            for(let d=1; d<=daysM; d++) { 
-                const k = `${cy}-${cm}-${d}`;
-                const o = db.d[k] || {};
-                const qData = db.q[k] || {};
-                // Budget räknas MED OM dagen har en tid i Quinyx, eller manuellt försäljningsbelopp
-                if (qData.start || o.s > 0) tW++; 
-            }
-            let rB = db.b, rP = tW;
-            
-            for(let d=1; d<=daysM; d++) { 
-                const k = `${cy}-${cm}-${d}`; 
-                const o = db.d[k] || {s:0}; 
-                const qData = db.q[k] || {};
-                const isW = (qData.start || o.s > 0); 
+            timeline = {};
+            // Räknar ut mål för förra, nuvarande och nästa månad (Löser "Juni-nollan")
+            for (let offset = -1; offset <= 1; offset++) {
+                let tempD = new Date(viewDate.getFullYear(), viewDate.getMonth() + offset, 1);
+                let cy = tempD.getFullYear();
+                let cm = tempD.getMonth() + 1;
+                let daysM = new Date(cy, cm, 0).getDate();
                 
-                if (isW) { 
-                    const target = rP > 0 ? rB / rP : 0; 
-                    timeline[k] = { target: Math.max(0, target) }; 
-                    rB -= o.s; 
-                    rP--; 
-                } else { 
-                    timeline[k] = { target: 0 }; 
-                    rB -= o.s; 
-                } 
+                let tW = 0; 
+                for(let d=1; d<=daysM; d++) { 
+                    const k = `${cy}-${cm}-${d}`;
+                    const o = db.d[k] || {};
+                    const qData = db.q[k] || {};
+                    if (qData.start || o.s > 0) tW++; 
+                }
+                
+                if (tW === 0) tW = 21; 
+
+                let rB = db.b, rP = tW;
+                
+                for(let d=1; d<=daysM; d++) { 
+                    const k = `${cy}-${cm}-${d}`; 
+                    const o = db.d[k] || {s:0}; 
+                    const qData = db.q[k] || {};
+                    const isW = (qData.start || o.s > 0); 
+                    
+                    if (isW) { 
+                        const target = rP > 0 ? rB / rP : 0; 
+                        timeline[k] = { target: Math.max(0, target) }; 
+                        rB -= o.s; 
+                        rP--; 
+                    } else { 
+                        timeline[k] = { target: 0 }; 
+                        rB -= o.s; 
+                    } 
+                }
             }
         }
 
@@ -1001,29 +1277,52 @@
             if(hCirc) {
                 const isTopReached = tS >= db.b && db.b > 0;
                 hCirc.style.strokeDashoffset = 326.7 - ((Math.min(monthlyPerc, 100) / 100) * (326.7 * 0.75));
-                hCirc.style.stroke = isTopReached ? 'var(--sting-blue)' : 'var(--neg)';
-                hCirc.style.filter = isTopReached ? 'drop-shadow(0 0 8px rgba(14,165,233,0.6))' : 'drop-shadow(0 0 8px rgba(239,68,68,0.6))';
+                hCirc.style.stroke = isTopReached ? 'var(--pos)' : 'var(--neg)';
+                hCirc.style.filter = isTopReached ? 'drop-shadow(0 0 8px rgba(5,150,105,0.6))' : 'drop-shadow(0 0 8px rgba(239,68,68,0.6))';
             }
             
             const progStr = Math.round((avg * tP)/1000); 
-            const progEl = document.getElementById('d-prog'); if(progEl) { progEl.innerText = progStr + " k"; progEl.style.color = progStr >= (db.b/1000) ? 'var(--sting-blue)' : 'var(--neg)'; }
-            const statEl = document.getElementById('d-status'); if(statEl) { statEl.innerText = progStr >= (db.b/1000) ? "I FAS" : "EFTER"; statEl.style.color = progStr >= (db.b/1000) ? 'var(--sting-blue)' : 'var(--neg)'; }
+            const progEl = document.getElementById('d-prog'); if(progEl) { progEl.innerText = progStr + " k"; progEl.style.color = progStr >= (db.b/1000) ? 'var(--pos)' : 'var(--neg)'; }
+            const statEl = document.getElementById('d-status'); if(statEl) { statEl.innerText = progStr >= (db.b/1000) ? "I FAS" : "EFTER"; statEl.style.color = progStr >= (db.b/1000) ? 'var(--pos)' : 'var(--neg)'; }
             
             if(viewMode === 'month') renderCal(cy, cm); 
             else if(viewMode === 'dash') { renderWeekSlides(); updateDashboardView(); } 
             else if(viewMode === 'absence') renderAbsence();
             updateTopTitle();
+            updateTopInfoBar();
         }
 
-        function setupSwipeObserver() {
-            if(!sc) return;
-            sc.addEventListener('scroll', () => {
-                if(isResettingScroll || viewMode !== 'dash') return; clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    const width = sc.clientWidth; if(width === 0) return; const idx = Math.round(sc.scrollLeft / width); 
-                    if (idx !== 1) { multiSelectKeys.clear(); closeMonthEdit(); if(numpadTarget) closeNumpad(); currentWeekStart.setDate(currentWeekStart.getDate() + ((idx === 0 ? -1 : 1) * 7)); activeK = null; renderWeekSlides(); updateDashboardView(); updateTopTitle(); }
-                }, 50); 
+        function goToDayFromMonth(k) {
+            activeK = k;
+            const parts = k.split('-');
+            const d = new Date(parts[0], parts[1]-1, parts[2]);
+            
+            viewDate = new Date(d.getFullYear(), d.getMonth(), 1);
+            currentWeekStart = new Date(d);
+            const sdo = currentWeekStart.getDay() || 7;
+            currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
+            currentWeekStart.setHours(0,0,0,0);
+            
+            multiSelectKeys.clear();
+            closeMonthEdit();
+            if(numpadTarget) closeNumpad();
+
+            viewMode = 'dash'; 
+            document.body.className = `mode-dash ${currentFocusReason ? 'focus-mode-active' : ''}`;
+            
+            ['dash', 'month', 'absence'].forEach(m => {
+                const b = document.getElementById(`tab-${m}`);
+                if(b) { 
+                    if(m === 'dash') b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm"; 
+                    else b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50"; 
+                }
             });
+            
+            calculateTimeline(); 
+            updateDash();
+            renderWeekSlides(); 
+            updateDashboardView();
+            updateTopTitle();
         }
 
         function selectDay(k, el, e) {
@@ -1044,12 +1343,13 @@
                 } else { closeMonthEdit(); }
             } else {
                 const isSameDay = (activeK === k);
-                if (isSameDay) { activeK = null; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); if (viewMode === 'dash') { updateDashboardView(); } return; }
+                if (isSameDay) { activeK = null; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); if (viewMode === 'dash') { updateDashboardView(); } updateTopInfoBar(); return; }
                 activeK = k; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); el.classList.add('active-focus');
                 if (viewMode === 'dash') { updateDashboardView(); }
             }
             if(numpadTarget) closeNumpad();
             updateTopTitle();
+            updateTopInfoBar();
         }
 
         function handleDashAction(t) { if(!activeK) return; if (t === 'VAB' || t === 'Föräldraledig') { triggerChildSelection(t, 'dash'); return; } finalizeDashAction(t); }
@@ -1098,14 +1398,22 @@
                 showActions = true;
                 isReached = dTarget > 0 && dSales >= dTarget;
 
-                // --- SMARTA ACTIONS: VARNING FÖR ATT VÄLJA BARN ---
                 const actsGrid = document.getElementById('dash-actions-grid');
+                const stdActions = `<div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50"><button onclick="handleDashAction('Arbete')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button><button onclick="handleDashAction('Ledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button><button onclick="handleDashAction('Semester')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button><button onclick="handleDashAction('Sjuk')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button><button onclick="handleDashAction('VAB')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button><button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button></div>`;
+
                 if (absType === 'VAB' || absType === 'Föräldraledig') {
-                    statusText = "VAL AV BARN KRÄVS";
-                    actsGrid.innerHTML = `<div class="p-0.5 bg-slate-50 w-full h-full"><button onclick="triggerChildSelection('${absType}', 'dash')" class="w-full h-full bg-[#fef3c7] hover:bg-[#fde68a] text-[#d97706] font-black text-[10px] rounded-[10px] border border-[#fcd34d] shadow-sm flex items-center justify-center uppercase tracking-widest active:scale-95 transition-all">⚠️ Välj Barn (Klicka här)</button></div>`;
+                    actsGrid.innerHTML = `<div class="p-0.5 bg-slate-50 w-full h-full flex gap-1"><button onclick="triggerChildSelection('${absType}', 'dash')" class="w-full h-full bg-[#fef3c7] hover:bg-[#fde68a] text-[#d97706] font-black text-[10px] rounded-[10px] border border-[#fcd34d] shadow-sm flex items-center justify-center uppercase tracking-widest active:scale-95 transition-transform">⚠️ Välj Barn</button></div>`;
                 } else {
-                    actsGrid.innerHTML = `<div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50"><button onclick="handleDashAction('Arbete')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button><button onclick="handleDashAction('Ledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button><button onclick="handleDashAction('Semester')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button><button onclick="handleDashAction('Sjuk')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button><button onclick="handleDashAction('VAB')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button><button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[14px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button></div>`;
+                    actsGrid.innerHTML = stdActions;
                 }
+                
+                let metaText = "";
+                if (absType && o.abs_hours && absType !== 'Åtgärd krävs') {
+                    let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours;
+                    let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH)*100) : 100;
+                    metaText = `${o.abs_hours.toFixed(2).replace('.00','')}h | ${actualP}% (${o.fk_perc || 0}%)`;
+                }
+                document.getElementById('dash-status-meta').innerText = metaText;
 
             } else {
                 let wPass = 0, firstShiftTarget = null;
@@ -1129,6 +1437,7 @@
                 showActions = false;
                 absType = null;
                 isReached = dTarget > 0 && dSales >= dTarget;
+                document.getElementById('dash-status-meta').innerText = "";
             }
 
             document.getElementById('dash-title').innerText = title.toUpperCase();
@@ -1140,7 +1449,7 @@
             
             const salesEl = document.getElementById('dash-val-sales');
             salesEl.innerText = (dSales/1000).toFixed(1) + " k";
-            salesEl.style.color = isReached ? 'var(--sting-blue)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
+            salesEl.style.color = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
 
             const diffEl = document.getElementById('dash-val-diff');
             diffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k";
@@ -1151,8 +1460,8 @@
             const g = document.getElementById('dash-gauge-prog');
             if(g) {
                 g.style.strokeDashoffset = 283 - ((p / 100) * 212);
-                g.style.stroke = isReached ? 'var(--sting-blue)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
-                g.style.filter = isReached ? 'drop-shadow(0 0 4px rgba(14,165,233,0.4))' : (dTarget > 0 ? 'drop-shadow(0 0 4px rgba(239,68,68,0.4))' : 'none');
+                g.style.stroke = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
+                g.style.filter = isReached ? 'drop-shadow(0 0 4px rgba(5,150,105,0.4))' : (dTarget > 0 ? 'drop-shadow(0 0 4px rgba(239,68,68,0.4))' : 'none');
             }
 
             const badgeEl = document.getElementById('dash-abs-badge');
@@ -1161,7 +1470,7 @@
                 let bKey = absType.split(' ')[0];
                 badgeEl.innerText = em[absType] || em[bKey] || '•';
                 badgeEl.classList.remove('hidden');
-                badgeEl.className = `absolute top-0 right-2 w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[14px] z-20 ${absType.includes('Semester') ? 'bg-teal-100 text-teal-600' : (absType.includes('VAB') ? 'bg-amber-100 text-amber-600' : (absType.includes('Föräldraledig') ? 'bg-purple-100 text-purple-600' : 'bg-rose-100 text-rose-600'))}`;
+                badgeEl.className = `absolute top-0 right-2 w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[14px] z-20 ${absType.includes('Semester') ? 'bg-teal-100 text-teal-600' : (absType.includes('VAB') ? 'bg-amber-100 text-amber-600' : (absType.includes('Föräldraledig') ? 'bg-purple-100 text-purple-600' : (absType === 'Åtgärd krävs' ? 'bg-rose-500 text-white border-none' : 'bg-rose-100 text-rose-600')))}`;
             } else {
                 badgeEl.classList.add('hidden');
             }
@@ -1209,78 +1518,103 @@
             const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate();
             let absCounts = {}; let absListHTML = ''; let totalAbs = 0;
             const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+            
             const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; 
-            const col = { 'Sjuk': 'text-rose-500', 'VAB': 'text-amber-500', 'VAB Belma': 'text-amber-500', 'VAB Wilma': 'text-amber-500', 'Föräldraledig': 'text-purple-500', 'Föräldraledig Belma': 'text-purple-500', 'Föräldraledig Wilma': 'text-purple-500', 'Semester': 'text-[#0f766e]', 'Tjänstledig': 'text-slate-500', 'Åtgärd krävs': 'text-amber-500' };
+            const col = { 'Sjuk': 'text-rose-600', 'VAB': 'text-amber-600', 'VAB Belma': 'text-amber-600', 'VAB Wilma': 'text-amber-600', 'Föräldraledig': 'text-purple-600', 'Föräldraledig Belma': 'text-purple-600', 'Föräldraledig Wilma': 'text-purple-600', 'Semester': 'text-teal-600', 'Tjänstledig': 'text-slate-600', 'Åtgärd krävs': 'text-rose-600' };
+            const bgClass = { 'Sjuk': 'bg-rose-50', 'VAB': 'bg-amber-50', 'VAB Belma': 'bg-amber-50', 'VAB Wilma': 'bg-amber-50', 'Föräldraledig': 'bg-purple-50', 'Föräldraledig Belma': 'bg-purple-50', 'Föräldraledig Wilma': 'bg-purple-50', 'Semester': 'bg-teal-50', 'Tjänstledig': 'bg-slate-50', 'Åtgärd krävs': 'bg-rose-50' };
 
             for (let d = 1; d <= daysM; d++) {
-                const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {};
+                const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {}; const qData = db.q[k] || {};
                 if (o.abs && ['Sjuk', 'VAB', 'VAB Belma', 'VAB Wilma', 'Föräldraledig', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig', 'Åtgärd krävs'].some(a => o.abs.includes(a))) {
                     let reason = o.abs; absCounts[reason] = (absCounts[reason] || 0) + 1; totalAbs++;
                     const dObj = new Date(cy, cm-1, d); const dayStr = `${daysLong[dObj.getDay()]} ${d}`; 
                     let bKey = reason.split(' ')[0];
                     const icon = em[reason] || em[bKey] || '•'; 
                     const tCol = col[reason] || col[bKey] || 'text-slate-500';
+                    const bCol = bgClass[reason] || bgClass[bKey] || 'bg-slate-50';
                     
-                    const srcTag = o.src === 'Auto' ? '🤖 AUTO (QUINYX)' : '👤 MANUELL';
-                    const rawTxt = o.raw || reason;
+                    let statsHtml = "";
+                    if (o.fk_perc !== undefined && o.abs_hours && reason !== 'Åtgärd krävs') {
+                        let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours;
+                        let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100;
+                        let hStr = o.abs_hours.toFixed(2).replace('.00','');
+                        
+                        statsHtml = `
+                        <div class="flex items-center gap-2 mt-3">
+                            <div class="bg-white border border-slate-100 rounded-xl px-2 py-2 flex flex-col items-center flex-1 shadow-sm">
+                                <span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Tid Borta</span>
+                                <span class="text-[12px] font-black text-slate-700">${hStr} tim</span>
+                            </div>
+                            <div class="bg-white border border-slate-100 rounded-xl px-2 py-2 flex flex-col items-center flex-1 shadow-sm">
+                                <span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Frånvaro (FK)</span>
+                                <span class="text-[12px] font-black text-[#0ea5e9]">${actualP}% <span class="text-slate-400 text-[9.5px]">(${o.fk_perc}%)</span></span>
+                            </div>
+                        </div>`;
+                    }
 
-                    absListHTML += `<div class="flex flex-col p-3.5 border-b border-slate-100 last:border-0 bg-white"><div class="flex justify-between items-center mb-1"><span class="text-[9px] font-black uppercase text-slate-600 tracking-wider">${dayStr}</span><span class="text-[10px] font-black ${tCol} uppercase tracking-widest">${icon} ${reason}</span></div><div class="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border border-slate-100 mt-1"><span class="text-[7.5px] font-black uppercase tracking-widest text-slate-400">${srcTag}</span><span class="text-[7.5px] font-black uppercase tracking-widest text-slate-500" style="max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Orsak: ${rawTxt}</span></div></div>`;
+                    absListHTML += `
+                    <div class="flex flex-col p-3 mb-2 border border-slate-100/60 rounded-[20px] bg-white shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[9.5px] font-black uppercase text-slate-500 tracking-wider flex items-center">${dayStr}</span>
+                            <span class="text-[10px] font-black ${tCol} ${bCol} border border-slate-100/50 uppercase tracking-widest px-2.5 py-1.5 rounded-lg">${icon} ${reason}</span>
+                        </div>
+                        ${statsHtml}
+                    </div>`;
                 }
             }
 
             if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
 
-            let summaryHTML = `<div class="mb-2.5 bg-white rounded-[20px] border border-slate-200 p-3 shadow-md flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
+            let summaryHTML = `<div class="mb-2 bg-white rounded-[20px] border border-slate-200 p-3 shadow-md flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
             for (let reason in absCounts) { 
                 let bKey = reason.split(' ')[0];
                 const icon = em[reason] || em[bKey] || '•'; 
                 const tCol = col[reason] || col[bKey] || 'text-slate-500'; 
-                summaryHTML += `<div class="flex justify-between items-center mb-1 last:mb-0"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; 
+                summaryHTML += `<div onclick="triggerFocusMode('${reason}')" class="flex justify-between items-center mb-1 last:mb-0 cursor-pointer active:scale-95 transition-transform hover:bg-slate-50 p-1.5 -mx-1.5 rounded-lg"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; 
             }
             summaryHTML += `</div>`;
-            pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="bg-white rounded-[20px] border border-slate-200 shadow-md overflow-y-auto hide-scrollbar flex-1 mb-1">${absListHTML}</div></div>`;
+            pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="overflow-y-auto hide-scrollbar flex-1 pb-2">${absListHTML}</div></div>`;
         }
 
-        // --- UPPDATERAD VISUELL REPR. AV DAG ---
         function createDayCell(cd, k) {
             const o = db.d[k] || {s:0}, t = timeline[k] || {target:0}, qData = db.q[k] || {}; 
             let cls = 'day-cell', b = '', content = '', wt = ''; 
             const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; 
             const isPast = cd < realToday, isToday = cd.getTime() === realToday.getTime(), state = getCellState(k);
             
+            const dayOfWeek = cd.getDay();
+            
             let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; 
             let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; 
             let nH = new Date().getHours();
             let isShiftActive = (isToday && qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sStart && nH <= sEnd);
             
-            if (cd.getDay() === 1 && viewMode === 'month') wt = `<div class="week-tag">${getWeekNumber(cd)}</div>`;
-            
-            if (qData.late) { b += `<div class="u-badge badge-late">⏱️</div>`; }
-            
+            if (dayOfWeek === 1 && viewMode === 'month') wt = `<div class="week-tag">${getWeekNumber(cd)}</div>`;
+
             if (o.abs) { 
                 let bKey = o.abs.split(' ')[0];
-                if (o.abs === 'Åtgärd krävs') { b += `<div class="u-badge badge-abs badge-action">${em[o.abs] || '•'}</div>`; } 
-                else { b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; } 
+                if (o.abs === 'Åtgärd krävs') { 
+                    b += `<div class="u-badge badge-abs badge-action" style="background:#ef4444; color:white; border:none;">${em[o.abs] || '•'}</div>`; 
+                } else { 
+                    b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; 
+                } 
             }
 
             if (o.s > 0) { content = `<span class="cell-main-val mt-1">${(o.s/1000).toFixed(1)} k</span>`; } 
             else if (qData.start && !o.abs) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`; } 
-            else if (state === 'unplanned') { content = `<span class="text-[7px] font-black text-slate-400 mt-1 uppercase tracking-widest opacity-50">Ledig</span>`; } 
-            else if (state === 'ledig' && o.s === 0) { content = `<span class="cell-main-val mt-1" style="font-size:9px; opacity:0.4;">🏠</span>`; }
+            else if (state === 'unplanned') { content = `<span class="text-[7.5px] font-black text-slate-800 mt-1 uppercase tracking-widest opacity-50">LEDIG</span>`; } 
+            else if (state === 'ledig' && o.s === 0) { content = `<span class="text-[7.5px] font-black text-slate-800 mt-1 uppercase tracking-widest opacity-50">LEDIG</span>`; }
 
-            // Färglogik med Split-colors
             if (o.abs) {
                 let baseAbs = o.abs.split(' ')[0];
-                if (qData.start) {
-                    // Om det finns ett arbetspass i grunden = Split
+                if (qData.start && baseAbs !== 'Åtgärd krävs') {
                     if (baseAbs === 'Sjuk') cls += ' bg-split-sjuk';
                     else if (baseAbs === 'VAB') cls += ' bg-split-vab';
                     else if (baseAbs === 'Föräldraledig') cls += ' bg-split-fledig';
                     else if (baseAbs === 'Semester') cls += ' bg-split-sem';
-                    else cls += ' type-absent'; // Fallback
+                    else cls += ' type-absent'; 
                 } else {
-                    // Ren frånvaro
-                    if (baseAbs === 'Sjuk') cls += ' type-absent';
+                    if (baseAbs === 'Sjuk' || baseAbs === 'Åtgärd krävs') cls += ' type-absent';
                     else if (baseAbs === 'Semester') cls += ' type-semester';
                     else cls += ' type-absent';
                 }
@@ -1294,13 +1628,27 @@
             
             if (isShiftActive) cls += ' active-shift-pulse'; 
             if (viewMode === 'month' && multiSelectKeys.has(k)) { cls += ' active-focus'; } else if (viewMode !== 'month' && activeK === k) { cls += ' active-focus'; }
+            if (currentFocusReason && o.abs === currentFocusReason) { cls += ' focus-highlight'; }
             
-            const cell = document.createElement('div'); cell.className = cls; cell.dataset.key = k; cell.onclick = (e) => selectDay(k, cell, e);
-            cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[6px] text-center tracking-tighter">${b}${content}</div>`; return cell;
+            const cell = document.createElement('div'); cell.className = cls; cell.dataset.key = k;
+            
+            cell.onclick = (e) => selectDay(k, cell, e);
+            cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[6px] text-center tracking-tighter">${b}${content}</div>`; 
+            return cell;
         }
 
-        function populateSlide(cId, sD) { const c = document.getElementById(cId); if(!c) return; c.innerHTML = ''; c.className = "w-full h-full flex-shrink-0 snap-center grid grid-cols-7 gap-1 px-3 items-center py-1"; for(let i=0; i<7; i++) { const cd = new Date(sD); cd.setDate(cd.getDate() + i); c.appendChild(createDayCell(cd, getK(cd))); } }
-        function renderWeekSlides() { const ps = new Date(currentWeekStart); ps.setDate(ps.getDate() - 7); const ns = new Date(currentWeekStart); ns.setDate(ns.getDate() + 7); populateSlide('slide-prev', ps); populateSlide('slide-curr', currentWeekStart); populateSlide('slide-next', ns); isResettingScroll = true; if(!sc) return; sc.style.scrollBehavior = 'auto'; sc.scrollLeft = sc.clientWidth; setTimeout(() => { isResettingScroll = false; sc.style.scrollBehavior = 'smooth'; }, 50); }
+        function populateSlide(cId, sD) { 
+            const c = document.getElementById(cId); if(!c) return; 
+            c.innerHTML = ''; 
+            for(let i=0; i<7; i++) { 
+                const cd = new Date(sD); cd.setDate(cd.getDate() + i); 
+                c.appendChild(createDayCell(cd, getK(cd))); 
+            } 
+        }
+
+        function renderWeekSlides() { 
+            populateSlide('slide-curr', currentWeekStart); 
+        }
         
         function getWeekNumber(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7); }
         
@@ -1318,10 +1666,9 @@
 
         document.addEventListener('click', (e) => {
             const mMenu = document.getElementById('month-edit-menu');
-            if (mMenu && !mMenu.classList.contains('hidden') && !e.target.closest('#month-edit-menu') && !e.target.closest('.day-cell') && !e.target.closest('#bottom-numpad-view')) { multiSelectKeys.clear(); document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); closeMonthEdit(); }
+            if (mMenu && !mMenu.classList.contains('hidden') && !e.target.closest('#month-edit-menu') && !e.target.closest('.day-cell') && !e.target.closest('#bottom-numpad-view') && !e.target.closest('#top-info-bar')) { multiSelectKeys.clear(); document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); closeMonthEdit(); updateTopInfoBar(); }
         });
 
-        let isResettingScroll = false; const sc = document.getElementById('swipe-wrapper'); let scrollTimeout;
         init();
         if ("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js"); }
     </script>

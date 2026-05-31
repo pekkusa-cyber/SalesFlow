@@ -54,11 +54,12 @@
         .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; box-shadow: var(--shadow-banner) !important; border: 1px solid rgba(255,255,255,0.04) !important; }
         .premium-slate-banner::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(56,189,248,0.18), transparent 70%); mix-blend-mode: screen; }
         
-        /* TOP SECTION - Något högre för att snyggt rymma nya inforutan */
-        .top-section { height: 304px; margin: 0 12px 8px; position: relative; border: none; box-shadow: var(--shadow-banner); flex-shrink: 0; overflow: hidden; }
+        /* TOP SECTION */
+        .top-section { height: 262px; margin: 0 12px 8px; position: relative; border: none; box-shadow: var(--shadow-banner); flex-shrink: 0; overflow: hidden; }
         
-        .budget-header { text-align: center; margin-bottom: 2px; position: relative; z-index: 1; }
-        .budget-label { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.32em; margin-bottom: 2px; }
+        .budget-header { text-align: center; margin-bottom: 2px; position: relative; z-index: 1; cursor: pointer; transition: transform 0.2s; }
+        .budget-header:active { transform: scale(0.95); }
+        .budget-label { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.32em; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 4px; }
         .budget-val { font-size: 22px; font-weight: 900; line-height: 1; color: #ffffff !important; text-shadow: 0 1px 0 rgba(0,0,0,0.25), 0 6px 18px rgba(56,189,248,0.25); letter-spacing: -0.01em; }
         
         .gauge-layout { display: flex; align-items: center; justify-content: space-between; gap: 0; position: relative; z-index: 1; }
@@ -132,8 +133,8 @@
         .focus-gauge-bg { fill: none; stroke: rgba(15,23,42,0.05); stroke-linecap: round; }
         .fg-sales { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.7s var(--ease-spring), stroke 0.4s ease; }
         
-        #note-confirm-modal > div, #child-select-modal > div, #budget-modal > div { background: rgba(255,255,255,0.94) !important; backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%); border: 1px solid rgba(255,255,255,0.6) !important; box-shadow: 0 24px 60px -12px rgba(15,23,42,0.28), 0 2px 6px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important; }
-        #note-confirm-modal, #child-select-modal, #budget-modal { backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
+        #note-confirm-modal > div, #child-select-modal > div, #budget-modal > div, #summary-modal > div { background: rgba(255,255,255,0.94) !important; backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%); border: 1px solid rgba(255,255,255,0.6) !important; box-shadow: 0 24px 60px -12px rgba(15,23,42,0.28), 0 2px 6px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important; }
+        #note-confirm-modal, #child-select-modal, #budget-modal, #summary-modal { backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
         
         @keyframes pulse-cell-blue { 0% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0.5); } 70% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 8px rgba(14, 165, 233, 0); } 100% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0); } }
         @keyframes pulse-cell-amber { 0% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 0 rgba(245, 158, 11, 0.5); } 70% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 8px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 0 rgba(245, 158, 11, 0); } }
@@ -152,6 +153,63 @@
 <body class="mode-dash">
     
     <div id="confirm-box"><p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p><div class="flex gap-3"><button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button><button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button></div></div>
+
+    <!-- SUMMARY MODAL (NY) -->
+    <div id="summary-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[30000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="w-full max-w-[320px] bg-white rounded-[32px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="summary-modal-content">
+            <div class="flex justify-between items-center mb-1">
+                <h2 id="summary-modal-title" class="text-[12px] font-black text-slate-800 uppercase tracking-widest">SAMMANFATTNING</h2>
+                <button onclick="closeSummaryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
+                    <span class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-1">Pass / Jobb</span>
+                    <span id="sum-workdays" class="text-[18px] font-black text-[#0ea5e9]">0</span>
+                </div>
+                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
+                    <span class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-1">Frånvaro</span>
+                    <span id="sum-absdays" class="text-[18px] font-black text-amber-500">0</span>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
+                    <span class="text-[8.5px] font-black text-emerald-600/70 uppercase tracking-widest mb-1">Bästa Dag</span>
+                    <span id="sum-bestday-val" class="text-[16px] font-black text-emerald-600 leading-none mb-1">0k</span>
+                    <span id="sum-bestday-lbl" class="text-[9px] font-bold text-emerald-600/70">--</span>
+                </div>
+                <div class="bg-rose-50 border border-rose-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
+                    <span class="text-[8.5px] font-black text-rose-500/70 uppercase tracking-widest mb-1">Sämsta Dag</span>
+                    <span id="sum-worstday-val" class="text-[16px] font-black text-rose-500 leading-none mb-1">0k</span>
+                    <span id="sum-worstday-lbl" class="text-[9px] font-bold text-rose-500/70">--</span>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-2xl p-3 flex items-center justify-between shadow-sm mt-1">
+                <div class="flex flex-col">
+                    <span class="text-[9px] font-black text-[#0284c7] uppercase tracking-widest">Grön Streak (Mål Nått)</span>
+                    <span class="text-[10px] font-bold text-[#0369a1] mt-0.5">Längsta raden av gröna dagar</span>
+                </div>
+                <span id="sum-streak" class="text-[22px] font-black text-[#0ea5e9]">0 🔥</span>
+            </div>
+
+            <div id="sum-bestweek-container" class="bg-indigo-50 border border-indigo-100 rounded-2xl p-3 flex items-center justify-between shadow-sm">
+                <div class="flex flex-col">
+                    <span class="text-[9px] font-black text-indigo-500 uppercase tracking-widest">Bästa Veckan</span>
+                    <span class="text-[10px] font-bold text-indigo-400 mt-0.5">Periodens starkaste 7 dagar</span>
+                </div>
+                <div class="text-right">
+                    <span id="sum-bestweek-val" class="text-[18px] font-black text-indigo-600 block leading-none mb-0.5">0k</span>
+                    <span id="sum-bestweek-lbl" class="text-[9px] font-black text-indigo-400">--</span>
+                </div>
+            </div>
+
+            <div id="sum-abs-details" class="flex flex-col gap-1.5 hidden mt-1">
+                <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1 mb-1">Frånvaro Orsaker</h3>
+                <div id="sum-abs-list" class="flex flex-col gap-1"></div>
+            </div>
+            
+            <button onclick="closeSummaryModal()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all mt-1">STÄNG</button>
+        </div>
+    </div>
 
     <div id="note-confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-3 transform scale-95 transition-transform duration-300" id="note-modal-content">
@@ -179,7 +237,7 @@
             <p class="text-[10px] font-black text-center uppercase tracking-widest text-slate-400">Inställningar</p>
             <button id="sync-btn" onclick="syncData()" class="w-full py-3.5 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all flex justify-center items-center gap-2"><span>⚡</span> Synkronisera Data</button>
             <div class="h-px w-full bg-slate-100 my-1"></div>
-            <p class="text-[9px] font-black text-center uppercase tracking-widest text-slate-400">Välj Månadsmål</p>
+            <p class="text-[9px] font-black text-center uppercase tracking-widest text-slate-400">Välj Månadsmål För Denna Månad</p>
             <div class="flex flex-col gap-2">
                 <button onclick="setGlobalBudget(100000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">100 000 kr</button>
                 <button onclick="setGlobalBudget(140000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">140 000 kr</button>
@@ -198,8 +256,11 @@
                 <button onclick="openBudgetModal()" class="absolute top-4 left-4 text-slate-300 hover:text-white text-[22px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">⚙️</button>
                 <button onclick="setMode('notes')" class="absolute top-4 right-4 text-slate-300 hover:text-white text-[20px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">✏️</button>
                 
-                <div id="top-monthly-ui" class="flex flex-col w-full h-full justify-center px-4 py-3.5 transition-opacity duration-300">
-                    <div class="budget-header"><p class="budget-label mt-1">Månadsmål</p><p id="d-budget-val" class="budget-val">240,000 kr</p></div>
+                <div id="top-monthly-ui" class="flex flex-col w-full h-full justify-center px-4 py-2 transition-opacity duration-300">
+                    <div class="budget-header" onclick="openSummaryModal('month')">
+                        <p class="budget-label mt-1 flex items-center justify-center gap-1">Månadsmål <span class="text-[10px] opacity-80" title="Sammanfattning">📊</span></p>
+                        <p id="d-budget-val" class="budget-val">240,000 kr</p>
+                    </div>
                     <div class="gauge-layout">
                         <div class="side-col">
                             <p class="micro-lbl">Dagens Krav</p><p id="d-today-target" class="val-display pop-highlight">0 k</p>
@@ -221,15 +282,14 @@
                         </div>
                     </div>
                     
-                    <div class="flex justify-between items-center mt-3 pt-2 border-t border-white/10 px-1">
+                    <div class="flex justify-between items-center mt-1.5 pt-1.5 border-t border-white/10 px-1">
                         <div class="flex-1 text-center"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">Snitt / Pass</p><p id="d-avg-val" class="text-[14px] font-black text-[#38bdf8]">0 k</p></div>
                         <div class="flex-1 text-center border-l border-white/10"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">Prognos</p><p id="d-prog" class="text-[14px] font-black text-white">0</p></div>
                         <div class="flex-1 text-center border-l border-white/10"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">Status</p><p id="d-status" class="text-[12px] font-black mt-0.5 uppercase tracking-wider text-white">LADDAR</p></div>
                     </div>
 
-                    <!-- NY INFO BAR -->
-                    <div id="top-info-bar" class="mt-3.5 px-3 py-2.5 rounded-[12px] mx-1 flex items-center justify-center transition-all duration-300 cursor-pointer active:scale-95" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1);">
-                         <span id="top-info-text" class="text-[9px] font-black uppercase tracking-widest text-white/90 w-full text-center flex items-center justify-center gap-1.5 leading-none">LADDAR INFO...</span>
+                    <div id="top-info-bar" class="mt-2 px-3 py-1.5 rounded-[10px] mx-1 flex items-center justify-center transition-all duration-300 cursor-pointer active:scale-95" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1);">
+                         <span id="top-info-text" class="text-[8.5px] font-black uppercase tracking-widest text-white/90 w-full text-center flex items-center justify-center gap-1.5 leading-none">LADDAR INFO...</span>
                     </div>
 
                 </div>
@@ -435,6 +495,8 @@
             if (nm && !nm.classList.contains('hidden')) { closeNoteModal(true); handled = true; }
             const cb = document.getElementById('confirm-box');
             if (cb && cb.style.display === 'block') { hideConfirm(true); handled = true; }
+            const sm = document.getElementById('summary-modal');
+            if (sm && !sm.classList.contains('hidden')) { closeSummaryModal(true); handled = true; }
         });
 
         // ==========================================
@@ -465,6 +527,144 @@
             if(!skipRender && viewMode === 'month') {
                 renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1);
             }
+        }
+
+        // ==========================================
+        //  SAMMANFATTNINGS MODAL (NY)
+        // ==========================================
+        function openSummaryModal(type = 'month', refDate = null) {
+            pushModalState();
+            const modal = document.getElementById('summary-modal');
+            const content = document.getElementById('summary-modal-content');
+            
+            let d = refDate ? new Date(refDate) : new Date(viewDate);
+            let y = d.getFullYear();
+            let m = d.getMonth() + 1;
+
+            let startDay, endDay;
+            let titleStr = "";
+
+            if (type === 'week') {
+                let wStart = new Date(d);
+                let offset = wStart.getDay() || 7;
+                wStart.setDate(wStart.getDate() - offset + 1);
+                wStart.setHours(0,0,0,0);
+                let wEnd = new Date(wStart);
+                wEnd.setDate(wEnd.getDate() + 6);
+                
+                startDay = wStart;
+                endDay = wEnd;
+                titleStr = `VECKA ${getWeekNumber(wStart)} - SAMMANFATTNING`;
+            } else {
+                startDay = new Date(y, m - 1, 1);
+                endDay = new Date(y, m, 0);
+                const months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
+                titleStr = `${months[m-1].toUpperCase()} ${y}`;
+            }
+
+            let workDays = 0, totalSales = 0, currentStreak = 0, maxStreak = 0;
+            let absDays = {}, totalAbs = 0;
+            let bestDay = {v: 0, label: '--'};
+            let worstDay = {v: Infinity, label: '--'};
+            let weeks = {};
+
+            let curr = new Date(startDay);
+            while(curr <= endDay) {
+                let k = getK(curr);
+                let o = db.d[k] || {};
+                let qd = db.q[k] || {};
+                let t = timeline[k] || {target:0};
+
+                if (o.s > 0 || qd.start) {
+                    workDays++;
+                    totalSales += (o.s || 0);
+
+                    if (o.s > bestDay.v) { bestDay.v = o.s; bestDay.label = `${curr.getDate()}/${curr.getMonth()+1}`; }
+                    if (o.s > 0 && o.s < worstDay.v) { worstDay.v = o.s; worstDay.label = `${curr.getDate()}/${curr.getMonth()+1}`; }
+
+                    if (o.s >= t.target && t.target > 0) {
+                        currentStreak++;
+                        if(currentStreak > maxStreak) maxStreak = currentStreak;
+                    } else {
+                        currentStreak = 0;
+                    }
+
+                    if(type === 'month') {
+                        let w = getWeekNumber(curr);
+                        if(!weeks[w]) weeks[w] = {s: 0};
+                        weeks[w].s += (o.s || 0);
+                    }
+                }
+
+                if (o.abs && o.abs !== 'Åtgärd krävs') {
+                    let r = o.abs.split(' ')[0];
+                    if(!absDays[r]) absDays[r] = {d: 0, h: 0};
+                    absDays[r].d++;
+                    totalAbs++;
+                    if(o.abs_hours) absDays[r].h += o.abs_hours;
+                }
+                curr.setDate(curr.getDate() + 1);
+            }
+
+            if(worstDay.v === Infinity) worstDay.v = 0;
+
+            document.getElementById('summary-modal-title').innerText = titleStr;
+            document.getElementById('sum-workdays').innerText = workDays;
+            document.getElementById('sum-absdays').innerText = totalAbs;
+            
+            document.getElementById('sum-bestday-val').innerText = (bestDay.v/1000).toFixed(1) + 'k';
+            document.getElementById('sum-bestday-lbl').innerText = bestDay.label;
+            
+            document.getElementById('sum-worstday-val').innerText = (worstDay.v/1000).toFixed(1) + 'k';
+            document.getElementById('sum-worstday-lbl').innerText = worstDay.label;
+
+            document.getElementById('sum-streak').innerText = `${maxStreak} 🔥`;
+
+            let absDetails = document.getElementById('sum-abs-details');
+            let absList = document.getElementById('sum-abs-list');
+            if (totalAbs > 0) {
+                absDetails.classList.remove('hidden');
+                let html = '';
+                const em = { 'Sjuk': '🤒', 'VAB': '👶', 'Föräldraledig': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢' }; 
+                for(let r in absDays) {
+                    let icon = em[r] || '•';
+                    let hText = absDays[r].h > 0 ? ` (${absDays[r].h.toFixed(1).replace('.0','')}h)` : '';
+                    html += `<div class="flex justify-between items-center bg-white border border-slate-100 rounded-lg p-2 shadow-sm"><span class="text-[10px] font-black text-slate-600 uppercase">${icon} ${r}</span><span class="text-[10px] font-bold text-slate-400">${absDays[r].d} dagar${hText}</span></div>`;
+                }
+                absList.innerHTML = html;
+            } else {
+                absDetails.classList.add('hidden');
+            }
+
+            let bwc = document.getElementById('sum-bestweek-container');
+            if (type === 'week') {
+                bwc.style.display = 'none';
+            } else {
+                bwc.style.display = 'flex';
+                let bestWeek = {val: 0, w: null};
+                for(let w in weeks) {
+                    if(weeks[w].s > bestWeek.val) { bestWeek.val = weeks[w].s; bestWeek.w = w; }
+                }
+                if(bestWeek.w) {
+                    document.getElementById('sum-bestweek-val').innerText = (bestWeek.val/1000).toFixed(1) + 'k';
+                    document.getElementById('sum-bestweek-lbl').innerText = 'V.' + bestWeek.w;
+                } else {
+                    document.getElementById('sum-bestweek-val').innerText = '0k';
+                    document.getElementById('sum-bestweek-lbl').innerText = '--';
+                }
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+        }
+
+        function closeSummaryModal(fromPopstate = false) {
+            const modal = document.getElementById('summary-modal');
+            const content = document.getElementById('summary-modal-content');
+            if(!modal || !content) return;
+            modal.classList.add('opacity-0'); content.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            if(!fromPopstate && history.state && history.state.view === 'modal') history.back();
         }
 
         // ==========================================
@@ -619,10 +819,17 @@
         let sb = null;
         try { if (typeof supabase !== 'undefined') { sb = supabase.createClient(SB_URL, SB_KEY); } } catch(e) { console.error("Fel vid start av Supabase", e); }
         
-        let initBudget = 240000;
-        try { let bStore = localStorage.getItem('sf_budget'); if(bStore) initBudget = Number(bStore) || 240000; } catch(e) {}
+        // ==========================================
+        //  MÅNADSSPECIFIKA BUDGETAR
+        // ==========================================
+        let savedBudgets = {};
+        try { savedBudgets = JSON.parse(localStorage.getItem('sf_budgets')) || {}; } catch(e) {}
         
-        let db = { b: initBudget, d: {}, q: {} }, timeline = {}, viewDate = new Date(), realToday = new Date(); realToday.setHours(0,0,0,0);
+        function getBudgetForMonth(y, m) {
+            return savedBudgets[`${y}-${m}`] || 240000;
+        }
+        
+        let db = { b: 240000, d: {}, q: {} }, timeline = {}, viewDate = new Date(), realToday = new Date(); realToday.setHours(0,0,0,0);
         let activeK = null, viewMode = 'dash', currentWeekStart = new Date(realToday);
         let multiSelectKeys = new Set();
         
@@ -656,9 +863,6 @@
             return null;
         }
 
-        // ==========================================
-        //  PARSER OCH DETEKTOR
-        // ==========================================
         function processParsedEvent(ev, desc) {
             if (!ev.start) return;
             const fullText = desc.toLowerCase();
@@ -675,33 +879,48 @@
             }
 
             let sdParts = ev.start.dateKey.split('-');
-            let sd = new Date(sdParts[0], parseInt(sdParts[1])-1, sdParts[2]);
-            let ed = ev.end ? new Date(ev.end.dateKey.split('-')[0], parseInt(ev.end.dateKey.split('-')[1])-1, ev.end.dateKey.split('-')[2]) : new Date(sd);
-
+            let sd = new Date(parseInt(sdParts[0]), parseInt(sdParts[1])-1, parseInt(sdParts[2]));
+            
             let duration = 0;
+            let endStr = ev.end && ev.end.hasTime ? ev.end.time : null;
+            
             if (ev.start.hasTime && ev.end && ev.end.hasTime) {
+                let edParts = ev.end.dateKey.split('-');
+                let ed = new Date(parseInt(edParts[0]), parseInt(edParts[1])-1, parseInt(edParts[2]));
+                
                 let [h1, m1] = ev.start.time.split(':').map(Number);
                 let [h2, m2] = ev.end.time.split(':').map(Number);
-                duration = (h2 + m2/60) - (h1 + m1/60);
+                
+                let d1 = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate(), h1, m1);
+                let d2 = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate(), h2, m2);
+                
+                duration = (d2.getTime() - d1.getTime()) / 3600000;
+                if(duration < 0) duration = 0;
             }
 
-            let curr = new Date(sd);
-            while (curr <= ed) {
-                const k = `${curr.getFullYear()}-${curr.getMonth() + 1}-${curr.getDate()}`;
-                if (!db.q[k]) db.q[k] = { work_h: 0, ledig_h: 0 };
+            const k = `${sd.getFullYear()}-${sd.getMonth() + 1}-${sd.getDate()}`;
+            if (!db.q[k]) db.q[k] = { work_h: 0, ledig_h: 0 };
+            
+            if (isWork) {
+                db.q[k].exists = true; 
+                if(!db.q[k].start || ev.start.time < db.q[k].start) db.q[k].start = ev.start.time;
                 
-                if (isWork) {
-                    db.q[k].exists = true; 
-                    if(!db.q[k].start || ev.start.time < db.q[k].start) db.q[k].start = ev.start.time;
-                    if(!db.q[k].end || ev.end.time > db.q[k].end) db.q[k].end = ev.end.time;
-                    db.q[k].work_h += duration;
+                if(endStr) {
+                    let currentEnd = db.q[k].end || "00:00";
+                    if(currentEnd === "00:00" && endStr !== "00:00" && !db.q[k].end) {
+                        db.q[k].end = endStr;
+                    } else if (endStr === "00:00") {
+                        db.q[k].end = "00:00";
+                    } else if (endStr > currentEnd && currentEnd !== "00:00") {
+                        db.q[k].end = endStr;
+                    }
                 }
-                
-                if (isLedig) {
-                    db.q[k].exists = true;
-                    db.q[k].ledig_h += duration;
-                }
-                curr.setDate(curr.getDate() + 1);
+                db.q[k].work_h += duration;
+            }
+            
+            if (isLedig) {
+                db.q[k].exists = true;
+                db.q[k].ledig_h += duration;
             }
         }
 
@@ -768,9 +987,14 @@
 
                         if (!existing) {
                             needsFlag = true;
-                        } else if (existing.src !== 'Manual') { 
-                            if (!existing.abs || existing.abs === 'Åtgärd krävs') {
-                                needsFlag = true;
+                        } else {
+                            const validAbsences = ['Sjuk', 'VAB', 'VAB Belma', 'VAB Wilma', 'Föräldraledig', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig'];
+                            const hasValidAbsence = existing.abs && validAbsences.some(a => existing.abs.includes(a));
+                            
+                            if (!hasValidAbsence && existing.abs !== 'Åtgärd krävs') {
+                                if (!(existing.st === 'Arbete' && existing.s > 0)) {
+                                    needsFlag = true;
+                                }
                             }
                         }
 
@@ -820,9 +1044,24 @@
         }
 
         async function init() { 
+            db.b = getBudgetForMonth(realToday.getFullYear(), realToday.getMonth() + 1);
             await loadAllData();
             calculateTimeline(); activeK = getK(realToday); 
             renderWeekSlides(); updateDash(); setMode('dash'); renderNotes();
+            
+            // Auto Popup Check
+            let lastOpen = localStorage.getItem('sf_last_open_day');
+            let todayK = getK(realToday);
+            if(lastOpen && lastOpen !== todayK) {
+                let lastD = new Date(lastOpen);
+                if(lastD.getMonth() !== realToday.getMonth()) {
+                    setTimeout(() => openSummaryModal('month', lastD), 1200);
+                } else if(getWeekNumber(lastD) !== getWeekNumber(realToday)) {
+                    setTimeout(() => openSummaryModal('week', lastD), 1200);
+                }
+            }
+            localStorage.setItem('sf_last_open_day', todayK);
+
             clearInterval(focusTimer); focusTimer = setInterval(() => { if(viewMode === 'dash') updateDashboardView(); }, 2000);
         }
 
@@ -991,7 +1230,17 @@
 
         function openBudgetModal() { pushModalState(); document.getElementById('budget-modal').classList.remove('hidden'); }
         function closeBudgetModal(fromPopstate = false) { document.getElementById('budget-modal').classList.add('hidden'); if(!fromPopstate && history.state && history.state.view === 'modal') history.back(); }
-        function setGlobalBudget(amount) { db.b = amount; try{localStorage.setItem('sf_budget', amount);}catch(e){} calculateTimeline(); updateDash(); closeBudgetModal(); }
+        
+        function setGlobalBudget(amount) { 
+            let cy = viewDate.getFullYear();
+            let cm = viewDate.getMonth() + 1;
+            savedBudgets[`${cy}-${cm}`] = amount;
+            try { localStorage.setItem('sf_budgets', JSON.stringify(savedBudgets)); } catch(e){} 
+            db.b = amount;
+            calculateTimeline(); 
+            updateDash(); 
+            closeBudgetModal(); 
+        }
         
         function updateTopTitle() {
             const t = document.getElementById('dynamic-view-title'); if(!t) return;
@@ -1018,9 +1267,12 @@
             void infoTextEl.offsetWidth; 
             infoTextEl.classList.add('animate-info-pop');
 
+            let forceNextShift = (viewMode === 'dash' || viewMode === 'absence' || viewMode === 'notes');
             let displayDay = null;
-            if (viewMode === 'dash' && activeK) { displayDay = activeK; } 
-            else if (viewMode === 'month' && multiSelectKeys.size === 1) { displayDay = Array.from(multiSelectKeys)[0]; }
+
+            if (!forceNextShift && viewMode === 'month' && multiSelectKeys.size === 1) {
+                displayDay = Array.from(multiSelectKeys)[0];
+            }
             
             const daysShort = ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör'];
             const em = { 'Sjuk': '🤒 SJUK', 'VAB': '👶 VAB', 'Föräldraledig': '🍼 F-LEDIG', 'Semester': '✈️ SEMESTER', 'Tjänstledig': '🏢 T-LEDIG', 'Åtgärd krävs': '⚠️ ÅTGÄRD' };
@@ -1028,7 +1280,6 @@
             if (displayDay) {
                 const o = db.d[displayDay] || {s:0}; 
                 const qData = db.q[displayDay] || {};
-                const t = timeline[displayDay] || {target:0};
                 const state = getCellState(displayDay);
                 
                 const dObj = new Date(displayDay.split('-')[0], displayDay.split('-')[1]-1, displayDay.split('-')[2]);
@@ -1045,7 +1296,7 @@
                     }
                     infoTextEl.innerHTML = `<span class="text-rose-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">${txt}</span>`;
                 } else if (qData.start && !o.abs) {
-                    infoTextEl.innerHTML = `<span class="text-[#38bdf8] font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">PASS ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span> <span class="text-white/20">|</span> <span class="text-[#fcd34d]">MÅL ${(t.target/1000).toFixed(1)}k</span>`;
+                    infoTextEl.innerHTML = `<span class="text-[#38bdf8] font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">PASS ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span>`;
                 } else if (state === 'ledig' || state === 'unplanned') {
                     infoTextEl.innerHTML = `<span class="text-slate-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-slate-300">🏠 LEDIG</span>`;
                 } else {
@@ -1068,19 +1319,17 @@
                 if (nextShiftDate) {
                     const k = getK(nextShiftDate);
                     const qData = db.q[k];
-                    const t = timeline[k] || {target:0};
                     const dayName = daysShort[nextShiftDate.getDay()].toUpperCase();
                     const dDate = `${nextShiftDate.getDate()}/${nextShiftDate.getMonth()+1}`;
                     let prefix = (nextShiftDate.getTime() === realToday.getTime()) ? 'IDAG' : 'NÄSTA PASS';
 
-                    infoTextEl.innerHTML = `<span class="text-[#38bdf8] font-bold">${prefix}</span> <span class="text-white/20">|</span> <span class="text-white">${dayName} ${dDate} • ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span> <span class="text-white/20">|</span> <span class="text-[#fcd34d]">MÅL ${(t.target/1000).toFixed(1)}k</span>`;
+                    infoTextEl.innerHTML = `<span class="text-[#38bdf8] font-bold">${prefix}</span> <span class="text-white/20">|</span> <span class="text-white">${dayName} ${dDate} • ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span>`;
                 } else {
                     infoTextEl.innerHTML = `<span class="text-slate-400">INGA PLANERADE PASS HITTADES</span>`;
                 }
             }
         }
 
-        // Klicka på inforutan för att gå till den dagen om den är identifierad som nästa pass
         document.getElementById('top-info-bar').addEventListener('click', () => {
             if (viewMode !== 'dash' && !multiSelectKeys.size) return;
             let cDate = new Date(realToday);
@@ -1097,28 +1346,28 @@
         });
 
         function toggleDashMode() {
+            activeK = getK(realToday);
+            currentWeekStart = new Date(realToday);
+            const sdo = currentWeekStart.getDay() || 7;
+            currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
+            currentWeekStart.setHours(0,0,0,0);
+            viewDate = new Date(realToday); 
+
+            db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
+
             if (viewMode !== 'dash') {
                 setMode('dash');
-                return;
-            }
-            if (activeK) {
-                activeK = null; 
             } else {
-                activeK = getK(realToday);
-                currentWeekStart = new Date(realToday);
-                const sdo = currentWeekStart.getDay() || 7;
-                currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
-                currentWeekStart.setHours(0,0,0,0);
-                viewDate = new Date(realToday); 
                 calculateTimeline();
                 renderWeekSlides();
+                updateDashboardView();
+                updateTopTitle();
+                updateTopInfoBar();
+                document.querySelectorAll('.day-cell').forEach(c => {
+                    if(activeK && c.dataset.key === activeK) c.classList.add('active-focus');
+                    else c.classList.remove('active-focus');
+                });
             }
-            updateDashboardView();
-            updateTopTitle();
-            document.querySelectorAll('.day-cell').forEach(c => {
-                if(activeK && c.dataset.key === activeK) c.classList.add('active-focus');
-                else c.classList.remove('active-focus');
-            });
         }
 
         function setMode(mode) {
@@ -1127,15 +1376,6 @@
             if (!viewDate) viewDate = new Date(realToday);
             if (!currentWeekStart) currentWeekStart = new Date(realToday);
             
-            if (mode === 'dash' && viewMode === 'month') {
-                if (currentWeekStart.getMonth() !== viewDate.getMonth()) {
-                    currentWeekStart = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
-                    const sdo = currentWeekStart.getDay() || 7;
-                    currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
-                    currentWeekStart.setHours(0,0,0,0);
-                }
-            }
-
             multiSelectKeys.clear();
             closeMonthEdit();
             if(numpadTarget) closeNumpad();
@@ -1207,7 +1447,6 @@
 
         function calculateTimeline() {
             timeline = {};
-            // Räknar ut mål för förra, nuvarande och nästa månad (Löser "Juni-nollan")
             for (let offset = -1; offset <= 1; offset++) {
                 let tempD = new Date(viewDate.getFullYear(), viewDate.getMonth() + offset, 1);
                 let cy = tempD.getFullYear();
@@ -1224,7 +1463,7 @@
                 
                 if (tW === 0) tW = 21; 
 
-                let rB = db.b, rP = tW;
+                let rB = getBudgetForMonth(cy, cm), rP = tW;
                 
                 for(let d=1; d<=daysM; d++) { 
                     const k = `${cy}-${cm}-${d}`; 
@@ -1246,6 +1485,8 @@
         }
 
         function updateDash() { 
+            db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
+            
             const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); let tS = 0, dP = 0, tP = 0, rW = 0; const daysM = new Date(cy, cm, 0).getDate();
             for(let d=1; d<=daysM; d++) { 
                 const k = `${cy}-${cm}-${d}`;

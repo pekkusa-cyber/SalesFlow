@@ -153,6 +153,7 @@
     
     <div id="confirm-box"><p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p><div class="flex gap-3"><button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button><button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button></div></div>
 
+    <!-- SUMMARY MODAL -->
     <div id="summary-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[30000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-full max-w-[320px] bg-white rounded-[32px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="summary-modal-content">
             <div class="flex justify-between items-center mb-1">
@@ -340,49 +341,46 @@
 
                             <div class="mx-3 mt-1 mb-2 bg-white rounded-[24px] border border-slate-100 shadow-md flex flex-col flex-shrink-0 relative z-20 flex-1 min-h-0 overflow-hidden">
                                 
-                                <div id="dash-standard-content" class="absolute inset-0 flex flex-col transition-all duration-300 transform origin-top opacity-100 scale-100 pointer-events-auto bg-white">
+                                <div id="dash-standard-content" class="absolute inset-0 flex flex-col p-3 transition-all duration-300 transform origin-top opacity-100 scale-100 pointer-events-auto bg-gradient-to-b from-[#f8fafc] to-white">
+                                    <div class="flex justify-between items-end pb-2 border-b border-slate-100 flex-shrink-0">
+                                        <div class="flex flex-col">
+                                            <span id="dash-title" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
+                                            <span id="dash-subtitle" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
+                                        </div>
+                                        <div class="flex flex-col text-right justify-end">
+                                            <p id="dash-status-meta" class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5 min-h-[12px]"></p>
+                                            <p id="dash-status-text" class="text-[10px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
+                                        </div>
+                                    </div>
                                     
-                                    <div class="premium-slate-banner flex-1 flex flex-col p-3 rounded-t-[24px] pb-4">
-                                        <div class="flex justify-between items-end pb-2 border-b border-white/10 flex-shrink-0">
-                                            <div class="flex flex-col">
-                                                <span id="dash-title" class="text-[10.5px] font-black uppercase tracking-widest text-white">LADDAR...</span>
-                                                <span id="dash-subtitle" class="text-[9.5px] font-bold text-white/60 mt-1">0 Pass</span>
-                                            </div>
-                                            <div class="flex flex-col text-right justify-end">
-                                                <p id="dash-status-meta" class="text-[8.5px] font-black text-white/50 uppercase tracking-widest mb-0.5 min-h-[12px]"></p>
-                                                <p id="dash-status-text" class="text-[10px] font-black text-[#38bdf8] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
-                                            </div>
+                                    <div id="dash-gauge-container" class="flex items-center justify-between w-full flex-1 my-2 relative">
+                                        <div id="dash-abs-badge" class="absolute top-0 right-2 w-7 h-7 rounded-full border border-white shadow-sm flex items-center justify-center text-[14px] z-20 hidden"></div>
+
+                                        <div class="flex flex-col justify-center text-left flex-1 pl-1">
+                                            <span id="dash-lbl-target" class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">MÅL</span>
+                                            <p id="dash-val-target" class="text-[16px] font-black leading-none text-slate-700 drop-shadow-sm">0 k</p>
                                         </div>
                                         
-                                        <div id="dash-gauge-container" class="flex items-center justify-between w-full flex-1 my-2 relative">
-                                            <div id="dash-abs-badge" class="absolute top-0 right-2 w-7 h-7 rounded-full border border-slate-700 shadow-sm flex items-center justify-center text-[14px] z-20 hidden"></div>
+                                        <div class="relative flex flex-col justify-center items-center flex-[1.5] max-w-[100px] aspect-square mx-1">
+                                            <div class="absolute inset-0 cursor-pointer z-30" onclick="openInlineNumpad()"></div>
+                                            <svg class="w-full h-full drop-shadow-md" viewBox="0 0 120 120">
+                                                <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
+                                                <circle id="dash-gauge-prog" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
+                                            </svg>
+                                            <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5 pointer-events-none">
+                                                <span id="dash-val-sales" class="text-[20px] font-black tracking-tighter leading-none text-slate-700 drop-shadow-sm">0 k</span>
+                                                <span id="dash-val-perc" class="text-[9px] font-black text-slate-400 mt-1">0%</span>
+                                            </div>
+                                        </div>
 
-                                            <div class="flex flex-col justify-center text-left flex-1 pl-1">
-                                                <span id="dash-lbl-target" class="text-[7.5px] font-black uppercase tracking-wider text-white/50 mb-0.5">MÅL</span>
-                                                <p id="dash-val-target" class="text-[16px] font-black leading-none text-white drop-shadow-sm">0 k</p>
-                                            </div>
-                                            
-                                            <div class="relative flex flex-col justify-center items-center flex-[1.5] max-w-[100px] aspect-square mx-1">
-                                                <div class="absolute inset-0 cursor-pointer z-30" onclick="openInlineNumpad()"></div>
-                                                <svg class="w-full h-full drop-shadow-md" viewBox="0 0 120 120">
-                                                    <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" stroke="rgba(255,255,255,0.08)" transform="rotate(135 60 60)"></circle>
-                                                    <circle id="dash-gauge-prog" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
-                                                </svg>
-                                                <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5 pointer-events-none">
-                                                    <span id="dash-val-sales" class="text-[20px] font-black tracking-tighter leading-none text-white drop-shadow-md">0 k</span>
-                                                    <span id="dash-val-perc" class="text-[9px] font-black text-white/70 mt-1">0%</span>
-                                                </div>
-                                            </div>
-
-                                            <div class="flex flex-col justify-center text-right flex-1 pr-1">
-                                                <span class="text-[7.5px] font-black uppercase tracking-wider text-white/50 mb-0.5">DIFF</span>
-                                                <p id="dash-val-diff" class="text-[16px] font-black leading-none drop-shadow-sm">0 k</p>
-                                            </div>
+                                        <div class="flex flex-col justify-center text-right flex-1 pr-1">
+                                            <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">DIFF</span>
+                                            <p id="dash-val-diff" class="text-[16px] font-black leading-none drop-shadow-sm">0 k</p>
                                         </div>
                                     </div>
 
-                                    <div id="dash-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 h-[48px] bg-white rounded-b-[24px]">
-                                        <div class="relative w-full h-full overflow-hidden" id="dash-actions-grid">
+                                    <div id="dash-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 h-[42px] flex justify-end">
+                                        <div class="relative w-full h-full overflow-hidden rounded-[14px] border border-slate-200 shadow-sm" id="dash-actions-grid">
                                             </div>
                                     </div>
                                 </div>
@@ -1648,10 +1646,10 @@
                 isReached = dTarget > 0 && dSales >= dTarget;
 
                 const actsGrid = document.getElementById('dash-actions-grid');
-                const stdActions = `<div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50 border-t border-slate-100 rounded-b-[20px]"><button onclick="handleDashAction('Arbete')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button><button onclick="handleDashAction('Ledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button><button onclick="handleDashAction('Semester')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button><button onclick="handleDashAction('Sjuk')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button><button onclick="handleDashAction('VAB')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button><button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-200 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button></div>`;
+                const stdActions = `<div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50"><button onclick="handleDashAction('Arbete')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button><button onclick="handleDashAction('Ledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button><button onclick="handleDashAction('Semester')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button><button onclick="handleDashAction('Sjuk')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button><button onclick="handleDashAction('VAB')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button><button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button></div>`;
 
                 if (absType === 'VAB' || absType === 'Föräldraledig') {
-                    actsGrid.innerHTML = `<div class="absolute inset-0 p-0.5 bg-slate-50 border-t border-slate-100 rounded-b-[20px] flex gap-1"><button onclick="triggerChildSelection('${absType}', 'dash')" class="w-full h-full bg-[#fef3c7] hover:bg-[#fde68a] text-[#d97706] font-black text-[10px] rounded-[10px] border border-[#fcd34d] shadow-sm flex items-center justify-center uppercase tracking-widest active:scale-95 transition-transform">⚠️ Välj Barn</button></div>`;
+                    actsGrid.innerHTML = `<div class="p-0.5 bg-slate-50 w-full h-full flex gap-1"><button onclick="triggerChildSelection('${absType}', 'dash')" class="w-full h-full bg-[#fef3c7] hover:bg-[#fde68a] text-[#d97706] font-black text-[10px] rounded-[10px] border border-[#fcd34d] shadow-sm flex items-center justify-center uppercase tracking-widest active:scale-95 transition-transform">⚠️ Välj Barn</button></div>`;
                 } else {
                     actsGrid.innerHTML = stdActions;
                 }
@@ -1698,11 +1696,11 @@
             
             const salesEl = document.getElementById('dash-val-sales');
             salesEl.innerText = (dSales/1000).toFixed(1) + " k";
-            salesEl.style.color = '#ffffff'; // Always white on dark bg
+            salesEl.style.color = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
 
             const diffEl = document.getElementById('dash-val-diff');
             diffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k";
-            diffEl.style.color = dDiff >= 0 ? "#38bdf8" : "#fb7185"; // Cyan or Rose for dark mode
+            diffEl.style.color = dDiff >= 0 ? "var(--sting-blue)" : "var(--neg)";
 
             const p = dTarget > 0 ? Math.min(100, Math.round((dSales / dTarget) * 100)) : 0;
             document.getElementById('dash-val-perc').innerText = p + "%";
@@ -1710,8 +1708,8 @@
             const g = document.getElementById('dash-gauge-prog');
             if(g) {
                 g.style.strokeDashoffset = 283 - ((p / 100) * 212);
-                g.style.stroke = isReached ? '#10b981' : (dTarget > 0 ? '#fb7185' : '#38bdf8');
-                g.style.filter = isReached ? 'drop-shadow(0 0 8px rgba(16,185,129,0.5))' : (dTarget > 0 ? 'drop-shadow(0 0 8px rgba(251,113,133,0.5))' : 'drop-shadow(0 0 8px rgba(56,189,248,0.5))');
+                g.style.stroke = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
+                g.style.filter = isReached ? 'drop-shadow(0 0 4px rgba(16,185,129,0.4))' : (dTarget > 0 ? 'drop-shadow(0 0 4px rgba(244,63,94,0.4))' : 'none');
             }
 
             const badgeEl = document.getElementById('dash-abs-badge');
@@ -1720,19 +1718,18 @@
                 let bKey = absType.split(' ')[0];
                 badgeEl.innerText = em[absType] || em[bKey] || '•';
                 badgeEl.classList.remove('hidden');
-                // Updated styling for dark mode background
-                badgeEl.className = `absolute top-0 right-2 w-7 h-7 rounded-full border border-slate-600 shadow-sm flex items-center justify-center text-[14px] z-20 ${absType.includes('Semester') ? 'bg-teal-900/50 text-teal-300' : (absType.includes('VAB') ? 'bg-amber-900/50 text-amber-300' : (absType.includes('Föräldraledig') ? 'bg-purple-900/50 text-purple-300' : (absType === 'Åtgärd krävs' ? 'bg-rose-600 text-white border-none' : 'bg-rose-900/50 text-rose-300')))}`;
+                badgeEl.className = `absolute top-0 right-2 w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[14px] z-20 ${absType.includes('Semester') ? 'bg-teal-100 text-teal-600' : (absType.includes('VAB') ? 'bg-amber-100 text-amber-600' : (absType.includes('Föräldraledig') ? 'bg-purple-100 text-purple-600' : (absType === 'Åtgärd krävs' ? 'bg-rose-500 text-white border-none' : 'bg-rose-100 text-rose-600')))}`;
             } else {
                 badgeEl.classList.add('hidden');
             }
 
             const acts = document.getElementById('dash-actions');
             if (showActions) {
-                acts.classList.remove('opacity-0', 'pointer-events-none', 'h-0');
-                acts.classList.add('opacity-100', 'pointer-events-auto', 'h-[48px]');
+                acts.classList.remove('opacity-0', 'pointer-events-none', 'h-0', 'mt-0');
+                acts.classList.add('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1');
             } else {
-                acts.classList.remove('opacity-100', 'pointer-events-auto', 'h-[48px]');
-                acts.classList.add('opacity-0', 'pointer-events-none', 'h-0');
+                acts.classList.remove('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1');
+                acts.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'mt-0');
             }
         }
 

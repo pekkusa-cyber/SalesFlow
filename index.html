@@ -33,6 +33,81 @@
             --shadow-md: 0 16px 32px -8px rgba(15,23,42,0.12), 0 4px 12px -4px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,1);
             --shadow-banner: 0 1px 0 rgba(255,255,255,0.04) inset, 0 -1px 0 rgba(0,0,0,0.3) inset, 0 18px 40px -12px rgba(2,6,23,0.45), 0 4px 12px -4px rgba(2,6,23,0.35);
         }
+
+        /* =========================================
+           THEME OVERRIDES 
+           ========================================= */
+        
+        /* --- DARK ELEGANT --- */
+        [data-theme="dark"] {
+            --bg-canvas: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+            --white: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-subtle: #334155;
+        }
+        [data-theme="dark"] .bg-white { background-color: #1e293b !important; }
+        [data-theme="dark"] .bg-slate-50, [data-theme="dark"] .bg-slate-100 { background-color: #0f172a !important; }
+        [data-theme="dark"] .text-slate-800, [data-theme="dark"] .text-slate-700 { color: #f8fafc !important; }
+        [data-theme="dark"] .text-slate-600, [data-theme="dark"] .text-slate-500 { color: #94a3b8 !important; }
+        [data-theme="dark"] .text-slate-400, [data-theme="dark"] .text-slate-300 { color: #64748b !important; }
+        [data-theme="dark"] .border-slate-100, [data-theme="dark"] .border-slate-200 { border-color: #334155 !important; }
+        [data-theme="dark"] .from-\\[\\#f8fafc\\] { --tw-gradient-from: #0f172a !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(15, 23, 42, 0)) !important; }
+        [data-theme="dark"] .to-white { --tw-gradient-to: #1e293b !important; }
+        
+        [data-theme="dark"] .day-cell { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important; border-color: #334155 !important; color: #f8fafc; }
+        [data-theme="dark"] .day-cell.type-unplanned { background: #0f172a !important; color: #64748b !important; border-color: #1e293b !important; }
+        [data-theme="dark"] .type-planned { background: linear-gradient(180deg, #1e293b, #111827) !important; border-color: #0ea5e9 !important; color: #38bdf8 !important; }
+        [data-theme="dark"] .weekday-label { color: #94a3b8 !important; }
+        [data-theme="dark"] #app-shell { filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5)); }
+
+        [data-theme="dark"] .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1) !important; border-color: rgba(16, 185, 129, 0.2) !important; }
+        [data-theme="dark"] .bg-rose-50 { background-color: rgba(244, 63, 94, 0.1) !important; border-color: rgba(244, 63, 94, 0.2) !important; }
+        [data-theme="dark"] .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.1) !important; border-color: rgba(99, 102, 241, 0.2) !important; }
+        [data-theme="dark"] .from-\\[\\#f0f9ff\\] { --tw-gradient-from: rgba(14, 165, 233, 0.1) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(14,165,233,0)) !important; }
+        [data-theme="dark"] .to-\\[\\#e0f2fe\\] { --tw-gradient-to: rgba(14, 165, 233, 0.15) !important; }
+        [data-theme="dark"] .border-\\[\\#bae6fd\\] { border-color: rgba(14, 165, 233, 0.3) !important; }
+        [data-theme="dark"] .bg-\\[\\#f0f9ff\\] { background-color: rgba(14, 165, 233, 0.15) !important; border-color: rgba(14, 165, 233, 0.3) !important; }
+        [data-theme="dark"] .bg-\\[\\#fff1f2\\] { background-color: rgba(225, 29, 72, 0.15) !important; border-color: rgba(225, 29, 72, 0.3) !important; }
+        [data-theme="dark"] .bg-\\[\\#fef3c7\\] { background-color: rgba(245, 158, 11, 0.15) !important; border-color: rgba(245, 158, 11, 0.3) !important; }
+
+        /* --- CYBER NEON --- */
+        [data-theme="cyber"] {
+            --bg-canvas: radial-gradient(circle at 50% 0%, #1e1b4b 0%, #020205 80%);
+            --white: #090914;
+            --text-main: #00f0ff;
+            --text-muted: #8b5cf6;
+            --border-subtle: #2e1065;
+            --today-light: #d946ef;
+            --today-dark: #a21caf;
+        }
+        [data-theme="cyber"] .bg-white { background-color: #090914 !important; }
+        [data-theme="cyber"] .bg-slate-50, [data-theme="cyber"] .bg-slate-100 { background-color: #04040a !important; }
+        [data-theme="cyber"] .text-slate-800, [data-theme="cyber"] .text-slate-700 { color: #00f0ff !important; text-shadow: 0 0 8px rgba(0,240,255,0.3); }
+        [data-theme="cyber"] .text-slate-600, [data-theme="cyber"] .text-slate-500 { color: #8b5cf6 !important; }
+        [data-theme="cyber"] .text-slate-400, [data-theme="cyber"] .text-slate-300 { color: #6d28d9 !important; }
+        [data-theme="cyber"] .border-slate-100, [data-theme="cyber"] .border-slate-200 { border-color: #2e1065 !important; }
+        [data-theme="cyber"] .from-\\[\\#f8fafc\\] { --tw-gradient-from: #04040a !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(4, 4, 10, 0)) !important; }
+        [data-theme="cyber"] .to-white { --tw-gradient-to: #090914 !important; }
+        
+        [data-theme="cyber"] .day-cell { background: linear-gradient(180deg, #090914 0%, #04040a 100%) !important; border-color: #2e1065 !important; color: #00f0ff; }
+        [data-theme="cyber"] .day-cell.type-unplanned { background: #04040a !important; color: #4c1d95 !important; border-color: #04040a !important; }
+        [data-theme="cyber"] .type-planned { background: linear-gradient(180deg, #0f0a20, #04040a) !important; border-color: #d946ef !important; color: #d946ef !important; box-shadow: inset 0 0 8px rgba(217,70,239,0.2) !important;}
+        [data-theme="cyber"] .weekday-label { color: #8b5cf6 !important; }
+        [data-theme="cyber"] .app-card { box-shadow: 0 0 20px rgba(139, 92, 246, 0.15) !important; border: 1px solid #4c1d95 !important; }
+        [data-theme="cyber"] .week-tag { background: linear-gradient(135deg, #d946ef, #8b5cf6) !important; border-color: #f0abfc !important; box-shadow: 0 0 10px rgba(217,70,239,0.5) !important; }
+        [data-theme="cyber"] .premium-slate-banner { background: linear-gradient(135deg, #0f0a20 0%, #1e1b4b 100%) !important; border-bottom: 2px solid #8b5cf6 !important; box-shadow: 0 10px 30px -10px rgba(139,92,246,0.4) !important; }
+        
+        [data-theme="cyber"] .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1) !important; border-color: rgba(16, 185, 129, 0.3) !important; }
+        [data-theme="cyber"] .bg-rose-50 { background-color: rgba(244, 63, 94, 0.1) !important; border-color: rgba(244, 63, 94, 0.3) !important; }
+        [data-theme="cyber"] .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.1) !important; border-color: rgba(99, 102, 241, 0.3) !important; }
+        [data-theme="cyber"] .from-\\[\\#f0f9ff\\] { --tw-gradient-from: rgba(0, 240, 255, 0.1) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(0,240,255,0)) !important; }
+        [data-theme="cyber"] .to-\\[\\#e0f2fe\\] { --tw-gradient-to: rgba(0, 240, 255, 0.15) !important; }
+        [data-theme="cyber"] .border-\\[\\#bae6fd\\] { border-color: rgba(0, 240, 255, 0.4) !important; }
+        [data-theme="cyber"] .bg-\\[\\#f0f9ff\\] { background-color: rgba(0, 240, 255, 0.15) !important; border-color: rgba(0, 240, 255, 0.3) !important; }
+        [data-theme="cyber"] .bg-\\[\\#fff1f2\\] { background-color: rgba(225, 29, 72, 0.15) !important; border-color: rgba(225, 29, 72, 0.3) !important; }
+        [data-theme="cyber"] .bg-\\[\\#fef3c7\\] { background-color: rgba(245, 158, 11, 0.15) !important; border-color: rgba(245, 158, 11, 0.3) !important; }
+
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
         body { 
@@ -59,7 +134,7 @@
         
         .budget-header { text-align: center; margin-bottom: 2px; position: relative; z-index: 1; cursor: pointer; transition: transform 0.2s; }
         .budget-header:active { transform: scale(0.95); }
-        .budget-label { font-size: 9px; font-weight: 800; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.32em; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .budget-label { font-size: 11px; font-weight: 900; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 4px; }
         .budget-val { font-size: 22px; font-weight: 900; line-height: 1; color: #ffffff !important; text-shadow: 0 1px 0 rgba(0,0,0,0.25), 0 6px 18px rgba(56,189,248,0.25); letter-spacing: -0.01em; }
         
         .gauge-layout { display: flex; align-items: center; justify-content: space-between; gap: 0; position: relative; z-index: 1; }
@@ -231,17 +306,31 @@
         </div>
     </div>
 
+    <!-- SETTINGS / BUDGET MODAL -->
     <div id="budget-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[15000] hidden flex items-center justify-center p-4">
         <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-4">
+            
             <p class="text-[10px] font-black text-center uppercase tracking-widest text-slate-400">Inställningar</p>
             <button id="sync-btn" onclick="syncData()" class="w-full py-3.5 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all flex justify-center items-center gap-2"><span>⚡</span> Synkronisera Data</button>
+            
+            <div class="h-px w-full bg-slate-100 mt-1"></div>
+            
+            <p class="text-[9px] font-black text-center uppercase tracking-widest text-slate-400 mb-[-4px]">Välj Tema</p>
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="setTheme('light')" class="py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black text-slate-700 active:scale-95 transition-all shadow-sm">Ljust</button>
+                <button onclick="setTheme('dark')" class="py-2.5 bg-[#1e293b] border border-[#334155] rounded-xl text-[10px] font-black text-[#f8fafc] active:scale-95 transition-all shadow-sm">Mörkt</button>
+                <button onclick="setTheme('cyber')" class="py-2.5 bg-[#090914] border border-[#4c1d95] rounded-xl text-[10px] font-black text-[#00f0ff] active:scale-95 transition-all shadow-sm" style="text-shadow: 0 0 5px rgba(0,240,255,0.4);">Cyber</button>
+            </div>
+
             <div class="h-px w-full bg-slate-100 my-1"></div>
-            <p class="text-[9px] font-black text-center uppercase tracking-widest text-slate-400">Välj Månadsmål För Denna Månad</p>
+
+            <p class="text-[9px] font-black text-center uppercase tracking-widest text-slate-400 mb-[-4px]">Månadsmål</p>
             <div class="flex flex-col gap-2">
                 <button onclick="setGlobalBudget(180000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">180 000 kr</button>
                 <button onclick="setGlobalBudget(240000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">240 000 kr</button>
                 <button onclick="setGlobalBudget(350000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">350 000 kr</button>
             </div>
+            
             <button onclick="closeBudgetModal()" class="mt-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Stäng</button>
         </div>
     </div>
@@ -255,7 +344,10 @@
                 
                 <div id="top-monthly-ui" class="flex flex-col w-full h-full justify-center px-4 py-2 transition-opacity duration-300">
                     <div class="budget-header" onclick="openSummaryModal('month')">
-                        <p class="budget-label mt-1 flex items-center justify-center gap-1"><span id="top-month-lbl">MÅNADSMÅL</span> <span class="text-[10px] opacity-80" title="Sammanfattning">📊</span></p>
+                        <p class="budget-label mt-1 flex items-center justify-center gap-1 text-[#38bdf8] opacity-100">
+                            <span id="top-month-lbl" class="text-[12px] font-black tracking-[0.2em] drop-shadow-sm">MÅNAD</span> 
+                            <span class="text-[10px] opacity-80" title="Sammanfattning" style="color: white; letter-spacing: normal;">📊</span>
+                        </p>
                         <p id="d-budget-val" class="budget-val">240,000 kr</p>
                     </div>
                     <div class="gauge-layout">
@@ -476,6 +568,17 @@
     </div>
 
     <script>
+        // ==========================================
+        //  THEME MANAGER
+        // ==========================================
+        function setTheme(themeName) {
+            document.body.setAttribute('data-theme', themeName);
+            localStorage.setItem('sf_theme', themeName);
+        }
+        
+        const savedTheme = localStorage.getItem('sf_theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+
         // --- HISTORY & NAVIGATION ---
         function pushModalState() { history.pushState({view: 'modal'}, ''); }
 
@@ -1256,7 +1359,7 @@
             
             const topMonthLbl = document.getElementById('top-month-lbl');
             if (topMonthLbl) {
-                topMonthLbl.innerText = `${months[viewDate.getMonth()].substring(0,3).toUpperCase()} MÅNADSMÅL`;
+                topMonthLbl.innerText = months[viewDate.getMonth()].toUpperCase();
             }
         }
 

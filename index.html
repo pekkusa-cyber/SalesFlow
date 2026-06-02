@@ -165,6 +165,25 @@
             animation: pulse-info-bar 2.2s ease-out infinite !important; 
             border-color: rgba(56, 189, 248, 0.5) !important; 
         }
+        
+        /* DASHBOARD LIVE GAUGE ANIMATION */
+        @keyframes halo-pulse {
+            0% { box-shadow: 0 0 0 0 var(--today-light); opacity: 0.4; }
+            70% { box-shadow: 0 0 0 20px var(--today-light); opacity: 0; }
+            100% { box-shadow: 0 0 0 0 var(--today-light); opacity: 0; }
+        }
+        @keyframes gauge-breathe {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+            100% { transform: scale(1); }
+        }
+        .gauge-is-live #dash-gauge-halo {
+            animation: halo-pulse 2.5s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .gauge-is-live svg {
+            animation: gauge-breathe 2.5s ease-in-out infinite;
+            transform-origin: center;
+        }
 
         .bottom-section { flex: 1; margin: 0 12px calc(env(safe-area-inset-bottom, 12px) + 6px); position: relative; min-height: 0; overflow: hidden; }
         
@@ -459,13 +478,14 @@
                                             <p id="dash-val-target" class="text-[16px] font-black leading-none text-slate-700 drop-shadow-sm">0 k</p>
                                         </div>
                                         
-                                        <div class="relative flex flex-col justify-center items-center flex-[1.5] max-w-[100px] aspect-square mx-1">
+                                        <div id="dash-gauge-wrapper" class="relative flex flex-col justify-center items-center flex-[1.5] max-w-[100px] aspect-square mx-1">
+                                            <div id="dash-gauge-halo" class="absolute inset-[15%] rounded-full pointer-events-none z-0"></div>
                                             <div class="absolute inset-0 cursor-pointer z-30" onclick="openInlineNumpad()"></div>
-                                            <svg class="w-full h-full drop-shadow-md" viewBox="0 0 120 120">
+                                            <svg class="w-full h-full drop-shadow-md z-10 relative" viewBox="0 0 120 120">
                                                 <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
                                                 <circle id="dash-gauge-prog" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
                                             </svg>
-                                            <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5 pointer-events-none">
+                                            <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5 pointer-events-none z-20">
                                                 <span id="dash-val-sales" class="text-[20px] font-black tracking-tighter leading-none text-slate-700 drop-shadow-sm">0 k</span>
                                                 <span id="dash-val-perc" class="text-[9px] font-black text-slate-400 mt-1">0%</span>
                                             </div>
@@ -1764,6 +1784,8 @@
             let absType = null;
             let isReached = false;
 
+            let isActiveNow = false;
+
             if (activeK) {
                 const parts = activeK.split('-'); 
                 const dObj = new Date(parts[0], parts[1]-1, parts[2]); 
@@ -1788,6 +1810,14 @@
 
                 showActions = true;
                 isReached = dTarget > 0 && dSales >= dTarget;
+
+                const isToday = dObj.getTime() === realToday.getTime();
+                let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10;
+                let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19;
+                let nH = new Date().getHours();
+                if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned' && nH >= sStart && nH <= sEnd) {
+                    isActiveNow = true;
+                }
 
                 const actsGrid = document.getElementById('dash-actions-grid');
                 const stdActions = `<div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50"><button onclick="handleDashAction('Arbete')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button><button onclick="handleDashAction('Ledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button><button onclick="handleDashAction('Semester')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button><button onclick="handleDashAction('Sjuk')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button><button onclick="handleDashAction('VAB')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button><button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button></div>`;
@@ -1874,6 +1904,12 @@
             } else {
                 acts.classList.remove('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1');
                 acts.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'mt-0');
+            }
+
+            const gWrap = document.getElementById('dash-gauge-wrapper');
+            if (gWrap) {
+                if (isActiveNow) gWrap.classList.add('gauge-is-live');
+                else gWrap.classList.remove('gauge-is-live');
             }
         }
 

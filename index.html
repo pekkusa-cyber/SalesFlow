@@ -57,16 +57,6 @@
         [data-theme="dark"] .weekday-label { color: #94a3b8 !important; }
         [data-theme="dark"] #app-shell { filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5)); }
 
-        [data-theme="dark"] .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.1) !important; border-color: rgba(16, 185, 129, 0.2) !important; }
-        [data-theme="dark"] .bg-rose-50 { background-color: rgba(244, 63, 94, 0.1) !important; border-color: rgba(244, 63, 94, 0.2) !important; }
-        [data-theme="dark"] .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.1) !important; border-color: rgba(99, 102, 241, 0.2) !important; }
-        [data-theme="dark"] .from-\\[\\#f0f9ff\\] { --tw-gradient-from: rgba(14, 165, 233, 0.1) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(14,165,233,0)) !important; }
-        [data-theme="dark"] .to-\\[\\#e0f2fe\\] { --tw-gradient-to: rgba(14, 165, 233, 0.15) !important; }
-        [data-theme="dark"] .border-\\[\\#bae6fd\\] { border-color: rgba(14, 165, 233, 0.3) !important; }
-        [data-theme="dark"] .bg-\\[\\#f0f9ff\\] { background-color: rgba(14, 165, 233, 0.15) !important; border-color: rgba(14, 165, 233, 0.3) !important; }
-        [data-theme="dark"] .bg-\\[\\#fff1f2\\] { background-color: rgba(225, 29, 72, 0.15) !important; border-color: rgba(225, 29, 72, 0.3) !important; }
-        [data-theme="dark"] .bg-\\[\\#fef3c7\\] { background-color: rgba(245, 158, 11, 0.15) !important; border-color: rgba(245, 158, 11, 0.3) !important; }
-
         [data-theme="rustic"] {
             --bg-canvas: linear-gradient(180deg, #f5f3f0 0%, #e6e2db 100%);
             --white: #ffffff;
@@ -80,20 +70,7 @@
         [data-theme="rustic"] .text-\\[\\#38bdf8\\], [data-theme="rustic"] .text-\\[\\#0ea5e9\\] { color: #bc8a6a !important; }
         [data-theme="rustic"] .text-\\[\\#0284c7\\] { color: #986445 !important; }
         [data-theme="rustic"] .bg-\\[\\#0ea5e9\\] { background-color: #986445 !important; }
-        [data-theme="rustic"] .hover\\:bg-\\[\\#0284c7\\]:hover { background-color: #7b4f35 !important; }
-        [data-theme="rustic"] .from-\\[\\#0ea5e9\\] { --tw-gradient-from: #bc8a6a !important; }
-        [data-theme="rustic"] .to-\\[\\#0284c7\\] { --tw-gradient-to: #986445 !important; }
         [data-theme="rustic"] .type-planned { background: linear-gradient(180deg, #fbfaf9, #f2ece6) !important; color: #986445 !important; border-color: #ffffff !important; box-shadow: 0 4px 10px -4px rgba(152, 100, 69, 0.2), inset 0 -2px 6px rgba(152, 100, 69, 0.05) !important; }
-        [data-theme="rustic"] .bg-\\[\\#f0f9ff\\], [data-theme="rustic"] .hover\\:bg-\\[\\#f0f9ff\\]:hover { background-color: rgba(188, 138, 106, 0.1) !important; border-color: rgba(188, 138, 106, 0.2) !important; }
-        [data-theme="rustic"] .hover\\:bg-\\[\\#e0f2fe\\]:hover { background-color: rgba(188, 138, 106, 0.15) !important; }
-        [data-theme="rustic"] .border-\\[\\#bae6fd\\] { border-color: rgba(188, 138, 106, 0.3) !important; }
-        [data-theme="rustic"] .week-tag { background: linear-gradient(135deg, #bc8a6a, #986445) !important; border-color: #dcb39a !important; box-shadow: 0 4px 8px -2px rgba(152, 100, 69, 0.4) !important; color: white !important;}
-        [data-theme="rustic"] .premium-slate-banner::after { background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(188,138,106,0.15), transparent 70%); }
-        [data-theme="rustic"] .budget-label { color: #dcb39a; }
-        [data-theme="rustic"] .budget-val { text-shadow: 0 1px 0 rgba(0,0,0,0.25), 0 6px 18px rgba(188,138,106,0.25); }
-        
-        @keyframes pulse-cell-rustic { 0% { box-shadow: 0 4px 14px rgba(188, 138, 106, 0.4), 0 0 0 0 rgba(188, 138, 106, 0.5); } 70% { box-shadow: 0 4px 14px rgba(188, 138, 106, 0.4), 0 0 0 8px rgba(188, 138, 106, 0); } 100% { box-shadow: 0 4px 14px rgba(188, 138, 106, 0.4), 0 0 0 0 rgba(188, 138, 106, 0); } }
-        [data-theme="rustic"] .status-today.active-shift-pulse { animation: pulse-cell-rustic 2.2s var(--ease-spring) infinite; border: 1.5px solid #dcb39a !important; }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
@@ -142,11 +119,6 @@
         .animate-info-pop { animation: infoPop 0.4s var(--ease-spring) forwards; }
         @keyframes pulse-info-bar { 0% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1), 0 0 0 0 rgba(56, 189, 248, 0.4); } 70% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1), 0 0 0 8px rgba(56, 189, 248, 0); } 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1), 0 0 0 0 rgba(56, 189, 248, 0); } }
         .active-info-pulse { animation: pulse-info-bar 2.2s ease-out infinite !important; border-color: rgba(56, 189, 248, 0.5) !important; }
-        
-        @keyframes halo-pulse { 0% { box-shadow: 0 0 0 0 var(--today-light); opacity: 0.4; } 70% { box-shadow: 0 0 0 20px var(--today-light); opacity: 0; } 100% { box-shadow: 0 0 0 0 var(--today-light); opacity: 0; } }
-        @keyframes gauge-breathe { 0% { transform: scale(1); } 50% { transform: scale(1.04); } 100% { transform: scale(1); } }
-        .gauge-is-live #dash-gauge-halo { animation: halo-pulse 2.5s infinite cubic-bezier(0.2, 0.8, 0.2, 1); }
-        .gauge-is-live svg { animation: gauge-breathe 2.5s ease-in-out infinite; transform-origin: center; }
 
         .bottom-section { flex: 1; margin: 0 12px calc(env(safe-area-inset-bottom, 12px) + 6px); position: relative; min-height: 0; overflow: hidden; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 5px; padding: 4px 6px 8px; height: 100%; }
@@ -178,15 +150,12 @@
         .date-num { position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 8.5px; font-weight: 800; pointer-events: none; color: var(--text-main); }
         .u-badge { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; z-index: 35; border: 1.5px solid var(--white); pointer-events: none; box-shadow: 0 4px 8px -2px rgba(15,23,42,0.2); }
         .badge-abs { top: -4px; right: -4px; width: 16px; height: 16px; font-size: 9px; background: #ffffff; border: 1.5px solid #f97316; }
-        .badge-late { background: #fef08a !important; border-color: #eab308 !important; color: #854d0e !important; top: -4px; left: -4px; width: 16px; height: 16px; font-size: 8px;}
         
         .week-tag { position: absolute; top: -6px; left: -10px; background: linear-gradient(135deg, #38bdf8, #0ea5e9); color: white !important; font-size: 6px; padding: 1.5px 3px; border-radius: 4px; font-weight: 900; z-index: 10; pointer-events: none; box-shadow: 0 4px 8px -2px rgba(14,165,233,0.5); letter-spacing: 0.04em; border: 1px solid #7dd3fc; }
         .cell-main-val { font-size: 9px; font-weight: 900; line-height: 1; pointer-events: none; color: inherit; }
         
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        #confirm-box { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 14000; display: none; width: 280px; background: rgba(255,255,255,0.92); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); border: 1px solid rgba(255,255,255,0.6); border-radius: 28px; padding: 24px; box-shadow: 0 24px 60px -12px rgba(15,23,42,0.25), 0 2px 6px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.8); }
         
         #container-dash-views { position: relative; flex: 1; min-height: 0; overflow: hidden; }
         .dash-view-pane { position: absolute; inset: 0; transition: opacity 0.3s var(--ease-spring), transform 0.3s var(--ease-spring); display: flex; flex-direction: column; visibility: hidden; opacity: 0; pointer-events: none; }
@@ -195,14 +164,9 @@
         .focus-gauge-bg { fill: none; stroke: rgba(15,23,42,0.05); stroke-linecap: round; }
         .fg-sales { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.7s var(--ease-spring), stroke 0.4s ease; }
         
-        #note-confirm-modal > div, #child-select-modal > div, #budget-modal > div, #summary-modal > div, #eval-modal > div { background: rgba(255,255,255,0.94) !important; backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%); border: 1px solid rgba(255,255,255,0.6) !important; box-shadow: 0 24px 60px -12px rgba(15,23,42,0.28), 0 2px 6px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important; }
-        #note-confirm-modal, #child-select-modal, #budget-modal, #summary-modal, #eval-modal { backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
-        
+        /* PULS FÖR PÅGÅENDE PASS I KALENDERN */
         @keyframes pulse-cell-blue { 0% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0.5); } 70% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 8px rgba(14, 165, 233, 0); } 100% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0); } }
-        @keyframes pulse-cell-amber { 0% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 0 rgba(245, 158, 11, 0.5); } 70% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 8px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 0 rgba(245, 158, 11, 0); } }
-        
         .status-today.active-shift-pulse { animation: pulse-cell-blue 2.2s var(--ease-spring) infinite; border: 1.5px solid #7dd3fc !important; }
-        .active-focus.active-shift-pulse { animation: pulse-cell-amber 2.2s var(--ease-spring) infinite; border: 1.5px solid #fcd34d !important; }
 
         body.focus-mode-active .weekday-label { opacity: 0.4; transition: all 0.4s ease; }
         body.focus-mode-active .day-cell { transition: all 0.4s var(--ease-spring); }
@@ -211,11 +175,63 @@
 
         .emoji-btn { transition: all 0.2s var(--ease-spring); background: transparent; border: 1.5px solid transparent; }
         .emoji-btn.active { transform: scale(1.15); filter: none !important; opacity: 1 !important; border-color: #cbd5e1 !important; background: white !important; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+        /* ========================================================================= */
+        /* NYA ANIMATIONER: CYBER-SCANNER & AMBIENT SPOTLIGHT                        */
+        /* ========================================================================= */
+        
+        /* 1. Ambient Spotlight (Grön - Mål Nått) */
+        .goal-ambient {
+            border-color: #10b981 !important;
+            animation: ambientGlow 2.5s infinite alternate ease-in-out;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+        @keyframes ambientGlow { 
+            0% { box-shadow: 0 0 10px rgba(16,185,129,0.1), 0 10px 20px -10px rgba(16,185,129,0.2); } 
+            100% { box-shadow: 0 0 25px rgba(16,185,129,0.5), 0 20px 40px -10px rgba(16,185,129,0.7); } 
+        }
+        .goal-ambient-gauge {
+            stroke: #10b981 !important;
+            filter: drop-shadow(0 0 8px rgba(16,185,129,0.6)) !important;
+            transition: all 0.5s ease;
+        }
+
+        /* 2. Cyber-Scanner (Röd - Ej Nått / Stängt pass) */
+        .red-cyber {
+            border-color: rgba(244, 63, 94, 0.2) !important;
+            box-shadow: inset 0 -15px 30px -15px rgba(244, 63, 94, 0.3) !important;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+        .red-cyber-gauge {
+            stroke: #f43f5e !important;
+            opacity: 0.6;
+            transition: all 0.5s ease;
+        }
+
+        /* 3. Cyber-Scanner (Blå - Pågående pass overlay) */
+        .cyber-scanner-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 60px;
+            background: linear-gradient(180deg, transparent, rgba(14, 165, 233, 0.05), rgba(14, 165, 233, 0.3));
+            border-bottom: 2px solid #0ea5e9;
+            animation: scanAnim 3.5s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 25; 
+            display: none; 
+            box-shadow: 0 4px 15px -5px rgba(14, 165, 233, 0.4);
+        }
+        @keyframes scanAnim {
+            0% { transform: translateY(-60px); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(280px); opacity: 0; }
+        }
+
     </style>
 </head>
 <body class="mode-dash">
     
-    <div id="confirm-box"><p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p><div class="flex gap-3"><button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button><button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button></div></div>
+    <div id="confirm-box" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:14000;display:none;width:280px;background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.6);border-radius:28px;padding:24px;box-shadow:0 24px 60px -12px rgba(15,23,42,0.25);"><p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p><div class="flex gap-3"><button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button><button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button></div></div>
 
     <!-- UTVÄRDERINGSMODAL (EVAL) -->
     <div id="eval-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
@@ -312,7 +328,7 @@
             <!-- INSIKTS-VYN -->
             <div id="summary-insights-view" class="hidden flex flex-col gap-3">
                 <div id="insight-container" class="flex flex-col gap-3 overflow-y-auto max-h-[50vh] hide-scrollbar">
-                    <!-- Insikter genereras här via JS -->
+                    <!-- Insikter genereras här -->
                 </div>
             </div>
             
@@ -405,8 +421,8 @@
                         <div class="flex-1 text-center border-l border-white/10"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">Status</p><p id="d-status" class="text-[12px] font-black mt-0.5 uppercase tracking-wider text-white">LADDAR</p></div>
                     </div>
 
-                    <div id="top-info-bar" class="mt-2 px-3 py-1.5 rounded-[10px] mx-1 flex items-center justify-center transition-all duration-300 cursor-pointer active:scale-95" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1);">
-                         <span id="top-info-text" class="text-[8.5px] font-black uppercase tracking-widest text-white/90 w-full text-center flex items-center justify-center gap-1.5 leading-none">LADDAR INFO...</span>
+                    <div id="top-info-bar" class="mt-2 px-3 py-1.5 rounded-[10px] mx-1 flex items-center justify-center transition-all duration-300 cursor-pointer active:scale-95 relative" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1);">
+                         <span id="top-info-text" class="text-[8.5px] font-black uppercase tracking-widest text-white/90 w-full text-center flex items-center justify-center gap-1.5 leading-none z-20 relative">LADDAR INFO...</span>
                     </div>
                 </div>
             </div>
@@ -454,83 +470,89 @@
                             
                             <div id="slide-curr" class="w-full h-[64px] flex-shrink-0 mb-1 py-1 grid grid-cols-7 gap-1 px-3 items-center"></div>
 
-                            <div class="mx-3 mt-1 mb-2 bg-white rounded-[24px] border border-slate-100 shadow-md flex flex-col flex-shrink-0 relative z-20 flex-1 min-h-0 overflow-hidden">
+                            <div class="mx-3 mt-1 mb-2 relative flex flex-col flex-shrink-0 z-20 flex-1 min-h-0" id="dash-main-container">
                                 
-                                <div id="dash-standard-content" class="absolute inset-0 flex flex-col p-3 transition-all duration-300 transform origin-top opacity-100 scale-100 pointer-events-auto bg-gradient-to-b from-[#f8fafc] to-white">
-                                    <div class="flex justify-between items-end pb-2 border-b border-slate-100 flex-shrink-0">
-                                        <div class="flex flex-col">
-                                            <span id="dash-title" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
-                                            <span id="dash-subtitle" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
-                                        </div>
-                                        <div class="flex items-center gap-1.5">
-                                            <button id="btn-trigger-eval" onclick="openEvalModal()" class="w-7 h-7 hidden bg-slate-50 hover:bg-slate-100 rounded-full border border-slate-200 active:scale-90 transition-transform items-center justify-center shadow-sm text-[12px]" title="Utvärdera Pass">✏️</button>
-                                            <div class="flex flex-col text-right justify-end">
-                                                <p id="dash-status-meta" class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5 min-h-[12px]"></p>
-                                                <p id="dash-status-text" class="text-[10px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                                <!-- Inner Card with Dynamic FX Borders -->
+                                <div id="dash-inner-card" class="relative w-full h-full bg-white rounded-[24px] border border-slate-100 shadow-md overflow-hidden z-10 flex flex-col transition-colors duration-300">
                                     
-                                    <div id="dash-gauge-container" class="flex items-center justify-between w-full flex-1 my-2 relative">
-                                        <div id="dash-abs-badge" class="absolute top-0 right-2 w-7 h-7 rounded-full border border-white shadow-sm flex items-center justify-center text-[14px] z-20 hidden"></div>
+                                    <!-- CYBER SCANNER LAYER (Pågående) -->
+                                    <div id="cyber-scanner-layer" class="cyber-scanner-overlay"></div>
 
-                                        <div class="flex flex-col justify-center text-left flex-1 pl-1">
-                                            <span id="dash-lbl-target" class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">MÅL</span>
-                                            <p id="dash-val-target" class="text-[16px] font-black leading-none text-slate-700 drop-shadow-sm">0 k</p>
+                                    <div id="dash-standard-content" class="absolute inset-0 flex flex-col p-3 transition-all duration-300 transform origin-top opacity-100 scale-100 pointer-events-auto bg-gradient-to-b from-[#f8fafc] to-white z-30">
+                                        <div class="flex justify-between items-end pb-2 border-b border-slate-100 flex-shrink-0">
+                                            <div class="flex flex-col">
+                                                <span id="dash-title" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
+                                                <span id="dash-subtitle" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
+                                            </div>
+                                            <div class="flex items-center gap-1.5">
+                                                <button id="btn-trigger-eval" onclick="openEvalModal()" class="w-7 h-7 hidden bg-slate-50 hover:bg-slate-100 rounded-full border border-slate-200 active:scale-90 transition-transform items-center justify-center shadow-sm text-[12px]" title="Utvärdera Pass">✏️</button>
+                                                <div class="flex flex-col text-right justify-end">
+                                                    <p id="dash-status-meta" class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5 min-h-[12px]"></p>
+                                                    <p id="dash-status-text" class="text-[10px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
+                                                </div>
+                                            </div>
                                         </div>
                                         
-                                        <div id="dash-gauge-wrapper" class="relative flex flex-col justify-center items-center flex-[1.5] max-w-[100px] aspect-square mx-1">
-                                            <div id="dash-gauge-halo" class="absolute inset-[15%] rounded-full pointer-events-none z-0"></div>
-                                            <div class="absolute inset-0 cursor-pointer z-30" onclick="openInlineNumpad()"></div>
-                                            <svg class="w-full h-full drop-shadow-md z-10 relative" viewBox="0 0 120 120">
-                                                <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
-                                                <circle id="dash-gauge-prog" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
-                                            </svg>
-                                            <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5 pointer-events-none z-20">
-                                                <span id="dash-val-sales" class="text-[20px] font-black tracking-tighter leading-none text-slate-700 drop-shadow-sm">0 k</span>
-                                                <span id="dash-val-perc" class="text-[9px] font-black text-slate-400 mt-1">0%</span>
+                                        <div id="dash-gauge-container" class="flex items-center justify-between w-full flex-1 my-2 relative">
+                                            <div id="dash-abs-badge" class="absolute top-0 right-2 w-7 h-7 rounded-full border border-white shadow-sm flex items-center justify-center text-[14px] z-20 hidden"></div>
+
+                                            <div class="flex flex-col justify-center text-left flex-1 pl-1">
+                                                <span id="dash-lbl-target" class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">MÅL</span>
+                                                <p id="dash-val-target" class="text-[16px] font-black leading-none text-slate-700 drop-shadow-sm">0 k</p>
+                                            </div>
+                                            
+                                            <div id="dash-gauge-wrapper" class="relative flex flex-col justify-center items-center flex-[1.5] max-w-[100px] aspect-square mx-1 transition-all duration-300">
+                                                <div class="absolute inset-0 cursor-pointer z-30" onclick="openInlineNumpad()"></div>
+                                                <svg class="w-full h-full drop-shadow-md z-10 relative" viewBox="0 0 120 120">
+                                                    <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
+                                                    <circle id="dash-gauge-prog" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
+                                                </svg>
+                                                <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5 pointer-events-none z-20">
+                                                    <span id="dash-val-sales" class="text-[20px] font-black tracking-tighter leading-none text-slate-700 drop-shadow-sm">0 k</span>
+                                                    <span id="dash-val-perc" class="text-[9px] font-black text-slate-400 mt-1">0%</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex flex-col justify-center text-right flex-1 pr-1">
+                                                <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">DIFF</span>
+                                                <p id="dash-val-diff" class="text-[16px] font-black leading-none drop-shadow-sm">0 k</p>
                                             </div>
                                         </div>
 
-                                        <div class="flex flex-col justify-center text-right flex-1 pr-1">
-                                            <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">DIFF</span>
-                                            <p id="dash-val-diff" class="text-[16px] font-black leading-none drop-shadow-sm">0 k</p>
+                                        <div id="dash-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 h-[42px] flex justify-end">
+                                            <div class="relative w-full h-full overflow-hidden rounded-[14px] border border-slate-200 shadow-sm" id="dash-actions-grid"></div>
                                         </div>
                                     </div>
 
-                                    <div id="dash-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 h-[42px] flex justify-end">
-                                        <div class="relative w-full h-full overflow-hidden rounded-[14px] border border-slate-200 shadow-sm" id="dash-actions-grid"></div>
-                                    </div>
-                                </div>
-
-                                <div id="dash-inline-numpad" class="absolute inset-0 bg-white z-40 flex flex-col p-2.5 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4">
-                                    <div class="flex items-center justify-between mb-2 flex-shrink-0">
-                                        <button onclick="closeInlineNumpad()" class="text-slate-400 font-bold px-2 py-1.5 bg-slate-50 rounded-lg active:scale-95 text-[10px] uppercase tracking-wider border border-slate-100 transition-transform">✕ Avbryt</button>
-                                        <div class="text-center flex-1">
-                                            <p id="inline-numpad-display" class="text-[22px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 kr</p>
+                                    <div id="dash-inline-numpad" class="absolute inset-0 bg-white z-40 flex flex-col p-2.5 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4">
+                                        <div class="flex items-center justify-between mb-2 flex-shrink-0">
+                                            <button onclick="closeInlineNumpad()" class="text-slate-400 font-bold px-2 py-1.5 bg-slate-50 rounded-lg active:scale-95 text-[10px] uppercase tracking-wider border border-slate-100 transition-transform">✕ Avbryt</button>
+                                            <div class="text-center flex-1">
+                                                <p id="inline-numpad-display" class="text-[22px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 kr</p>
+                                            </div>
+                                            <button onclick="saveInlineNumpad()" class="text-white font-black px-3 py-1.5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-lg shadow-sm active:scale-95 text-[10px] uppercase tracking-wider transition-transform">✓ SPARA</button>
                                         </div>
-                                        <button onclick="saveInlineNumpad()" class="text-white font-black px-3 py-1.5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-lg shadow-sm active:scale-95 text-[10px] uppercase tracking-wider transition-transform">✓ SPARA</button>
-                                    </div>
-                                    
-                                    <div class="flex-1 flex gap-2 min-h-0">
-                                        <div class="flex-[3] grid grid-cols-3 gap-1">
-                                            <button onclick="inlinePress('1')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">1</button>
-                                            <button onclick="inlinePress('2')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">2</button>
-                                            <button onclick="inlinePress('3')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">3</button>
-                                            <button onclick="inlinePress('4')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">4</button>
-                                            <button onclick="inlinePress('5')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">5</button>
-                                            <button onclick="inlinePress('6')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">6</button>
-                                            <button onclick="inlinePress('7')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">7</button>
-                                            <button onclick="inlinePress('8')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">8</button>
-                                            <button onclick="inlinePress('9')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">9</button>
-                                            <button onclick="inlinePress('clear')" class="bg-rose-50 flex items-center justify-center text-rose-500 font-black text-sm rounded-xl border border-rose-100 active:scale-95 shadow-sm transition-transform">C</button>
-                                            <button onclick="inlinePress('0')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">0</button>
-                                            <button onclick="inlinePress('back')" class="bg-slate-50 flex items-center justify-center text-slate-500 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">⌫</button>
-                                        </div>
-                                        <div class="flex-[1] flex flex-col gap-1">
-                                            <button onclick="inlineTarget()" class="flex-[1.5] bg-[#fffbeb] text-[#d97706] font-black text-[9px] uppercase tracking-widest rounded-xl border border-[#fde68a] shadow-sm active:scale-95 flex flex-col items-center justify-center leading-tight transition-transform"><span>🎯</span><span class="mt-0.5">Nå Mål</span></button>
-                                            <button onclick="inlineAdd(5000)" class="flex-1 bg-[#f0f9ff] text-[#0ea5e9] font-black text-[10px] rounded-xl border border-[#bae6fd] shadow-sm active:scale-95 flex items-center justify-center transition-transform">+5k</button>
-                                            <button onclick="inlineAdd(10000)" class="flex-1 bg-[#f0f9ff] text-[#0ea5e9] font-black text-[10px] rounded-xl border border-[#bae6fd] shadow-sm active:scale-95 flex items-center justify-center transition-transform">+10k</button>
+                                        
+                                        <div class="flex-1 flex gap-2 min-h-0">
+                                            <div class="flex-[3] grid grid-cols-3 gap-1">
+                                                <button onclick="inlinePress('1')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">1</button>
+                                                <button onclick="inlinePress('2')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">2</button>
+                                                <button onclick="inlinePress('3')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">3</button>
+                                                <button onclick="inlinePress('4')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">4</button>
+                                                <button onclick="inlinePress('5')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">5</button>
+                                                <button onclick="inlinePress('6')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">6</button>
+                                                <button onclick="inlinePress('7')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">7</button>
+                                                <button onclick="inlinePress('8')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">8</button>
+                                                <button onclick="inlinePress('9')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">9</button>
+                                                <button onclick="inlinePress('clear')" class="bg-rose-50 flex items-center justify-center text-rose-500 font-black text-sm rounded-xl border border-rose-100 active:scale-95 shadow-sm transition-transform">C</button>
+                                                <button onclick="inlinePress('0')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">0</button>
+                                                <button onclick="inlinePress('back')" class="bg-slate-50 flex items-center justify-center text-slate-500 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">⌫</button>
+                                            </div>
+                                            <div class="flex-[1] flex flex-col gap-1">
+                                                <button onclick="inlineTarget()" class="flex-[1.5] bg-[#fffbeb] text-[#d97706] font-black text-[9px] uppercase tracking-widest rounded-xl border border-[#fde68a] shadow-sm active:scale-95 flex flex-col items-center justify-center leading-tight transition-transform"><span>🎯</span><span class="mt-0.5">Nå Mål</span></button>
+                                                <button onclick="inlineAdd(5000)" class="flex-1 bg-[#f0f9ff] text-[#0ea5e9] font-black text-[10px] rounded-xl border border-[#bae6fd] shadow-sm active:scale-95 flex items-center justify-center transition-transform">+5k</button>
+                                                <button onclick="inlineAdd(10000)" class="flex-1 bg-[#f0f9ff] text-[#0ea5e9] font-black text-[10px] rounded-xl border border-[#bae6fd] shadow-sm active:scale-95 flex items-center justify-center transition-transform">+10k</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -639,12 +661,9 @@
             let mKey = `${cy}-${cm}`;
             savedBudgets[mKey] = amount;
             
-            // Spara lokalt som backup
             try { localStorage.setItem('sf_budgets', JSON.stringify(savedBudgets)); } catch(e){} 
-            
             db.b = amount; 
             
-            // Synka mot Supabase (NYTT)
             if (sb) {
                 sb.from('monthly_budgets').upsert({ month_key: mKey, budget: amount }).then(({error}) => {
                     if(error) console.warn("Supabase budget fel:", error);
@@ -700,7 +719,6 @@
         async function loadAllData() {
             try {
                 if (sb) {
-                    // Hämta allt från Supabase samtidigt (Säljdata, Budget, Anteckningar)
                     const [salesRes, budgetRes, notesRes] = await Promise.all([
                         sb.from('sales_data').select('*'),
                         sb.from('monthly_budgets').select('*'),
@@ -773,7 +791,6 @@
                     }
                 }
 
-                // Sista lokala backupen för säkerhets skull
                 try { if(!savedBudgets || Object.keys(savedBudgets).length === 0) savedBudgets = JSON.parse(localStorage.getItem('sf_budgets')) || {}; } catch(e){}
                 try { if(!savedNotes || savedNotes.length === 0) savedNotes = JSON.parse(localStorage.getItem('sf_notes')) || []; } catch(e){}
                 for (let k in db.d) {
@@ -802,9 +819,11 @@
         // ==========================================
         function setMode(mode) {
             if (currentFocusReason && mode !== 'month') { closeFocusMode(true); }
+            
             if (!viewDate) viewDate = new Date(realToday); if (!currentWeekStart) currentWeekStart = new Date(realToday);
             multiSelectKeys.clear(); closeMonthEdit(); if(numpadTarget) closeNumpad();
-            viewMode = mode; document.body.className = `mode-${mode} ${currentFocusReason ? 'focus-mode-active' : ''}`;
+            viewMode = mode; 
+            document.body.className = `mode-${mode} ${currentFocusReason ? 'focus-mode-active' : ''}`;
 
             ['dash', 'month', 'absence'].forEach(m => {
                 const b = document.getElementById(`tab-${m}`);
@@ -996,7 +1015,8 @@
             let forceNextShift = (viewMode === 'dash' || viewMode === 'absence' || viewMode === 'notes'); let displayDay = null;
             if (!forceNextShift && viewMode === 'month' && multiSelectKeys.size === 1) { displayDay = Array.from(multiSelectKeys)[0]; }
             
-            const daysShort = ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör']; const em = { 'Sjuk': '🤒 SJUK', 'VAB': '👶 VAB', 'Föräldraledig': '🍼 F-LEDIG', 'Semester': '✈️ SEMESTER', 'Tjänstledig': '🏢 T-LEDIG', 'Åtgärd krävs': '⚠️ ÅTGÄRD' };
+            const daysShort = ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör']; 
+            const emObj = { 'Sjuk': '🤒', 'VAB': '👶', 'Föräldraledig': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' };
             let newHTML = ""; let isActiveShiftNow = false;
 
             if (displayDay) {
@@ -1005,13 +1025,38 @@
                 const isToday = dObj.getTime() === realToday.getTime(); let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let nH = new Date().getHours();
                 if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned' && nH >= sStart && nH <= sEnd) { isActiveShiftNow = true; }
 
-                if (o.abs) { let bKey = o.abs.split(' ')[0]; let txt = em[o.abs] || em[bKey] || `⚠️ ${o.abs.toUpperCase()}`; if (o.abs_hours && o.abs !== 'Åtgärd krävs') { let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours; let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100; txt += ` • ${o.abs_hours.toFixed(2).replace('.00','')}h • ${actualP}% FK`; } newHTML = `<span class="text-rose-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">${txt}</span>`; } else if (qData.start && !o.abs) { newHTML = `<span class="text-[#38bdf8] font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">PASS ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span>`; } else if (state === 'ledig' || state === 'unplanned') { newHTML = `<span class="text-slate-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-slate-300">🏠 LEDIG</span>`; } else { newHTML = `<span class="text-slate-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-slate-400">INGEN DATA</span>`; }
+                if (o.abs) { 
+                    let bKey = o.abs.split(' ')[0]; 
+                    let emoji = emObj[bKey] || '⚠️';
+                    let txt = `${emoji} ${o.abs.toUpperCase()}`;
+                    if (o.abs_hours && o.abs !== 'Åtgärd krävs') { 
+                        let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours; let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100; txt += ` • ${o.abs_hours.toFixed(2).replace('.00','')}h • ${actualP}% FK`; 
+                    } 
+                    newHTML = `<span class="text-rose-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">${txt}</span>`; 
+                } else if (qData.start && !o.abs) { newHTML = `<span class="text-[#38bdf8] font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">PASS ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span>`; } else if (state === 'ledig' || state === 'unplanned') { newHTML = `<span class="text-slate-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-slate-300">🏠 LEDIG</span>`; } else { newHTML = `<span class="text-slate-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-slate-400">INGEN DATA</span>`; }
             } else {
                 let nextShiftDate = null; let cDate = new Date(realToday);
-                for(let i=0; i<30; i++) { const k = getK(cDate); const qData = db.q[k] || {}; const state = getCellState(k); if (qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester') { nextShiftDate = new Date(cDate); break; } cDate.setDate(cDate.getDate() + 1); }
+                let nH = new Date().getHours();
+                
+                for(let i=0; i<30; i++) { 
+                    const k = getK(cDate); const qData = db.q[k] || {}; const state = getCellState(k); 
+                    let isToday = cDate.getTime() === realToday.getTime();
+                    let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19;
+                    
+                    if (qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester') { 
+                        if (isToday && nH > sEnd) {
+                            
+                        } else {
+                            nextShiftDate = new Date(cDate); 
+                            break; 
+                        }
+                    } 
+                    cDate.setDate(cDate.getDate() + 1); 
+                }
+                
                 if (nextShiftDate) {
                     const k = getK(nextShiftDate); const qData = db.q[k]; const o = db.d[k] || {}; const state = getCellState(k); const dayName = daysShort[nextShiftDate.getDay()].toUpperCase(); const dDate = `${nextShiftDate.getDate()}/${nextShiftDate.getMonth()+1}`; let prefix = (nextShiftDate.getTime() === realToday.getTime()) ? 'IDAG' : 'NÄSTA PASS';
-                    const isToday = nextShiftDate.getTime() === realToday.getTime(); let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let nH = new Date().getHours();
+                    const isToday = nextShiftDate.getTime() === realToday.getTime(); let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; 
                     if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned' && nH >= sStart && nH <= sEnd) { isActiveShiftNow = true; }
                     newHTML = `<span class="text-[#38bdf8] font-bold">${prefix}</span> <span class="text-white/20">|</span> <span class="text-white">${dayName} ${dDate} • ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span>`;
                 } else { newHTML = `<span class="text-slate-400">INGA PLANERADE PASS HITTADES</span>`; }
@@ -1034,7 +1079,16 @@
                 showActions = true; isReached = dTarget > 0 && dSales >= dTarget;
 
                 const isToday = dObj.getTime() === realToday.getTime(); let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let nH = new Date().getHours();
-                if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned' && nH >= sStart && nH <= sEnd) { isActiveNow = true; }
+                
+                if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned') { 
+                    if (nH >= sStart && nH <= sEnd) {
+                        isActiveNow = true; 
+                    }
+                    if (nH > sEnd && !o.has_eval_saved && !window.evalPromptedToday) {
+                        window.evalPromptedToday = true;
+                        setTimeout(openEvalModal, 1500);
+                    }
+                }
 
                 const btnEval = document.getElementById('btn-trigger-eval');
                 if (qData.start && state !== 'ledig' && state !== 'semester') { 
@@ -1061,11 +1115,38 @@
             const diffEl = document.getElementById('dash-val-diff'); diffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; diffEl.style.color = dDiff >= 0 ? "var(--sting-blue)" : "var(--neg)";
             const p = dTarget > 0 ? Math.min(100, Math.round((dSales / dTarget) * 100)) : 0; document.getElementById('dash-val-perc').innerText = p + "%";
             
-            const g = document.getElementById('dash-gauge-prog'); if(g) { g.style.strokeDashoffset = 283 - ((p / 100) * 212); g.style.stroke = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)'); g.style.filter = isReached ? 'drop-shadow(0 0 4px rgba(16,185,129,0.4))' : (dTarget > 0 ? 'drop-shadow(0 0 4px rgba(244,63,94,0.4))' : 'none'); }
+            const g = document.getElementById('dash-gauge-prog'); if(g) { g.style.strokeDashoffset = 283 - ((p / 100) * 212); g.style.stroke = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)'); }
             const badgeEl = document.getElementById('dash-abs-badge');
             if (absType) { const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; let bKey = absType.split(' ')[0]; badgeEl.innerText = em[absType] || em[bKey] || '•'; badgeEl.classList.remove('hidden'); badgeEl.className = `absolute top-0 right-2 w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[14px] z-20 ${absType.includes('Semester') ? 'bg-teal-100 text-teal-600' : (absType.includes('VAB') ? 'bg-amber-100 text-amber-600' : (absType.includes('Föräldraledig') ? 'bg-purple-100 text-purple-600' : (absType === 'Åtgärd krävs' ? 'bg-rose-500 text-white border-none' : 'bg-rose-100 text-rose-600')))}`; } else { badgeEl.classList.add('hidden'); }
             const acts = document.getElementById('dash-actions'); if (showActions) { acts.classList.remove('opacity-0', 'pointer-events-none', 'h-0', 'mt-0'); acts.classList.add('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1'); } else { acts.classList.remove('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1'); acts.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'mt-0'); }
-            const gWrap = document.getElementById('dash-gauge-wrapper'); if (gWrap) { if (isActiveNow) gWrap.classList.add('gauge-is-live'); else gWrap.classList.remove('gauge-is-live'); }
+            
+            // --- LOGIK FÖR NYA ANIMATIONER (Pågående Pass & Målgång) ---
+            const innerCard = document.getElementById('dash-inner-card');
+            const scannerLayer = document.getElementById('cyber-scanner-layer');
+            const gProg = document.getElementById('dash-gauge-prog');
+
+            // Återställ alla special-effekter
+            innerCard.classList.remove('goal-ambient', 'red-cyber');
+            innerCard.style.borderColor = '';
+            gProg.classList.remove('goal-ambient-gauge', 'red-cyber-gauge', 'blue-cyber-gauge');
+            scannerLayer.style.display = 'none';
+            
+            if (activeK && viewMode === 'dash') {
+                if (isReached) {
+                    // Ambient Spotlight (Grön)
+                    innerCard.classList.add('goal-ambient');
+                    gProg.classList.add('goal-ambient-gauge');
+                } else if (isActiveNow) {
+                    // Cyber-Scanner (Blå / Pågående)
+                    scannerLayer.style.display = 'block';
+                    gProg.classList.add('blue-cyber-gauge');
+                    innerCard.style.borderColor = 'rgba(14, 165, 233, 0.4)';
+                } else if (dTarget > 0 && !isReached) {
+                    // Cyber-Scanner (Röd / Mål ej nått)
+                    innerCard.classList.add('red-cyber');
+                    gProg.classList.add('red-cyber-gauge');
+                }
+            }
         }
 
         function renderCal(y, m) { 
@@ -1111,7 +1192,7 @@
             if (o.abs) { let baseAbs = o.abs.split(' ')[0]; if (qData.start && baseAbs !== 'Åtgärd krävs') { if (baseAbs === 'Sjuk') cls += ' bg-split-sjuk'; else if (baseAbs === 'VAB') cls += ' bg-split-vab'; else if (baseAbs === 'Föräldraledig') cls += ' bg-split-fledig'; else if (baseAbs === 'Semester') cls += ' bg-split-sem'; else cls += ' type-absent'; } else { if (baseAbs === 'Sjuk' || baseAbs === 'Åtgärd krävs') cls += ' type-absent'; else if (baseAbs === 'Semester') cls += ' type-semester'; else cls += ' type-absent'; } } else if (state === 'ledig' || state === 'unplanned') { cls += ' type-unplanned'; } else if (isPast) { cls += ' history-cell'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; } else { if (isToday) cls += ' status-today'; else if (qData.start) cls += ' type-planned'; }
             if (isShiftActive) cls += ' active-shift-pulse'; 
             if (viewMode === 'month' && multiSelectKeys.has(k)) { cls += ' active-focus'; } else if (viewMode !== 'month' && activeK === k) { cls += ' active-focus'; }
-            if (currentFocusReason && o.abs === currentFocusReason) { cls += ' focus-highlight'; }
+            if (currentFocusReason && o.abs && o.abs.includes(currentFocusReason)) { cls += ' focus-highlight'; }
             
             const cell = document.createElement('div'); cell.className = cls; cell.dataset.key = k; cell.onclick = (e) => selectDay(k, cell, e);
             cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[6px] text-center tracking-tighter">${b}${content}</div>`; return cell;
@@ -1384,9 +1465,10 @@
                 const k = `${cy}-${cm}-${d}`;
                 const o = db.d[k] || {s:0};
                 const tgt = timeline[k]?.target || 0;
+                const qData = db.q[k] || {};
                 
-                // Stats Logic
-                if (o.s > 0 || o.st === 'Arbete') wDays++;
+                if ((o.s > 0) || (qData.start && !o.abs && o.st !== 'Ledig' && o.st !== 'Semester')) wDays++;
+                
                 if (o.abs && !o.abs.includes('Semester') && o.abs !== 'Åtgärd krävs') {
                     aDays++;
                     let baseAbs = o.abs.split(' ')[0];
@@ -1405,7 +1487,6 @@
                     streak = 0;
                 }
 
-                // Insights Logic
                 if (o.eval) {
                     totalEvals++;
                     let ev = typeof o.eval === 'string' ? JSON.parse(o.eval) : o.eval;
@@ -1434,7 +1515,6 @@
                 }
             }
             
-            // Render Stats
             document.getElementById('sum-workdays').innerText = wDays;
             document.getElementById('sum-absdays').innerText = aDays;
             
@@ -1482,7 +1562,6 @@
                 absDetails.classList.add('hidden');
             }
 
-            // Render Insights
             const insightCont = document.getElementById('insight-container');
             if (totalEvals === 0) {
                 insightCont.innerHTML = `<div class="flex flex-col items-center justify-center py-10 opacity-50"><span class="text-4xl mb-2">🫙</span><p class="text-[10px] font-black uppercase tracking-widest text-center text-slate-500">Inga utvärderingar<br>denna månad</p></div>`;
@@ -1549,11 +1628,9 @@
                     text: text 
                 };
                 
-                // Lägg högst upp lokalt
                 savedNotes.unshift(newNote); 
                 try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
                 
-                // Skicka till Supabase
                 if (sb) {
                     sb.from('notes').insert([{
                         id: newNote.id,
@@ -1566,7 +1643,6 @@
                     });
                 }
                 
-                // Rensa fälten
                 nameEl.value = ''; phoneEl.value = ''; orderEl.value = ''; textEl.value = ''; 
                 renderNotes(); 
             } 
@@ -1635,13 +1711,21 @@
         
         function triggerFocusMode(reason) { 
             currentFocusReason = reason; 
-            setMode('dash'); 
+            
+            let temp = currentFocusReason;
+            currentFocusReason = null;
+            setMode('month'); 
+            currentFocusReason = temp;
+
+            document.body.classList.add('focus-mode-active');
             document.querySelectorAll('.day-cell').forEach(c => {
                 const k = c.dataset.key;
                 const o = db.d[k];
                 if(o && o.abs && o.abs.includes(reason)) c.classList.add('focus-highlight');
                 else c.classList.remove('focus-highlight');
             });
+            
+            closeSummaryModal();
         }
 
         // ==========================================

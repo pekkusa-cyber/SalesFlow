@@ -209,109 +209,54 @@
         body.focus-mode-active .day-cell:not(.focus-highlight) { opacity: 0.25; filter: blur(2px) grayscale(60%); pointer-events: none; }
         body.focus-mode-active .day-cell.focus-highlight { z-index: 50; transform: scale(1.05); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), inset 0 0 0 2px var(--sting-blue); }
 
-        /* TAG INPUT STYLING (CHIPS) */
-        .chip-tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 100px; background: #e0f2fe; border: 1px solid #bae6fd; color: #0369a1; font-size: 10px; font-weight: 800; text-transform: uppercase; }
-        .chip-remove { color: #f43f5e; font-weight: 900; margin-left: 2px; cursor: pointer; }
-        .suggestion-chip { background: #f8fafc; border: 1.5px solid rgba(15, 23, 42, 0.08); transition: all 0.2s var(--ease-spring); font-size: 10px; font-weight: 800; text-transform: uppercase; }
-        .suggestion-chip:active { transform: scale(0.95); }
-        .eval-rating { transition: all 0.15s ease; }
-        .eval-rating.active { background: #0ea5e9 !important; color: white !important; border-color: #0284c7 !important; transform: scale(1.1); font-weight: 900; }
-        .emoji-btn { transition: all 0.2s var(--ease-spring); background: #f8fafc; border: 1.5px solid transparent; }
-        .emoji-btn.active { transform: scale(1.25); background: white !important; border-color: #e2e8f0 !important; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.1)); }
+        .emoji-btn { transition: all 0.2s var(--ease-spring); background: transparent; border: 1.5px solid transparent; }
+        .emoji-btn.active { transform: scale(1.15); filter: none !important; opacity: 1 !important; border-color: #cbd5e1 !important; background: white !important; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     </style>
 </head>
 <body class="mode-dash">
     
     <div id="confirm-box"><p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p><div class="flex gap-3"><button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button><button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button></div></div>
 
+    <!-- NY UTVÄRDERINGSMODAL (EVAL) -->
     <div id="eval-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="w-full max-w-[340px] bg-white rounded-[32px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 max-h-[85vh] overflow-y-auto hide-scrollbar" id="eval-modal-content">
+        <div class="w-full max-w-[320px] bg-white rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="eval-modal-content">
             <div class="flex justify-between items-center mb-1">
                 <h2 class="text-[12px] font-black text-slate-800 uppercase tracking-widest">UTVÄRDERA PASS</h2>
                 <button onclick="closeEvalModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
             </div>
 
-            <div class="flex flex-col gap-1.5">
-                <span id="eval-reason-lbl" class="text-[9px] font-black uppercase text-slate-400 tracking-wider ml-1">UTVÄRDERINGSTAGGAR</span>
-                <div id="eval-active-tags-box" class="flex flex-wrap gap-1.5 min-h-[42px] p-2 bg-slate-50 border border-slate-200 rounded-2xl shadow-inner"></div>
-                <div class="flex gap-2 mt-1">
-                    <input type="text" id="eval-tag-typed" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-sm" placeholder="Skriv orsak själv...">
-                    <button onclick="addTypedEvalTag()" class="bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black px-4 rounded-xl text-xs active:scale-95 transition-transform shadow-md">+</button>
-                </div>
-            </div>
-
-            <div class="flex flex-col gap-1.5">
-                <span class="text-[8.5px] font-black text-slate-400 uppercase tracking-wider ml-1">VANLIGASTE SNABBVAL</span>
-                <div id="eval-suggestions-box" class="grid grid-cols-2 gap-1.5"></div>
-            </div>
-
-            <div class="flex flex-col gap-1.5 items-center my-1">
-                <span class="text-[9px] font-black uppercase text-slate-500 tracking-wider">KÄNSLA EFTER PASSET</span>
+            <div class="flex flex-col gap-2 items-center my-1 bg-slate-50 py-3 rounded-2xl border border-slate-100 shadow-inner">
+                <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider">HUR KÄNDES PASSET?</span>
                 <div class="flex gap-4">
-                    <button onclick="setEvalEmoji('sad')" id="btn-emoji-sad" class="emoji-btn text-3xl w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90">😡</button>
-                    <button onclick="setEvalEmoji('neutral')" id="btn-emoji-neutral" class="emoji-btn text-3xl w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90">😐</button>
-                    <button onclick="setEvalEmoji('happy')" id="btn-emoji-happy" class="emoji-btn text-3xl w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90">🤩</button>
+                    <button onclick="setEvalEmoji('sad')" id="btn-emoji-sad" class="emoji-btn text-4xl w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90 transition-all filter grayscale opacity-50 hover:grayscale-0 hover:opacity-100">😡</button>
+                    <button onclick="setEvalEmoji('neutral')" id="btn-emoji-neutral" class="emoji-btn text-4xl w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90 transition-all filter grayscale opacity-50 hover:grayscale-0 hover:opacity-100">😐</button>
+                    <button onclick="setEvalEmoji('happy')" id="btn-emoji-happy" class="emoji-btn text-4xl w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90 transition-all filter grayscale opacity-50 hover:grayscale-0 hover:opacity-100">🤩</button>
                 </div>
             </div>
 
             <div class="flex flex-col gap-2">
-                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100 shadow-sm">
-                    <span class="text-[9px] font-black uppercase text-slate-600 tracking-widest w-16">Humör</span>
-                    <div class="flex gap-1" id="eval-kpi-humor">
-                        <button onclick="setEvalKpi('humor', 1)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">1</button>
-                        <button onclick="setEvalKpi('humor', 2)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">2</button>
-                        <button onclick="setEvalKpi('humor', 3)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">3</button>
-                        <button onclick="setEvalKpi('humor', 4)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">4</button>
-                        <button onclick="setEvalKpi('humor', 5)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">5</button>
-                    </div>
-                </div>
-                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100 shadow-sm">
-                    <span class="text-[9px] font-black uppercase text-slate-600 tracking-widest w-16">Engagem.</span>
-                    <div class="flex gap-1" id="eval-kpi-engagemang">
-                        <button onclick="setEvalKpi('engagemang', 1)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">1</button>
-                        <button onclick="setEvalKpi('engagemang', 2)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">2</button>
-                        <button onclick="setEvalKpi('engagemang', 3)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">3</button>
-                        <button onclick="setEvalKpi('engagemang', 4)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">4</button>
-                        <button onclick="setEvalKpi('engagemang', 5)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">5</button>
-                    </div>
-                </div>
-                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100 shadow-sm">
-                    <span class="text-[9px] font-black uppercase text-slate-600 tracking-widest w-16">Fokus</span>
-                    <div class="flex gap-1" id="eval-kpi-fokus">
-                        <button onclick="setEvalKpi('fokus', 1)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">1</button>
-                        <button onclick="setEvalKpi('fokus', 2)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">2</button>
-                        <button onclick="setEvalKpi('fokus', 3)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">3</button>
-                        <button onclick="setEvalKpi('fokus', 4)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">4</button>
-                        <button onclick="setEvalKpi('fokus', 5)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">5</button>
-                    </div>
-                </div>
-                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100 shadow-sm">
-                    <span class="text-[9px] font-black uppercase text-slate-600 tracking-widest w-16">Energi</span>
-                    <div class="flex gap-1" id="eval-kpi-energi">
-                        <button onclick="setEvalKpi('energi', 1)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">1</button>
-                        <button onclick="setEvalKpi('energi', 2)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">2</button>
-                        <button onclick="setEvalKpi('energi', 3)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">3</button>
-                        <button onclick="setEvalKpi('energi', 4)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">4</button>
-                        <button onclick="setEvalKpi('energi', 5)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">5</button>
-                    </div>
+                <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider ml-1">VAD PÅVERKADE? (VÄLJ ELLER SKRIV)</span>
+                <div id="eval-suggestions-box" class="flex flex-wrap gap-1.5"></div>
+                <div class="flex gap-2 mt-1">
+                    <input type="text" id="eval-tag-typed" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-inner" placeholder="T.ex. lite kunder, bra flow...">
+                    <button onclick="addTypedEvalTag()" class="bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black px-4 rounded-xl text-xs active:scale-95 transition-transform shadow-sm">+</button>
                 </div>
             </div>
 
             <div class="flex flex-col gap-1.5 mt-1">
-                <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider ml-1">FRITEXT</span>
-                <textarea id="eval-fritext" onfocus="setTimeout(() => { document.getElementById('eval-modal-content').scrollBy({ top: 300, behavior: 'smooth' }); }, 300)" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-inner resize-none" placeholder="Lärdomar, tankar..."></textarea>
+                <textarea id="eval-fritext" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-inner resize-none" placeholder="Fritext (frivilligt)..."></textarea>
             </div>
             
-            <button onclick="saveEvalModal()" class="w-full py-4 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all">SPARA UTVÄRDERING</button>
+            <button onclick="saveEvalModal()" class="w-full py-4 mt-2 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all">SPARA UTVÄRDERING</button>
         </div>
     </div>
 
+    <!-- SAMMANFATTNINGSMODAL -->
     <div id="summary-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[30000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-full max-w-[320px] bg-white rounded-[32px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="summary-modal-content">
             <div class="flex justify-between items-center mb-1">
                 <h2 id="summary-modal-title" class="text-[12px] font-black text-slate-800 uppercase tracking-widest">SAMMANFATTNING</h2>
                 <div class="flex gap-2 items-center">
-                    <button id="btn-sum-toggle" onclick="toggleSummaryView()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[14px] active:scale-90 transition-all font-bold" title="Byt vy">💡</button>
                     <button onclick="closeSummaryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
                 </div>
             </div>
@@ -362,15 +307,12 @@
                     <div id="sum-abs-list" class="flex flex-col gap-1"></div>
                 </div>
             </div>
-
-            <div id="summary-insights-view" class="hidden flex flex-col gap-3">
-                <div id="insight-container" class="flex flex-col gap-3"></div>
-            </div>
             
             <button onclick="closeSummaryModal()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all mt-1">STÄNG</button>
         </div>
     </div>
 
+    <!-- ÖVRIGA MODALER -->
     <div id="note-confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-3 transform scale-95 transition-transform duration-300" id="note-modal-content">
             <p class="text-[11px] font-black text-center uppercase tracking-widest text-slate-800 mb-2">Vill du stänga ärendet?</p>
@@ -665,7 +607,10 @@
         let inlineNumpadValue = "";
         let numpadTarget = null; let numpadValue = "";
 
-        let evalState = { reasons: [], emoji: null, ratings: { humor: 0, engagemang: 0, fokus: 0, energi: 0 } };
+        // Omdesignad utvärderings-state
+        let evalState = { emoji: null, tags: [], text: "" };
+        const standardEvalTags = ["Bra energi", "Stressigt", "Lågt kundflöde", "Fokuserad", "Tekniskt strul", "Avslut på topp"];
+        
         let lastAutoCheckedKey = null;
         let currentSummaryView = 'stats';
 
@@ -790,8 +735,8 @@
                 }
 
                 for (let k in db.d) {
-                    const savedEv = localStorage.getItem(`sf_eval_obj_${k}`); const savedTxt = localStorage.getItem(`sf_eval_txt_${k}`);
-                    if (savedEv) { db.d[k].eval = JSON.parse(savedEv); db.d[k].eval_text = savedTxt || ""; db.d[k].has_eval_saved = true; }
+                    const savedEv = localStorage.getItem(`sf_eval_obj_${k}`);
+                    if (savedEv) { db.d[k].eval = JSON.parse(savedEv); db.d[k].has_eval_saved = true; }
                 }
                 if(sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
             } catch(e) { console.warn("Kunde inte hämta data", e); }
@@ -1031,7 +976,12 @@
                 if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned' && nH >= sStart && nH <= sEnd) { isActiveNow = true; }
 
                 const btnEval = document.getElementById('btn-trigger-eval');
-                if (qData.start && state !== 'ledig' && state !== 'semester') { btnEval.classList.remove('hidden'); btnEval.classList.add('flex'); } else { btnEval.classList.add('hidden'); btnEval.classList.remove('flex'); }
+                if (qData.start && state !== 'ledig' && state !== 'semester') { 
+                    btnEval.classList.remove('hidden'); btnEval.classList.add('flex');
+                    if(o.has_eval_saved) btnEval.innerText = "✅"; else btnEval.innerText = "✏️";
+                } else { 
+                    btnEval.classList.add('hidden'); btnEval.classList.remove('flex'); 
+                }
 
                 const actsGrid = document.getElementById('dash-actions-grid'); const stdActions = `<div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50"><button onclick="handleDashAction('Arbete')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button><button onclick="handleDashAction('Ledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button><button onclick="handleDashAction('Semester')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button><button onclick="handleDashAction('Sjuk')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button><button onclick="handleDashAction('VAB')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button><button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button></div>`;
                 if (absType === 'VAB' || absType === 'Föräldraledig') { actsGrid.innerHTML = `<div class="p-0.5 bg-slate-50 w-full h-full flex gap-1"><button onclick="triggerChildSelection('${absType}', 'dash')" class="w-full h-full bg-[#fef3c7] hover:bg-[#fde68a] text-[#d97706] font-black text-[10px] rounded-[10px] border border-[#fcd34d] shadow-sm flex items-center justify-center uppercase tracking-widest active:scale-95 transition-transform">⚠️ Välj Barn</button></div>`; } else { actsGrid.innerHTML = stdActions; }
@@ -1111,13 +1061,24 @@
         function getWeekNumber(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7); }
         
         // ==========================================
-        // SAKNADE FUNKTIONER SOM ORSAKAR REFERENCE ERRORS
+        // UI & INTERACTION LOGIC
         // ==========================================
         
         async function init() {
             await loadAllData();
             setMode('dash');
             updateTopTitle();
+            
+            // Add enter key listener to eval input
+            const evInput = document.getElementById('eval-tag-typed');
+            if (evInput) {
+                evInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addTypedEvalTag();
+                    }
+                });
+            }
         }
 
         // --- INLINE NUMPAD (DASHBOARD) ---
@@ -1213,7 +1174,6 @@
             closeNumpad();
         }
 
-        // --- OTHER MISSING FUNCTIONS ---
         function closeFocusMode(force) { 
             currentFocusReason = null; 
             document.body.classList.remove('focus-mode-active'); 
@@ -1231,23 +1191,171 @@
             updateTopInfoBar();
         }
 
-        function openEvalModal() { const m = document.getElementById('eval-modal'); if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } }
-        function closeEvalModal() { const m = document.getElementById('eval-modal'); if(m) { m.classList.add('opacity-0'); setTimeout(() => m.classList.add('hidden'), 300); } }
-        function setEvalEmoji(emoji) { document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('active')); const btn = document.getElementById('btn-emoji-' + emoji); if(btn) btn.classList.add('active'); evalState.emoji = emoji; }
-        function setEvalKpi(kpi, val) { const container = document.getElementById('eval-kpi-' + kpi); if(container) { container.querySelectorAll('.eval-rating').forEach(b => b.classList.remove('active')); container.children[val-1].classList.add('active'); evalState.ratings[kpi] = val; } }
-        function saveEvalModal() { closeEvalModal(); }
-        function addTypedEvalTag() { }
-
-        function toggleSummaryView() {
-            const stats = document.getElementById('summary-stats-view');
-            const insights = document.getElementById('summary-insights-view');
-            if (currentSummaryView === 'stats') {
-                stats.classList.add('hidden'); insights.classList.remove('hidden'); currentSummaryView = 'insights';
+        // --- UTVÄRDERING (EVAL) ---
+        function openEvalModal() { 
+            if (!activeK) return;
+            const o = db.d[activeK] || {};
+            if (o.eval) {
+                evalState = JSON.parse(JSON.stringify(o.eval));
             } else {
-                insights.classList.add('hidden'); stats.classList.remove('hidden'); currentSummaryView = 'stats';
+                evalState = { emoji: null, tags: [], text: "" };
+            }
+            
+            setEvalEmoji(evalState.emoji);
+            document.getElementById('eval-fritext').value = evalState.text || "";
+            renderEvalTags();
+            
+            const m = document.getElementById('eval-modal'); 
+            if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } 
+        }
+
+        function closeEvalModal() { 
+            const m = document.getElementById('eval-modal'); 
+            if(m) { m.classList.add('opacity-0'); setTimeout(() => m.classList.add('hidden'), 300); } 
+        }
+
+        function setEvalEmoji(emoji) { 
+            document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('active')); 
+            if(emoji) {
+                const btn = document.getElementById('btn-emoji-' + emoji); 
+                if(btn) btn.classList.add('active'); 
+            }
+            evalState.emoji = emoji; 
+        }
+
+        function renderEvalTags() {
+            const box = document.getElementById('eval-suggestions-box');
+            if (!box) return;
+            let html = '';
+            let allTags = Array.from(new Set([...standardEvalTags, ...evalState.tags]));
+            
+            allTags.forEach(tag => {
+                const isActive = evalState.tags.includes(tag);
+                const activeClass = isActive ? 'bg-[#0ea5e9] text-white border-[#0ea5e9]' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100';
+                html += `<button onclick="toggleEvalTag('${tag}')" class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border shadow-sm transition-all active:scale-95 ${activeClass}">${tag}</button>`;
+            });
+            box.innerHTML = html;
+        }
+
+        function toggleEvalTag(tag) {
+            if (evalState.tags.includes(tag)) {
+                evalState.tags = evalState.tags.filter(t => t !== tag);
+            } else {
+                evalState.tags.push(tag);
+            }
+            renderEvalTags();
+        }
+
+        function addTypedEvalTag() {
+            const input = document.getElementById('eval-tag-typed');
+            const val = input.value.trim();
+            if (val && !evalState.tags.includes(val)) {
+                evalState.tags.push(val);
+                renderEvalTags();
+            }
+            input.value = '';
+        }
+
+        function saveEvalModal() { 
+            if (!activeK) return;
+            evalState.text = document.getElementById('eval-fritext').value;
+            if (!db.d[activeK]) db.d[activeK] = {s:0};
+            db.d[activeK].eval = evalState;
+            db.d[activeK].has_eval_saved = true;
+            try { localStorage.setItem('sf_eval_obj_' + activeK, JSON.stringify(evalState)); } catch(e){}
+            closeEvalModal(); 
+            updateDashboardView();
+        }
+
+        // --- SAMMANFATTNING ---
+        function calculateSummaryStats() {
+            const cy = viewDate.getFullYear();
+            const cm = viewDate.getMonth() + 1;
+            const daysM = new Date(cy, cm, 0).getDate();
+            
+            let wDays = 0, aDays = 0, bestS = 0, bestD = "--", worstS = Infinity, worstD = "--";
+            let streak = 0, maxStreak = 0;
+            let absCounts = {};
+            
+            for (let d=1; d<=daysM; d++) {
+                const k = `${cy}-${cm}-${d}`;
+                const o = db.d[k] || {s:0};
+                const tgt = timeline[k]?.target || 0;
+                
+                if (o.s > 0 || o.st === 'Arbete') wDays++;
+                if (o.abs && !o.abs.includes('Semester') && o.abs !== 'Åtgärd krävs') {
+                    aDays++;
+                    let baseAbs = o.abs.split(' ')[0];
+                    absCounts[baseAbs] = (absCounts[baseAbs] || 0) + 1;
+                }
+                
+                if (o.s > 0) {
+                    if (o.s > bestS) { bestS = o.s; bestD = `${d}/${cm}`; }
+                    if (o.s < worstS) { worstS = o.s; worstD = `${d}/${cm}`; }
+                }
+                
+                if (tgt > 0 && o.s >= tgt) {
+                    streak++;
+                    if (streak > maxStreak) maxStreak = streak;
+                } else if (tgt > 0 && o.s < tgt) {
+                    streak = 0;
+                }
+            }
+            
+            document.getElementById('sum-workdays').innerText = wDays;
+            document.getElementById('sum-absdays').innerText = aDays;
+            
+            if (bestS > 0) {
+                document.getElementById('sum-bestday-val').innerText = (bestS/1000).toFixed(1) + "k";
+                document.getElementById('sum-bestday-lbl').innerText = bestD;
+            } else {
+                document.getElementById('sum-bestday-val').innerText = "0k";
+                document.getElementById('sum-bestday-lbl').innerText = "--";
+            }
+            
+            if (worstS !== Infinity) {
+                document.getElementById('sum-worstday-val').innerText = (worstS/1000).toFixed(1) + "k";
+                document.getElementById('sum-worstday-lbl').innerText = worstD;
+            } else {
+                document.getElementById('sum-worstday-val').innerText = "0k";
+                document.getElementById('sum-worstday-lbl').innerText = "--";
+            }
+            
+            document.getElementById('sum-streak').innerText = maxStreak + " 🔥";
+            
+            let bestWk = 0; let bestWkLbl = "--";
+            for (let d=1; d<=daysM-6; d++) {
+                let wkS = 0;
+                for(let i=0; i<7; i++) { wkS += (db.d[`${cy}-${cm}-${d+i}`]?.s || 0); }
+                if (wkS > bestWk) {
+                    bestWk = wkS;
+                    bestWkLbl = `V.${getWeekNumber(new Date(cy, cm-1, d))}`;
+                }
+            }
+            document.getElementById('sum-bestweek-val').innerText = (bestWk/1000).toFixed(1) + "k";
+            document.getElementById('sum-bestweek-lbl').innerText = bestWkLbl;
+            
+            const absDetails = document.getElementById('sum-abs-details');
+            const absList = document.getElementById('sum-abs-list');
+            if (Object.keys(absCounts).length > 0) {
+                absDetails.classList.remove('hidden');
+                let h = "";
+                const em = { 'Sjuk': '🤒', 'VAB': '👶', 'Föräldraledig': '🍼' };
+                for(let a in absCounts) {
+                    h += `<div class="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border border-slate-100"><span class="text-[9px] font-black uppercase tracking-wider text-slate-600">${em[a] || '⚠️'} ${a}</span><span class="text-[10px] font-black text-slate-800">${absCounts[a]} st</span></div>`;
+                }
+                absList.innerHTML = h;
+            } else {
+                absDetails.classList.add('hidden');
             }
         }
-        function openSummaryModal(mode) { const m = document.getElementById('summary-modal'); if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } }
+
+        function openSummaryModal(mode) { 
+            calculateSummaryStats();
+            const m = document.getElementById('summary-modal'); 
+            if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } 
+        }
+
         function closeSummaryModal() { const m = document.getElementById('summary-modal'); if(m) { m.classList.add('opacity-0'); setTimeout(() => m.classList.add('hidden'), 300); } }
 
         function closeNoteModal() { const m = document.getElementById('note-confirm-modal'); if(m) m.classList.add('hidden'); }

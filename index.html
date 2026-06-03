@@ -556,7 +556,7 @@
                                 <div class="flex gap-1.5">
                                     <input type="text" id="note-order" class="w-[65px] min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-inner" placeholder="Ordernr...">
                                     <input type="text" id="note-text" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9.5px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-inner" placeholder="Anteckning...">
-                                    <button id="note-submit-btn" onclick="addNote()" class="bg-[#0ea5e9] text-white font-black text-[9px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-transform px-3">SPARA</button>
+                                    <button id="note-submit-btn" onclick="addNote()" class="bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black text-[9px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-transform px-3">SPARA</button>
                                 </div>
                             </div>
                             <div class="flex-1 overflow-y-auto hide-scrollbar p-2.5 relative flex flex-col gap-1.5" id="notes-list-container"></div>
@@ -608,22 +608,19 @@
         let currentFocusReason = null;
         let pendingAbsenceType = null;
         let pendingAbsenceSource = null;
+        
         let savedNotes = [];
-        let pendingNoteId = null; let editingNoteId = null; let expandedNoteId = null;
         let savedBudgets = {};
+        
         let touchStartX = 0, touchStartY = 0;
         let inlineNumpadValue = "";
         let numpadTarget = null; let numpadValue = "";
 
-        // Omdesignad utvärderings-state
+        // Utvärderings-state
         let evalState = { emoji: null, tags: [], text: "" };
         const standardEvalTags = ["Bra energi", "Stressigt", "Lågt kundflöde", "Fokuserad", "Tekniskt strul", "Avslut på topp"];
         
-        let lastAutoCheckedKey = null;
         let currentSummaryView = 'stats';
-
-        try { savedBudgets = JSON.parse(localStorage.getItem('sf_budgets')) || {}; } catch(e) {}
-        try { savedNotes = JSON.parse(localStorage.getItem('sf_notes')) || []; } catch(e) { savedNotes = []; }
 
         const SB_URL = 'https://xnrclzkzzthlesaftpvs.supabase.co';
         const SB_KEY = 'sb_publishable_EhCyGN_p4TH-rtOEuDLXOA_9hIxS7pW';
@@ -634,16 +631,31 @@
         // ==========================================
         function getK(d) { return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
         function parseNum(val) { if (val === undefined || val === null || val === '') return 0; if (typeof val === 'number') return val; let str = String(val).replace(/\s/g, '').replace(',', '.'); let num = parseFloat(str); return isNaN(num) ? 0 : num; }
+        
         function getBudgetForMonth(y, m) { return savedBudgets[`${y}-${m}`] || 240000; }
+        
         function setGlobalBudget(amount) { 
             let cy = viewDate.getFullYear(); let cm = viewDate.getMonth() + 1;
-            savedBudgets[`${cy}-${cm}`] = amount;
+            let mKey = `${cy}-${cm}`;
+            savedBudgets[mKey] = amount;
+            
+            // Spara lokalt som backup
             try { localStorage.setItem('sf_budgets', JSON.stringify(savedBudgets)); } catch(e){} 
-            db.b = amount; calculateTimeline(); updateDash(); closeBudgetModal(); 
+            
+            db.b = amount; 
+            
+            // Synka mot Supabase (NYTT)
+            if (sb) {
+                sb.from('monthly_budgets').upsert({ month_key: mKey, budget: amount }).then(({error}) => {
+                    if(error) console.warn("Supabase budget fel:", error);
+                });
+            }
+            
+            calculateTimeline(); updateDash(); closeBudgetModal(); 
         }
+        
         function setTheme(themeName) { document.body.setAttribute('data-theme', themeName); localStorage.setItem('sf_theme', themeName); }
         const savedTheme = localStorage.getItem('sf_theme') || 'light'; document.body.setAttribute('data-theme', savedTheme);
-        function pushModalState() { history.pushState({view: 'modal'}, ''); }
 
         // ==========================================
         //  INITIALIZATION & DATA LOADING
@@ -688,18 +700,37 @@
         async function loadAllData() {
             try {
                 if (sb) {
-                    const { data } = await sb.from('sales_data').select('*');
-                    if (data) {
+                    // Hämta allt från Supabase samtidigt (Säljdata, Budget, Anteckningar)
+                    const [salesRes, budgetRes, notesRes] = await Promise.all([
+                        sb.from('sales_data').select('*'),
+                        sb.from('monthly_budgets').select('*'),
+                        sb.from('notes').select('*').order('id', { ascending: false })
+                    ]);
+
+                    if (salesRes.data) {
                         db.d = {};
-                        data.forEach(r => db.d[r.date_key] = { 
+                        salesRes.data.forEach(r => db.d[r.date_key] = { 
                             st: r.status, s: parseNum(r.sales), abs: r.is_absent, src: r.is_absent === 'Åtgärd krävs' ? 'Auto' : 'Manual', raw: r.raw_reason || r.is_absent || '', fk_perc: r.fk_perc, abs_hours: r.abs_hours,
-                            eval: null, eval_text: '', has_eval_saved: false
+                            eval: r.eval_data || null, eval_text: '', has_eval_saved: !!r.eval_data
                         });
+                    }
+
+                    if (budgetRes.data) {
+                        savedBudgets = {};
+                        budgetRes.data.forEach(r => savedBudgets[r.month_key] = parseNum(r.budget));
+                        try { localStorage.setItem('sf_budgets', JSON.stringify(savedBudgets)); } catch(e){} 
+                    }
+
+                    if (notesRes.data) {
+                        savedNotes = notesRes.data.map(r => ({
+                            id: r.id, name: r.customer_name || '', phone: r.phone || '', order: r.order_nr || '', text: r.note_text
+                        }));
+                        try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
                     }
                 }
 
                 const response = await fetch("https://raw.githubusercontent.com/pekkusa-cyber/SalesFlow/main/schema.ics?t=" + Date.now()); 
-                if(!response.ok) throw new Error("Kunde inte hämta"); const text = await response.text();
+                if(!response.ok) throw new Error("Kunde inte hämta ICS"); const text = await response.text();
                 
                 db.q = {}; const lines = text.split(/\r?\n/); let inEvent = false; let event = {}; let fullDesc = "";
                 for (let i = 0; i < lines.length; i++) {
@@ -731,21 +762,27 @@
                         }
 
                         if (needsFlag) {
-                            db.d[k] = { st: 'Arbete', s: existing?.s || 0, abs: 'Åtgärd krävs', src: 'Auto', raw: `Frånvaro ${qd.ledig_h.toFixed(2)}h`, fk_perc: fk_perc, abs_hours: qd.ledig_h, eval: null, eval_text: '', has_eval_saved: false };
-                            upserts.push({ date_key: k, status: 'Arbete', sales: existing?.s || 0, is_absent: 'Åtgärd krävs', raw_reason: `Frånvaro ${qd.ledig_h.toFixed(2)}h`, fk_perc: fk_perc, abs_hours: qd.ledig_h });
+                            db.d[k] = { st: 'Arbete', s: existing?.s || 0, abs: 'Åtgärd krävs', src: 'Auto', raw: `Frånvaro ${qd.ledig_h.toFixed(2)}h`, fk_perc: fk_perc, abs_hours: qd.ledig_h, eval: existing?.eval || null, eval_text: '', has_eval_saved: !!existing?.eval };
+                            upserts.push({ date_key: k, status: 'Arbete', sales: existing?.s || 0, is_absent: 'Åtgärd krävs', raw_reason: `Frånvaro ${qd.ledig_h.toFixed(2)}h`, fk_perc: fk_perc, abs_hours: qd.ledig_h, eval_data: existing?.eval || null });
                         } else if (existing && existing.src === 'Manual') {
                             if(existing.fk_perc == null || existing.abs_hours == null) {
                                  existing.fk_perc = fk_perc; existing.abs_hours = qd.ledig_h;
-                                 upserts.push({ date_key: k, status: existing.st, sales: existing.s, is_absent: existing.abs, raw_reason: existing.raw, fk_perc: fk_perc, abs_hours: qd.ledig_h });
+                                 upserts.push({ date_key: k, status: existing.st, sales: existing.s, is_absent: existing.abs, raw_reason: existing.raw, fk_perc: fk_perc, abs_hours: qd.ledig_h, eval_data: existing.eval || null });
                             }
                         }
                     }
                 }
 
+                // Sista lokala backupen för säkerhets skull
+                try { if(!savedBudgets || Object.keys(savedBudgets).length === 0) savedBudgets = JSON.parse(localStorage.getItem('sf_budgets')) || {}; } catch(e){}
+                try { if(!savedNotes || savedNotes.length === 0) savedNotes = JSON.parse(localStorage.getItem('sf_notes')) || []; } catch(e){}
                 for (let k in db.d) {
-                    const savedEv = localStorage.getItem(`sf_eval_obj_${k}`);
-                    if (savedEv) { db.d[k].eval = JSON.parse(savedEv); db.d[k].has_eval_saved = true; }
+                    if (!db.d[k].has_eval_saved) {
+                        const savedEv = localStorage.getItem(`sf_eval_obj_${k}`);
+                        if (savedEv) { db.d[k].eval = JSON.parse(savedEv); db.d[k].has_eval_saved = true; }
+                    }
                 }
+                
                 if(sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
             } catch(e) { console.warn("Kunde inte hämta data", e); }
         }
@@ -756,6 +793,7 @@
             await loadAllData(); calculateTimeline(); updateDash(); 
             if (viewMode === 'dash') updateDashboardView();
             else if (viewMode === 'absence') renderAbsence();
+            else if (viewMode === 'notes') renderNotes();
             setTimeout(() => { btn.innerHTML = oldTxt; }, 800);
         }
 
@@ -886,11 +924,26 @@
         function pushMatrixSync(k, o) {
             const old = db.d[k] || {}; const qd = db.q[k] || {};
             const merged = { 
-                st: o.st !== undefined ? o.st : (old.st || 'Arbete'), s: o.s !== undefined ? o.s : (old.s || 0), abs: o.abs !== undefined ? o.abs : (old.abs || null), src: o.src !== undefined ? o.src : 'Manual', raw: o.raw !== undefined ? o.raw : (old.raw || ''), fk_perc: o.fk_perc !== undefined ? o.fk_perc : (old.fk_perc || qd.fk_perc || null), abs_hours: o.abs_hours !== undefined ? o.abs_hours : (old.abs_hours || qd.abs_hours || null), eval: old.eval || null, eval_text: old.eval_text || '', has_eval_saved: old.has_eval_saved || false
+                st: o.st !== undefined ? o.st : (old.st || 'Arbete'), 
+                s: o.s !== undefined ? o.s : (old.s || 0), 
+                abs: o.abs !== undefined ? o.abs : (old.abs || null), 
+                src: o.src !== undefined ? o.src : 'Manual', 
+                raw: o.raw !== undefined ? o.raw : (old.raw || ''), 
+                fk_perc: o.fk_perc !== undefined ? o.fk_perc : (old.fk_perc || qd.fk_perc || null), 
+                abs_hours: o.abs_hours !== undefined ? o.abs_hours : (old.abs_hours || qd.abs_hours || null), 
+                eval: old.eval || null, 
+                eval_text: old.eval_text || '', 
+                has_eval_saved: old.has_eval_saved || false
             };
             db.d[k] = merged; calculateTimeline(); updateDash(); 
             if (viewMode === 'dash') updateDashboardView();
-            if (sb) { sb.from('sales_data').upsert({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs, raw_reason: merged.raw, fk_perc: merged.fk_perc, abs_hours: merged.abs_hours }).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
+            if (sb) { 
+                sb.from('sales_data').upsert({ 
+                    date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs, 
+                    raw_reason: merged.raw, fk_perc: merged.fk_perc, abs_hours: merged.abs_hours, 
+                    eval_data: merged.eval 
+                }).then(({error}) => { if(error) console.warn("Supabase fel", error); }); 
+            }
         }
 
         // ==========================================
@@ -986,7 +1039,7 @@
                 const btnEval = document.getElementById('btn-trigger-eval');
                 if (qData.start && state !== 'ledig' && state !== 'semester') { 
                     btnEval.classList.remove('hidden'); btnEval.classList.add('flex');
-                    if(o.has_eval_saved) btnEval.innerText = "✅"; else btnEval.innerText = "✏️";
+                    if(o.has_eval_saved || o.eval) btnEval.innerText = "✅"; else btnEval.innerText = "✏️";
                 } else { 
                     btnEval.classList.add('hidden'); btnEval.classList.remove('flex'); 
                 }
@@ -1266,13 +1319,30 @@
             input.value = '';
         }
 
-        function saveEvalModal() { 
+        async function saveEvalModal() { 
             if (!activeK) return;
             evalState.text = document.getElementById('eval-fritext').value;
             if (!db.d[activeK]) db.d[activeK] = {s:0};
             db.d[activeK].eval = evalState;
             db.d[activeK].has_eval_saved = true;
             try { localStorage.setItem('sf_eval_obj_' + activeK, JSON.stringify(evalState)); } catch(e){}
+            
+            if (sb) {
+                const merged = {
+                    date_key: activeK,
+                    status: db.d[activeK].st || 'Arbete',
+                    sales: db.d[activeK].s || 0,
+                    is_absent: db.d[activeK].abs || null,
+                    raw_reason: db.d[activeK].raw || null,
+                    fk_perc: db.d[activeK].fk_perc || null,
+                    abs_hours: db.d[activeK].abs_hours || null,
+                    eval_data: evalState
+                };
+                sb.from('sales_data').upsert(merged).then(({error}) => { 
+                    if(error) console.warn("Supabase utvärdering fel:", error); 
+                });
+            }
+
             closeEvalModal(); 
             updateDashboardView();
         }
@@ -1344,24 +1414,18 @@
                     
                     let tags = ev.tags || ev.reasons || [];
                     
-                    // Definiera om det var en bra eller dålig dag
                     let isGood = false;
                     let isBad = false;
                     
                     if (ev.emoji === 'happy') isGood = true;
                     else if (ev.emoji === 'sad') isBad = true;
                     else {
-                        // Om neutral/ingen emoji, använd mål
                         if (tgt > 0 && o.s >= tgt) isGood = true;
                         else if (tgt > 0 && o.s < tgt) isBad = true;
                     }
 
-                    if (isGood) {
-                        tags.forEach(t => goodTagCounts[t] = (goodTagCounts[t] || 0) + 1);
-                    }
-                    if (isBad) {
-                        tags.forEach(t => badTagCounts[t] = (badTagCounts[t] || 0) + 1);
-                    }
+                    if (isGood) { tags.forEach(t => goodTagCounts[t] = (goodTagCounts[t] || 0) + 1); }
+                    if (isBad) { tags.forEach(t => badTagCounts[t] = (badTagCounts[t] || 0) + 1); }
 
                     let text = ev.text || o.eval_text || "";
                     if (text.trim() !== "") {
@@ -1456,8 +1520,6 @@
 
         function openSummaryModal(mode) { 
             calculateSummaryStats();
-            
-            // Återställ alltid till stats-vyn när modalen öppnas
             currentSummaryView = 'stats';
             document.getElementById('summary-stats-view').classList.remove('hidden');
             document.getElementById('summary-insights-view').classList.add('hidden');
@@ -1470,8 +1532,66 @@
         function closeSummaryModal() { const m = document.getElementById('summary-modal'); if(m) { m.classList.add('opacity-0'); setTimeout(() => m.classList.add('hidden'), 300); } }
 
         function closeNoteModal() { const m = document.getElementById('note-confirm-modal'); if(m) m.classList.add('hidden'); }
-        function addNote() { const text = document.getElementById('note-text').value; if(text) { savedNotes.push({id: Date.now(), text: text}); localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); document.getElementById('note-text').value = ''; renderNotes(); } }
-        function renderNotes() { const c = document.getElementById('notes-list-container'); if(c) { if(savedNotes.length === 0) { c.innerHTML = '<p class="text-[10px] text-slate-400 font-bold text-center mt-4 uppercase tracking-widest">Inga anteckningar än.</p>'; } else { c.innerHTML = savedNotes.map(n => `<div class="p-2 bg-white rounded-lg shadow-sm mb-1 text-[10px] text-slate-700">${n.text}</div>`).join(''); } } }
+        
+        function addNote() { 
+            const nameEl = document.getElementById('note-name');
+            const phoneEl = document.getElementById('note-phone');
+            const orderEl = document.getElementById('note-order');
+            const textEl = document.getElementById('note-text');
+            
+            const text = textEl.value.trim(); 
+            if(text) { 
+                const newNote = { 
+                    id: Date.now(), 
+                    name: nameEl.value.trim(),
+                    phone: phoneEl.value.trim(),
+                    order: orderEl.value.trim(),
+                    text: text 
+                };
+                
+                // Lägg högst upp lokalt
+                savedNotes.unshift(newNote); 
+                try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
+                
+                // Skicka till Supabase
+                if (sb) {
+                    sb.from('notes').insert([{
+                        id: newNote.id,
+                        customer_name: newNote.name,
+                        phone: newNote.phone,
+                        order_nr: newNote.order,
+                        note_text: newNote.text
+                    }]).then(({error}) => {
+                        if(error) console.warn("Supabase fel på anteckning:", error);
+                    });
+                }
+                
+                // Rensa fälten
+                nameEl.value = ''; phoneEl.value = ''; orderEl.value = ''; textEl.value = ''; 
+                renderNotes(); 
+            } 
+        }
+        
+        function renderNotes() { 
+            const c = document.getElementById('notes-list-container'); 
+            if(c) { 
+                if(!savedNotes || savedNotes.length === 0) { 
+                    c.innerHTML = '<p class="text-[10px] text-slate-400 font-bold text-center mt-4 uppercase tracking-widest">Inga anteckningar än.</p>'; 
+                } else { 
+                    c.innerHTML = savedNotes.map(n => {
+                        let header = '';
+                        if (n.name || n.phone || n.order) {
+                            header = `<div class="flex gap-2 mb-1.5 pb-1.5 border-b border-slate-100 text-[8.5px] font-black uppercase tracking-widest text-slate-400">
+                                ${n.name ? `<span>👤 ${n.name}</span>` : ''}
+                                ${n.phone ? `<span>📞 ${n.phone}</span>` : ''}
+                                ${n.order ? `<span>📦 ${n.order}</span>` : ''}
+                            </div>`;
+                        }
+                        return `<div class="p-2.5 bg-white border border-slate-100 rounded-xl shadow-sm mb-1.5 flex flex-col">${header}<p class="text-[10.5px] font-bold text-slate-700 whitespace-pre-wrap leading-relaxed">${n.text}</p></div>`;
+                    }).join(''); 
+                } 
+            } 
+        }
 
         function selectChild(name) { 
             closeChildModal();

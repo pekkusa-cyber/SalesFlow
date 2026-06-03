@@ -34,11 +34,7 @@
             --shadow-banner: 0 1px 0 rgba(255,255,255,0.04) inset, 0 -1px 0 rgba(0,0,0,0.3) inset, 0 18px 40px -12px rgba(2,6,23,0.45), 0 4px 12px -4px rgba(2,6,23,0.35);
         }
 
-        /* =========================================
-           THEME OVERRIDES 
-           ========================================= */
-        
-        /* --- DARK ELEGANT --- */
+        /* THEME OVERRIDES */
         [data-theme="dark"] {
             --bg-canvas: linear-gradient(180deg, #020617 0%, #0f172a 100%);
             --white: #1e293b;
@@ -71,7 +67,6 @@
         [data-theme="dark"] .bg-\\[\\#fff1f2\\] { background-color: rgba(225, 29, 72, 0.15) !important; border-color: rgba(225, 29, 72, 0.3) !important; }
         [data-theme="dark"] .bg-\\[\\#fef3c7\\] { background-color: rgba(245, 158, 11, 0.15) !important; border-color: rgba(245, 158, 11, 0.3) !important; }
 
-        /* --- RUSTIC ELEGANCE --- */
         [data-theme="rustic"] {
             --bg-canvas: linear-gradient(180deg, #f5f3f0 0%, #e6e2db 100%);
             --white: #ffffff;
@@ -82,20 +77,16 @@
             --today-light: #bc8a6a;
             --today-dark: #986445;
         }
-        
         [data-theme="rustic"] .text-\\[\\#38bdf8\\], [data-theme="rustic"] .text-\\[\\#0ea5e9\\] { color: #bc8a6a !important; }
         [data-theme="rustic"] .text-\\[\\#0284c7\\] { color: #986445 !important; }
         [data-theme="rustic"] .bg-\\[\\#0ea5e9\\] { background-color: #986445 !important; }
         [data-theme="rustic"] .hover\\:bg-\\[\\#0284c7\\]:hover { background-color: #7b4f35 !important; }
         [data-theme="rustic"] .from-\\[\\#0ea5e9\\] { --tw-gradient-from: #bc8a6a !important; }
         [data-theme="rustic"] .to-\\[\\#0284c7\\] { --tw-gradient-to: #986445 !important; }
-
         [data-theme="rustic"] .type-planned { background: linear-gradient(180deg, #fbfaf9, #f2ece6) !important; color: #986445 !important; border-color: #ffffff !important; box-shadow: 0 4px 10px -4px rgba(152, 100, 69, 0.2), inset 0 -2px 6px rgba(152, 100, 69, 0.05) !important; }
-        
         [data-theme="rustic"] .bg-\\[\\#f0f9ff\\], [data-theme="rustic"] .hover\\:bg-\\[\\#f0f9ff\\]:hover { background-color: rgba(188, 138, 106, 0.1) !important; border-color: rgba(188, 138, 106, 0.2) !important; }
         [data-theme="rustic"] .hover\\:bg-\\[\\#e0f2fe\\]:hover { background-color: rgba(188, 138, 106, 0.15) !important; }
         [data-theme="rustic"] .border-\\[\\#bae6fd\\] { border-color: rgba(188, 138, 106, 0.3) !important; }
-        
         [data-theme="rustic"] .week-tag { background: linear-gradient(135deg, #bc8a6a, #986445) !important; border-color: #dcb39a !important; box-shadow: 0 4px 8px -2px rgba(152, 100, 69, 0.4) !important; color: white !important;}
         [data-theme="rustic"] .premium-slate-banner::after { background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(188,138,106,0.15), transparent 70%); }
         [data-theme="rustic"] .budget-label { color: #dcb39a; }
@@ -122,12 +113,10 @@
         .content-locker { width: 100%; max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding-top: max(env(safe-area-inset-top), 12px); }
         
         .app-card { border-radius: 28px; box-shadow: var(--shadow-md); flex-shrink: 0; border: 1px solid var(--border-subtle); background: var(--white); }
-        .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; box-shadow: var(--shadow-banner) !important; border: 1px solid rgba(255,255,255,0.04) !important; }
+        .premium-slate-banner { background: var(--top-banner-bg) !important; color: white !important; box-shadow: var(--shadow-banner) !important; border: 1px solid rgba(255,255,255,0.04) inset; }
         .premium-slate-banner::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(56,189,248,0.18), transparent 70%); mix-blend-mode: screen; }
         
-        /* TOP SECTION */
         .top-section { height: 262px; margin: 0 12px 8px; position: relative; border: none; box-shadow: var(--shadow-banner); flex-shrink: 0; overflow: hidden; }
-        
         .budget-header { text-align: center; margin-bottom: 2px; position: relative; z-index: 1; cursor: pointer; transition: transform 0.2s; }
         .budget-header:active { transform: scale(0.95); }
         .budget-label { font-size: 11px; font-weight: 900; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 2px; display: flex; align-items: center; justify-content: center; gap: 4px; }
@@ -149,44 +138,17 @@
         .g-label-0 { position: absolute; bottom: 4px; left: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.35); letter-spacing: 0.05em; }
         .g-label-240 { position: absolute; bottom: 4px; right: 8px; font-size: 8px; font-weight: 900; color: rgba(255,255,255,0.35); letter-spacing: 0.05em; }
         
-        /* INFO BAR ANIMATION */
-        @keyframes infoPop {
-            0% { opacity: 0; transform: translateY(6px) scale(0.98); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
+        @keyframes infoPop { 0% { opacity: 0; transform: translateY(6px) scale(0.98); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
         .animate-info-pop { animation: infoPop 0.4s var(--ease-spring) forwards; }
-
-        @keyframes pulse-info-bar { 
-            0% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1), 0 0 0 0 rgba(56, 189, 248, 0.4); } 
-            70% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1), 0 0 0 8px rgba(56, 189, 248, 0); } 
-            100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1), 0 0 0 0 rgba(56, 189, 248, 0); } 
-        }
-        .active-info-pulse { 
-            animation: pulse-info-bar 2.2s ease-out infinite !important; 
-            border-color: rgba(56, 189, 248, 0.5) !important; 
-        }
+        @keyframes pulse-info-bar { 0% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1), 0 0 0 0 rgba(56, 189, 248, 0.4); } 70% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1), 0 0 0 8px rgba(56, 189, 248, 0); } 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1), 0 0 0 0 rgba(56, 189, 248, 0); } }
+        .active-info-pulse { animation: pulse-info-bar 2.2s ease-out infinite !important; border-color: rgba(56, 189, 248, 0.5) !important; }
         
-        /* DASHBOARD LIVE GAUGE ANIMATION */
-        @keyframes halo-pulse {
-            0% { box-shadow: 0 0 0 0 var(--today-light); opacity: 0.4; }
-            70% { box-shadow: 0 0 0 20px var(--today-light); opacity: 0; }
-            100% { box-shadow: 0 0 0 0 var(--today-light); opacity: 0; }
-        }
-        @keyframes gauge-breathe {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.04); }
-            100% { transform: scale(1); }
-        }
-        .gauge-is-live #dash-gauge-halo {
-            animation: halo-pulse 2.5s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        .gauge-is-live svg {
-            animation: gauge-breathe 2.5s ease-in-out infinite;
-            transform-origin: center;
-        }
+        @keyframes halo-pulse { 0% { box-shadow: 0 0 0 0 var(--today-light); opacity: 0.4; } 70% { box-shadow: 0 0 0 20px var(--today-light); opacity: 0; } 100% { box-shadow: 0 0 0 0 var(--today-light); opacity: 0; } }
+        @keyframes gauge-breathe { 0% { transform: scale(1); } 50% { transform: scale(1.04); } 100% { transform: scale(1); } }
+        .gauge-is-live #dash-gauge-halo { animation: halo-pulse 2.5s infinite cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .gauge-is-live svg { animation: gauge-breathe 2.5s ease-in-out infinite; transform-origin: center; }
 
         .bottom-section { flex: 1; margin: 0 12px calc(env(safe-area-inset-bottom, 12px) + 6px); position: relative; min-height: 0; overflow: hidden; }
-        
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 5px; padding: 4px 6px 8px; height: 100%; }
         .weekday-label { text-align: center; font-size: 8.5px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; padding-bottom: 2px; letter-spacing: 0.08em; }
         
@@ -233,8 +195,8 @@
         .focus-gauge-bg { fill: none; stroke: rgba(15,23,42,0.05); stroke-linecap: round; }
         .fg-sales { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.7s var(--ease-spring), stroke 0.4s ease; }
         
-        #note-confirm-modal > div, #child-select-modal > div, #budget-modal > div, #summary-modal > div { background: rgba(255,255,255,0.94) !important; backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%); border: 1px solid rgba(255,255,255,0.6) !important; box-shadow: 0 24px 60px -12px rgba(15,23,42,0.28), 0 2px 6px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important; }
-        #note-confirm-modal, #child-select-modal, #budget-modal, #summary-modal { backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
+        #note-confirm-modal > div, #child-select-modal > div, #budget-modal > div, #summary-modal > div, #eval-modal > div { background: rgba(255,255,255,0.94) !important; backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%); border: 1px solid rgba(255,255,255,0.6) !important; box-shadow: 0 24px 60px -12px rgba(15,23,42,0.28), 0 2px 6px rgba(15,23,42,0.06), inset 0 1px 0 rgba(255,255,255,0.9) !important; }
+        #note-confirm-modal, #child-select-modal, #budget-modal, #summary-modal, #eval-modal { backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
         
         @keyframes pulse-cell-blue { 0% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0.5); } 70% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 8px rgba(14, 165, 233, 0); } 100% { box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4), 0 0 0 0 rgba(14, 165, 233, 0); } }
         @keyframes pulse-cell-amber { 0% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 0 rgba(245, 158, 11, 0.5); } 70% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 8px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4), 0 0 0 0 rgba(245, 158, 11, 0); } }
@@ -247,63 +209,162 @@
         body.focus-mode-active .day-cell:not(.focus-highlight) { opacity: 0.25; filter: blur(2px) grayscale(60%); pointer-events: none; }
         body.focus-mode-active .day-cell.focus-highlight { z-index: 50; transform: scale(1.05); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), inset 0 0 0 2px var(--sting-blue); }
 
+        /* TAG INPUT STYLING (CHIPS) */
+        .chip-tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 100px; background: #e0f2fe; border: 1px solid #bae6fd; color: #0369a1; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .chip-remove { color: #f43f5e; font-weight: 900; margin-left: 2px; cursor: pointer; }
+        .suggestion-chip { background: #f8fafc; border: 1.5px solid rgba(15, 23, 42, 0.08); transition: all 0.2s var(--ease-spring); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .suggestion-chip:active { transform: scale(0.95); }
+        .eval-rating { transition: all 0.15s ease; }
+        .eval-rating.active { background: #0ea5e9 !important; color: white !important; border-color: #0284c7 !important; transform: scale(1.1); font-weight: 900; }
+        .emoji-btn { transition: all 0.2s var(--ease-spring); background: #f8fafc; border: 1.5px solid transparent; }
+        .emoji-btn.active { transform: scale(1.25); background: white !important; border-color: #e2e8f0 !important; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.1)); }
     </style>
 </head>
 <body class="mode-dash">
     
     <div id="confirm-box"><p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p><div class="flex gap-3"><button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button><button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button></div></div>
 
-    <!-- SUMMARY MODAL -->
+    <div id="eval-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="w-full max-w-[340px] bg-white rounded-[32px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 max-h-[85vh] overflow-y-auto hide-scrollbar" id="eval-modal-content">
+            <div class="flex justify-between items-center mb-1">
+                <h2 class="text-[12px] font-black text-slate-800 uppercase tracking-widest">UTVÄRDERA PASS</h2>
+                <button onclick="closeEvalModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <span id="eval-reason-lbl" class="text-[9px] font-black uppercase text-slate-400 tracking-wider ml-1">UTVÄRDERINGSTAGGAR</span>
+                <div id="eval-active-tags-box" class="flex flex-wrap gap-1.5 min-h-[42px] p-2 bg-slate-50 border border-slate-200 rounded-2xl shadow-inner"></div>
+                <div class="flex gap-2 mt-1">
+                    <input type="text" id="eval-tag-typed" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-sm" placeholder="Skriv orsak själv...">
+                    <button onclick="addTypedEvalTag()" class="bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black px-4 rounded-xl text-xs active:scale-95 transition-transform shadow-md">+</button>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <span class="text-[8.5px] font-black text-slate-400 uppercase tracking-wider ml-1">VANLIGASTE SNABBVAL</span>
+                <div id="eval-suggestions-box" class="grid grid-cols-2 gap-1.5"></div>
+            </div>
+
+            <div class="flex flex-col gap-1.5 items-center my-1">
+                <span class="text-[9px] font-black uppercase text-slate-500 tracking-wider">KÄNSLA EFTER PASSET</span>
+                <div class="flex gap-4">
+                    <button onclick="setEvalEmoji('sad')" id="btn-emoji-sad" class="emoji-btn text-3xl w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90">😡</button>
+                    <button onclick="setEvalEmoji('neutral')" id="btn-emoji-neutral" class="emoji-btn text-3xl w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90">😐</button>
+                    <button onclick="setEvalEmoji('happy')" id="btn-emoji-happy" class="emoji-btn text-3xl w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90">🤩</button>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100 shadow-sm">
+                    <span class="text-[9px] font-black uppercase text-slate-600 tracking-widest w-16">Humör</span>
+                    <div class="flex gap-1" id="eval-kpi-humor">
+                        <button onclick="setEvalKpi('humor', 1)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">1</button>
+                        <button onclick="setEvalKpi('humor', 2)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">2</button>
+                        <button onclick="setEvalKpi('humor', 3)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">3</button>
+                        <button onclick="setEvalKpi('humor', 4)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">4</button>
+                        <button onclick="setEvalKpi('humor', 5)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">5</button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100 shadow-sm">
+                    <span class="text-[9px] font-black uppercase text-slate-600 tracking-widest w-16">Engagem.</span>
+                    <div class="flex gap-1" id="eval-kpi-engagemang">
+                        <button onclick="setEvalKpi('engagemang', 1)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">1</button>
+                        <button onclick="setEvalKpi('engagemang', 2)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">2</button>
+                        <button onclick="setEvalKpi('engagemang', 3)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">3</button>
+                        <button onclick="setEvalKpi('engagemang', 4)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">4</button>
+                        <button onclick="setEvalKpi('engagemang', 5)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">5</button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100 shadow-sm">
+                    <span class="text-[9px] font-black uppercase text-slate-600 tracking-widest w-16">Fokus</span>
+                    <div class="flex gap-1" id="eval-kpi-fokus">
+                        <button onclick="setEvalKpi('fokus', 1)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">1</button>
+                        <button onclick="setEvalKpi('fokus', 2)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">2</button>
+                        <button onclick="setEvalKpi('fokus', 3)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">3</button>
+                        <button onclick="setEvalKpi('fokus', 4)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">4</button>
+                        <button onclick="setEvalKpi('fokus', 5)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">5</button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100 shadow-sm">
+                    <span class="text-[9px] font-black uppercase text-slate-600 tracking-widest w-16">Energi</span>
+                    <div class="flex gap-1" id="eval-kpi-energi">
+                        <button onclick="setEvalKpi('energi', 1)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">1</button>
+                        <button onclick="setEvalKpi('energi', 2)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">2</button>
+                        <button onclick="setEvalKpi('energi', 3)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">3</button>
+                        <button onclick="setEvalKpi('energi', 4)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">4</button>
+                        <button onclick="setEvalKpi('energi', 5)" class="eval-rating w-6 h-6 rounded-md text-[9px] font-black bg-white border border-slate-200 text-slate-500 shadow-sm">5</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5 mt-1">
+                <span class="text-[9px] font-black uppercase text-slate-400 tracking-wider ml-1">FRITEXT</span>
+                <textarea id="eval-fritext" onfocus="setTimeout(() => { document.getElementById('eval-modal-content').scrollBy({ top: 300, behavior: 'smooth' }); }, 300)" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] shadow-inner resize-none" placeholder="Lärdomar, tankar..."></textarea>
+            </div>
+            
+            <button onclick="saveEvalModal()" class="w-full py-4 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all">SPARA UTVÄRDERING</button>
+        </div>
+    </div>
+
     <div id="summary-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[30000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-full max-w-[320px] bg-white rounded-[32px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="summary-modal-content">
             <div class="flex justify-between items-center mb-1">
                 <h2 id="summary-modal-title" class="text-[12px] font-black text-slate-800 uppercase tracking-widest">SAMMANFATTNING</h2>
-                <button onclick="closeSummaryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
-                    <span class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-1">Pass / Jobb</span>
-                    <span id="sum-workdays" class="text-[18px] font-black text-[#0ea5e9]">0</span>
-                </div>
-                <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
-                    <span class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-1">Frånvaro</span>
-                    <span id="sum-absdays" class="text-[18px] font-black text-amber-500">0</span>
-                </div>
-                <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
-                    <span class="text-[8.5px] font-black text-emerald-600/70 uppercase tracking-widest mb-1">Bästa Dag</span>
-                    <span id="sum-bestday-val" class="text-[16px] font-black text-emerald-600 leading-none mb-1">0k</span>
-                    <span id="sum-bestday-lbl" class="text-[9px] font-bold text-emerald-600/70">--</span>
-                </div>
-                <div class="bg-rose-50 border border-rose-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
-                    <span class="text-[8.5px] font-black text-rose-500/70 uppercase tracking-widest mb-1">Sämsta Dag</span>
-                    <span id="sum-worstday-val" class="text-[16px] font-black text-rose-500 leading-none mb-1">0k</span>
-                    <span id="sum-worstday-lbl" class="text-[9px] font-bold text-rose-500/70">--</span>
+                <div class="flex gap-2 items-center">
+                    <button id="btn-sum-toggle" onclick="toggleSummaryView()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[14px] active:scale-90 transition-all font-bold" title="Byt vy">💡</button>
+                    <button onclick="closeSummaryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
                 </div>
             </div>
 
-            <div class="bg-gradient-to-r from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-2xl p-3 flex items-center justify-between shadow-sm mt-1">
-                <div class="flex flex-col">
-                    <span class="text-[9px] font-black text-[#0284c7] uppercase tracking-widest">Grön Streak (Mål Nått)</span>
-                    <span class="text-[10px] font-bold text-[#0369a1] mt-0.5">Längsta raden av gröna dagar</span>
+            <div id="summary-stats-view" class="flex flex-col gap-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
+                        <span class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-1">Pass / Jobb</span>
+                        <span id="sum-workdays" class="text-[18px] font-black text-[#0ea5e9]">0</span>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
+                        <span class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-1">Frånvaro</span>
+                        <span id="sum-absdays" class="text-[18px] font-black text-amber-500">0</span>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
+                        <span class="text-[8.5px] font-black text-emerald-600/70 uppercase tracking-widest mb-1">Bästa Dag</span>
+                        <span id="sum-bestday-val" class="text-[16px] font-black text-emerald-600 leading-none mb-1">0k</span>
+                        <span id="sum-bestday-lbl" class="text-[9px] font-bold text-emerald-600/70">--</span>
+                    </div>
+                    <div class="bg-rose-50 border border-rose-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
+                        <span class="text-[8.5px] font-black text-rose-500/70 uppercase tracking-widest mb-1">Sämsta Dag</span>
+                        <span id="sum-worstday-val" class="text-[16px] font-black text-rose-500 leading-none mb-1">0k</span>
+                        <span id="sum-worstday-lbl" class="text-[9px] font-bold text-rose-500/70">--</span>
+                    </div>
                 </div>
-                <span id="sum-streak" class="text-[22px] font-black text-[#0ea5e9]">0 🔥</span>
+
+                <div class="bg-gradient-to-r from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-2xl p-3 flex items-center justify-between shadow-sm mt-1">
+                    <div class="flex flex-col">
+                        <span class="text-[9px] font-black text-[#0284c7] uppercase tracking-widest">Grön Streak (Mål Nått)</span>
+                        <span class="text-[10px] font-bold text-[#0369a1] mt-0.5">Längsta raden av gröna dagar</span>
+                    </div>
+                    <span id="sum-streak" class="text-[22px] font-black text-[#0ea5e9]">0 🔥</span>
+                </div>
+
+                <div id="sum-bestweek-container" class="bg-indigo-50 border border-indigo-100 rounded-2xl p-3 flex items-center justify-between shadow-sm">
+                    <div class="flex flex-col">
+                        <span class="text-[9px] font-black text-indigo-500 uppercase tracking-widest">Bästa Veckan</span>
+                        <span class="text-[10px] font-bold text-indigo-400 mt-0.5">Periodens starkaste 7 dagar</span>
+                    </div>
+                    <div class="text-right">
+                        <span id="sum-bestweek-val" class="text-[18px] font-black text-indigo-600 block leading-none mb-0.5">0k</span>
+                        <span id="sum-bestweek-lbl" class="text-[9px] font-black text-indigo-400">--</span>
+                    </div>
+                </div>
+
+                <div id="sum-abs-details" class="flex flex-col gap-1.5 hidden mt-1">
+                    <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1 mb-1">Frånvaro Orsaker</h3>
+                    <div id="sum-abs-list" class="flex flex-col gap-1"></div>
+                </div>
             </div>
 
-            <div id="sum-bestweek-container" class="bg-indigo-50 border border-indigo-100 rounded-2xl p-3 flex items-center justify-between shadow-sm">
-                <div class="flex flex-col">
-                    <span class="text-[9px] font-black text-indigo-500 uppercase tracking-widest">Bästa Veckan</span>
-                    <span class="text-[10px] font-bold text-indigo-400 mt-0.5">Periodens starkaste 7 dagar</span>
-                </div>
-                <div class="text-right">
-                    <span id="sum-bestweek-val" class="text-[18px] font-black text-indigo-600 block leading-none mb-0.5">0k</span>
-                    <span id="sum-bestweek-lbl" class="text-[9px] font-black text-indigo-400">--</span>
-                </div>
-            </div>
-
-            <div id="sum-abs-details" class="flex flex-col gap-1.5 hidden mt-1">
-                <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1 mb-1">Frånvaro Orsaker</h3>
-                <div id="sum-abs-list" class="flex flex-col gap-1"></div>
+            <div id="summary-insights-view" class="hidden flex flex-col gap-3">
+                <div id="insight-container" class="flex flex-col gap-3"></div>
             </div>
             
             <button onclick="closeSummaryModal()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all mt-1">STÄNG</button>
@@ -331,38 +392,30 @@
         </div>
     </div>
 
-    <!-- SETTINGS / BUDGET MODAL -->
     <div id="budget-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[15000] hidden flex items-center justify-center p-4">
         <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-4">
-            
             <p class="text-[10px] font-black text-center uppercase tracking-widest text-slate-400">Inställningar</p>
             <button id="sync-btn" onclick="syncData()" class="w-full py-3.5 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all flex justify-center items-center gap-2"><span>⚡</span> Synkronisera Data</button>
-            
             <div class="h-px w-full bg-slate-100 mt-1"></div>
-            
             <p class="text-[9px] font-black text-center uppercase tracking-widest text-slate-400 mb-[-4px]">Välj Tema</p>
             <div class="grid grid-cols-3 gap-2">
                 <button onclick="setTheme('light')" class="py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black text-slate-700 active:scale-95 transition-all shadow-sm">Ljust</button>
                 <button onclick="setTheme('dark')" class="py-2.5 bg-[#1e293b] border border-[#334155] rounded-xl text-[10px] font-black text-[#f8fafc] active:scale-95 transition-all shadow-sm">Mörkt</button>
                 <button onclick="setTheme('rustic')" class="py-2.5 bg-[#f4f0ec] border border-[#d6ccc2] rounded-xl text-[10px] font-black text-[#5c544e] active:scale-95 transition-all shadow-sm">Rustikt</button>
             </div>
-
             <div class="h-px w-full bg-slate-100 my-1"></div>
-
             <p class="text-[9px] font-black text-center uppercase tracking-widest text-slate-400 mb-[-4px]">Månadsmål</p>
             <div class="flex flex-col gap-2">
                 <button onclick="setGlobalBudget(180000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">180 000 kr</button>
                 <button onclick="setGlobalBudget(240000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">240 000 kr</button>
                 <button onclick="setGlobalBudget(350000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">350 000 kr</button>
             </div>
-            
             <button onclick="closeBudgetModal()" class="mt-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Stäng</button>
         </div>
     </div>
 
     <div id="app-shell">
         <div class="content-locker">
-            
             <div class="app-card top-section premium-slate-banner relative">
                 <button onclick="openBudgetModal()" class="absolute top-4 left-4 text-slate-300 hover:text-white text-[22px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">⚙️</button>
                 <button onclick="setMode('notes')" class="absolute top-4 right-4 text-slate-300 hover:text-white text-[20px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">✏️</button>
@@ -405,12 +458,10 @@
                     <div id="top-info-bar" class="mt-2 px-3 py-1.5 rounded-[10px] mx-1 flex items-center justify-center transition-all duration-300 cursor-pointer active:scale-95" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1);">
                          <span id="top-info-text" class="text-[8.5px] font-black uppercase tracking-widest text-white/90 w-full text-center flex items-center justify-center gap-1.5 leading-none">LADDAR INFO...</span>
                     </div>
-
                 </div>
             </div>
 
             <div class="app-card bottom-section" style="background: var(--white);">
-                
                 <div id="bottom-standard-views" class="flex flex-col w-full h-full transition-opacity duration-300">
                     <div class="flex justify-between items-center px-2 py-1 border-b flex-shrink-0 relative z-30 h-[54px]" style="border-color: rgba(15,23,42,0.05); background: var(--white); border-radius: 28px 28px 0 0;">
                         <button onclick="cycleView(-1)" class="text-slate-400 hover:text-[#0ea5e9] text-3xl px-1 active:scale-90 transition-transform">←</button>
@@ -421,7 +472,6 @@
                                 <button id="tab-absence" onclick="setMode('absence')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">FRÅNV.</button>
                                 <button id="tab-dash" onclick="toggleDashMode()" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm">VECKA</button>
                                 <button id="tab-month" onclick="setMode('month')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">MÅNAD</button>
-                                
                                 <button id="btn-close-focus" onclick="closeFocusMode()" class="absolute inset-0 m-[2px] bg-gradient-to-r from-rose-500 to-rose-600 text-white font-black text-[9px] uppercase tracking-widest flex items-center justify-center transition-transform duration-300 translate-y-[110%] rounded-md shadow-sm z-50">✕ STÄNG FOKUS</button>
                             </div>
                         </div>
@@ -430,7 +480,6 @@
                                 <button onclick="openNumpad('month', 0, 'VÄLJ BELOPP'); event.stopPropagation();" class="flex items-center justify-between gap-2 px-3 py-2 bg-white border border-slate-200 rounded-[12px] shadow-sm active:scale-95 transition-transform flex-1 max-w-[100px]">
                                     <span class="text-[13px] font-black text-slate-400" id="month-sales-text">0 kr</span><span class="text-slate-400 text-[10px]">✏️</span>
                                 </button>
-                                
                                 <div class="flex items-center gap-1 border-l border-slate-200 pl-2 ml-1">
                                     <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">⚒️</button>
                                     <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">🏠</button>
@@ -453,8 +502,7 @@
                                 <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
                             </div>
                             
-                            <div id="slide-curr" class="w-full h-[64px] flex-shrink-0 mb-1 py-1 grid grid-cols-7 gap-1 px-3 items-center">
-                            </div>
+                            <div id="slide-curr" class="w-full h-[64px] flex-shrink-0 mb-1 py-1 grid grid-cols-7 gap-1 px-3 items-center"></div>
 
                             <div class="mx-3 mt-1 mb-2 bg-white rounded-[24px] border border-slate-100 shadow-md flex flex-col flex-shrink-0 relative z-20 flex-1 min-h-0 overflow-hidden">
                                 
@@ -464,9 +512,12 @@
                                             <span id="dash-title" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
                                             <span id="dash-subtitle" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
                                         </div>
-                                        <div class="flex flex-col text-right justify-end">
-                                            <p id="dash-status-meta" class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5 min-h-[12px]"></p>
-                                            <p id="dash-status-text" class="text-[10px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
+                                        <div class="flex items-center gap-1.5">
+                                            <button id="btn-trigger-eval" onclick="openEvalModal()" class="w-7 h-7 hidden bg-slate-50 hover:bg-slate-100 rounded-full border border-slate-200 active:scale-90 transition-transform items-center justify-center shadow-sm text-[12px]" title="Utvärdera Pass">✏️</button>
+                                            <div class="flex flex-col text-right justify-end">
+                                                <p id="dash-status-meta" class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5 min-h-[12px]"></p>
+                                                <p id="dash-status-text" class="text-[10px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
+                                            </div>
                                         </div>
                                     </div>
                                     
@@ -498,13 +549,11 @@
                                     </div>
 
                                     <div id="dash-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 h-[42px] flex justify-end">
-                                        <div class="relative w-full h-full overflow-hidden rounded-[14px] border border-slate-200 shadow-sm" id="dash-actions-grid">
-                                            </div>
+                                        <div class="relative w-full h-full overflow-hidden rounded-[14px] border border-slate-200 shadow-sm" id="dash-actions-grid"></div>
                                     </div>
                                 </div>
 
                                 <div id="dash-inline-numpad" class="absolute inset-0 bg-white z-40 flex flex-col p-2.5 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4">
-                                    
                                     <div class="flex items-center justify-between mb-2 flex-shrink-0">
                                         <button onclick="closeInlineNumpad()" class="text-slate-400 font-bold px-2 py-1.5 bg-slate-50 rounded-lg active:scale-95 text-[10px] uppercase tracking-wider border border-slate-100 transition-transform">✕ Avbryt</button>
                                         <div class="text-center flex-1">
@@ -535,7 +584,6 @@
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
 
@@ -561,10 +609,8 @@
                                     <button id="note-submit-btn" onclick="addNote()" class="bg-[#0ea5e9] text-white font-black text-[9px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-transform px-3">SPARA</button>
                                 </div>
                             </div>
-                            <div class="flex-1 overflow-y-auto hide-scrollbar p-2.5 relative flex flex-col gap-1.5" id="notes-list-container">
-                                </div>
+                            <div class="flex-1 overflow-y-auto hide-scrollbar p-2.5 relative flex flex-col gap-1.5" id="notes-list-container"></div>
                         </div>
-
                     </div>
                 </div>
 
@@ -588,466 +634,102 @@
                         <button onclick="numpadSave()" class="flex-[2] h-full bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] rounded-2xl text-[13px] font-black text-white uppercase tracking-widest shadow-md active:scale-95 transition-transform">Spara</button>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
     <script>
         // ==========================================
-        //  THEME MANAGER
+        //  GLOBAL CORE VARIABLES (ABSOLUTE TOP)
         // ==========================================
-        function setTheme(themeName) {
-            document.body.setAttribute('data-theme', themeName);
-            localStorage.setItem('sf_theme', themeName);
-        }
-        
-        const savedTheme = localStorage.getItem('sf_theme') || 'light';
-        document.body.setAttribute('data-theme', savedTheme);
-
-        // --- HISTORY & NAVIGATION ---
-        function pushModalState() { history.pushState({view: 'modal'}, ''); }
-
-        window.addEventListener('popstate', (e) => {
-            let handled = false;
-            if (numpadTarget) { closeNumpad(true); handled = true; }
-            const inpn = document.getElementById('dash-inline-numpad');
-            if (inpn && inpn.classList.contains('opacity-100')) { closeInlineNumpad(true); handled = true; }
-            const cm = document.getElementById('child-select-modal');
-            if (cm && !cm.classList.contains('hidden')) { closeChildModal(true); handled = true; }
-            const bm = document.getElementById('budget-modal');
-            if (bm && !bm.classList.contains('hidden')) { closeBudgetModal(true); handled = true; }
-            const nm = document.getElementById('note-confirm-modal');
-            if (nm && !nm.classList.contains('hidden')) { closeNoteModal(true); handled = true; }
-            const cb = document.getElementById('confirm-box');
-            if (cb && cb.style.display === 'block') { hideConfirm(true); handled = true; }
-            const sm = document.getElementById('summary-modal');
-            if (sm && !sm.classList.contains('hidden')) { closeSummaryModal(true); handled = true; }
-        });
-
-        // ==========================================
-        //  FOKUS LÄGE
-        // ==========================================
+        let sb = null;
+        let db = { b: 240000, d: {}, q: {} };
+        let timeline = {};
+        let viewDate = new Date();
+        let realToday = new Date(); realToday.setHours(0,0,0,0);
+        let activeK = null;
+        let viewMode = 'dash';
+        let currentWeekStart = new Date(realToday);
+        const startDayOffset = currentWeekStart.getDay() || 7; 
+        currentWeekStart.setDate(currentWeekStart.getDate() - startDayOffset + 1);
+        currentWeekStart.setHours(0,0,0,0);
+        let multiSelectKeys = new Set();
+        let focusTimer = null;
         let currentFocusReason = null;
-
-        function triggerFocusMode(reason) {
-            currentFocusReason = reason;
-            setMode('month');
-            document.body.classList.add('focus-mode-active');
-            const btn = document.getElementById('btn-close-focus');
-            if(btn) {
-                btn.classList.remove('translate-y-[110%]');
-                btn.classList.add('translate-y-0');
-            }
-            renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1);
-        }
-
-        function closeFocusMode(skipRender = false) {
-            currentFocusReason = null;
-            document.body.classList.remove('focus-mode-active');
-            const btn = document.getElementById('btn-close-focus');
-            if(btn) {
-                btn.classList.add('translate-y-[110%]');
-                btn.classList.remove('translate-y-0');
-            }
-            if(!skipRender && viewMode === 'month') {
-                renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1);
-            }
-        }
-
-        // ==========================================
-        //  SAMMANFATTNINGS MODAL
-        // ==========================================
-        function openSummaryModal(type = 'month', refDate = null) {
-            pushModalState();
-            const modal = document.getElementById('summary-modal');
-            const content = document.getElementById('summary-modal-content');
-            
-            let d = refDate ? new Date(refDate) : new Date(viewDate);
-            let y = d.getFullYear();
-            let m = d.getMonth() + 1;
-
-            let startDay, endDay;
-            let titleStr = "";
-
-            if (type === 'week') {
-                let wStart = new Date(d);
-                let offset = wStart.getDay() || 7;
-                wStart.setDate(wStart.getDate() - offset + 1);
-                wStart.setHours(0,0,0,0);
-                let wEnd = new Date(wStart);
-                wEnd.setDate(wEnd.getDate() + 6);
-                
-                startDay = wStart;
-                endDay = wEnd;
-                titleStr = `VECKA ${getWeekNumber(wStart)} - SAMMANFATTNING`;
-            } else {
-                startDay = new Date(y, m - 1, 1);
-                endDay = new Date(y, m, 0);
-                const months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
-                titleStr = `${months[m-1].toUpperCase()} ${y}`;
-            }
-
-            let workDays = 0, totalSales = 0, currentStreak = 0, maxStreak = 0;
-            let absDays = {}, totalAbs = 0;
-            let bestDay = {v: 0, label: '--'};
-            let worstDay = {v: Infinity, label: '--'};
-            let weeks = {};
-
-            let curr = new Date(startDay);
-            while(curr <= endDay) {
-                let k = getK(curr);
-                let o = db.d[k] || {};
-                let qd = db.q[k] || {};
-                let t = timeline[k] || {target:0};
-
-                if (o.s > 0 || qd.start) {
-                    workDays++;
-                    totalSales += (o.s || 0);
-
-                    if (o.s > bestDay.v) { bestDay.v = o.s; bestDay.label = `${curr.getDate()}/${curr.getMonth()+1}`; }
-                    if (o.s > 0 && o.s < worstDay.v) { worstDay.v = o.s; worstDay.label = `${curr.getDate()}/${curr.getMonth()+1}`; }
-
-                    if (o.s >= t.target && t.target > 0) {
-                        currentStreak++;
-                        if(currentStreak > maxStreak) maxStreak = currentStreak;
-                    } else {
-                        currentStreak = 0;
-                    }
-
-                    if(type === 'month') {
-                        let w = getWeekNumber(curr);
-                        if(!weeks[w]) weeks[w] = {s: 0};
-                        weeks[w].s += (o.s || 0);
-                    }
-                }
-
-                if (o.abs && o.abs !== 'Åtgärd krävs') {
-                    let r = o.abs.split(' ')[0];
-                    if(!absDays[r]) absDays[r] = {d: 0, h: 0};
-                    absDays[r].d++;
-                    totalAbs++;
-                    if(o.abs_hours) absDays[r].h += o.abs_hours;
-                }
-                curr.setDate(curr.getDate() + 1);
-            }
-
-            if(worstDay.v === Infinity) worstDay.v = 0;
-
-            document.getElementById('summary-modal-title').innerText = titleStr;
-            document.getElementById('sum-workdays').innerText = workDays;
-            document.getElementById('sum-absdays').innerText = totalAbs;
-            
-            document.getElementById('sum-bestday-val').innerText = (bestDay.v/1000).toFixed(1) + 'k';
-            document.getElementById('sum-bestday-lbl').innerText = bestDay.label;
-            
-            document.getElementById('sum-worstday-val').innerText = (worstDay.v/1000).toFixed(1) + 'k';
-            document.getElementById('sum-worstday-lbl').innerText = worstDay.label;
-
-            document.getElementById('sum-streak').innerText = `${maxStreak} 🔥`;
-
-            let absDetails = document.getElementById('sum-abs-details');
-            let absList = document.getElementById('sum-abs-list');
-            if (totalAbs > 0) {
-                absDetails.classList.remove('hidden');
-                let html = '';
-                const em = { 'Sjuk': '🤒', 'VAB': '👶', 'Föräldraledig': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢' }; 
-                for(let r in absDays) {
-                    let icon = em[r] || '•';
-                    let hText = absDays[r].h > 0 ? ` (${absDays[r].h.toFixed(1).replace('.0','')}h)` : '';
-                    html += `<div class="flex justify-between items-center bg-white border border-slate-100 rounded-lg p-2 shadow-sm"><span class="text-[10px] font-black text-slate-600 uppercase">${icon} ${r}</span><span class="text-[10px] font-bold text-slate-400">${absDays[r].d} dagar${hText}</span></div>`;
-                }
-                absList.innerHTML = html;
-            } else {
-                absDetails.classList.add('hidden');
-            }
-
-            let bwc = document.getElementById('sum-bestweek-container');
-            if (type === 'week') {
-                bwc.style.display = 'none';
-            } else {
-                bwc.style.display = 'flex';
-                let bestWeek = {val: 0, w: null};
-                for(let w in weeks) {
-                    if(weeks[w].s > bestWeek.val) { bestWeek.val = weeks[w].s; bestWeek.w = w; }
-                }
-                if(bestWeek.w) {
-                    document.getElementById('sum-bestweek-val').innerText = (bestWeek.val/1000).toFixed(1) + 'k';
-                    document.getElementById('sum-bestweek-lbl').innerText = 'V.' + bestWeek.w;
-                } else {
-                    document.getElementById('sum-bestweek-val').innerText = '0k';
-                    document.getElementById('sum-bestweek-lbl').innerText = '--';
-                }
-            }
-
-            modal.classList.remove('hidden');
-            setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
-        }
-
-        function closeSummaryModal(fromPopstate = false) {
-            const modal = document.getElementById('summary-modal');
-            const content = document.getElementById('summary-modal-content');
-            if(!modal || !content) return;
-            modal.classList.add('opacity-0'); content.classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
-            if(!fromPopstate && history.state && history.state.view === 'modal') history.back();
-        }
-
-        // ==========================================
-        //  INLINE NUMPAD
-        // ==========================================
+        let pendingAbsenceType = null;
+        let pendingAbsenceSource = null;
+        let savedNotes = [];
+        let pendingNoteId = null; let editingNoteId = null; let expandedNoteId = null;
+        let savedBudgets = {};
+        let touchStartX = 0, touchStartY = 0;
         let inlineNumpadValue = "";
+        let numpadTarget = null; let numpadValue = "";
 
-        function openInlineNumpad() {
-            if(!activeK) return; 
-            pushModalState();
-            
-            const o = db.d[activeK] || {s:0};
-            inlineNumpadValue = o.s > 0 ? String(o.s) : "";
-            updateInlineNumpadDisplay();
-            
-            document.getElementById('dash-standard-content').classList.add('opacity-0', 'pointer-events-none', 'scale-95');
-            document.getElementById('dash-standard-content').classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
-            
-            const numpad = document.getElementById('dash-inline-numpad');
-            numpad.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
-            numpad.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
-        }
+        let evalState = { reasons: [], emoji: null, ratings: { humor: 0, engagemang: 0, fokus: 0, energi: 0 } };
+        let lastAutoCheckedKey = null;
+        let currentSummaryView = 'stats';
 
-        function closeInlineNumpad(fromPopstate = false) {
-            document.getElementById('dash-standard-content').classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
-            document.getElementById('dash-standard-content').classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
-            
-            const numpad = document.getElementById('dash-inline-numpad');
-            numpad.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
-            numpad.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
-            
-            if (!fromPopstate && history.state && history.state.view === 'modal') history.back();
-            if (viewMode === 'dash') updateDashboardView();
-        }
-
-        function inlinePress(val) {
-            if (val === 'back') { inlineNumpadValue = inlineNumpadValue.slice(0, -1); } 
-            else if (val === 'clear') { inlineNumpadValue = ""; } 
-            else { if (inlineNumpadValue.length < 7) inlineNumpadValue += val; }
-            updateInlineNumpadDisplay();
-        }
-
-        function inlineAdd(amount) {
-            let current = Number(inlineNumpadValue) || 0;
-            current += amount;
-            if (current > 9999999) current = 9999999;
-            inlineNumpadValue = String(current);
-            updateInlineNumpadDisplay();
-        }
-
-        function inlineTarget() {
-            if(!activeK) return;
-            let target = timeline[activeK]?.target || 0;
-            if (target > 0) {
-                inlineNumpadValue = String(Math.round(target));
-                updateInlineNumpadDisplay();
-            }
-        }
-
-        function updateInlineNumpadDisplay() {
-            const valNum = Number(inlineNumpadValue) || 0;
-            const displayStr = inlineNumpadValue === "" ? "0 kr" : valNum.toLocaleString('sv-SE') + " kr";
-            document.getElementById('inline-numpad-display').innerText = displayStr;
-        }
-
-        function saveInlineNumpad() {
-            const valNum = Number(inlineNumpadValue) || 0;
-            if (activeK) { pushMatrixSync(activeK, { s: valNum }); } 
-            closeInlineNumpad();
-        }
-
-        // ==========================================
-        //  BOTTOM NUMPAD (För Edit Mode)
-        // ==========================================
-        let numpadTarget = null; 
-        let numpadValue = "";
-
-        function openNumpad(target, currentVal, title) {
-            pushModalState();
-            numpadTarget = target;
-            document.getElementById('top-monthly-ui').style.opacity = '0';
-            document.getElementById('top-monthly-ui').style.pointerEvents = 'none';
-            document.getElementById('bottom-standard-views').style.opacity = '0';
-            document.getElementById('bottom-standard-views').style.pointerEvents = 'none';
-            document.getElementById('bottom-numpad-view').style.opacity = '1';
-            document.getElementById('bottom-numpad-view').style.pointerEvents = 'auto';
-            numpadValue = currentVal > 0 ? String(currentVal) : ""; 
-        }
-
-        function closeNumpad(fromPopstate = false) {
-            document.getElementById('top-monthly-ui').style.opacity = '1';
-            document.getElementById('top-monthly-ui').style.pointerEvents = 'auto';
-            document.getElementById('bottom-standard-views').style.opacity = '1';
-            document.getElementById('bottom-standard-views').style.pointerEvents = 'auto';
-            document.getElementById('bottom-numpad-view').style.opacity = '0';
-            document.getElementById('bottom-numpad-view').style.pointerEvents = 'none';
-            numpadTarget = null;
-            if (!fromPopstate && history.state && history.state.view === 'modal') history.back();
-            if (viewMode === 'month') {
-                if (multiSelectKeys.size === 1) {
-                    const singleK = Array.from(multiSelectKeys)[0]; const o = db.d[singleK] || {};
-                    const mText = document.getElementById('month-sales-text');
-                    if (mText) { mText.innerText = o.s > 0 ? o.s + ' kr' : '0 kr'; if (o.s > 0) mText.classList.replace('text-slate-400', 'text-[#0ea5e9]'); else mText.classList.replace('text-[#0ea5e9]', 'text-slate-400'); }
-                }
-            }
-        }
-
-        function numpadPress(val) {
-            if (val === 'back') { numpadValue = numpadValue.slice(0, -1); } 
-            else if (val === 'clear') { numpadValue = ""; } 
-            else { if (numpadValue.length < 7) numpadValue += val; }
-        }
-
-        function numpadSave() {
-            const valNum = Number(numpadValue) || 0;
-            if (numpadTarget === 'month') {
-                let upserts = []; const keys = Array.from(multiSelectKeys);
-                for (let k of keys) {
-                    const old = db.d[k] || {}; 
-                    const qd = db.q[k] || {};
-                    let merged = { 
-                        st: old.st || 'Arbete', 
-                        s: valNum, 
-                        abs: old.abs || null, 
-                        src: 'Manual', 
-                        raw: old.raw || '',
-                        fk_perc: old.fk_perc || qd.fk_perc || null,
-                        abs_hours: old.abs_hours || qd.abs_hours || null
-                    };
-                    db.d[k] = merged; 
-                    upserts.push({ 
-                        date_key: k, 
-                        status: merged.st, 
-                        sales: merged.s, 
-                        is_absent: merged.abs,
-                        raw_reason: merged.raw,
-                        fk_perc: merged.fk_perc,
-                        abs_hours: merged.abs_hours
-                    });
-                }
-                multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit();
-                if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
-            }
-            closeNumpad();
-        }
-
-        function getK(d) { return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
-        function parseNum(val) { if (val === undefined || val === null || val === '') return 0; if (typeof val === 'number') return val; let str = String(val).replace(/\s/g, '').replace(',', '.'); let num = parseFloat(str); return isNaN(num) ? 0 : num; }
+        try { savedBudgets = JSON.parse(localStorage.getItem('sf_budgets')) || {}; } catch(e) {}
+        try { savedNotes = JSON.parse(localStorage.getItem('sf_notes')) || []; } catch(e) { savedNotes = []; }
 
         const SB_URL = 'https://xnrclzkzzthlesaftpvs.supabase.co';
         const SB_KEY = 'sb_publishable_EhCyGN_p4TH-rtOEuDLXOA_9hIxS7pW';
-        let sb = null;
-        try { if (typeof supabase !== 'undefined') { sb = supabase.createClient(SB_URL, SB_KEY); } } catch(e) { console.error("Fel vid start av Supabase", e); }
-        
+        try { if (typeof supabase !== 'undefined') { sb = supabase.createClient(SB_URL, SB_KEY); } } catch(e) { console.error(e); }
+
         // ==========================================
-        //  MÅNADSSPECIFIKA BUDGETAR
+        //  HELPER FUNCTIONS
         // ==========================================
-        let savedBudgets = {};
-        try { savedBudgets = JSON.parse(localStorage.getItem('sf_budgets')) || {}; } catch(e) {}
-        
-        function getBudgetForMonth(y, m) {
-            return savedBudgets[`${y}-${m}`] || 240000;
+        function getK(d) { return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+        function parseNum(val) { if (val === undefined || val === null || val === '') return 0; if (typeof val === 'number') return val; let str = String(val).replace(/\s/g, '').replace(',', '.'); let num = parseFloat(str); return isNaN(num) ? 0 : num; }
+        function getBudgetForMonth(y, m) { return savedBudgets[`${y}-${m}`] || 240000; }
+        function setGlobalBudget(amount) { 
+            let cy = viewDate.getFullYear(); let cm = viewDate.getMonth() + 1;
+            savedBudgets[`${cy}-${cm}`] = amount;
+            try { localStorage.setItem('sf_budgets', JSON.stringify(savedBudgets)); } catch(e){} 
+            db.b = amount; calculateTimeline(); updateDash(); closeBudgetModal(); 
         }
-        
-        let db = { b: 240000, d: {}, q: {} }, timeline = {}, viewDate = new Date(), realToday = new Date(); realToday.setHours(0,0,0,0);
-        let activeK = null, viewMode = 'dash', currentWeekStart = new Date(realToday);
-        let multiSelectKeys = new Set();
-        
-        const startDayOffset = currentWeekStart.getDay() || 7;
-        currentWeekStart.setDate(currentWeekStart.getDate() - startDayOffset + 1);
-        currentWeekStart.setHours(0,0,0,0);
-        let focusTimer = null;
-        let pendingAbsenceType = null;
-        let pendingAbsenceSource = null;
+        function setTheme(themeName) { document.body.setAttribute('data-theme', themeName); localStorage.setItem('sf_theme', themeName); }
+        const savedTheme = localStorage.getItem('sf_theme') || 'light'; document.body.setAttribute('data-theme', savedTheme);
+        function pushModalState() { history.pushState({view: 'modal'}, ''); }
 
-        let savedNotes = [];
-        try { savedNotes = JSON.parse(localStorage.getItem('sf_notes')) || []; } catch(e) { savedNotes = []; }
-        let pendingNoteId = null; let editingNoteId = null; let expandedNoteId = null;
-
+        // ==========================================
+        //  INITIALIZATION & DATA LOADING
+        // ==========================================
         function extractDateTime(line) {
             const match = line.match(/:(\d{8})(T\d{6})?/);
             if (match) {
-                const dateStr = match[1]; 
-                const timeStr = match[2]; 
-                const y = dateStr.substring(0, 4);
-                const m = dateStr.substring(4, 6);
-                const d = dateStr.substring(6, 8);
+                const dateStr = match[1]; const timeStr = match[2]; const y = dateStr.substring(0, 4); const m = dateStr.substring(4, 6); const d = dateStr.substring(6, 8);
                 let hh = "00"; let mm = "00"; let hasTime = false;
-                if (timeStr) {
-                    hh = timeStr.substring(1, 3);
-                    mm = timeStr.substring(3, 5);
-                    hasTime = true;
-                }
+                if (timeStr) { hh = timeStr.substring(1, 3); mm = timeStr.substring(3, 5); hasTime = true; }
                 return { dateKey: `${parseInt(y, 10)}-${parseInt(m, 10)}-${parseInt(d, 10)}`, time: `${hh}:${mm}`, hasTime: hasTime };
-            }
-            return null;
+            } return null;
         }
 
         function processParsedEvent(ev, desc) {
             if (!ev.start) return;
-            const fullText = desc.toLowerCase();
-            
-            let isWork = false;
-            let isLedig = false;
+            const fullText = desc.toLowerCase(); let isWork = false; let isLedig = false;
+            if (fullText.includes("sen ankomst") || fullText.includes("tidig hemgång")) { isWork = true; } 
+            else if (fullText.includes("q: ledighet") || fullText.includes("ledighet")) { isLedig = true; } 
+            else if (fullText.includes("sales") || fullText.includes("cross tech") || fullText.includes("arbetspass") || fullText.includes("q:")) { isWork = true; }
 
-            if (fullText.includes("sen ankomst") || fullText.includes("tidig hemgång")) {
-                isWork = true;
-            } else if (fullText.includes("q: ledighet") || fullText.includes("ledighet")) {
-                isLedig = true;
-            } else if (fullText.includes("sales") || fullText.includes("cross tech") || fullText.includes("arbetspass") || fullText.includes("q:")) {
-                isWork = true;
-            }
-
-            let sdParts = ev.start.dateKey.split('-');
-            let sd = new Date(parseInt(sdParts[0]), parseInt(sdParts[1])-1, parseInt(sdParts[2]));
-            
-            let duration = 0;
-            let endStr = ev.end && ev.end.hasTime ? ev.end.time : null;
+            let sdParts = ev.start.dateKey.split('-'); let sd = new Date(parseInt(sdParts[0]), parseInt(sdParts[1])-1, parseInt(sdParts[2]));
+            let duration = 0; let endStr = ev.end && ev.end.hasTime ? ev.end.time : null;
             
             if (ev.start.hasTime && ev.end && ev.end.hasTime) {
-                let edParts = ev.end.dateKey.split('-');
-                let ed = new Date(parseInt(edParts[0]), parseInt(edParts[1])-1, parseInt(edParts[2]));
-                
-                let [h1, m1] = ev.start.time.split(':').map(Number);
-                let [h2, m2] = ev.end.time.split(':').map(Number);
-                
-                let d1 = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate(), h1, m1);
-                let d2 = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate(), h2, m2);
-                
-                duration = (d2.getTime() - d1.getTime()) / 3600000;
-                if(duration < 0) duration = 0;
+                let edParts = ev.end.dateKey.split('-'); let ed = new Date(parseInt(edParts[0]), parseInt(edParts[1])-1, parseInt(edParts[2]));
+                let [h1, m1] = ev.start.time.split(':').map(Number); let [h2, m2] = ev.end.time.split(':').map(Number);
+                let d1 = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate(), h1, m1); let d2 = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate(), h2, m2);
+                duration = (d2.getTime() - d1.getTime()) / 3600000; if(duration < 0) duration = 0;
             }
 
             const k = `${sd.getFullYear()}-${sd.getMonth() + 1}-${sd.getDate()}`;
             if (!db.q[k]) db.q[k] = { work_h: 0, ledig_h: 0 };
-            
             if (isWork) {
-                db.q[k].exists = true; 
-                if(!db.q[k].start || ev.start.time < db.q[k].start) db.q[k].start = ev.start.time;
-                
-                if(endStr) {
-                    let currentEnd = db.q[k].end || "00:00";
-                    if(currentEnd === "00:00" && endStr !== "00:00" && !db.q[k].end) {
-                        db.q[k].end = endStr;
-                    } else if (endStr === "00:00") {
-                        db.q[k].end = "00:00";
-                    } else if (endStr > currentEnd && currentEnd !== "00:00") {
-                        db.q[k].end = endStr;
-                    }
-                }
+                db.q[k].exists = true; if(!db.q[k].start || ev.start.time < db.q[k].start) db.q[k].start = ev.start.time;
+                if(endStr) { let currentEnd = db.q[k].end || "00:00"; if(currentEnd === "00:00" && endStr !== "00:00" && !db.q[k].end) { db.q[k].end = endStr; } else if (endStr === "00:00") { db.q[k].end = "00:00"; } else if (endStr > currentEnd && currentEnd !== "00:00") { db.q[k].end = endStr; } }
                 db.q[k].work_h += duration;
             }
-            
-            if (isLedig) {
-                db.q[k].exists = true;
-                db.q[k].ledig_h += duration;
-            }
+            if (isLedig) { db.q[k].exists = true; db.q[k].ledig_h += duration; }
         }
 
         async function loadAllData() {
@@ -1057,32 +739,21 @@
                     if (data) {
                         db.d = {};
                         data.forEach(r => db.d[r.date_key] = { 
-                            st: r.status, 
-                            s: parseNum(r.sales), 
-                            abs: r.is_absent, 
-                            src: r.is_absent === 'Åtgärd krävs' ? 'Auto' : 'Manual', 
-                            raw: r.raw_reason || r.is_absent || '',
-                            fk_perc: r.fk_perc,
-                            abs_hours: r.abs_hours
+                            st: r.status, s: parseNum(r.sales), abs: r.is_absent, src: r.is_absent === 'Åtgärd krävs' ? 'Auto' : 'Manual', raw: r.raw_reason || r.is_absent || '', fk_perc: r.fk_perc, abs_hours: r.abs_hours,
+                            eval: null, eval_text: '', has_eval_saved: false
                         });
                     }
                 }
 
                 const response = await fetch("https://raw.githubusercontent.com/pekkusa-cyber/SalesFlow/main/schema.ics?t=" + Date.now()); 
-                if(!response.ok) throw new Error("Kunde inte hämta från GitHub");
-                const text = await response.text();
+                if(!response.ok) throw new Error("Kunde inte hämta"); const text = await response.text();
                 
-                db.q = {}; 
-                const lines = text.split(/\r?\n/);
-                let inEvent = false; let event = {}; let fullDesc = "";
-                
+                db.q = {}; const lines = text.split(/\r?\n/); let inEvent = false; let event = {}; let fullDesc = "";
                 for (let i = 0; i < lines.length; i++) {
                     let line = lines[i];
-                    if (line === "BEGIN:VEVENT") {
-                        inEvent = true; event = {}; fullDesc = "";
-                    } else if (line === "END:VEVENT") {
-                        inEvent = false; processParsedEvent(event, fullDesc);
-                    } else if (inEvent) {
+                    if (line === "BEGIN:VEVENT") { inEvent = true; event = {}; fullDesc = ""; } 
+                    else if (line === "END:VEVENT") { inEvent = false; processParsedEvent(event, fullDesc); } 
+                    else if (inEvent) {
                         if (line.startsWith("DTSTART")) { event.start = extractDateTime(line); } 
                         else if (line.startsWith("DTEND")) { event.end = extractDateTime(line); } 
                         else if (line.startsWith("SUMMARY:") || line.startsWith("DESCRIPTION:")) { fullDesc += " " + line; } 
@@ -1094,457 +765,54 @@
                 for (let k in db.q) {
                     let qd = db.q[k];
                     if (qd.ledig_h > 0) {
-                        let total = qd.work_h + qd.ledig_h;
-                        let actual_perc = total > 0 ? (qd.ledig_h / total) * 100 : 100;
+                        let total = qd.work_h + qd.ledig_h; let actual_perc = total > 0 ? (qd.ledig_h / total) * 100 : 100;
+                        let fk_perc = 0; if (actual_perc >= 100) fk_perc = 100; else if (actual_perc >= 75) fk_perc = 75; else if (actual_perc >= 50) fk_perc = 50; else if (actual_perc >= 25) fk_perc = 25; else fk_perc = 0;
+                        qd.actual_perc = actual_perc; qd.fk_perc = fk_perc; qd.abs_hours = qd.ledig_h;
                         
-                        let fk_perc = 0;
-                        if (actual_perc >= 100) fk_perc = 100;
-                        else if (actual_perc >= 75) fk_perc = 75;
-                        else if (actual_perc >= 50) fk_perc = 50;
-                        else if (actual_perc >= 25) fk_perc = 25;
-                        else fk_perc = 0;
-                        
-                        qd.actual_perc = actual_perc;
-                        qd.fk_perc = fk_perc;
-                        qd.abs_hours = qd.ledig_h;
-                        
-                        let existing = db.d[k];
-                        let needsFlag = false;
-
-                        if (!existing) {
-                            needsFlag = true;
-                        } else {
+                        let existing = db.d[k]; let needsFlag = false;
+                        if (!existing) { needsFlag = true; } 
+                        else {
                             const validAbsences = ['Sjuk', 'VAB', 'VAB Belma', 'VAB Wilma', 'Föräldraledig', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig'];
                             const hasValidAbsence = existing.abs && validAbsences.some(a => existing.abs.includes(a));
-                            
-                            if (!hasValidAbsence && existing.abs !== 'Åtgärd krävs') {
-                                if (!(existing.st === 'Arbete' && existing.s > 0)) {
-                                    needsFlag = true;
-                                }
-                            }
+                            if (!hasValidAbsence && existing.abs !== 'Åtgärd krävs') { if (!(existing.st === 'Arbete' && existing.s > 0)) { needsFlag = true; } }
                         }
 
                         if (needsFlag) {
-                            db.d[k] = { 
-                                st: 'Arbete', 
-                                s: existing?.s || 0, 
-                                abs: 'Åtgärd krävs', 
-                                src: 'Auto', 
-                                raw: `Frånvaro ${qd.ledig_h.toFixed(2)}h`,
-                                fk_perc: fk_perc,
-                                abs_hours: qd.ledig_h
-                            };
-                            upserts.push({
-                                date_key: k,
-                                status: 'Arbete',
-                                sales: existing?.s || 0,
-                                is_absent: 'Åtgärd krävs',
-                                raw_reason: `Frånvaro ${qd.ledig_h.toFixed(2)}h`,
-                                fk_perc: fk_perc,
-                                abs_hours: qd.ledig_h
-                            });
+                            db.d[k] = { st: 'Arbete', s: existing?.s || 0, abs: 'Åtgärd krävs', src: 'Auto', raw: `Frånvaro ${qd.ledig_h.toFixed(2)}h`, fk_perc: fk_perc, abs_hours: qd.ledig_h, eval: null, eval_text: '', has_eval_saved: false };
+                            upserts.push({ date_key: k, status: 'Arbete', sales: existing?.s || 0, is_absent: 'Åtgärd krävs', raw_reason: `Frånvaro ${qd.ledig_h.toFixed(2)}h`, fk_perc: fk_perc, abs_hours: qd.ledig_h });
                         } else if (existing && existing.src === 'Manual') {
                             if(existing.fk_perc == null || existing.abs_hours == null) {
-                                 existing.fk_perc = fk_perc;
-                                 existing.abs_hours = qd.ledig_h;
-                                 upserts.push({
-                                    date_key: k,
-                                    status: existing.st,
-                                    sales: existing.s,
-                                    is_absent: existing.abs,
-                                    raw_reason: existing.raw,
-                                    fk_perc: fk_perc,
-                                    abs_hours: qd.ledig_h
-                                 });
+                                 existing.fk_perc = fk_perc; existing.abs_hours = qd.ledig_h;
+                                 upserts.push({ date_key: k, status: existing.st, sales: existing.s, is_absent: existing.abs, raw_reason: existing.raw, fk_perc: fk_perc, abs_hours: qd.ledig_h });
                             }
                         }
                     }
                 }
-                
-                if(sb && upserts.length > 0) {
-                    sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); });
-                }
-            } catch(e) { 
-                console.warn("Kunde inte hämta data", e); 
-            }
-        }
 
-        async function init() { 
-            db.b = getBudgetForMonth(realToday.getFullYear(), realToday.getMonth() + 1);
-            await loadAllData();
-            calculateTimeline(); activeK = getK(realToday); 
-            renderWeekSlides(); updateDash(); setMode('dash'); renderNotes();
-            
-            let lastOpen = localStorage.getItem('sf_last_open_day');
-            let todayK = getK(realToday);
-            if(lastOpen && lastOpen !== todayK) {
-                let lastD = new Date(lastOpen);
-                if(lastD.getMonth() !== realToday.getMonth()) {
-                    setTimeout(() => openSummaryModal('month', lastD), 1200);
-                } else if(getWeekNumber(lastD) !== getWeekNumber(realToday)) {
-                    setTimeout(() => openSummaryModal('week', lastD), 1200);
+                for (let k in db.d) {
+                    const savedEv = localStorage.getItem(`sf_eval_obj_${k}`); const savedTxt = localStorage.getItem(`sf_eval_txt_${k}`);
+                    if (savedEv) { db.d[k].eval = JSON.parse(savedEv); db.d[k].eval_text = savedTxt || ""; db.d[k].has_eval_saved = true; }
                 }
-            }
-            localStorage.setItem('sf_last_open_day', todayK);
-
-            clearInterval(focusTimer); 
-            focusTimer = setInterval(() => { 
-                if(viewMode === 'dash') updateDashboardView(); 
-                updateTopInfoBar();
-            }, 2000);
+                if(sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
+            } catch(e) { console.warn("Kunde inte hämta data", e); }
         }
 
         async function syncData() {
-            const btn = document.getElementById('sync-btn');
-            if(!btn) return;
-            const oldTxt = btn.innerHTML;
-            btn.innerHTML = '<span>⚡</span> SYNKAR...';
-            
-            await loadAllData();
-            
-            calculateTimeline(); updateDash(); 
+            const btn = document.getElementById('sync-btn'); if(!btn) return;
+            const oldTxt = btn.innerHTML; btn.innerHTML = '<span>⚡</span> SYNKAR...';
+            await loadAllData(); calculateTimeline(); updateDash(); 
             if (viewMode === 'dash') updateDashboardView();
             else if (viewMode === 'absence') renderAbsence();
             setTimeout(() => { btn.innerHTML = oldTxt; }, 800);
         }
 
-        function pushMatrixSync(k, o) {
-            const old = db.d[k] || {}; 
-            const qd = db.q[k] || {};
-            const merged = { 
-                st: o.st !== undefined ? o.st : (old.st || 'Arbete'), 
-                s: o.s !== undefined ? o.s : (old.s || 0), 
-                abs: o.abs !== undefined ? o.abs : (old.abs || null),
-                src: o.src !== undefined ? o.src : 'Manual',
-                raw: o.raw !== undefined ? o.raw : (old.raw || ''),
-                fk_perc: o.fk_perc !== undefined ? o.fk_perc : (old.fk_perc || qd.fk_perc || null),
-                abs_hours: o.abs_hours !== undefined ? o.abs_hours : (old.abs_hours || qd.abs_hours || null)
-            };
-            
-            db.d[k] = merged; 
-            calculateTimeline(); updateDash(); 
-            if (viewMode === 'dash') updateDashboardView();
-
-            if (sb) {
-                sb.from('sales_data')
-                  .upsert({ 
-                      date_key: k, 
-                      status: merged.st, 
-                      sales: merged.s, 
-                      is_absent: merged.abs,
-                      raw_reason: merged.raw,
-                      fk_perc: merged.fk_perc,
-                      abs_hours: merged.abs_hours
-                  })
-                  .then(({error}) => { if(error) console.warn("Supabase fel", error); });
-            }
-        }
-
-        function handleSaveFromPopup(t) { 
-            let upserts = []; const keys = Array.from(multiSelectKeys);
-            for (let k of keys) {
-                const old = db.d[k] || {}; let merged = { st: old.st || 'Arbete', s: old.s || 0, abs: old.abs || null, src: 'Manual', raw: t };
-                if(t==='delete') { merged = { st: 'Arbete', s: 0, abs: null, src: 'Manual', raw: '' }; } 
-                else { if(['Arbete','Ledig'].includes(t)) { merged.st = t; merged.abs = null; } else { merged.st = 'Arbete'; merged.abs = t; } }
-                
-                const qd = db.q[k] || {};
-                merged.fk_perc = qd.fk_perc || old.fk_perc || null;
-                merged.abs_hours = qd.abs_hours || old.abs_hours || null;
-
-                db.d[k] = merged; 
-                upserts.push({ 
-                    date_key: k, 
-                    status: merged.st, 
-                    sales: merged.s, 
-                    is_absent: merged.abs,
-                    raw_reason: merged.raw,
-                    fk_perc: merged.fk_perc,
-                    abs_hours: merged.abs_hours
-                });
-            }
-            multiSelectKeys.clear(); calculateTimeline(); updateDash(); closeMonthEdit(); 
-            if (viewMode === 'dash') updateDashboardView();
-            if (sb && upserts.length > 0) { sb.from('sales_data').upsert(upserts).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
-        }
-
-        function toggleExpandNote(id) { if (expandedNoteId === id) expandedNoteId = null; else expandedNoteId = id; renderNotes(); }
-        function deleteHistoryNote(id, e) { e.stopPropagation(); savedNotes = savedNotes.filter(n => n.id !== id); try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){} renderNotes(); }
-        function clearAllHistory() { savedNotes = savedNotes.filter(n => !n.done); try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){} renderNotes(); }
-
-        function addNote() {
-            const elName = document.getElementById('note-name'); const elOrder = document.getElementById('note-order'); const elPhone = document.getElementById('note-phone'); const elText = document.getElementById('note-text');
-            if(!elName || !elOrder || !elPhone || !elText) return;
-
-            const n_val = elName.value.trim(); const o_val = elOrder.value.trim(); const p_val = elPhone.value.trim(); const t_val = elText.value.trim();
-            if(!t_val && !o_val && !p_val && !n_val) return;
-            
-            if (editingNoteId) {
-                const note = savedNotes.find(x => x.id === editingNoteId);
-                if (note) { note.name = n_val; note.order = o_val; note.phone = p_val; note.text = t_val; }
-                editingNoteId = null; document.getElementById('note-submit-btn').innerText = 'SPARA';
-            } else {
-                savedNotes.unshift({ id: Date.now(), name: n_val, order: o_val, phone: p_val, text: t_val, done: false, date: new Date().toLocaleDateString('sv-SE') });
-            }
-            
-            try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
-            elName.value = ''; elOrder.value = ''; elPhone.value = ''; elText.value = ''; renderNotes();
-        }
-
-        function editNote(id) {
-            const note = savedNotes.find(x => x.id === id); if(!note) return; editingNoteId = id;
-            document.getElementById('note-name').value = note.name || ''; document.getElementById('note-order').value = note.order || ''; document.getElementById('note-phone').value = note.phone || ''; document.getElementById('note-text').value = note.text || '';
-            document.getElementById('note-submit-btn').innerText = 'UPPDAT.'; document.getElementById('note-text').focus();
-        }
-
-        function askCloseNote(id) { pushModalState(); pendingNoteId = id; const m = document.getElementById('note-confirm-modal'); const c = document.getElementById('note-modal-content'); if(!m || !c) return; m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); document.getElementById('btn-note-yes').onclick = () => confirmCloseNote(); }
-        function closeNoteModal(fromPopstate = false) { const m = document.getElementById('note-confirm-modal'); const c = document.getElementById('note-modal-content'); if(!m || !c) return; m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); pendingNoteId = null; }, 300); if(!fromPopstate && history.state && history.state.view === 'modal') history.back(); }
-        function confirmCloseNote() { if(pendingNoteId) { const n = savedNotes.find(x => x.id === pendingNoteId); if(n) { n.done = true; n.doneDate = new Date().toLocaleDateString('sv-SE'); } try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){} renderNotes(); } closeNoteModal(); }
-
-        function renderNotes() {
-            const container = document.getElementById('notes-list-container'); if(!container) return;
-            let activeHTML = ''; let histHTML = ''; const activeCount = savedNotes.filter(x => !x.done).length;
-
-            savedNotes.forEach(n => {
-                if (!n.done) {
-                    const isExpanded = (activeCount <= 1) || (expandedNoteId === n.id);
-                    if (isExpanded) {
-                        activeHTML += `<div class="bg-white rounded-[20px] border border-slate-200 shadow-md p-3 flex flex-col gap-1.5 relative transition-all">
-                                ${activeCount > 1 ? `<button onclick="toggleExpandNote(${n.id})" class="absolute top-2 right-2 w-5 h-5 flex items-center justify-center text-slate-400 active:scale-90 transition-all text-[8px] border border-slate-100 rounded-full bg-slate-50">▲</button>` : ''}
-                                <div class="pr-8 ${activeCount > 1 ? 'cursor-pointer' : ''}" onclick="${activeCount > 1 ? `toggleExpandNote(${n.id})` : ''}">
-                                    <span class="text-[8px] font-black uppercase text-slate-400 tracking-wider">${n.date}</span>
-                                    ${n.name ? `<div class="text-[11px] font-black text-[#0ea5e9] mt-0.5">${n.name}</div>` : ''}
-                                    ${n.order ? `<div class="text-[10px] font-bold text-slate-500 mt-0.5">Order: <span class="text-slate-800 font-black">${n.order}</span></div>` : ''}
-                                    ${n.phone ? `<div class="text-[10px] font-bold text-slate-500 mt-0.5">Tel: <a href="tel:${n.phone}" onclick="event.stopPropagation()" class="text-[#0ea5e9] font-black hover:underline">${n.phone}</a></div>` : ''}
-                                    ${n.text ? `<div class="text-[12px] font-bold text-slate-800 mt-1.5 leading-snug pb-6">${n.text}</div>` : '<div class="pb-6"></div>'}
-                                </div>
-                                <div class="absolute bottom-2 right-2 flex gap-1.5">
-                                    <button onclick="editNote(${n.id}); event.stopPropagation();" class="w-6 h-6 rounded-full border border-slate-200 bg-white shadow-sm flex items-center justify-center hover:bg-slate-50 active:scale-90 transition-all text-[9px]">✏️</button>
-                                    <button onclick="askCloseNote(${n.id}); event.stopPropagation();" class="w-6 h-6 rounded-full border-2 border-slate-200 flex items-center justify-center hover:bg-[#f0f9ff] hover:border-[#bae6fd] active:scale-90 transition-all bg-white"></button>
-                                </div></div>`;
-                    } else {
-                        activeHTML += `<div onclick="toggleExpandNote(${n.id})" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-2.5 flex justify-between items-center cursor-pointer hover:bg-slate-50 active:scale-[0.98] transition-all">
-                                <div class="flex flex-col overflow-hidden whitespace-nowrap pr-2">
-                                    ${n.name ? `<span class="text-[10px] font-black text-[#0ea5e9] truncate">${n.name}</span>` : '<span class="text-[10px] font-black text-slate-400 italic">Inget namn</span>'}
-                                    ${n.order ? `<span class="text-[9px] font-bold text-slate-500 truncate mt-0.5">Order: ${n.order}</span>` : ''}
-                                </div><div class="text-slate-300 text-[9px]">▼</div></div>`;
-                    }
-                } else {
-                    histHTML += `<div class="bg-white rounded-[16px] border border-slate-100 opacity-75 p-2.5 flex flex-col relative transition-all">
-                            <button onclick="deleteHistoryNote(${n.id}, event)" class="absolute top-2 right-2 w-5 h-5 rounded-full bg-rose-50 flex items-center justify-center hover:bg-rose-100 active:scale-90 transition-all text-[8px] border border-rose-100 text-rose-500">✕</button>
-                            <div class="pr-8"><span class="text-[8px] font-black uppercase text-slate-400 tracking-wider">KLAR ${n.doneDate||''}</span>
-                                ${n.name ? `<div class="text-[10px] font-black text-emerald-600 mt-0.5">${n.name}</div>` : ''}
-                                ${n.order ? `<div class="text-[9px] font-bold text-slate-500">Order: ${n.order}</div>` : ''}
-                                ${n.text ? `<div class="text-[10px] font-medium text-slate-500 mt-1 truncate">${n.text}</div>` : ''}
-                            </div></div>`;
-                }
-            });
-            
-            let fullHTML = '';
-            if(activeHTML) fullHTML += `<h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1 mt-1 mb-0.5">Aktiva Ärenden</h4>${activeHTML}`;
-            if(histHTML) fullHTML += `<div class="flex justify-between items-center px-1 mt-3 mb-0.5 border-t border-slate-200/50 pt-2"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Historik</h4><button onclick="clearAllHistory()" class="text-[7.5px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-600 bg-rose-50 px-2 py-1 rounded-md active:scale-95 transition-all border border-rose-100">Radera allt</button></div>${histHTML}`;
-            if(!activeHTML && !histHTML) fullHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-3xl mb-2">📝</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Inga anteckningar<br>skrivna ännu</p></div>`;
-            
-            container.innerHTML = fullHTML;
-        }
-
-        function triggerChildSelection(absType, source) { pushModalState(); pendingAbsenceType = absType; pendingAbsenceSource = source; document.getElementById('child-modal-title').innerText = `${absType.toUpperCase()} - VEM GÄLLER DET?`; const m = document.getElementById('child-select-modal'); const c = document.getElementById('child-modal-content'); m.classList.remove('hidden'); setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10); }
-        function closeChildModal(fromPopstate = false) { const m = document.getElementById('child-select-modal'); const c = document.getElementById('child-modal-content'); m.classList.add('opacity-0'); c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); pendingAbsenceType = null; pendingAbsenceSource = null; }, 300); if(!fromPopstate && history.state && history.state.view === 'modal') history.back(); }
-
-        function selectChild(childName) {
-            const fullAbs = `${pendingAbsenceType} ${childName}`; 
-            if (pendingAbsenceSource === 'dash') { pushMatrixSync(activeK, { st: 'Arbete', abs: fullAbs, src: 'Manual', raw: fullAbs }); } 
-            else if (pendingAbsenceSource === 'popup') { handleSaveFromPopup(fullAbs); }
-            closeChildModal();
-        }
-
-        function openBudgetModal() { pushModalState(); document.getElementById('budget-modal').classList.remove('hidden'); }
-        function closeBudgetModal(fromPopstate = false) { document.getElementById('budget-modal').classList.add('hidden'); if(!fromPopstate && history.state && history.state.view === 'modal') history.back(); }
-        
-        function setGlobalBudget(amount) { 
-            let cy = viewDate.getFullYear();
-            let cm = viewDate.getMonth() + 1;
-            savedBudgets[`${cy}-${cm}`] = amount;
-            try { localStorage.setItem('sf_budgets', JSON.stringify(savedBudgets)); } catch(e){} 
-            db.b = amount;
-            calculateTimeline(); 
-            updateDash(); 
-            closeBudgetModal(); 
-        }
-        
-        function updateTopTitle() {
-            const t = document.getElementById('dynamic-view-title'); if(!t) return;
-            const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']; const months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
-            
-            if (viewMode === 'dash') { 
-                if(activeK) {
-                    const parts = activeK.split('-'); const d = new Date(parts[0], parts[1]-1, parts[2]); 
-                    t.innerText = `${d.getDate()} ${months[d.getMonth()].toUpperCase()} ${daysLong[d.getDay()].toUpperCase()}`;
-                } else {
-                    t.innerText = `VECKA ${getWeekNumber(currentWeekStart)}`; 
-                }
-            } 
-            else if (viewMode === 'month') { t.innerText = `${months[viewDate.getMonth()].toUpperCase()} ${viewDate.getFullYear()}`; } 
-            else if (viewMode === 'absence') { t.innerText = `FRÅNVARO - ${months[viewDate.getMonth()].toUpperCase()} ${viewDate.getFullYear()}`; } 
-            else if (viewMode === 'notes') { t.innerText = "ANTECKNINGAR"; }
-            
-            const topMonthLbl = document.getElementById('top-month-lbl');
-            if (topMonthLbl) {
-                topMonthLbl.innerText = months[viewDate.getMonth()].toUpperCase();
-            }
-        }
-
-        function updateTopInfoBar() {
-            const infoTextEl = document.getElementById('top-info-text');
-            const infoBarEl = document.getElementById('top-info-bar');
-            if(!infoTextEl || !infoBarEl) return;
-            
-            let forceNextShift = (viewMode === 'dash' || viewMode === 'absence' || viewMode === 'notes');
-            let displayDay = null;
-
-            if (!forceNextShift && viewMode === 'month' && multiSelectKeys.size === 1) {
-                displayDay = Array.from(multiSelectKeys)[0];
-            }
-            
-            const daysShort = ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör'];
-            const em = { 'Sjuk': '🤒 SJUK', 'VAB': '👶 VAB', 'Föräldraledig': '🍼 F-LEDIG', 'Semester': '✈️ SEMESTER', 'Tjänstledig': '🏢 T-LEDIG', 'Åtgärd krävs': '⚠️ ÅTGÄRD' };
-
-            let newHTML = "";
-            let isActiveShiftNow = false;
-
-            if (displayDay) {
-                const o = db.d[displayDay] || {s:0}; 
-                const qData = db.q[displayDay] || {};
-                const state = getCellState(displayDay);
-                
-                const dObj = new Date(displayDay.split('-')[0], displayDay.split('-')[1]-1, displayDay.split('-')[2]);
-                const dayName = daysShort[dObj.getDay()].toUpperCase();
-                const dDate = `${dObj.getDate()}/${dObj.getMonth()+1}`;
-
-                const isToday = dObj.getTime() === realToday.getTime();
-                let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10;
-                let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19;
-                let nH = new Date().getHours();
-                if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned' && nH >= sStart && nH <= sEnd) {
-                    isActiveShiftNow = true;
-                }
-
-                if (o.abs) {
-                    let bKey = o.abs.split(' ')[0];
-                    let txt = em[o.abs] || em[bKey] || `⚠️ ${o.abs.toUpperCase()}`;
-                    if (o.abs_hours && o.abs !== 'Åtgärd krävs') {
-                        let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours;
-                        let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100;
-                        txt += ` • ${o.abs_hours.toFixed(2).replace('.00','')}h • ${actualP}% FK`;
-                    }
-                    newHTML = `<span class="text-rose-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">${txt}</span>`;
-                } else if (qData.start && !o.abs) {
-                    newHTML = `<span class="text-[#38bdf8] font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">PASS ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span>`;
-                } else if (state === 'ledig' || state === 'unplanned') {
-                    newHTML = `<span class="text-slate-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-slate-300">🏠 LEDIG</span>`;
-                } else {
-                    newHTML = `<span class="text-slate-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-slate-400">INGEN DATA</span>`;
-                }
-            } else {
-                let nextShiftDate = null;
-                let cDate = new Date(realToday);
-                for(let i=0; i<30; i++) {
-                    const k = getK(cDate);
-                    const qData = db.q[k] || {};
-                    const state = getCellState(k);
-                    if (qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester') {
-                        nextShiftDate = new Date(cDate);
-                        break;
-                    }
-                    cDate.setDate(cDate.getDate() + 1);
-                }
-                
-                if (nextShiftDate) {
-                    const k = getK(nextShiftDate);
-                    const qData = db.q[k];
-                    const o = db.d[k] || {};
-                    const state = getCellState(k);
-                    const dayName = daysShort[nextShiftDate.getDay()].toUpperCase();
-                    const dDate = `${nextShiftDate.getDate()}/${nextShiftDate.getMonth()+1}`;
-                    let prefix = (nextShiftDate.getTime() === realToday.getTime()) ? 'IDAG' : 'NÄSTA PASS';
-
-                    const isToday = nextShiftDate.getTime() === realToday.getTime();
-                    let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10;
-                    let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19;
-                    let nH = new Date().getHours();
-                    if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned' && nH >= sStart && nH <= sEnd) {
-                        isActiveShiftNow = true;
-                    }
-
-                    newHTML = `<span class="text-[#38bdf8] font-bold">${prefix}</span> <span class="text-white/20">|</span> <span class="text-white">${dayName} ${dDate} • ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span>`;
-                } else {
-                    newHTML = `<span class="text-slate-400">INGA PLANERADE PASS HITTADES</span>`;
-                }
-            }
-
-            if (infoTextEl.innerHTML !== newHTML) {
-                infoTextEl.innerHTML = newHTML;
-                infoTextEl.classList.remove('animate-info-pop');
-                void infoTextEl.offsetWidth; 
-                infoTextEl.classList.add('animate-info-pop');
-            }
-
-            if (isActiveShiftNow) {
-                infoBarEl.classList.add('active-info-pulse');
-            } else {
-                infoBarEl.classList.remove('active-info-pulse');
-            }
-        }
-
-        document.getElementById('top-info-bar').addEventListener('click', () => {
-            if (viewMode !== 'dash' && !multiSelectKeys.size) return;
-            let cDate = new Date(realToday);
-            for(let i=0; i<30; i++) {
-                const k = getK(cDate);
-                const qData = db.q[k] || {};
-                const state = getCellState(k);
-                if (qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester') {
-                    if(!activeK) { goToDayFromMonth(k); }
-                    break;
-                }
-                cDate.setDate(cDate.getDate() + 1);
-            }
-        });
-
-        function toggleDashMode() {
-            activeK = getK(realToday);
-            currentWeekStart = new Date(realToday);
-            const sdo = currentWeekStart.getDay() || 7;
-            currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
-            currentWeekStart.setHours(0,0,0,0);
-            viewDate = new Date(realToday); 
-
-            db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
-
-            if (viewMode !== 'dash') {
-                setMode('dash');
-            } else {
-                calculateTimeline();
-                renderWeekSlides();
-                updateDashboardView();
-                updateTopTitle();
-                updateTopInfoBar();
-                document.querySelectorAll('.day-cell').forEach(c => {
-                    if(activeK && c.dataset.key === activeK) c.classList.add('active-focus');
-                    else c.classList.remove('active-focus');
-                });
-            }
-        }
-
+        // ==========================================
+        //  VIEW & STATE LOGIC
+        // ==========================================
         function setMode(mode) {
             if (currentFocusReason && mode !== 'month') { closeFocusMode(true); }
-
-            if (!viewDate) viewDate = new Date(realToday);
-            if (!currentWeekStart) currentWeekStart = new Date(realToday);
-            
-            multiSelectKeys.clear();
-            closeMonthEdit();
-            if(numpadTarget) closeNumpad();
-
+            if (!viewDate) viewDate = new Date(realToday); if (!currentWeekStart) currentWeekStart = new Date(realToday);
+            multiSelectKeys.clear(); closeMonthEdit(); if(numpadTarget) closeNumpad();
             viewMode = mode; document.body.className = `mode-${mode} ${currentFocusReason ? 'focus-mode-active' : ''}`;
 
             ['dash', 'month', 'absence'].forEach(m => {
@@ -1554,17 +822,25 @@
                     else b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50"; 
                 }
             });
-
             if (mode === 'dash' && !activeK) { activeK = getK(realToday); }
-
             calculateTimeline(); updateDash();
-
             if (mode === 'dash') { renderWeekSlides(); updateDashboardView(); } 
             else if (mode === 'month') { renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1); } 
             else if (mode === 'absence') { renderAbsence(); } 
             else if (mode === 'notes') { renderNotes(); }
-            
             updateTopTitle();
+        }
+
+        function toggleDashMode() {
+            activeK = getK(realToday); currentWeekStart = new Date(realToday);
+            const sdo = currentWeekStart.getDay() || 7; currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); currentWeekStart.setHours(0,0,0,0);
+            viewDate = new Date(realToday); 
+            db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
+            if (viewMode !== 'dash') { setMode('dash'); } 
+            else {
+                calculateTimeline(); renderWeekSlides(); updateDashboardView(); updateTopTitle(); updateTopInfoBar();
+                document.querySelectorAll('.day-cell').forEach(c => { if(activeK && c.dataset.key === activeK) c.classList.add('active-focus'); else c.classList.remove('active-focus'); });
+            }
         }
 
         function cycleView(dir) {
@@ -1579,32 +855,55 @@
             if (viewMode === 'month' || viewMode === 'absence') { 
                 viewDate.setMonth(viewDate.getMonth() + offset); 
                 currentWeekStart = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
-                const sdo = currentWeekStart.getDay() || 7;
-                currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
-                currentWeekStart.setHours(0,0,0,0);
-                
-                calculateTimeline(); updateDash(); 
-                if (viewMode === 'absence') renderAbsence(); 
+                const sdo = currentWeekStart.getDay() || 7; currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); currentWeekStart.setHours(0,0,0,0);
+                calculateTimeline(); updateDash(); if (viewMode === 'absence') renderAbsence(); 
             } 
             else if (viewMode === 'dash') { 
-                currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); 
-                activeK = null; 
-                
-                let thursday = new Date(currentWeekStart);
-                thursday.setDate(thursday.getDate() + 3);
-                const majorityMonth = thursday.getMonth();
-
+                currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); activeK = null; 
+                let thursday = new Date(currentWeekStart); thursday.setDate(thursday.getDate() + 3); const majorityMonth = thursday.getMonth();
                 if (majorityMonth !== viewDate.getMonth()) {
                     viewDate = new Date(thursday.getFullYear(), thursday.getMonth(), 1);
                     db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
-                    calculateTimeline();
-                    updateDash();
+                    calculateTimeline(); updateDash();
                 }
                 renderWeekSlides(); updateDashboardView(); 
             } 
             updateTopTitle();
         }
 
+        function goToDayFromMonth(k) {
+            activeK = k; const parts = k.split('-'); const d = new Date(parts[0], parts[1]-1, parts[2]);
+            viewDate = new Date(d.getFullYear(), d.getMonth(), 1); currentWeekStart = new Date(d);
+            const sdo = currentWeekStart.getDay() || 7; currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); currentWeekStart.setHours(0,0,0,0);
+            multiSelectKeys.clear(); closeMonthEdit(); if(numpadTarget) closeNumpad();
+            viewMode = 'dash'; document.body.className = `mode-dash ${currentFocusReason ? 'focus-mode-active' : ''}`;
+            ['dash', 'month', 'absence'].forEach(m => {
+                const b = document.getElementById(`tab-${m}`);
+                if(b) { if(m === 'dash') b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm"; else b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50"; }
+            });
+            calculateTimeline(); updateDash(); renderWeekSlides(); updateDashboardView(); updateTopTitle();
+        }
+
+        function selectDay(k, el, e) {
+            e.stopPropagation();
+            if (viewMode === 'month') {
+                if (multiSelectKeys.has(k)) { multiSelectKeys.delete(k); el.classList.remove('active-focus'); } else { multiSelectKeys.add(k); el.classList.add('active-focus'); }
+                if (multiSelectKeys.size > 0) {
+                    document.getElementById('cal-standard-header').classList.add('hidden'); document.getElementById('month-edit-menu').classList.remove('hidden');
+                    const mText = document.getElementById('month-sales-text');
+                    if(multiSelectKeys.size === 1) { const singleK = Array.from(multiSelectKeys)[0]; const o = db.d[singleK] || {}; if (mText) { if (o.s > 0) { mText.innerText = o.s + ' kr'; mText.classList.replace('text-slate-400', 'text-[#0ea5e9]'); } else { mText.innerText = '0 kr'; mText.classList.replace('text-[#0ea5e9]', 'text-slate-400'); } } } else { if (mText) { mText.innerText = '0 kr'; mText.classList.replace('text-[#0ea5e9]', 'text-slate-400'); } }
+                } else { closeMonthEdit(); }
+            } else {
+                const isSameDay = (activeK === k);
+                if (isSameDay) { activeK = null; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); if (viewMode === 'dash') { updateDashboardView(); } updateTopInfoBar(); return; }
+                activeK = k; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); el.classList.add('active-focus'); if (viewMode === 'dash') { updateDashboardView(); }
+            }
+            if(numpadTarget) closeNumpad(); updateTopTitle(); updateTopInfoBar();
+        }
+
+        // ==========================================
+        //  CORE LOGIC (TIMELINE & SYNCS)
+        // ==========================================
         function getCellState(k) { 
             const o = db.d[k] || {}, qData = db.q[k] || {}; 
             if (o.abs && o.abs.includes('Semester')) return 'semester';
@@ -1619,63 +918,39 @@
             timeline = {};
             for (let offset = -1; offset <= 1; offset++) {
                 let tempD = new Date(viewDate.getFullYear(), viewDate.getMonth() + offset, 1);
-                let cy = tempD.getFullYear();
-                let cm = tempD.getMonth() + 1;
-                let daysM = new Date(cy, cm, 0).getDate();
-                
+                let cy = tempD.getFullYear(); let cm = tempD.getMonth() + 1; let daysM = new Date(cy, cm, 0).getDate();
                 let tW = 0; 
-                for(let d=1; d<=daysM; d++) { 
-                    const k = `${cy}-${cm}-${d}`;
-                    const o = db.d[k] || {};
-                    const qData = db.q[k] || {};
-                    if (qData.start || o.s > 0) tW++; 
-                }
-                
+                for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {}; const qData = db.q[k] || {}; if (qData.start || o.s > 0) tW++; }
                 if (tW === 0) tW = 21; 
-
                 let rB = getBudgetForMonth(cy, cm), rP = tW;
-                
                 for(let d=1; d<=daysM; d++) { 
-                    const k = `${cy}-${cm}-${d}`; 
-                    const o = db.d[k] || {s:0}; 
-                    const qData = db.q[k] || {};
-                    const isW = (qData.start || o.s > 0); 
-                    
-                    if (isW) { 
-                        const target = rP > 0 ? rB / rP : 0; 
-                        timeline[k] = { target: Math.max(0, target) }; 
-                        rB -= o.s; 
-                        rP--; 
-                    } else { 
-                        timeline[k] = { target: 0 }; 
-                        rB -= o.s; 
-                    } 
+                    const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; const isW = (qData.start || o.s > 0); 
+                    if (isW) { const target = rP > 0 ? rB / rP : 0; timeline[k] = { target: Math.max(0, target) }; rB -= o.s; rP--; } else { timeline[k] = { target: 0 }; rB -= o.s; } 
                 }
             }
         }
 
+        function pushMatrixSync(k, o) {
+            const old = db.d[k] || {}; const qd = db.q[k] || {};
+            const merged = { 
+                st: o.st !== undefined ? o.st : (old.st || 'Arbete'), s: o.s !== undefined ? o.s : (old.s || 0), abs: o.abs !== undefined ? o.abs : (old.abs || null), src: o.src !== undefined ? o.src : 'Manual', raw: o.raw !== undefined ? o.raw : (old.raw || ''), fk_perc: o.fk_perc !== undefined ? o.fk_perc : (old.fk_perc || qd.fk_perc || null), abs_hours: o.abs_hours !== undefined ? o.abs_hours : (old.abs_hours || qd.abs_hours || null), eval: old.eval || null, eval_text: old.eval_text || '', has_eval_saved: old.has_eval_saved || false
+            };
+            db.d[k] = merged; calculateTimeline(); updateDash(); 
+            if (viewMode === 'dash') updateDashboardView();
+            if (sb) { sb.from('sales_data').upsert({ date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs, raw_reason: merged.raw, fk_perc: merged.fk_perc, abs_hours: merged.abs_hours }).then(({error}) => { if(error) console.warn("Supabase fel", error); }); }
+        }
+
+        // ==========================================
+        //  RENDERING FUNCTIONS
+        // ==========================================
         function updateDash() { 
             db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
-            
             const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); let tS = 0, dP = 0, tP = 0, rW = 0; const daysM = new Date(cy, cm, 0).getDate();
-            for(let d=1; d<=daysM; d++) { 
-                const k = `${cy}-${cm}-${d}`;
-                const o = db.d[k] || {s:0}; 
-                const qData = db.q[k] || {};
-                
-                tS += o.s; 
-                if (o.s > 0) dP++; 
-                if (qData.start || o.s > 0) { 
-                    tP++; 
-                    const dObj = new Date(cy, cm-1, d); 
-                    if (dObj >= realToday) rW++; 
-                } 
-            }
+            for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; tS += o.s; if (o.s > 0) dP++; if (qData.start || o.s > 0) { tP++; const dObj = new Date(cy, cm-1, d); if (dObj >= realToday) rW++; } }
             const monthlyPerc = db.b > 0 ? Math.round((tS/db.b)*100) : 0; const avg = dP ? (tS / dP) : 0;
             
             const bValEl = document.getElementById('d-budget-val'); if(bValEl) bValEl.innerText = db.b.toLocaleString('sv-SE') + " kr";
             const maxK = Math.round(db.b / 1000); const maxLbl = document.getElementById('g-max-lbl'); if (maxLbl) maxLbl.innerText = maxK;
-            
             const tgtEl = document.getElementById('d-today-target'); if(tgtEl) tgtEl.innerText = Math.round((timeline[getK(realToday)]?.target || 0)/1000) + " k";
             const avgEl = document.getElementById('d-avg-val'); if(avgEl) avgEl.innerText = Math.round(avg/1000) + " k"; 
             const mainValEl = document.getElementById('h-main-val'); if(mainValEl) mainValEl.innerText = (tS/1000).toFixed(1) + " k";
@@ -1696,312 +971,119 @@
             const progEl = document.getElementById('d-prog'); if(progEl) { progEl.innerText = progStr + " k"; progEl.style.color = progStr >= (db.b/1000) ? 'var(--pos)' : 'var(--neg)'; }
             const statEl = document.getElementById('d-status'); if(statEl) { statEl.innerText = progStr >= (db.b/1000) ? "I FAS" : "EFTER"; statEl.style.color = progStr >= (db.b/1000) ? 'var(--pos)' : 'var(--neg)'; }
             
-            if(viewMode === 'month') renderCal(cy, cm); 
-            else if(viewMode === 'dash') { renderWeekSlides(); updateDashboardView(); } 
-            else if(viewMode === 'absence') renderAbsence();
-            updateTopTitle();
-            updateTopInfoBar();
+            if(viewMode === 'month') renderCal(cy, cm); else if(viewMode === 'dash') { renderWeekSlides(); updateDashboardView(); } else if(viewMode === 'absence') renderAbsence();
+            updateTopTitle(); updateTopInfoBar();
         }
 
-        function goToDayFromMonth(k) {
-            activeK = k;
-            const parts = k.split('-');
-            const d = new Date(parts[0], parts[1]-1, parts[2]);
-            
-            viewDate = new Date(d.getFullYear(), d.getMonth(), 1);
-            currentWeekStart = new Date(d);
-            const sdo = currentWeekStart.getDay() || 7;
-            currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1);
-            currentWeekStart.setHours(0,0,0,0);
-            
-            multiSelectKeys.clear();
-            closeMonthEdit();
-            if(numpadTarget) closeNumpad();
-
-            viewMode = 'dash'; 
-            document.body.className = `mode-dash ${currentFocusReason ? 'focus-mode-active' : ''}`;
-            
-            ['dash', 'month', 'absence'].forEach(m => {
-                const b = document.getElementById(`tab-${m}`);
-                if(b) { 
-                    if(m === 'dash') b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm"; 
-                    else b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50"; 
-                }
-            });
-            
-            calculateTimeline(); 
-            updateDash();
-            renderWeekSlides(); 
-            updateDashboardView();
-            updateTopTitle();
-        }
-
-        function selectDay(k, el, e) {
-            e.stopPropagation();
-            if (viewMode === 'month') {
-                if (multiSelectKeys.has(k)) { multiSelectKeys.delete(k); el.classList.remove('active-focus'); } 
-                else { multiSelectKeys.add(k); el.classList.add('active-focus'); }
-
-                if (multiSelectKeys.size > 0) {
-                    document.getElementById('cal-standard-header').classList.add('hidden'); document.getElementById('month-edit-menu').classList.remove('hidden');
-                    const mText = document.getElementById('month-sales-text');
-                    if(multiSelectKeys.size === 1) { 
-                        const singleK = Array.from(multiSelectKeys)[0]; const o = db.d[singleK] || {}; 
-                        if (mText) { if (o.s > 0) { mText.innerText = o.s + ' kr'; mText.classList.replace('text-slate-400', 'text-[#0ea5e9]'); } else { mText.innerText = '0 kr'; mText.classList.replace('text-[#0ea5e9]', 'text-slate-400'); } }
-                    } else { 
-                        if (mText) { mText.innerText = '0 kr'; mText.classList.replace('text-[#0ea5e9]', 'text-slate-400'); }
-                    }
-                } else { closeMonthEdit(); }
-            } else {
-                const isSameDay = (activeK === k);
-                if (isSameDay) { activeK = null; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); if (viewMode === 'dash') { updateDashboardView(); } updateTopInfoBar(); return; }
-                activeK = k; document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); el.classList.add('active-focus');
-                if (viewMode === 'dash') { updateDashboardView(); }
+        function updateTopTitle() {
+            const titleEl = document.getElementById('dynamic-view-title'); const months = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
+            if (titleEl) {
+                if (viewMode === 'dash') {
+                    if (activeK) { const p = activeK.split('-'); const d = new Date(p[0], p[1]-1, p[2]); titleEl.innerText = `${d.getDate()} ${months[d.getMonth()].toUpperCase()} ${d.getFullYear()}`; } else { titleEl.innerText = `VECKA ${getWeekNumber(currentWeekStart)} - ${currentWeekStart.getFullYear()}`; }
+                } else { titleEl.innerText = `${months[viewDate.getMonth()].toUpperCase()} ${viewDate.getFullYear()}`; }
             }
-            if(numpadTarget) closeNumpad();
-            updateTopTitle();
-            updateTopInfoBar();
+            const topMonthLbl = document.getElementById('top-month-lbl'); if (topMonthLbl) { topMonthLbl.innerText = `${months[viewDate.getMonth()].toUpperCase()} ${viewDate.getFullYear()}`; }
         }
 
-        function handleDashAction(t) { if(!activeK) return; if (t === 'VAB' || t === 'Föräldraledig') { triggerChildSelection(t, 'dash'); return; } finalizeDashAction(t); }
-        function finalizeDashAction(t) { if(['Arbete','Ledig'].includes(t)) pushMatrixSync(activeK, { st: t, abs: null, src: 'Manual', raw: t }); else pushMatrixSync(activeK, { st: 'Arbete', abs: t, src: 'Manual', raw: t }); }
-        function closeMonthEdit() { const m = document.getElementById('month-edit-menu'); if(m) m.classList.add('hidden'); const h = document.getElementById('cal-standard-header'); if(h) h.classList.remove('hidden'); }
+        function updateTopInfoBar() {
+            const infoTextEl = document.getElementById('top-info-text'); const infoBarEl = document.getElementById('top-info-bar'); if(!infoTextEl || !infoBarEl) return;
+            let forceNextShift = (viewMode === 'dash' || viewMode === 'absence' || viewMode === 'notes'); let displayDay = null;
+            if (!forceNextShift && viewMode === 'month' && multiSelectKeys.size === 1) { displayDay = Array.from(multiSelectKeys)[0]; }
+            
+            const daysShort = ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör']; const em = { 'Sjuk': '🤒 SJUK', 'VAB': '👶 VAB', 'Föräldraledig': '🍼 F-LEDIG', 'Semester': '✈️ SEMESTER', 'Tjänstledig': '🏢 T-LEDIG', 'Åtgärd krävs': '⚠️ ÅTGÄRD' };
+            let newHTML = ""; let isActiveShiftNow = false;
 
-        function checkOverwriteFromPopup(t) { 
-            let hasSales = Array.from(multiSelectKeys).some(k => (db.d[k]?.s > 0));
-            if (hasSales && t === 'delete') { pushModalState(); document.getElementById('confirm-box').style.display='block'; document.getElementById('conf-yes').onclick = () => { handleSaveFromPopup(t); hideConfirm(); }; } 
-            else { if (t === 'VAB' || t === 'Föräldraledig') { triggerChildSelection(t, 'popup'); } else { handleSaveFromPopup(t); } } 
+            if (displayDay) {
+                const o = db.d[displayDay] || {s:0}; const qData = db.q[displayDay] || {}; const state = getCellState(displayDay);
+                const dObj = new Date(displayDay.split('-')[0], displayDay.split('-')[1]-1, displayDay.split('-')[2]); const dayName = daysShort[dObj.getDay()].toUpperCase(); const dDate = `${dObj.getDate()}/${dObj.getMonth()+1}`;
+                const isToday = dObj.getTime() === realToday.getTime(); let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let nH = new Date().getHours();
+                if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned' && nH >= sStart && nH <= sEnd) { isActiveShiftNow = true; }
+
+                if (o.abs) { let bKey = o.abs.split(' ')[0]; let txt = em[o.abs] || em[bKey] || `⚠️ ${o.abs.toUpperCase()}`; if (o.abs_hours && o.abs !== 'Åtgärd krävs') { let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours; let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100; txt += ` • ${o.abs_hours.toFixed(2).replace('.00','')}h • ${actualP}% FK`; } newHTML = `<span class="text-rose-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">${txt}</span>`; } else if (qData.start && !o.abs) { newHTML = `<span class="text-[#38bdf8] font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-white">PASS ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span>`; } else if (state === 'ledig' || state === 'unplanned') { newHTML = `<span class="text-slate-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-slate-300">🏠 LEDIG</span>`; } else { newHTML = `<span class="text-slate-400 font-bold">${dayName} ${dDate}</span> <span class="text-white/20">|</span> <span class="text-slate-400">INGEN DATA</span>`; }
+            } else {
+                let nextShiftDate = null; let cDate = new Date(realToday);
+                for(let i=0; i<30; i++) { const k = getK(cDate); const qData = db.q[k] || {}; const state = getCellState(k); if (qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester') { nextShiftDate = new Date(cDate); break; } cDate.setDate(cDate.getDate() + 1); }
+                if (nextShiftDate) {
+                    const k = getK(nextShiftDate); const qData = db.q[k]; const o = db.d[k] || {}; const state = getCellState(k); const dayName = daysShort[nextShiftDate.getDay()].toUpperCase(); const dDate = `${nextShiftDate.getDate()}/${nextShiftDate.getMonth()+1}`; let prefix = (nextShiftDate.getTime() === realToday.getTime()) ? 'IDAG' : 'NÄSTA PASS';
+                    const isToday = nextShiftDate.getTime() === realToday.getTime(); let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let nH = new Date().getHours();
+                    if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned' && nH >= sStart && nH <= sEnd) { isActiveShiftNow = true; }
+                    newHTML = `<span class="text-[#38bdf8] font-bold">${prefix}</span> <span class="text-white/20">|</span> <span class="text-white">${dayName} ${dDate} • ${qData.start.substring(0,5)}-${qData.end.substring(0,5)}</span>`;
+                } else { newHTML = `<span class="text-slate-400">INGA PLANERADE PASS HITTADES</span>`; }
+            }
+            if (infoTextEl.innerHTML !== newHTML) { infoTextEl.innerHTML = newHTML; infoTextEl.classList.remove('animate-info-pop'); void infoTextEl.offsetWidth; infoTextEl.classList.add('animate-info-pop'); }
+            if (isActiveShiftNow) { infoBarEl.classList.add('active-info-pulse'); } else { infoBarEl.classList.remove('active-info-pulse'); }
         }
-        function hideConfirm(fromPopstate = false) { const cb = document.getElementById('confirm-box'); if(cb && cb.style.display !== 'none') { cb.style.display='none'; if(!fromPopstate && history.state && history.state.view === 'modal') history.back(); } }
 
         function updateDashboardView() {
-            const dashTab = document.getElementById('tab-dash');
-            if (dashTab) dashTab.innerText = activeK ? 'DAG' : 'VECKA';
-
-            let dTarget = 0, dSales = 0, dDiff = 0;
-            let title = "", subtitle = "", statusText = "VÄLJ DAG";
-            let showActions = false;
-            let absType = null;
-            let isReached = false;
-
-            let isActiveNow = false;
+            const dashTab = document.getElementById('tab-dash'); if (dashTab) dashTab.innerText = activeK ? 'DAG' : 'VECKA';
+            let dTarget = 0, dSales = 0, dDiff = 0; let title = "", subtitle = "", statusText = "VÄLJ DAG"; let showActions = false; let absType = null; let isReached = false; let isActiveNow = false;
 
             if (activeK) {
-                const parts = activeK.split('-'); 
-                const dObj = new Date(parts[0], parts[1]-1, parts[2]); 
-                const o = db.d[activeK] || {s:0}; 
-                const qData = db.q[activeK] || {};
-                const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
-                
-                title = `${daysLong[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`;
-                subtitle = qData.start ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
-                
-                dTarget = timeline[activeK]?.target || 0;
-                dSales = o.s || 0;
-                dDiff = dSales - dTarget;
-                absType = o.abs;
-                
+                const parts = activeK.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]); const o = db.d[activeK] || {s:0}; const qData = db.q[activeK] || {};
+                const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']; const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+                title = `${daysLong[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`; subtitle = qData.start ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
+                dTarget = timeline[activeK]?.target || 0; dSales = o.s || 0; dDiff = dSales - dTarget; absType = o.abs;
                 const state = getCellState(activeK);
-                if (state === 'absent') statusText = absType.toUpperCase();
-                else if (state === 'semester') statusText = 'SEMESTER';
-                else if (state === 'ledig' || state === 'unplanned') statusText = 'LEDIG';
-                else statusText = 'ARBETSPASS';
+                if (state === 'absent') statusText = absType.toUpperCase(); else if (state === 'semester') statusText = 'SEMESTER'; else if (state === 'ledig' || state === 'unplanned') statusText = 'LEDIG'; else statusText = 'ARBETSPASS';
+                showActions = true; isReached = dTarget > 0 && dSales >= dTarget;
 
-                showActions = true;
-                isReached = dTarget > 0 && dSales >= dTarget;
+                const isToday = dObj.getTime() === realToday.getTime(); let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let nH = new Date().getHours();
+                if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned' && nH >= sStart && nH <= sEnd) { isActiveNow = true; }
 
-                const isToday = dObj.getTime() === realToday.getTime();
-                let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10;
-                let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19;
-                let nH = new Date().getHours();
-                if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned' && nH >= sStart && nH <= sEnd) {
-                    isActiveNow = true;
-                }
+                const btnEval = document.getElementById('btn-trigger-eval');
+                if (qData.start && state !== 'ledig' && state !== 'semester') { btnEval.classList.remove('hidden'); btnEval.classList.add('flex'); } else { btnEval.classList.add('hidden'); btnEval.classList.remove('flex'); }
 
-                const actsGrid = document.getElementById('dash-actions-grid');
-                const stdActions = `<div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50"><button onclick="handleDashAction('Arbete')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button><button onclick="handleDashAction('Ledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button><button onclick="handleDashAction('Semester')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button><button onclick="handleDashAction('Sjuk')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button><button onclick="handleDashAction('VAB')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button><button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button></div>`;
-
-                if (absType === 'VAB' || absType === 'Föräldraledig') {
-                    actsGrid.innerHTML = `<div class="p-0.5 bg-slate-50 w-full h-full flex gap-1"><button onclick="triggerChildSelection('${absType}', 'dash')" class="w-full h-full bg-[#fef3c7] hover:bg-[#fde68a] text-[#d97706] font-black text-[10px] rounded-[10px] border border-[#fcd34d] shadow-sm flex items-center justify-center uppercase tracking-widest active:scale-95 transition-transform">⚠️ Välj Barn</button></div>`;
-                } else {
-                    actsGrid.innerHTML = stdActions;
-                }
+                const actsGrid = document.getElementById('dash-actions-grid'); const stdActions = `<div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50"><button onclick="handleDashAction('Arbete')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button><button onclick="handleDashAction('Ledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button><button onclick="handleDashAction('Semester')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button><button onclick="handleDashAction('Sjuk')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button><button onclick="handleDashAction('VAB')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button><button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button></div>`;
+                if (absType === 'VAB' || absType === 'Föräldraledig') { actsGrid.innerHTML = `<div class="p-0.5 bg-slate-50 w-full h-full flex gap-1"><button onclick="triggerChildSelection('${absType}', 'dash')" class="w-full h-full bg-[#fef3c7] hover:bg-[#fde68a] text-[#d97706] font-black text-[10px] rounded-[10px] border border-[#fcd34d] shadow-sm flex items-center justify-center uppercase tracking-widest active:scale-95 transition-transform">⚠️ Välj Barn</button></div>`; } else { actsGrid.innerHTML = stdActions; }
                 
-                let metaText = "";
-                if (absType && o.abs_hours && absType !== 'Åtgärd krävs') {
-                    let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours;
-                    let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH)*100) : 100;
-                    metaText = `${o.abs_hours.toFixed(2).replace('.00','')}h | ${actualP}% (${o.fk_perc || 0}%)`;
-                }
-                document.getElementById('dash-status-meta').innerText = metaText;
-
+                let metaText = ""; if (absType && o.abs_hours && absType !== 'Åtgärd krävs') { let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours; let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH)*100) : 100; metaText = `${o.abs_hours.toFixed(2).replace('.00','')}h | ${actualP}% (${o.fk_perc || 0}%)`; } document.getElementById('dash-status-meta').innerText = metaText;
             } else {
-                let wPass = 0, firstShiftTarget = null;
-                let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6);
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
-                
-                for(let i=0; i<7; i++) { 
-                    const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); 
-                    const k = getK(cd); const state = getCellState(k); 
-                    dSales += (db.d[k]?.s || 0); 
-                    if(state === 'worked' || state === 'planned') { if(firstShiftTarget === null) firstShiftTarget = (timeline[k]?.target || 0); wPass++; } 
-                }
-                
-                dTarget = (firstShiftTarget || 0) * wPass;
-                dDiff = dSales - dTarget;
-                
-                title = `VECKA ${getWeekNumber(currentWeekStart)}`;
-                subtitle = `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`;
-                statusText = "VÄLJ DAG...";
-                
-                showActions = false;
-                absType = null;
-                isReached = dTarget > 0 && dSales >= dTarget;
-                document.getElementById('dash-status-meta').innerText = "";
+                let wPass = 0, firstShiftTarget = null; let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6); const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+                for(let i=0; i<7; i++) { const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); const k = getK(cd); const state = getCellState(k); dSales += (db.d[k]?.s || 0); if(state === 'worked' || state === 'planned') { if(firstShiftTarget === null) firstShiftTarget = (timeline[k]?.target || 0); wPass++; } }
+                dTarget = (firstShiftTarget || 0) * wPass; dDiff = dSales - dTarget; title = `VECKA ${getWeekNumber(currentWeekStart)}`; subtitle = `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`; statusText = "VÄLJ DAG..."; showActions = false; absType = null; isReached = dTarget > 0 && dSales >= dTarget; document.getElementById('dash-status-meta').innerText = "";
+                document.getElementById('btn-trigger-eval').classList.add('hidden');
             }
 
-            document.getElementById('dash-title').innerText = title.toUpperCase();
-            document.getElementById('dash-subtitle').innerText = subtitle;
-            document.getElementById('dash-status-text').innerText = statusText;
-
-            document.getElementById('dash-lbl-target').innerText = activeK ? "DAGSMÅL" : "VECKOMÅL";
-            document.getElementById('dash-val-target').innerText = (dTarget/1000).toFixed(1) + " k";
+            document.getElementById('dash-title').innerText = title.toUpperCase(); document.getElementById('dash-subtitle').innerText = subtitle; document.getElementById('dash-status-text').innerText = statusText;
+            document.getElementById('dash-lbl-target').innerText = activeK ? "DAGSMÅL" : "VECKOMÅL"; document.getElementById('dash-val-target').innerText = (dTarget/1000).toFixed(1) + " k";
+            const salesEl = document.getElementById('dash-val-sales'); salesEl.innerText = (dSales/1000).toFixed(1) + " k"; salesEl.style.color = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
+            const diffEl = document.getElementById('dash-val-diff'); diffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; diffEl.style.color = dDiff >= 0 ? "var(--sting-blue)" : "var(--neg)";
+            const p = dTarget > 0 ? Math.min(100, Math.round((dSales / dTarget) * 100)) : 0; document.getElementById('dash-val-perc').innerText = p + "%";
             
-            const salesEl = document.getElementById('dash-val-sales');
-            salesEl.innerText = (dSales/1000).toFixed(1) + " k";
-            salesEl.style.color = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
-
-            const diffEl = document.getElementById('dash-val-diff');
-            diffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k";
-            diffEl.style.color = dDiff >= 0 ? "var(--sting-blue)" : "var(--neg)";
-
-            const p = dTarget > 0 ? Math.min(100, Math.round((dSales / dTarget) * 100)) : 0;
-            document.getElementById('dash-val-perc').innerText = p + "%";
-            
-            const g = document.getElementById('dash-gauge-prog');
-            if(g) {
-                g.style.strokeDashoffset = 283 - ((p / 100) * 212);
-                g.style.stroke = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
-                g.style.filter = isReached ? 'drop-shadow(0 0 4px rgba(16,185,129,0.4))' : (dTarget > 0 ? 'drop-shadow(0 0 4px rgba(244,63,94,0.4))' : 'none');
-            }
-
+            const g = document.getElementById('dash-gauge-prog'); if(g) { g.style.strokeDashoffset = 283 - ((p / 100) * 212); g.style.stroke = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)'); g.style.filter = isReached ? 'drop-shadow(0 0 4px rgba(16,185,129,0.4))' : (dTarget > 0 ? 'drop-shadow(0 0 4px rgba(244,63,94,0.4))' : 'none'); }
             const badgeEl = document.getElementById('dash-abs-badge');
-            if (absType) {
-                const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' };
-                let bKey = absType.split(' ')[0];
-                badgeEl.innerText = em[absType] || em[bKey] || '•';
-                badgeEl.classList.remove('hidden');
-                badgeEl.className = `absolute top-0 right-2 w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[14px] z-20 ${absType.includes('Semester') ? 'bg-teal-100 text-teal-600' : (absType.includes('VAB') ? 'bg-amber-100 text-amber-600' : (absType.includes('Föräldraledig') ? 'bg-purple-100 text-purple-600' : (absType === 'Åtgärd krävs' ? 'bg-rose-500 text-white border-none' : 'bg-rose-100 text-rose-600')))}`;
-            } else {
-                badgeEl.classList.add('hidden');
-            }
-
-            const acts = document.getElementById('dash-actions');
-            if (showActions) {
-                acts.classList.remove('opacity-0', 'pointer-events-none', 'h-0', 'mt-0');
-                acts.classList.add('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1');
-            } else {
-                acts.classList.remove('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1');
-                acts.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'mt-0');
-            }
-
-            const gWrap = document.getElementById('dash-gauge-wrapper');
-            if (gWrap) {
-                if (isActiveNow) gWrap.classList.add('gauge-is-live');
-                else gWrap.classList.remove('gauge-is-live');
-            }
+            if (absType) { const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; let bKey = absType.split(' ')[0]; badgeEl.innerText = em[absType] || em[bKey] || '•'; badgeEl.classList.remove('hidden'); badgeEl.className = `absolute top-0 right-2 w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[14px] z-20 ${absType.includes('Semester') ? 'bg-teal-100 text-teal-600' : (absType.includes('VAB') ? 'bg-amber-100 text-amber-600' : (absType.includes('Föräldraledig') ? 'bg-purple-100 text-purple-600' : (absType === 'Åtgärd krävs' ? 'bg-rose-500 text-white border-none' : 'bg-rose-100 text-rose-600')))}`; } else { badgeEl.classList.add('hidden'); }
+            const acts = document.getElementById('dash-actions'); if (showActions) { acts.classList.remove('opacity-0', 'pointer-events-none', 'h-0', 'mt-0'); acts.classList.add('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1'); } else { acts.classList.remove('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1'); acts.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'mt-0'); }
+            const gWrap = document.getElementById('dash-gauge-wrapper'); if (gWrap) { if (isActiveNow) gWrap.classList.add('gauge-is-live'); else gWrap.classList.remove('gauge-is-live'); }
         }
 
         function renderCal(y, m) { 
-            const g = document.getElementById('d-cal'); if(!g) return; 
-            g.innerHTML = ''; 
-            
-            const lastDate = new Date(y, m, 0).getDate(); 
-            const firstDay = new Date(y, m-1, 1).getDay() || 7; 
-            
-            const prevMonthLastDate = new Date(y, m-1, 0).getDate();
-            for(let i = 1; i < firstDay; i++) { 
-                const d = prevMonthLastDate - (firstDay - 1) + i;
-                const cell = document.createElement('div');
-                cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none';
-                cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`;
-                g.appendChild(cell);
-            } 
-            
+            const g = document.getElementById('d-cal'); if(!g) return; g.innerHTML = ''; 
+            const lastDate = new Date(y, m, 0).getDate(); const firstDay = new Date(y, m-1, 1).getDay() || 7; const prevMonthLastDate = new Date(y, m-1, 0).getDate();
+            for(let i = 1; i < firstDay; i++) { const d = prevMonthLastDate - (firstDay - 1) + i; const cell = document.createElement('div'); cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none'; cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`; g.appendChild(cell); } 
             for(let d=1; d<=lastDate; d++) g.appendChild(createDayCell(new Date(y, m-1, d), `${y}-${m}-${d}`)); 
-            
-            const totalCellsSoFar = (firstDay - 1) + lastDate;
-            const remainingCells = 42 - totalCellsSoFar;
-            for(let d=1; d<=remainingCells; d++) {
-                const cell = document.createElement('div');
-                cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none';
-                cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`;
-                g.appendChild(cell);
-            }
+            const totalCellsSoFar = (firstDay - 1) + lastDate; const remainingCells = 42 - totalCellsSoFar;
+            for(let d=1; d<=remainingCells; d++) { const cell = document.createElement('div'); cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none'; cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`; g.appendChild(cell); }
         }
         
         function renderAbsence() {
             const pane = document.getElementById('pane-absence'); if(!pane) return;
-            const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate();
-            let absCounts = {}; let absListHTML = ''; let totalAbs = 0;
-            const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
-            
-            const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; 
-            const col = { 'Sjuk': 'text-rose-600', 'VAB': 'text-amber-600', 'VAB Belma': 'text-amber-600', 'VAB Wilma': 'text-amber-600', 'Föräldraledig': 'text-purple-600', 'Föräldraledig Belma': 'text-purple-600', 'Föräldraledig Wilma': 'text-purple-600', 'Semester': 'text-teal-600', 'Tjänstledig': 'text-slate-600', 'Åtgärd krävs': 'text-rose-600' };
-            const bgClass = { 'Sjuk': 'bg-rose-50', 'VAB': 'bg-amber-50', 'VAB Belma': 'bg-amber-50', 'VAB Wilma': 'bg-amber-50', 'Föräldraledig': 'bg-purple-50', 'Föräldraledig Belma': 'bg-purple-50', 'Föräldraledig Wilma': 'bg-purple-50', 'Semester': 'bg-teal-50', 'Tjänstledig': 'bg-slate-50', 'Åtgärd krävs': 'bg-rose-50' };
+            const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate(); let absCounts = {}; let absListHTML = ''; let totalAbs = 0; const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+            const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; const col = { 'Sjuk': 'text-rose-600', 'VAB': 'text-amber-600', 'VAB Belma': 'text-amber-600', 'VAB Wilma': 'text-amber-600', 'Föräldraledig': 'text-purple-600', 'Föräldraledig Belma': 'text-purple-600', 'Föräldraledig Wilma': 'text-purple-600', 'Semester': 'text-teal-600', 'Tjänstledig': 'text-slate-600', 'Åtgärd krävs': 'text-rose-600' }; const bgClass = { 'Sjuk': 'bg-rose-50', 'VAB': 'bg-amber-50', 'VAB Belma': 'bg-amber-50', 'VAB Wilma': 'bg-amber-50', 'Föräldraledig': 'bg-purple-50', 'Föräldraledig Belma': 'bg-purple-50', 'Föräldraledig Wilma': 'bg-purple-50', 'Semester': 'bg-teal-50', 'Tjänstledig': 'bg-slate-50', 'Åtgärd krävs': 'bg-rose-50' };
 
             for (let d = 1; d <= daysM; d++) {
                 const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {}; const qData = db.q[k] || {};
                 if (o.abs && ['Sjuk', 'VAB', 'VAB Belma', 'VAB Wilma', 'Föräldraledig', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig', 'Åtgärd krävs'].some(a => o.abs.includes(a))) {
-                    let reason = o.abs; absCounts[reason] = (absCounts[reason] || 0) + 1; totalAbs++;
-                    const dObj = new Date(cy, cm-1, d); const dayStr = `${daysLong[dObj.getDay()]} ${d}`; 
-                    let bKey = reason.split(' ')[0];
-                    const icon = em[reason] || em[bKey] || '•'; 
-                    const tCol = col[reason] || col[bKey] || 'text-slate-500';
-                    const bCol = bgClass[reason] || bgClass[bKey] || 'bg-slate-50';
-                    
-                    let statsHtml = "";
-                    if (o.fk_perc !== undefined && o.abs_hours && reason !== 'Åtgärd krävs') {
-                        let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours;
-                        let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100;
-                        let hStr = o.abs_hours.toFixed(2).replace('.00','');
-                        
-                        statsHtml = `
-                        <div class="flex items-center gap-2 mt-3">
-                            <div class="bg-white border border-slate-100 rounded-xl px-2 py-2 flex flex-col items-center flex-1 shadow-sm">
-                                <span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Tid Borta</span>
-                                <span class="text-[12px] font-black text-slate-700">${hStr} tim</span>
-                            </div>
-                            <div class="bg-white border border-slate-100 rounded-xl px-2 py-2 flex flex-col items-center flex-1 shadow-sm">
-                                <span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Frånvaro (FK)</span>
-                                <span class="text-[12px] font-black text-[#0ea5e9]">${actualP}% <span class="text-slate-400 text-[9.5px]">(${o.fk_perc}%)</span></span>
-                            </div>
-                        </div>`;
-                    }
-
-                    absListHTML += `
-                    <div class="flex flex-col p-3 mb-2 border border-slate-100/60 rounded-[20px] bg-white shadow-sm hover:shadow-md transition-shadow">
-                        <div class="flex justify-between items-center">
-                            <span class="text-[9.5px] font-black uppercase text-slate-500 tracking-wider flex items-center">${dayStr}</span>
-                            <span class="text-[10px] font-black ${tCol} ${bCol} border border-slate-100/50 uppercase tracking-widest px-2.5 py-1.5 rounded-lg">${icon} ${reason}</span>
-                        </div>
-                        ${statsHtml}
-                    </div>`;
+                    let reason = o.abs; absCounts[reason] = (absCounts[reason] || 0) + 1; totalAbs++; const dObj = new Date(cy, cm-1, d); const dayStr = `${daysLong[dObj.getDay()]} ${d}`; let bKey = reason.split(' ')[0]; const icon = em[reason] || em[bKey] || '•'; const tCol = col[reason] || col[bKey] || 'text-slate-500'; const bCol = bgClass[reason] || bgClass[bKey] || 'bg-slate-50';
+                    let statsHtml = ""; if (o.fk_perc !== undefined && o.abs_hours && reason !== 'Åtgärd krävs') { let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours; let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100; let hStr = o.abs_hours.toFixed(2).replace('.00',''); statsHtml = `<div class="flex items-center gap-2 mt-3"><div class="bg-white border border-slate-100 rounded-xl px-2 py-2 flex flex-col items-center flex-1 shadow-sm"><span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Tid Borta</span><span class="text-[12px] font-black text-slate-700">${hStr} tim</span></div><div class="bg-white border border-slate-100 rounded-xl px-2 py-2 flex flex-col items-center flex-1 shadow-sm"><span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Frånvaro (FK)</span><span class="text-[12px] font-black text-[#0ea5e9]">${actualP}% <span class="text-slate-400 text-[9.5px]">(${o.fk_perc}%)</span></span></div></div>`; }
+                    absListHTML += `<div class="flex flex-col p-3 mb-2 border border-slate-100/60 rounded-[20px] bg-white shadow-sm hover:shadow-md transition-shadow"><div class="flex justify-between items-center"><span class="text-[9.5px] font-black uppercase text-slate-500 tracking-wider flex items-center">${dayStr}</span><span class="text-[10px] font-black ${tCol} ${bCol} border border-slate-100/50 uppercase tracking-widest px-2.5 py-1.5 rounded-lg">${icon} ${reason}</span></div>${statsHtml}</div>`;
                 }
             }
-
             if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
 
             let summaryHTML = `<div class="mb-2 bg-white rounded-[20px] border border-slate-200 p-3 shadow-md flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
-            for (let reason in absCounts) { 
-                let bKey = reason.split(' ')[0];
-                const icon = em[reason] || em[bKey] || '•'; 
-                const tCol = col[reason] || col[bKey] || 'text-slate-500'; 
-                summaryHTML += `<div onclick="triggerFocusMode('${reason}')" class="flex justify-between items-center mb-1 last:mb-0 cursor-pointer active:scale-95 transition-transform hover:bg-slate-50 p-1.5 -mx-1.5 rounded-lg"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; 
-            }
-            summaryHTML += `</div>`;
-            pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="overflow-y-auto hide-scrollbar flex-1 pb-2">${absListHTML}</div></div>`;
+            for (let reason in absCounts) { let bKey = reason.split(' ')[0]; const icon = em[reason] || em[bKey] || '•'; const tCol = col[reason] || col[bKey] || 'text-slate-500'; summaryHTML += `<div onclick="triggerFocusMode('${reason}')" class="flex justify-between items-center mb-1 last:mb-0 cursor-pointer active:scale-95 transition-transform hover:bg-slate-50 p-1.5 -mx-1.5 rounded-lg"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; }
+            summaryHTML += `</div>`; pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="overflow-y-auto hide-scrollbar flex-1 pb-2">${absListHTML}</div></div>`;
         }
 
         function createDayCell(cd, k) {
@@ -2009,96 +1091,252 @@
             let cls = 'day-cell', b = '', content = '', wt = ''; 
             const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; 
             const isPast = cd < realToday, isToday = cd.getTime() === realToday.getTime(), state = getCellState(k);
-            
-            const dayOfWeek = cd.getDay();
-            
-            let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; 
-            let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; 
-            let nH = new Date().getHours();
-            let isShiftActive = (isToday && qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sStart && nH <= sEnd);
+            const dayOfWeek = cd.getDay(); let sStart = qData.start ? parseInt(qData.start.split(':')[0]) : 10; let sEnd = qData.end ? parseInt(qData.end.split(':')[0]) : 19; let nH = new Date().getHours(); let isShiftActive = (isToday && qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester' && nH >= sStart && nH <= sEnd);
             
             if (dayOfWeek === 1 && viewMode === 'month') wt = `<div class="week-tag">${getWeekNumber(cd)}</div>`;
+            if (o.abs) { let bKey = o.abs.split(' ')[0]; if (o.abs === 'Åtgärd krävs') { b += `<div class="u-badge badge-abs badge-action" style="background:#ef4444; color:white; border:none;">${em[o.abs] || '•'}</div>`; } else { b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; } }
+            if (o.s > 0) { content = `<span class="cell-main-val mt-1">${(o.s/1000).toFixed(1)} k</span>`; } else if (qData.start && !o.abs) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`; } else if (state === 'unplanned' || (state === 'ledig' && o.s === 0)) { content = `<span class="text-[7.5px] font-black text-slate-800 mt-1 uppercase tracking-widest opacity-50">LEDIG</span>`; }
 
-            if (o.abs) { 
-                let bKey = o.abs.split(' ')[0];
-                if (o.abs === 'Åtgärd krävs') { 
-                    b += `<div class="u-badge badge-abs badge-action" style="background:#ef4444; color:white; border:none;">${em[o.abs] || '•'}</div>`; 
-                } else { 
-                    b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; 
-                } 
-            }
-
-            if (o.s > 0) { content = `<span class="cell-main-val mt-1">${(o.s/1000).toFixed(1)} k</span>`; } 
-            else if (qData.start && !o.abs) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`; } 
-            else if (state === 'unplanned') { content = `<span class="text-[7.5px] font-black text-slate-800 mt-1 uppercase tracking-widest opacity-50">LEDIG</span>`; } 
-            else if (state === 'ledig' && o.s === 0) { content = `<span class="text-[7.5px] font-black text-slate-800 mt-1 uppercase tracking-widest opacity-50">LEDIG</span>`; }
-
-            if (o.abs) {
-                let baseAbs = o.abs.split(' ')[0];
-                if (qData.start && baseAbs !== 'Åtgärd krävs') {
-                    if (baseAbs === 'Sjuk') cls += ' bg-split-sjuk';
-                    else if (baseAbs === 'VAB') cls += ' bg-split-vab';
-                    else if (baseAbs === 'Föräldraledig') cls += ' bg-split-fledig';
-                    else if (baseAbs === 'Semester') cls += ' bg-split-sem';
-                    else cls += ' type-absent'; 
-                } else {
-                    if (baseAbs === 'Sjuk' || baseAbs === 'Åtgärd krävs') cls += ' type-absent';
-                    else if (baseAbs === 'Semester') cls += ' type-semester';
-                    else cls += ' type-absent';
-                }
-            } else if (state === 'ledig' || state === 'unplanned') { 
-                cls += ' type-unplanned'; 
-            } else if (isPast) { 
-                cls += ' history-cell'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; 
-            } else { 
-                if (isToday) cls += ' status-today'; else if (qData.start) cls += ' type-planned'; 
-            }
-            
+            if (o.abs) { let baseAbs = o.abs.split(' ')[0]; if (qData.start && baseAbs !== 'Åtgärd krävs') { if (baseAbs === 'Sjuk') cls += ' bg-split-sjuk'; else if (baseAbs === 'VAB') cls += ' bg-split-vab'; else if (baseAbs === 'Föräldraledig') cls += ' bg-split-fledig'; else if (baseAbs === 'Semester') cls += ' bg-split-sem'; else cls += ' type-absent'; } else { if (baseAbs === 'Sjuk' || baseAbs === 'Åtgärd krävs') cls += ' type-absent'; else if (baseAbs === 'Semester') cls += ' type-semester'; else cls += ' type-absent'; } } else if (state === 'ledig' || state === 'unplanned') { cls += ' type-unplanned'; } else if (isPast) { cls += ' history-cell'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; } else { if (isToday) cls += ' status-today'; else if (qData.start) cls += ' type-planned'; }
             if (isShiftActive) cls += ' active-shift-pulse'; 
             if (viewMode === 'month' && multiSelectKeys.has(k)) { cls += ' active-focus'; } else if (viewMode !== 'month' && activeK === k) { cls += ' active-focus'; }
             if (currentFocusReason && o.abs === currentFocusReason) { cls += ' focus-highlight'; }
             
-            const cell = document.createElement('div'); cell.className = cls; cell.dataset.key = k;
-            
-            cell.onclick = (e) => selectDay(k, cell, e);
-            cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[6px] text-center tracking-tighter">${b}${content}</div>`; 
-            return cell;
+            const cell = document.createElement('div'); cell.className = cls; cell.dataset.key = k; cell.onclick = (e) => selectDay(k, cell, e);
+            cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[6px] text-center tracking-tighter">${b}${content}</div>`; return cell;
         }
 
-        function populateSlide(cId, sD) { 
-            const c = document.getElementById(cId); if(!c) return; 
-            c.innerHTML = ''; 
-            for(let i=0; i<7; i++) { 
-                const cd = new Date(sD); cd.setDate(cd.getDate() + i); 
-                c.appendChild(createDayCell(cd, getK(cd))); 
+        function populateSlide(cId, sD) { const c = document.getElementById(cId); if(!c) return; c.innerHTML = ''; for(let i=0; i<7; i++) { const cd = new Date(sD); cd.setDate(cd.getDate() + i); c.appendChild(createDayCell(cd, getK(cd))); } }
+        function renderWeekSlides() { populateSlide('slide-curr', currentWeekStart); }
+        function getWeekNumber(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7); }
+        
+        // ==========================================
+        // SAKNADE FUNKTIONER SOM ORSAKAR REFERENCE ERRORS
+        // ==========================================
+        
+        async function init() {
+            await loadAllData();
+            setMode('dash');
+            updateTopTitle();
+        }
+
+        // --- INLINE NUMPAD (DASHBOARD) ---
+        function openInlineNumpad() {
+            if (!activeK) return;
+            const o = db.d[activeK] || {s: 0};
+            inlineNumpadValue = o.s > 0 ? String(o.s) : "";
+            updateInlineNumpadDisplay();
+            const m = document.getElementById('dash-inline-numpad');
+            if(m) m.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+        }
+
+        function closeInlineNumpad() {
+            const m = document.getElementById('dash-inline-numpad');
+            if(m) m.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        }
+
+        function updateInlineNumpadDisplay() {
+            const disp = document.getElementById('inline-numpad-display');
+            if(disp) {
+                if(inlineNumpadValue === "") disp.innerText = "0 kr";
+                else disp.innerText = Number(inlineNumpadValue).toLocaleString('sv-SE') + " kr";
+            }
+        }
+
+        function inlinePress(key) {
+            if (key === 'clear') { inlineNumpadValue = ""; }
+            else if (key === 'back') { inlineNumpadValue = inlineNumpadValue.slice(0, -1); }
+            else { if (inlineNumpadValue.length < 8) inlineNumpadValue += key; }
+            updateInlineNumpadDisplay();
+        }
+
+        function inlineTarget() {
+            if (!activeK) return;
+            let target = timeline[activeK]?.target || 0;
+            if (target > 0) { inlineNumpadValue = String(Math.ceil(target)); updateInlineNumpadDisplay(); }
+        }
+
+        function inlineAdd(amount) {
+            let current = Number(inlineNumpadValue) || 0;
+            current += amount;
+            inlineNumpadValue = String(current);
+            updateInlineNumpadDisplay();
+        }
+
+        function saveInlineNumpad() {
+            if (!activeK) return;
+            let val = Number(inlineNumpadValue) || 0;
+            pushMatrixSync(activeK, { s: val, st: 'Arbete', abs: null });
+            closeInlineNumpad();
+        }
+
+        // --- MAIN NUMPAD (MONTH VIEW) ---
+        function openNumpad(mode, defaultVal, title) {
+            numpadTarget = mode;
+            numpadValue = defaultVal > 0 ? String(defaultVal) : "";
+            const np = document.getElementById('bottom-numpad-view');
+            if(np) np.classList.remove('opacity-0', 'pointer-events-none');
+            updateNumpadDisplay();
+        }
+
+        function closeNumpad() {
+            numpadTarget = null;
+            const np = document.getElementById('bottom-numpad-view');
+            if(np) np.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function updateNumpadDisplay() {
+            if(numpadTarget === 'month') {
+                const textEl = document.getElementById('month-sales-text');
+                if(textEl) {
+                    if(numpadValue === "") textEl.innerText = "0 kr";
+                    else textEl.innerText = Number(numpadValue).toLocaleString('sv-SE') + " kr";
+                }
+            }
+        }
+
+        function numpadPress(key) {
+            if (key === 'clear') { numpadValue = ""; }
+            else if (key === 'back') { numpadValue = numpadValue.slice(0, -1); }
+            else { if (numpadValue.length < 8) numpadValue += key; }
+            updateNumpadDisplay();
+        }
+
+        function numpadSave() {
+            let val = Number(numpadValue) || 0;
+            if (numpadTarget === 'month' && multiSelectKeys.size > 0) {
+                multiSelectKeys.forEach(k => {
+                    pushMatrixSync(k, { s: val, st: 'Arbete', abs: null });
+                });
+                closeMonthEdit();
+            }
+            closeNumpad();
+        }
+
+        // --- OTHER MISSING FUNCTIONS ---
+        function closeFocusMode(force) { 
+            currentFocusReason = null; 
+            document.body.classList.remove('focus-mode-active'); 
+            document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('focus-highlight'));
+            updateDashboardView(); updateTopInfoBar(); 
+        }
+        
+        function closeMonthEdit() { 
+            const menu = document.getElementById('month-edit-menu'); 
+            if(menu) menu.classList.add('hidden'); 
+            const head = document.getElementById('cal-standard-header'); 
+            if(head) head.classList.remove('hidden'); 
+            multiSelectKeys.clear(); 
+            document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); 
+            updateTopInfoBar();
+        }
+
+        function openEvalModal() { const m = document.getElementById('eval-modal'); if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } }
+        function closeEvalModal() { const m = document.getElementById('eval-modal'); if(m) { m.classList.add('opacity-0'); setTimeout(() => m.classList.add('hidden'), 300); } }
+        function setEvalEmoji(emoji) { document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('active')); const btn = document.getElementById('btn-emoji-' + emoji); if(btn) btn.classList.add('active'); evalState.emoji = emoji; }
+        function setEvalKpi(kpi, val) { const container = document.getElementById('eval-kpi-' + kpi); if(container) { container.querySelectorAll('.eval-rating').forEach(b => b.classList.remove('active')); container.children[val-1].classList.add('active'); evalState.ratings[kpi] = val; } }
+        function saveEvalModal() { closeEvalModal(); }
+        function addTypedEvalTag() { }
+
+        function toggleSummaryView() {
+            const stats = document.getElementById('summary-stats-view');
+            const insights = document.getElementById('summary-insights-view');
+            if (currentSummaryView === 'stats') {
+                stats.classList.add('hidden'); insights.classList.remove('hidden'); currentSummaryView = 'insights';
+            } else {
+                insights.classList.add('hidden'); stats.classList.remove('hidden'); currentSummaryView = 'stats';
+            }
+        }
+        function openSummaryModal(mode) { const m = document.getElementById('summary-modal'); if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } }
+        function closeSummaryModal() { const m = document.getElementById('summary-modal'); if(m) { m.classList.add('opacity-0'); setTimeout(() => m.classList.add('hidden'), 300); } }
+
+        function closeNoteModal() { const m = document.getElementById('note-confirm-modal'); if(m) m.classList.add('hidden'); }
+        function addNote() { const text = document.getElementById('note-text').value; if(text) { savedNotes.push({id: Date.now(), text: text}); localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); document.getElementById('note-text').value = ''; renderNotes(); } }
+        function renderNotes() { const c = document.getElementById('notes-list-container'); if(c) { if(savedNotes.length === 0) { c.innerHTML = '<p class="text-[10px] text-slate-400 font-bold text-center mt-4 uppercase tracking-widest">Inga anteckningar än.</p>'; } else { c.innerHTML = savedNotes.map(n => `<div class="p-2 bg-white rounded-lg shadow-sm mb-1 text-[10px] text-slate-700">${n.text}</div>`).join(''); } } }
+
+        function selectChild(name) { 
+            closeChildModal();
+            let absStr = pendingAbsenceType;
+            if (absStr === 'VAB' || absStr === 'Föräldraledig') absStr += ' ' + name;
+            
+            if (pendingAbsenceSource === 'dash' && activeK) {
+                pushMatrixSync(activeK, { abs: absStr, st: 'Arbete', s: 0 });
+            } else if (pendingAbsenceSource === 'month' && multiSelectKeys.size > 0) {
+                multiSelectKeys.forEach(k => pushMatrixSync(k, { abs: absStr, st: 'Arbete', s: 0 }));
+                closeMonthEdit();
+            }
+        }
+        function closeChildModal() { const m = document.getElementById('child-select-modal'); if(m) m.classList.add('hidden'); }
+        function triggerChildSelection(type, source) { 
+            pendingAbsenceType = type; pendingAbsenceSource = source;
+            const m = document.getElementById('child-select-modal'); 
+            if(m) { 
+                document.getElementById('child-modal-title').innerText = type + ' GÄLLER VEM?'; 
+                m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); 
             } 
         }
 
-        function renderWeekSlides() { 
-            populateSlide('slide-curr', currentWeekStart); 
+        function openBudgetModal() { const m = document.getElementById('budget-modal'); if(m) m.classList.remove('hidden'); }
+        function closeBudgetModal() { const m = document.getElementById('budget-modal'); if(m) m.classList.add('hidden'); }
+
+        function checkOverwriteFromPopup(type) { 
+            if (type === 'VAB' || type === 'Föräldraledig') { triggerChildSelection(type, 'month'); return; }
+            if (type === 'delete') { multiSelectKeys.forEach(k => pushMatrixSync(k, { abs: null, st: 'Arbete', s: 0 })); closeMonthEdit(); return; }
+            multiSelectKeys.forEach(k => pushMatrixSync(k, { abs: type === 'Arbete' ? null : type, st: type, s: 0 })); 
+            closeMonthEdit(); 
         }
         
-        function getWeekNumber(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7); }
+        function handleDashAction(type) { 
+            if(!activeK) return;
+            if (type === 'VAB' || type === 'Föräldraledig') { triggerChildSelection(type, 'dash'); return; }
+            pushMatrixSync(activeK, { abs: type === 'Arbete' ? null : type, st: type, s: 0 }); 
+        }
         
-        let touchStartX = 0, touchStartY = 0;
+        function hideConfirm() { const box = document.getElementById('confirm-box'); if(box) box.style.display = 'none'; }
+        
+        function triggerFocusMode(reason) { 
+            currentFocusReason = reason; 
+            setMode('dash'); 
+            document.querySelectorAll('.day-cell').forEach(c => {
+                const k = c.dataset.key;
+                const o = db.d[k];
+                if(o && o.abs && o.abs.includes(reason)) c.classList.add('focus-highlight');
+                else c.classList.remove('focus-highlight');
+            });
+        }
+
+        // ==========================================
+        //  EVENT LISTENERS & APP START
+        // ==========================================
         function handleSwipeStart(e) { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }
-        function handleSwipeEnd(e, targetView) { 
-            if(viewMode !== targetView) return; let dx = e.changedTouches[0].screenX - touchStartX; let dy = e.changedTouches[0].screenY - touchStartY;
-            if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) { if(dx > 0) navCal(-1); else navCal(1); }
-        }
+        function handleSwipeEnd(e, targetView) { if(viewMode !== targetView) return; let dx = e.changedTouches[0].screenX - touchStartX; let dy = e.changedTouches[0].screenY - touchStartY; if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) { if(dx > 0) navCal(-1); else navCal(1); } }
         
         const pd = document.getElementById('pane-dash'); if(pd) { pd.addEventListener('touchstart', handleSwipeStart, {passive: true}); pd.addEventListener('touchend', (e) => handleSwipeEnd(e, 'dash'), {passive: true}); }
         const pm = document.getElementById('pane-month'); if(pm) { pm.addEventListener('touchstart', handleSwipeStart, {passive: true}); pm.addEventListener('touchend', (e) => handleSwipeEnd(e, 'month'), {passive: true}); }
         const pa = document.getElementById('pane-absence'); if(pa) { pa.addEventListener('touchstart', handleSwipeStart, {passive: true}); pa.addEventListener('touchend', (e) => handleSwipeEnd(e, 'absence'), {passive: true}); }
         const pn = document.getElementById('pane-notes'); if(pn) { pn.addEventListener('touchstart', handleSwipeStart, {passive: true}); pn.addEventListener('touchend', (e) => handleSwipeEnd(e, 'notes'), {passive: true}); }
 
-        document.addEventListener('click', (e) => {
-            const mMenu = document.getElementById('month-edit-menu');
-            if (mMenu && !mMenu.classList.contains('hidden') && !e.target.closest('#month-edit-menu') && !e.target.closest('.day-cell') && !e.target.closest('#bottom-numpad-view') && !e.target.closest('#top-info-bar')) { multiSelectKeys.clear(); document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); closeMonthEdit(); updateTopInfoBar(); }
+        document.getElementById('top-info-bar').addEventListener('click', () => {
+            if (viewMode !== 'dash' && !multiSelectKeys.size) return;
+            let cDate = new Date(realToday);
+            for(let i=0; i<30; i++) {
+                const k = getK(cDate); const qData = db.q[k] || {}; const state = getCellState(k);
+                if (qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester') {
+                    if(!activeK) { goToDayFromMonth(k); }
+                    break;
+                }
+                cDate.setDate(cDate.getDate() + 1);
+            }
         });
 
+        document.addEventListener('click', (e) => { const mMenu = document.getElementById('month-edit-menu'); if (mMenu && !mMenu.classList.contains('hidden') && !e.target.closest('#month-edit-menu') && !e.target.closest('.day-cell') && !e.target.closest('#bottom-numpad-view') && !e.target.closest('#top-info-bar')) { multiSelectKeys.clear(); document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); closeMonthEdit(); updateTopInfoBar(); } });
+
+        // Start the application
         init();
-        if ("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js"); }
+
+        if ("serviceWorker" in navigator) { 
+            navigator.serviceWorker.register("sw.js").catch(e => {}); 
+        }
     </script>
 </body>
 </html>

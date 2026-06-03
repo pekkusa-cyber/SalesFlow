@@ -217,7 +217,7 @@
     
     <div id="confirm-box"><p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p><div class="flex gap-3"><button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button><button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button></div></div>
 
-    <!-- NY UTVÄRDERINGSMODAL (EVAL) -->
+    <!-- UTVÄRDERINGSMODAL (EVAL) -->
     <div id="eval-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-full max-w-[320px] bg-white rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="eval-modal-content">
             <div class="flex justify-between items-center mb-1">
@@ -257,6 +257,7 @@
             <div class="flex justify-between items-center mb-1">
                 <h2 id="summary-modal-title" class="text-[12px] font-black text-slate-800 uppercase tracking-widest">SAMMANFATTNING</h2>
                 <div class="flex gap-2 items-center">
+                    <button id="btn-sum-toggle" onclick="toggleSummaryView()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[14px] active:scale-90 transition-all font-bold" title="Insikter">💡</button>
                     <button onclick="closeSummaryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
                 </div>
             </div>
@@ -305,6 +306,13 @@
                 <div id="sum-abs-details" class="flex flex-col gap-1.5 hidden mt-1">
                     <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1 mb-1">Frånvaro Orsaker</h3>
                     <div id="sum-abs-list" class="flex flex-col gap-1"></div>
+                </div>
+            </div>
+
+            <!-- INSIKTS-VYN -->
+            <div id="summary-insights-view" class="hidden flex flex-col gap-3">
+                <div id="insight-container" class="flex flex-col gap-3 overflow-y-auto max-h-[50vh] hide-scrollbar">
+                    <!-- Insikter genereras här via JS -->
                 </div>
             </div>
             
@@ -1069,7 +1077,6 @@
             setMode('dash');
             updateTopTitle();
             
-            // Add enter key listener to eval input
             const evInput = document.getElementById('eval-tag-typed');
             if (evInput) {
                 evInput.addEventListener('keydown', function(e) {
@@ -1195,8 +1202,11 @@
         function openEvalModal() { 
             if (!activeK) return;
             const o = db.d[activeK] || {};
+            
             if (o.eval) {
-                evalState = JSON.parse(JSON.stringify(o.eval));
+                evalState = typeof o.eval === 'string' ? JSON.parse(o.eval) : JSON.parse(JSON.stringify(o.eval));
+                if (!evalState.tags) { evalState.tags = evalState.reasons || []; }
+                if (typeof evalState.text === 'undefined') { evalState.text = o.eval_text || ""; }
             } else {
                 evalState = { emoji: null, tags: [], text: "" };
             }
@@ -1267,7 +1277,24 @@
             updateDashboardView();
         }
 
-        // --- SAMMANFATTNING ---
+        // --- SAMMANFATTNING & INSIKTER ---
+        function toggleSummaryView() {
+            const stats = document.getElementById('summary-stats-view');
+            const insights = document.getElementById('summary-insights-view');
+            const title = document.getElementById('summary-modal-title');
+            if (currentSummaryView === 'stats') {
+                stats.classList.add('hidden'); 
+                insights.classList.remove('hidden'); 
+                currentSummaryView = 'insights';
+                title.innerText = "INSIKTER";
+            } else {
+                insights.classList.add('hidden'); 
+                stats.classList.remove('hidden'); 
+                currentSummaryView = 'stats';
+                title.innerText = "SAMMANFATTNING";
+            }
+        }
+
         function calculateSummaryStats() {
             const cy = viewDate.getFullYear();
             const cm = viewDate.getMonth() + 1;
@@ -1277,11 +1304,18 @@
             let streak = 0, maxStreak = 0;
             let absCounts = {};
             
+            let totalEvals = 0;
+            let emojis = { sad: 0, neutral: 0, happy: 0 };
+            let goodTagCounts = {};
+            let badTagCounts = {};
+            let latestNotes = [];
+            
             for (let d=1; d<=daysM; d++) {
                 const k = `${cy}-${cm}-${d}`;
                 const o = db.d[k] || {s:0};
                 const tgt = timeline[k]?.target || 0;
                 
+                // Stats Logic
                 if (o.s > 0 || o.st === 'Arbete') wDays++;
                 if (o.abs && !o.abs.includes('Semester') && o.abs !== 'Åtgärd krävs') {
                     aDays++;
@@ -1300,8 +1334,43 @@
                 } else if (tgt > 0 && o.s < tgt) {
                     streak = 0;
                 }
+
+                // Insights Logic
+                if (o.eval) {
+                    totalEvals++;
+                    let ev = typeof o.eval === 'string' ? JSON.parse(o.eval) : o.eval;
+                    
+                    if (ev.emoji) emojis[ev.emoji] = (emojis[ev.emoji] || 0) + 1;
+                    
+                    let tags = ev.tags || ev.reasons || [];
+                    
+                    // Definiera om det var en bra eller dålig dag
+                    let isGood = false;
+                    let isBad = false;
+                    
+                    if (ev.emoji === 'happy') isGood = true;
+                    else if (ev.emoji === 'sad') isBad = true;
+                    else {
+                        // Om neutral/ingen emoji, använd mål
+                        if (tgt > 0 && o.s >= tgt) isGood = true;
+                        else if (tgt > 0 && o.s < tgt) isBad = true;
+                    }
+
+                    if (isGood) {
+                        tags.forEach(t => goodTagCounts[t] = (goodTagCounts[t] || 0) + 1);
+                    }
+                    if (isBad) {
+                        tags.forEach(t => badTagCounts[t] = (badTagCounts[t] || 0) + 1);
+                    }
+
+                    let text = ev.text || o.eval_text || "";
+                    if (text.trim() !== "") {
+                        latestNotes.push({ date: `${d}/${cm}`, text: text });
+                    }
+                }
             }
             
+            // Render Stats
             document.getElementById('sum-workdays').innerText = wDays;
             document.getElementById('sum-absdays').innerText = aDays;
             
@@ -1348,10 +1417,52 @@
             } else {
                 absDetails.classList.add('hidden');
             }
+
+            // Render Insights
+            const insightCont = document.getElementById('insight-container');
+            if (totalEvals === 0) {
+                insightCont.innerHTML = `<div class="flex flex-col items-center justify-center py-10 opacity-50"><span class="text-4xl mb-2">🫙</span><p class="text-[10px] font-black uppercase tracking-widest text-center text-slate-500">Inga utvärderingar<br>denna månad</p></div>`;
+            } else {
+                let sortedGoodTags = Object.keys(goodTagCounts).sort((a,b) => goodTagCounts[b] - goodTagCounts[a]).slice(0, 4);
+                let sortedBadTags = Object.keys(badTagCounts).sort((a,b) => badTagCounts[b] - badTagCounts[a]).slice(0, 4);
+                
+                let goodTagsHtml = sortedGoodTags.map(t => `<span class="bg-[#f0fdf4] text-[#16a34a] px-2 py-1.5 rounded-xl border border-[#bbf7d0] text-[9px] font-black uppercase tracking-wider shadow-sm">${t} (${goodTagCounts[t]})</span>`).join('');
+                let badTagsHtml = sortedBadTags.map(t => `<span class="bg-[#fff1f2] text-[#e11d48] px-2 py-1.5 rounded-xl border border-[#fecdd3] text-[9px] font-black uppercase tracking-wider shadow-sm">${t} (${badTagCounts[t]})</span>`).join('');
+                let notesHtml = latestNotes.slice(-5).reverse().map(n => `<div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 shadow-sm mb-1.5"><span class="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block mb-1">Den ${n.date}</span><p class="text-[11px] font-bold text-slate-700">${n.text}</p></div>`).join('');
+
+                insightCont.innerHTML = `
+                    <div class="bg-white border border-slate-100 rounded-[20px] p-3 shadow-sm">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2 text-center">Känsla (${totalEvals} pass)</span>
+                        <div class="flex justify-around items-end px-2">
+                            <div class="text-center flex flex-col items-center"><span class="text-3xl mb-1 filter grayscale opacity-80">😡</span><span class="text-[12px] font-black text-slate-700">${emojis.sad || 0}</span></div>
+                            <div class="text-center flex flex-col items-center"><span class="text-3xl mb-1 filter grayscale opacity-80">😐</span><span class="text-[12px] font-black text-slate-700">${emojis.neutral || 0}</span></div>
+                            <div class="text-center flex flex-col items-center"><span class="text-3xl mb-1">🤩</span><span class="text-[12px] font-black text-[#0ea5e9]">${emojis.happy || 0}</span></div>
+                        </div>
+                    </div>
+                    
+                    ${(sortedGoodTags.length > 0 || sortedBadTags.length > 0) ? `<div class="bg-white border border-slate-100 rounded-[20px] p-3 shadow-sm flex flex-col gap-2.5">
+                        ${sortedGoodTags.length > 0 ? `<div><span class="text-[8.5px] font-black text-emerald-500 uppercase tracking-widest block mb-1.5 flex items-center gap-1.5">🤩 Gemensamt för bra dagar</span><div class="flex flex-wrap gap-1.5">${goodTagsHtml}</div></div>` : ''}
+                        ${(sortedGoodTags.length > 0 && sortedBadTags.length > 0) ? `<div class="h-px bg-slate-100 w-full"></div>` : ''}
+                        ${sortedBadTags.length > 0 ? `<div><span class="text-[8.5px] font-black text-rose-500 uppercase tracking-widest block mb-1.5 flex items-center gap-1.5">😡 Gemensamt för dåliga dagar</span><div class="flex flex-wrap gap-1.5">${badTagsHtml}</div></div>` : ''}
+                    </div>` : ''}
+
+                    ${notesHtml ? `<div class="bg-white border border-slate-100 rounded-[20px] p-3 shadow-sm">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Dina Anteckningar</span>
+                        ${notesHtml}
+                    </div>` : ''}
+                `;
+            }
         }
 
         function openSummaryModal(mode) { 
             calculateSummaryStats();
+            
+            // Återställ alltid till stats-vyn när modalen öppnas
+            currentSummaryView = 'stats';
+            document.getElementById('summary-stats-view').classList.remove('hidden');
+            document.getElementById('summary-insights-view').classList.add('hidden');
+            document.getElementById('summary-modal-title').innerText = "SAMMANFATTNING";
+            
             const m = document.getElementById('summary-modal'); 
             if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } 
         }

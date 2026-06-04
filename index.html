@@ -145,6 +145,10 @@
         .history-success { background: linear-gradient(180deg, #f0fdf4, #d1fae5) !important; color: #065f46 !important; border-color: #ffffff !important; }
         .history-fail { background: linear-gradient(180deg, #fff5f5, #fee2e2) !important; color: #9f1239 !important; border-color: #ffffff !important;}
         
+        /* NYTT: Gråtoning på historiska dagar */
+        .history-cell:not(.active-focus) { opacity: 0.45 !important; filter: grayscale(40%); box-shadow: none !important; }
+        .vp-past:not(.active-focus) { opacity: 0.45 !important; filter: grayscale(40%); }
+        
         .status-today { background: linear-gradient(135deg, var(--today-light), var(--today-dark)) !important; color: #ffffff !important; opacity: 1 !important; z-index: 5; box-shadow: 0 10px 24px -4px rgba(2, 132, 199, 0.6), inset 0 2px 4px rgba(255,255,255,0.4) !important; border: 1px solid #38bdf8 !important; transform: translateY(-1px); }
         
         .active-focus { 
@@ -153,6 +157,7 @@
             box-shadow: 0 8px 24px -6px rgba(14, 165, 233, 0.45), 0 0 12px 2px rgba(14, 165, 233, 0.15), inset 0 2px 4px rgba(255,255,255,0.4) !important; 
             border: 1px solid #7dd3fc !important; 
             transform: translateY(-2px) scale(1.02); 
+            filter: none !important; /* Säkerställ att färg finns om de är markerade */
         }
         
         .status-today .date-num, .active-focus .date-num, .status-today .cell-main-val, .active-focus .cell-main-val { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
@@ -180,13 +185,13 @@
         body.focus-mode-active .weekday-label, body.focus-mode-active .vp-name { opacity: 0.4; transition: all 0.4s ease; }
         body.focus-mode-active .day-cell, body.focus-mode-active .vp-cell { transition: all 0.4s var(--ease-spring); }
         body.focus-mode-active .day-cell:not(.focus-highlight), body.focus-mode-active .vp-cell:not(.focus-highlight) { opacity: 0.25; filter: blur(2px) grayscale(60%); pointer-events: none; }
-        body.focus-mode-active .day-cell.focus-highlight, body.focus-mode-active .vp-cell.focus-highlight { z-index: 50; transform: scale(1.05); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), inset 0 0 0 2px var(--sting-blue); }
+        body.focus-mode-active .day-cell.focus-highlight, body.focus-mode-active .vp-cell.focus-highlight { z-index: 50; transform: scale(1.05); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), inset 0 0 0 2px var(--sting-blue); filter: none !important; }
 
         .emoji-btn { transition: all 0.2s var(--ease-spring); background: transparent; border: 1.5px solid transparent; }
         .emoji-btn.active { transform: scale(1.15); filter: none !important; opacity: 1 !important; border-color: #cbd5e1 !important; background: white !important; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 
         /* ========================================================================= */
-        /* ANIMATIONER: CYBER-SCANNER & AMBIENT SPOTLIGHT (UPPDATERAD/FIXAD)       */
+        /* ANIMATIONER: CYBER-SCANNER & AMBIENT SPOTLIGHT                          */
         /* ========================================================================= */
         .goal-ambient { border-color: #10b981 !important; animation: ambientGlow 2.5s infinite alternate ease-in-out; transition: border-color 0.4s ease, box-shadow 0.4s ease; }
         @keyframes ambientGlow { 0% { box-shadow: 0 0 10px rgba(16,185,129,0.1), 0 10px 20px -10px rgba(16,185,129,0.2); } 100% { box-shadow: 0 0 25px rgba(16,185,129,0.5), 0 20px 40px -10px rgba(16,185,129,0.7); } }
@@ -227,6 +232,7 @@
             transform: translateY(-4px) scale(1.05) !important;
             box-shadow: 0 8px 16px -4px rgba(14, 165, 233, 0.4) !important;
             border-color: transparent !important;
+            filter: none !important; /* Säkerställ att markerade dagar syns tydligt */
         }
         .vp-cell.active-focus .vp-name { color: rgba(255,255,255,0.7) !important; }
         .vp-cell.active-focus .vp-date { color: #ffffff !important; }
@@ -638,6 +644,8 @@
         let touchStartX = 0, touchStartY = 0;
         let inlineNumpadValue = "";
         let numpadTarget = null; let numpadValue = "";
+        let inlineNumpadJustOpened = false;
+        let mainNumpadJustOpened = false;
 
         // Utvärderings-state
         let evalState = { emoji: null, tags: [], text: "" };
@@ -1134,6 +1142,8 @@
                 if (isReached) {
                     innerCard.classList.add('goal-ambient');
                     gProg.classList.add('goal-ambient-gauge');
+                    // Visa lasern om passet fortfarande är igång, även om målet är nått!
+                    if (isActiveNow) { scannerLayer.style.display = 'block'; }
                 } else if (isActiveNow) {
                     scannerLayer.style.display = 'block';
                     gProg.classList.add('blue-cyber-gauge');
@@ -1152,6 +1162,7 @@
             
             let cls = 'vp-cell';
             if (isPast) {
+                cls += ' vp-past';
                 if (o.s >= t.target && o.s > 0) cls += ' vp-past-good';
                 else cls += ' vp-past-bad';
             } else if (isToday) {
@@ -1283,6 +1294,7 @@
             if (!activeK) return;
             const o = db.d[activeK] || {s: 0};
             inlineNumpadValue = o.s > 0 ? String(o.s) : "";
+            inlineNumpadJustOpened = true;
             updateInlineNumpadDisplay();
             const m = document.getElementById('dash-inline-numpad');
             if(m) m.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
@@ -1302,6 +1314,14 @@
         }
 
         function inlinePress(key) {
+            if (inlineNumpadJustOpened) {
+                if (key === 'clear') { inlineNumpadValue = ""; }
+                else if (key === 'back') { inlineNumpadValue = inlineNumpadValue.slice(0, -1); }
+                else { inlineNumpadValue = key; }
+                inlineNumpadJustOpened = false;
+                updateInlineNumpadDisplay();
+                return;
+            }
             if (key === 'clear') { inlineNumpadValue = ""; }
             else if (key === 'back') { inlineNumpadValue = inlineNumpadValue.slice(0, -1); }
             else { if (inlineNumpadValue.length < 8) inlineNumpadValue += key; }
@@ -1309,12 +1329,14 @@
         }
 
         function inlineTarget() {
+            inlineNumpadJustOpened = false;
             if (!activeK) return;
             let target = timeline[activeK]?.target || 0;
             if (target > 0) { inlineNumpadValue = String(Math.ceil(target)); updateInlineNumpadDisplay(); }
         }
 
         function inlineAdd(amount) {
+            inlineNumpadJustOpened = false;
             let current = Number(inlineNumpadValue) || 0;
             current += amount;
             inlineNumpadValue = String(current);
@@ -1332,6 +1354,7 @@
         function openNumpad(mode, defaultVal, title) {
             numpadTarget = mode;
             numpadValue = defaultVal > 0 ? String(defaultVal) : "";
+            mainNumpadJustOpened = true;
             const np = document.getElementById('bottom-numpad-view');
             if(np) np.classList.remove('opacity-0', 'pointer-events-none');
             updateNumpadDisplay();
@@ -1354,6 +1377,14 @@
         }
 
         function numpadPress(key) {
+            if (mainNumpadJustOpened) {
+                if (key === 'clear') { numpadValue = ""; }
+                else if (key === 'back') { numpadValue = numpadValue.slice(0, -1); }
+                else { numpadValue = key; }
+                mainNumpadJustOpened = false;
+                updateNumpadDisplay();
+                return;
+            }
             if (key === 'clear') { numpadValue = ""; }
             else if (key === 'back') { numpadValue = numpadValue.slice(0, -1); }
             else { if (numpadValue.length < 8) numpadValue += key; }

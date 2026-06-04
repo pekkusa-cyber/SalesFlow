@@ -147,7 +147,6 @@
         
         .status-today { background: linear-gradient(135deg, var(--today-light), var(--today-dark)) !important; color: #ffffff !important; opacity: 1 !important; z-index: 5; box-shadow: 0 10px 24px -4px rgba(2, 132, 199, 0.6), inset 0 2px 4px rgba(255,255,255,0.4) !important; border: 1px solid #38bdf8 !important; transform: translateY(-1px); }
         
-        /* Uppdaterad till Blå istället för Orange */
         .active-focus { 
             background: linear-gradient(135deg, #0ea5e9, #0284c7) !important; 
             z-index: 20 !important; color: #ffffff !important; opacity: 1 !important; 
@@ -187,18 +186,23 @@
         .emoji-btn.active { transform: scale(1.15); filter: none !important; opacity: 1 !important; border-color: #cbd5e1 !important; background: white !important; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
 
         /* ========================================================================= */
-        /* ANIMATIONER: CYBER-SCANNER & AMBIENT SPOTLIGHT (FRÅN TIDIGARE)          */
+        /* ANIMATIONER: CYBER-SCANNER & AMBIENT SPOTLIGHT (UPPDATERAD/FIXAD)       */
         /* ========================================================================= */
         .goal-ambient { border-color: #10b981 !important; animation: ambientGlow 2.5s infinite alternate ease-in-out; transition: border-color 0.4s ease, box-shadow 0.4s ease; }
         @keyframes ambientGlow { 0% { box-shadow: 0 0 10px rgba(16,185,129,0.1), 0 10px 20px -10px rgba(16,185,129,0.2); } 100% { box-shadow: 0 0 25px rgba(16,185,129,0.5), 0 20px 40px -10px rgba(16,185,129,0.7); } }
         .goal-ambient-gauge { stroke: #10b981 !important; filter: drop-shadow(0 0 8px rgba(16,185,129,0.6)) !important; transition: all 0.5s ease; }
+        
         .red-cyber { border-color: rgba(244, 63, 94, 0.2) !important; box-shadow: inset 0 -15px 30px -15px rgba(244, 63, 94, 0.3) !important; transition: border-color 0.4s ease, box-shadow 0.4s ease; }
         .red-cyber-gauge { stroke: #f43f5e !important; opacity: 0.6; transition: all 0.5s ease; }
-        .cyber-scanner-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 60px; background: linear-gradient(180deg, transparent, rgba(14, 165, 233, 0.05), rgba(14, 165, 233, 0.3)); border-bottom: 2px solid #0ea5e9; animation: scanAnim 3.5s ease-in-out infinite alternate; pointer-events: none; z-index: 25; display: none; box-shadow: 0 4px 15px -5px rgba(14, 165, 233, 0.4); }
+        
+        .blue-cyber { border-color: rgba(14, 165, 233, 0.4) !important; box-shadow: inset 0 0 25px -5px rgba(14, 165, 233, 0.15) !important; transition: all 0.4s ease; }
+        .blue-cyber-gauge { stroke: #0ea5e9 !important; filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.6)) !important; transition: all 0.5s ease; }
+        
+        .cyber-scanner-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 60px; background: linear-gradient(180deg, transparent, rgba(14, 165, 233, 0.05), rgba(14, 165, 233, 0.3)); border-bottom: 2px solid #0ea5e9; animation: scanAnim 3.5s ease-in-out infinite alternate; pointer-events: none; z-index: 35; display: none; box-shadow: 0 4px 15px -5px rgba(14, 165, 233, 0.4); }
         @keyframes scanAnim { 0% { transform: translateY(-60px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(280px); opacity: 0; } }
 
         /* ========================================================================= */
-        /* NY: VERTICAL PILLS FÖR DAGSVYN (SLIDER)                                 */
+        /* VERTICAL PILLS FÖR DAGSVYN (SLIDER)                                     */
         /* ========================================================================= */
         .vp-cell {
             flex: 1; height: 66px; border-radius: 20px; 
@@ -218,7 +222,6 @@
         .vp-future .vp-val { color: #64748b; }
         .vp-today { border-color: rgba(56, 189, 248, 0.3); background: rgba(240, 249, 255, 0.5); }
         
-        /* Delar .active-focus logiken för snyggt blått lyft */
         .vp-cell.active-focus { 
             background: linear-gradient(135deg, #0ea5e9, #0284c7) !important; 
             transform: translateY(-4px) scale(1.05) !important;
@@ -242,7 +245,6 @@
     
     <div id="confirm-box" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:14000;display:none;width:280px;background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.6);border-radius:28px;padding:24px;box-shadow:0 24px 60px -12px rgba(15,23,42,0.25);"><p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p><div class="flex gap-3"><button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button><button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button></div></div>
 
-    <!-- UTVÄRDERINGSMODAL (EVAL) -->
     <div id="eval-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-full max-w-[320px] bg-white rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="eval-modal-content">
             <div class="flex justify-between items-center mb-1">
@@ -276,7 +278,6 @@
         </div>
     </div>
 
-    <!-- SAMMANFATTNINGSMODAL -->
     <div id="summary-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[30000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-full max-w-[320px] bg-white rounded-[32px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="summary-modal-content">
             <div class="flex justify-between items-center mb-1">
@@ -334,18 +335,15 @@
                 </div>
             </div>
 
-            <!-- INSIKTS-VYN -->
             <div id="summary-insights-view" class="hidden flex flex-col gap-3">
                 <div id="insight-container" class="flex flex-col gap-3 overflow-y-auto max-h-[50vh] hide-scrollbar">
-                    <!-- Insikter genereras här -->
-                </div>
+                    </div>
             </div>
             
             <button onclick="closeSummaryModal()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all mt-1">STÄNG</button>
         </div>
     </div>
 
-    <!-- ÖVRIGA MODALER -->
     <div id="note-confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-3 transform scale-95 transition-transform duration-300" id="note-modal-content">
             <p class="text-[11px] font-black text-center uppercase tracking-widest text-slate-800 mb-2">Vill du stänga ärendet?</p>
@@ -473,15 +471,12 @@
                         
                         <div id="pane-dash" class="dash-view-pane h-full justify-start pt-1.5 flex flex-col overflow-hidden" style="touch-action: pan-y;">
                             
-                            <!-- Slider: Vertical Pills -->
                             <div id="slide-curr" class="w-full flex-shrink-0 mb-1 py-1 flex gap-1 px-3 items-center justify-between"></div>
 
                             <div class="mx-3 mt-1 mb-2 relative flex flex-col flex-shrink-0 z-20 flex-1 min-h-0" id="dash-main-container">
                                 
-                                <!-- Inner Card with Dynamic FX Borders -->
                                 <div id="dash-inner-card" class="relative w-full h-full bg-white rounded-[24px] border border-slate-100 shadow-md overflow-hidden z-10 flex flex-col transition-colors duration-300">
                                     
-                                    <!-- CYBER SCANNER LAYER (Pågående) -->
                                     <div id="cyber-scanner-layer" class="cyber-scanner-overlay"></div>
 
                                     <div id="dash-standard-content" class="absolute inset-0 flex flex-col p-3 transition-all duration-300 transform origin-top opacity-100 scale-100 pointer-events-auto bg-gradient-to-b from-[#f8fafc] to-white z-30">
@@ -1130,7 +1125,7 @@
             const scannerLayer = document.getElementById('cyber-scanner-layer');
             const gProg = document.getElementById('dash-gauge-prog');
 
-            innerCard.classList.remove('goal-ambient', 'red-cyber');
+            innerCard.classList.remove('goal-ambient', 'red-cyber', 'blue-cyber'); 
             innerCard.style.borderColor = '';
             gProg.classList.remove('goal-ambient-gauge', 'red-cyber-gauge', 'blue-cyber-gauge');
             scannerLayer.style.display = 'none';
@@ -1142,7 +1137,7 @@
                 } else if (isActiveNow) {
                     scannerLayer.style.display = 'block';
                     gProg.classList.add('blue-cyber-gauge');
-                    innerCard.style.borderColor = 'rgba(14, 165, 233, 0.4)';
+                    innerCard.classList.add('blue-cyber'); 
                 } else if (dTarget > 0 && !isReached) {
                     innerCard.classList.add('red-cyber');
                     gProg.classList.add('red-cyber-gauge');

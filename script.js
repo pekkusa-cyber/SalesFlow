@@ -983,90 +983,182 @@ async function saveEvalModal() {
     updateDashboardView();
 }
 
-// --- ANTECKNINGAR I POPUP ---
+// --- ANTECKNINGAR I POPUP --- //
+let currentEditId = null;
+
 function openNotesModal() {
     const m = document.getElementById('notes-modal');
     if(m) {
         renderNotes();
         m.classList.remove('hidden');
-        setTimeout(() => m.classList.remove('opacity-0'), 10);
+        setTimeout(() => m.classList.replace('opacity-0', 'opacity-100'), 10);
     }
 }
+
 function closeNotesModal() {
-    const m = document.getElementById('notes-modal');
-    if(m) {
-        m.classList.add('opacity-0');
-        setTimeout(() => m.classList.add('hidden'), 300);
+    const modal = document.getElementById('notes-modal');
+    if (modal) {
+        modal.classList.replace('opacity-100', 'opacity-0');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            currentEditId = null;
+            const submitBtn = document.getElementById('note-submit-btn');
+            if(submitBtn) submitBtn.innerText = "SPARA ANTECKNING";
+            ['note-name', 'note-phone', 'note-order', 'note-text', 'note-due', 'note-prio'].forEach(id => {
+                if(document.getElementById(id)) document.getElementById(id).value = '';
+            });
+        }, 300);
     }
 }
+
 function addNote() { 
     const nameEl = document.getElementById('note-name');
     const phoneEl = document.getElementById('note-phone');
     const orderEl = document.getElementById('note-order');
     const textEl = document.getElementById('note-text');
-    const btn = document.getElementById('note-submit-btn');
+    const dueEl = document.getElementById('note-due');
+    const prioEl = document.getElementById('note-prio');
     
-    const text = textEl.value.trim(); 
-    if(text || nameEl.value.trim() || phoneEl.value.trim()) { 
-        const newNote = { 
-            id: Date.now(), 
-            name: nameEl.value.trim(),
-            phone: phoneEl.value.trim(),
-            order: orderEl.value.trim(),
-            text: text 
-        };
-        
-        savedNotes.unshift(newNote); 
-        try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
-        
-        if (sb) {
-            sb.from('notes').insert([{
-                id: newNote.id,
-                customer_name: newNote.name,
-                phone: newNote.phone,
-                order_nr: newNote.order,
-                note_text: newNote.text
-            }]).then(({error}) => {
-                if(error) console.warn("Supabase fel på anteckning:", error);
-            });
+    const name = nameEl ? nameEl.value.trim() : '';
+    const phone = phoneEl ? phoneEl.value.trim() : '';
+    const order = orderEl ? orderEl.value.trim() : '';
+    const text = textEl ? textEl.value.trim() : '';
+    const due = dueEl ? dueEl.value : '';
+    const prio = prioEl ? prioEl.value : '';
+    
+    if(!text && !name) return; 
+
+    let cleanNotes = [];
+    try { cleanNotes = JSON.parse(localStorage.getItem('sf_notes_clean')) || []; } catch(e){}
+
+    if (currentEditId) {
+        // Uppdatera befintlig
+        const index = cleanNotes.findIndex(n => n.id === currentEditId);
+        if (index !== -1) {
+            cleanNotes[index] = { ...cleanNotes[index], name, phone, order, text, due, prio };
         }
-        
-        nameEl.value = ''; phoneEl.value = ''; orderEl.value = ''; textEl.value = ''; 
-        
-        // Visuell feedback
-        if(btn) {
-            const originalText = btn.innerHTML;
-            btn.innerHTML = "SPARAT!";
-            btn.classList.add('bg-emerald-500');
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.classList.remove('bg-emerald-500');
-            }, 1000);
+        currentEditId = null;
+        document.getElementById('note-submit-btn').innerText = "SPARA ANTECKNING";
+    } else {
+        // Lägg till ny
+        const newNote = { id: Date.now(), name, phone, order, text, due, prio };
+        cleanNotes.unshift(newNote);
+        if (typeof sb !== 'undefined' && sb) {
+            sb.from('notes').insert([{ id: newNote.id, customer_name: newNote.name, phone: newNote.phone, order_nr: newNote.order, note_text: newNote.text }]).then(({error}) => { if(error) console.warn("Supabase fel:", error); });
         }
-        renderNotes(); 
-    } 
+    }
+    
+    localStorage.setItem('sf_notes_clean', JSON.stringify(cleanNotes));
+    
+    if(nameEl) nameEl.value = ''; if(phoneEl) phoneEl.value = ''; if(orderEl) orderEl.value = ''; 
+    if(textEl) textEl.value = ''; if(dueEl) dueEl.value = ''; if(prioEl) prioEl.value = ''; 
+    
+    renderNotes(); 
+}
+
+function editNote(id) {
+    let cleanNotes = [];
+    try { cleanNotes = JSON.parse(localStorage.getItem('sf_notes_clean')) || []; } catch(e){}
+    const note = cleanNotes.find(n => n.id === id);
+    if(!note) return;
+
+    document.getElementById('note-name').value = note.name || '';
+    document.getElementById('note-phone').value = note.phone || '';
+    document.getElementById('note-order').value = note.order || '';
+    document.getElementById('note-text').value = note.text || '';
+    document.getElementById('note-due').value = note.due || '';
+    document.getElementById('note-prio').value = note.prio || '';
+
+    currentEditId = id;
+    document.getElementById('note-submit-btn').innerText = "UPPDATERA ANTECKNING";
+    document.getElementById('notes-list-container').scrollTop = 0;
+}
+
+function deleteNote(id) {
+    if(!confirm("Vill du verkligen radera denna anteckning?")) return;
+    let cleanNotes = [];
+    try { cleanNotes = JSON.parse(localStorage.getItem('sf_notes_clean')) || []; } catch(e){}
+    cleanNotes = cleanNotes.filter(n => n.id !== id);
+    localStorage.setItem('sf_notes_clean', JSON.stringify(cleanNotes));
+    renderNotes();
 }
 
 function renderNotes() { 
     const c = document.getElementById('notes-list-container'); 
-    if(c) { 
-        if(!savedNotes || savedNotes.length === 0) { 
-            c.innerHTML = '<p class="text-[10px] text-slate-400 font-bold text-center mt-4 uppercase tracking-widest">Inga anteckningar än.</p>'; 
-        } else { 
-            c.innerHTML = savedNotes.map(n => {
-                let header = '';
-                if (n.name || n.phone || n.order) {
-                    header = `<div class="flex gap-2 mb-1.5 pb-1.5 border-b border-slate-100 text-[8.5px] font-black uppercase tracking-widest text-slate-400">
-                        ${n.name ? `<span>👤 ${n.name}</span>` : ''}
-                        ${n.phone ? `<span>📞 ${n.phone}</span>` : ''}
-                        ${n.order ? `<span>📦 ${n.order}</span>` : ''}
-                    </div>`;
-                }
-                let txtHtml = n.text ? `<p class="text-[10.5px] font-bold text-slate-700 whitespace-pre-wrap leading-relaxed">${n.text}</p>` : '';
-                return `<div class="p-2.5 bg-white border border-slate-100 rounded-xl shadow-sm flex flex-col">${header}${txtHtml}</div>`;
-            }).join(''); 
-        } 
-    } 
+    if(!c) return;
+    
+    // Tar bort den gamla trasiga datan
+    localStorage.removeItem('sf_notes');
+    
+    let cleanNotes = [];
+    try { cleanNotes = JSON.parse(localStorage.getItem('sf_notes_clean')) || []; } catch(e){}
+    
+    checkUrgentNotes(cleanNotes);
+    
+    if(cleanNotes.length === 0) { 
+        c.innerHTML = '<div class="h-full flex flex-col items-center justify-center p-4 mt-4"><span class="text-3xl mb-2 opacity-40">📝</span><p class="text-[10px] text-slate-400 font-bold text-center uppercase tracking-widest">Inga anteckningar</p></div>'; 
+        return;
+    }
+
+    const prioIcons = { '1': '🔴 Prio 1', '2': '🟡 Prio 2', '3': '🔵 Prio 3' };
+
+    c.innerHTML = cleanNotes.map(note => {
+        let dueHtml = '';
+        if (note.due) {
+            const daysLeft = Math.ceil((new Date(note.due) - new Date()) / (1000 * 60 * 60 * 24));
+            const colorClass = daysLeft < 0 ? 'text-red-500 font-black' : (daysLeft <= 7 ? 'text-amber-500 font-bold' : 'text-slate-400');
+            dueHtml = `<span class="${colorClass}">⏳ ${note.due}</span>`;
+        }
+        
+        return `
+            <div class="p-3.5 bg-white border border-slate-200 rounded-xl flex flex-col gap-1.5 shadow-sm relative">
+                <div class="flex justify-between items-start">
+                    ${note.name ? `<div class="text-[10px] font-black uppercase text-[#0ea5e9] tracking-wider">${note.name}</div>` : '<div></div>'}
+                    <div class="flex gap-2">
+                        <button onclick="editNote(${note.id})" class="text-[10px] text-slate-300 hover:text-[#0ea5e9] transition-colors">✏️</button>
+                        <button onclick="deleteNote(${note.id})" class="text-[10px] text-slate-300 hover:text-red-500 transition-colors">🗑️</button>
+                    </div>
+                </div>
+                ${note.text ? `<div class="text-[11px] font-bold text-slate-700 leading-snug whitespace-pre-wrap">${note.text}</div>` : ''}
+                <div class="flex justify-between items-center text-[9px] font-black text-slate-400 mt-1 uppercase tracking-wide border-t border-slate-100 pt-2">
+                    <div class="flex flex-col gap-1">
+                        ${note.phone ? `<span>📞 ${note.phone}</span>` : ''}
+                        ${note.order ? `<span>📦 ${note.order}</span>` : ''}
+                    </div>
+                    <div class="flex flex-col items-end gap-1 text-right">
+                        ${note.prio ? `<span>${prioIcons[note.prio]}</span>` : ''}
+                        ${dueHtml}
+                    </div>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+function checkUrgentNotes(notes) {
+    const penBtn = document.querySelector('[onclick="openNotesModal()"]') || document.getElementById('btn-notes');
+    if(!penBtn) return;
+
+    let hasUrgent = false;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    for (let n of notes) {
+        if (n.prio === '1' && n.due) {
+            const dueDate = new Date(n.due);
+            const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            
+            if (diffDays <= 7 && diffDays >= -30) {
+                hasUrgent = true;
+                break;
+            }
+        }
+    }
+
+    if (hasUrgent) {
+        penBtn.classList.add('urgent-note-blink');
+    } else {
+        penBtn.classList.remove('urgent-note-blink');
+    }
 }
 
 // --- SAMMANFATTNING & INSIKTER ---
@@ -1355,4 +1447,3 @@ init();
 if ("serviceWorker" in navigator) { 
     navigator.serviceWorker.register("sw.js").catch(e => {}); 
 }
-

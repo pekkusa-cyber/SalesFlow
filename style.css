@@ -143,14 +143,20 @@ body::before {
 .bg-split-sem { background: linear-gradient(135deg, #e0f2fe 50%, #ccfbf1 50%) !important; border: 1px solid #ffffff !important; color: #0f766e !important; z-index: 4; }
 
 /* BOLD GRADIENT PÅ PASSERADE DAGAR (BÅDE KALENDER & SLIDER) */
-.history-cell { transform: scale(0.8); opacity: 0.8 !important; filter: none !important; }
-.vp-past { transform: scale(0.8); margin: 0 1px; opacity: 0.8 !important; filter: none !important; }
-
-.history-success { background: linear-gradient(180deg, #d1fae5, #ecfdf5) !important; color: #047857 !important; border: 1px solid #a7f3d0 !important; box-shadow: 0 2px 4px -1px rgba(0,0,0,0.05) !important; }
-.history-fail { background: linear-gradient(180deg, #ffe4e6, #fff1f2) !important; color: #be123c !important; border: 1px solid #fecdd3 !important; box-shadow: 0 2px 4px -1px rgba(0,0,0,0.05) !important; }
-
-.history-success .date-num, .history-fail .date-num, .history-success .vp-name, .history-fail .vp-name { opacity: 0.6; color: inherit !important; }
-.history-success .vp-date, .history-fail .vp-date, .history-success .vp-val, .history-fail .vp-val { color: inherit !important; }
+/* 65% nedtonade (35% synlighet) för en balanserad arkiverad look */
+.history-cell { 
+    transform: scale(0.85); 
+    opacity: 0.35 !important; 
+    filter: brightness(0.85) !important; 
+    transition: all 0.25s var(--ease-spring);
+}
+.vp-past { 
+    transform: scale(0.85); 
+    margin: 0 1px; 
+    opacity: 0.35 !important; 
+    filter: brightness(0.85) !important; 
+    transition: all 0.25s var(--ease-spring);
+}
 
 .history-success { background: linear-gradient(180deg, #d1fae5, #ecfdf5) !important; color: #047857 !important; border: 1px solid #a7f3d0 !important; box-shadow: 0 2px 4px -1px rgba(0,0,0,0.05) !important; }
 .history-fail { background: linear-gradient(180deg, #ffe4e6, #fff1f2) !important; color: #be123c !important; border: 1px solid #fecdd3 !important; box-shadow: 0 2px 4px -1px rgba(0,0,0,0.05) !important; }
@@ -227,3 +233,17 @@ body.focus-mode-active .day-cell.focus-highlight, body.focus-mode-active .vp-cel
 
 .eval-scale-btn { transition: all 0.2s var(--ease-spring); }
 .eval-scale-btn.active { background: #0ea5e9 !important; color: white !important; border-color: #0ea5e9 !important; transform: scale(1.1); box-shadow: 0 4px 10px rgba(14,165,233,0.3); }
+
+/* BLINKANDE VARNING FÖR URGENT PRIO 1 (Fixad utan fyrkant) */
+@keyframes penGlow {
+    0% { filter: drop-shadow(0 0 2px rgba(244, 63, 94, 0.4)); transform: scale(1) rotate(0deg); }
+    50% { filter: drop-shadow(0 0 12px rgba(244, 63, 94, 1)); transform: scale(1.1) rotate(-10deg); }
+    100% { filter: drop-shadow(0 0 2px rgba(244, 63, 94, 0.4)); transform: scale(1) rotate(0deg); }
+}
+
+.urgent-note-blink {
+    animation: penGlow 2s infinite ease-in-out !important;
+    background: transparent !important; /* Tar bort den fula rutan */
+    box-shadow: none !important;
+    border: none !important;
+}

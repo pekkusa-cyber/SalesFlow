@@ -31,29 +31,40 @@
         </div>
     </div>
 
-    <div id="notes-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="w-full max-w-[320px] bg-white rounded-[32px] p-5 shadow-2xl flex flex-col gap-3 transform scale-95 transition-transform duration-300 border border-slate-100" style="max-height: 85vh;">
-            <div class="flex justify-between items-center mb-1 shrink-0">
-                <h2 class="text-[12px] font-black text-slate-800 uppercase tracking-widest">ANTECKNINGAR</h2>
-                <button onclick="closeNotesModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
-            </div>
+<div id="notes-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="w-full max-w-[340px] bg-white rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100 max-h-[85vh]">
+        <div class="flex justify-between items-center shrink-0">
+            <h2 class="text-[13px] font-black text-slate-800 uppercase tracking-widest">ANTECKNINGAR</h2>
+            <button onclick="closeNotesModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
+        </div>
+        
+        <div class="flex flex-col gap-2.5 shrink-0 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+            <input type="text" id="note-name" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Namn / Ämne">
             
-            <div class="flex flex-col gap-1.5 shrink-0">
-                <div class="flex gap-1.5">
-                    <input type="text" id="note-name" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Namn / Ämne...">
-                    <input type="tel" id="note-phone" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Telefonnr...">
-                </div>
-                <div class="flex gap-1.5">
-                    <input type="text" id="note-order" class="w-[75px] bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Ordernr">
-                    <input type="text" id="note-text" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Anteckning...">
-                    <button id="note-submit-btn" onclick="addNote()" class="bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-transform px-3">SPARA</button>
-                </div>
+            <div class="flex gap-2">
+                <input type="tel" id="note-phone" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Telefon">
+                <input type="text" id="note-order" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Ordernr">
             </div>
 
-            <div class="flex-1 overflow-y-auto hide-scrollbar mt-2 flex flex-col gap-2" id="notes-list-container">
+            <div class="flex gap-2">
+                <input type="date" id="note-due" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]">
+                <select id="note-prio" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]">
+                    <option value="">Ingen Prio</option>
+                    <option value="1">🔴 Prio 1 (Hög)</option>
+                    <option value="2">🟡 Prio 2 (Medel)</option>
+                    <option value="3">🔵 Prio 3 (Låg)</option>
+                </select>
             </div>
+            
+            <textarea id="note-text" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] min-h-[60px] resize-none" placeholder="Skriv din anteckning här..."></textarea>
+            
+            <button id="note-submit-btn" onclick="addNote()" class="w-full bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:brightness-110 text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 py-3 mt-1 transition-all">SPARA ANTECKNING</button>
         </div>
+
+        <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-2 rounded-xl" id="notes-list-container">
+            </div>
     </div>
+</div>
 
     <div id="summary-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[30000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-full max-w-[320px] bg-white rounded-[32px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="summary-modal-content">

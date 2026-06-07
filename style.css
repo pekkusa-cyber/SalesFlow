@@ -208,6 +208,19 @@ body::before {
 @keyframes pulse-eval-red { 0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); border-color: #f43f5e; background-color: #fff1f2; } 70% { box-shadow: 0 0 0 8px rgba(244, 63, 94, 0); border-color: #fda4af; background-color: #fff1f2; } 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); border-color: #f43f5e; background-color: #fff1f2; } }
 .eval-needs-action { animation: pulse-eval-red 1.5s infinite; color: #f43f5e !important; }
 
+/* NYCKEL-BADGE FÖR STÄNGNINGSPASS */
+.badge-key { 
+    top: -4px; 
+    right: -4px; 
+    width: 16px; 
+    height: 16px; 
+    font-size: 9px; 
+    background: linear-gradient(135deg, #fef08a, #facc15); 
+    border: 1.5px solid #ffffff; 
+    color: #854d0e;
+    box-shadow: 0 4px 8px -2px rgba(202, 138, 4, 0.4);
+}
+
 /* FOKUSLÄGE (BLUR BORTTAGET, MARKERING STARK) */
 body.focus-mode-active .weekday-label, body.focus-mode-active .vp-name { opacity: 0.4; transition: all 0.4s ease; }
 body.focus-mode-active .day-cell, body.focus-mode-active .vp-cell { transition: all 0.4s var(--ease-spring); }

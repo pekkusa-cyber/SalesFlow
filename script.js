@@ -632,8 +632,7 @@ function createSliderCell(cd, k) {
     let cls = 'vp-cell';
 
     if (o.abs) {
-       // absence styles are handled by background if needed, but standard vp uses text/emojis
-       cls += ' type-unplanned'; // basic fallback
+       cls += ' type-unplanned'; 
     } else if (state === 'ledig' || state === 'unplanned') {
        cls += ' type-unplanned';
     } else if (qData.start) {
@@ -683,7 +682,19 @@ function createSliderCell(cd, k) {
     cell.className = cls;
     cell.dataset.key = k;
     cell.onclick = (e) => selectDay(k, cell, e);
+
+    // --- NYCKEL-LOGIK FÖR SLIDER ---
+    let keyBadge = '';
+    if (!o.abs && qData.end) {
+        let dayOfWeek = cd.getDay();
+        let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        if ((!isWeekend && qData.end.includes('19:30')) || (isWeekend && qData.end.includes('16:30'))) {
+            keyBadge = `<div class="u-badge badge-key">🔑</div>`;
+        }
+    }
+
     cell.innerHTML = `
+        ${keyBadge}
         <span class="vp-name">${dayName}</span>
         <span class="vp-date">${cd.getDate()}</span>
         <span class="vp-val flex items-center justify-center">${valStr}</span>
@@ -708,7 +719,18 @@ function createDayCell(cd, k) {
     let isShiftActive = (isToday && qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester' && now >= shiftStart && now < shiftEnd);
     
     if (dayOfWeek === 1 && viewMode === 'month') wt = `<div class="week-tag">${getWeekNumber(cd)}</div>`;
+    
+    // Frånvaro-badge
     if (o.abs) { let bKey = o.abs.split(' ')[0]; if (o.abs === 'Åtgärd krävs') { b += `<div class="u-badge badge-abs badge-action" style="background:#ef4444; color:white; border:none;">${em[o.abs] || '•'}</div>`; } else { b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; } }
+    
+    // --- NYCKEL-LOGIK FÖR MÅNAD ---
+    if (!o.abs && qData.end) {
+        let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        if ((!isWeekend && qData.end.includes('19:30')) || (isWeekend && qData.end.includes('16:30'))) {
+            b += `<div class="u-badge badge-key">🔑</div>`;
+        }
+    }
+
     if (o.s > 0) { content = `<span class="cell-main-val mt-1">${(o.s/1000).toFixed(1)} k</span>`; } else if (qData.start && !o.abs) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`; } else if (state === 'unplanned' || (state === 'ledig' && o.s === 0)) { content = `<span class="text-[7.5px] font-black text-slate-800 mt-1 uppercase tracking-widest opacity-50">LEDIG</span>`; }
 
     if (o.abs) { let baseAbs = o.abs.split(' ')[0]; if (qData.start && baseAbs !== 'Åtgärd krävs') { if (baseAbs === 'Sjuk') cls += ' bg-split-sjuk'; else if (baseAbs === 'VAB') cls += ' bg-split-vab'; else if (baseAbs === 'Föräldraledig') cls += ' bg-split-fledig'; else if (baseAbs === 'Semester') cls += ' bg-split-sem'; else cls += ' type-absent'; } else { if (baseAbs === 'Sjuk' || baseAbs === 'Åtgärd krävs') cls += ' type-absent'; else if (baseAbs === 'Semester') cls += ' type-semester'; else cls += ' type-absent'; } } else if (state === 'ledig' || state === 'unplanned') { cls += ' type-unplanned'; } else if (isPast) { cls += ' history-cell'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; } else { if (isToday) cls += ' status-today'; else if (qData.start) cls += ' type-planned'; }

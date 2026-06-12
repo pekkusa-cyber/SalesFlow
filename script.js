@@ -1,6 +1,3 @@
-// ==========================================
-//  GLOBAL CORE VARIABLES
-// ==========================================
 let sb = null;
 let db = { b: 240000, d: {}, q: {} };
 let timeline = {};
@@ -19,6 +16,7 @@ let pendingAbsenceSource = null;
 
 let savedNotes = [];
 let savedBudgets = {};
+let savedCalls = [];
 
 let touchStartX = 0, touchStartY = 0;
 let inlineNumpadValue = "";
@@ -66,7 +64,304 @@ function setGlobalBudget(amount) {
 }
 
 function setTheme(themeName) { document.body.setAttribute('data-theme', themeName); localStorage.setItem('sf_theme', themeName); }
-const savedTheme = localStorage.getItem('sf_theme') || 'light'; document.body.setAttribute('data-theme', savedTheme);
+
+// ==========================================
+//  TOAST NOTIFICATIONS
+// ==========================================
+function showToast(icon, msg, duration = 4000) {
+    const toast = document.getElementById('sf-toast');
+    if(!toast) return;
+    document.getElementById('sf-toast-icon').innerText = icon;
+    document.getElementById('sf-toast-msg').innerText = msg;
+    toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-8');
+    
+    // Rensa eventuell gammal timer
+    if(window.toastTimer) clearTimeout(window.toastTimer);
+    
+    window.toastTimer = setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-8');
+    }, duration);
+}
+
+// ==========================================
+//  COACH LOGIK (SÄLJ-JOURNAL MED UI)
+// ==========================================
+let activeCoachCallId = null;
+
+function openCoachModalMain() {
+    const m = document.getElementById('coach-main-modal');
+    if(m) { 
+        m.classList.remove('hidden'); 
+        setTimeout(() => m.classList.remove('opacity-0'), 10); 
+    }
+}
+
+function closeCoachModalMain() {
+    const m = document.getElementById('coach-main-modal');
+    if(m) { 
+        m.classList.add('opacity-0'); 
+        setTimeout(() => m.classList.add('hidden'), 300); 
+    }
+}
+
+function openCoachHistoryModal() {
+    renderCoachingLibrary();
+    const m = document.getElementById('coach-history-modal');
+    if(m) { 
+        m.classList.remove('hidden'); 
+        setTimeout(() => m.classList.remove('opacity-0'), 10); 
+    }
+}
+
+function closeCoachHistoryModal() {
+    const m = document.getElementById('coach-history-modal');
+    if(m) { 
+        m.classList.add('opacity-0'); 
+        setTimeout(() => m.classList.add('hidden'), 300); 
+    }
+}
+
+async function submitNewCall() {
+    const textInput = document.getElementById('call-input-text');
+    const titleInput = document.getElementById('call-input-title');
+    const typeInput = document.getElementById('call-input-type');
+    const statusText = document.getElementById('coach-status-text');
+    const btn = document.getElementById('btn-analyze-call');
+
+    if (!textInput) return;
+    const transcription = textInput.value.trim();
+    if (!transcription) { alert("Du måste klistra in text att analysera!"); return; }
+
+    const tag = typeInput && typeInput.value === 'utv' ? '[UTV] ' : '[BRA] ';
+    const rawTitle = titleInput && titleInput.value ? titleInput.value : 'Okänt Samtal';
+    const finalTitle = tag + rawTitle;
+
+    if (btn) btn.disabled = true;
+    if (statusText) { statusText.classList.remove('hidden'); }
+
+    try {
+        const response = await fetch("https://xnrclzkzzthlesaftpvs.supabase.co/functions/v1/transcribe-and-save", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: 'analyze_single', text: transcription })
+        });
+
+        const result = await response.json();
+        if (response.ok && sb) {
+            const { data } = await sb.from('sales_calls').insert({
+                title: finalTitle,
+                transcription: transcription,
+                analysis: result.analysis
+            }).select().single();
+
+            if (data) {
+                savedCalls.unshift(data);
+                textInput.value = '';
+                if(titleInput) titleInput.value = '';
+                
+                if(btn) {
+                    let oldText = btn.innerHTML;
+                    btn.innerHTML = "✅ SPARAD I HISTORIK!";
+                    btn.classList.add("bg-emerald-500", "border-emerald-400");
+                    btn.classList.remove("bg-slate-800");
+                    setTimeout(() => {
+                        btn.innerHTML = oldText;
+                        btn.classList.remove("bg-emerald-500", "border-emerald-400");
+                        btn.classList.add("bg-slate-800");
+                    }, 2500);
+                }
+
+                // AI: AUTOMATISK RÖD TRÅD
+                // Triggar om du har 2 samtal, och därefter var 3:e samtal.
+                const callCount = savedCalls.length;
+                if (callCount >= 2 && (callCount === 2 || callCount % 3 === 0)) {
+                    setTimeout(autoAnalyzeRedThread, 1500);
+                }
+
+                renderCoachingLibrary();
+            }
+        }
+    } catch (e) { console.error("Kunde inte analysera", e); }
+
+    if (btn) btn.disabled = false;
+    if (statusText) statusText.classList.add('hidden');
+}
+
+async function autoAnalyzeRedThread() {
+    showToast("🤖", "Hjärnan analyserar mönster i dina samtal...", 3000);
+    try {
+        const response = await fetch("https://xnrclzkzzthlesaftpvs.supabase.co/functions/v1/transcribe-and-save", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: 'analyze_thread' })
+        });
+        const result = await response.json();
+        
+        if (response.ok && result.analysis) {
+            // Spara tråden lokalt i webbläsaren så vi alltid har senaste
+            localStorage.setItem('sf_latest_red_thread', result.analysis);
+            showToast("🧠", "Röd tråd hittad i dina sälj! (Både bra & utveckling)", 6000);
+            renderCoachingLibrary(); // Uppdaterar vyn så kortet dyker upp direkt!
+        } else {
+            showToast("⚠️", "Behöver fler samtal för att hitta en tydlig röd tråd.", 4000);
+        }
+    } catch (e) { 
+        showToast("❌", "Kunde inte leta efter röd tråd just nu (serverfel).", 4000);
+    }
+}
+
+function openSavedRedThread() {
+    const text = localStorage.getItem('sf_latest_red_thread');
+    if(!text) return;
+    document.getElementById('rt-content').innerHTML = formatCoachText(text);
+    const m = document.getElementById('red-thread-modal');
+    if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); }
+}
+
+function renderCoachingLibrary() {
+    const list = document.getElementById('coach-history-list');
+    if (!list) return;
+
+    const bra = savedCalls.filter(c => (c.title || '').includes('[BRA]'));
+    const utv = savedCalls.filter(c => (c.title || '').includes('[UTV]') || (!(c.title || '').includes('[BRA]') && !(c.title || '').includes('[UTV]')));
+
+    let html = '';
+
+    // Kolla om vi har en sparad Röd Tråd!
+    const savedThread = localStorage.getItem('sf_latest_red_thread');
+    if (savedThread) {
+        html += `
+        <div onclick="openSavedRedThread()" class="mb-5 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] p-4 rounded-[20px] shadow-md text-white active:scale-95 transition-transform cursor-pointer relative overflow-hidden border border-[#bae6fd]">
+            <div class="absolute right-[-10px] top-[-10px] text-[60px] opacity-10">🧠</div>
+            <h4 class="text-[11.5px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-1.5"><span class="text-[16px]">🧠</span> DIN RÖDA TRÅD</h4>
+            <p class="text-[10px] font-bold text-[#e0f2fe] leading-snug">AI:n har hittat mönster i dina samtal. Klicka för insikter.</p>
+        </div>`;
+    }
+    
+    if(bra.length > 0) {
+        html += `<div class="mb-3">
+                    <h4 class="text-[9px] font-black uppercase text-emerald-600 tracking-widest mb-2 border-b border-emerald-100 pb-1.5 flex items-center gap-1.5"><span>✅</span> Lyckade Avslut</h4>
+                    <div class="flex flex-col gap-2">${bra.map(c => createCallCard(c, 'emerald')).join('')}</div>
+                 </div>`;
+    }
+    
+    if(utv.length > 0) {
+        html += `<div>
+                    <h4 class="text-[9px] font-black uppercase text-rose-500 tracking-widest mb-2 border-b border-rose-100 pb-1.5 flex items-center gap-1.5"><span>🎯</span> Utvecklingspotential</h4>
+                    <div class="flex flex-col gap-2">${utv.map(c => createCallCard(c, 'rose')).join('')}</div>
+                 </div>`;
+    }
+
+    if(bra.length === 0 && utv.length === 0 && !savedThread) {
+        list.innerHTML = `<p class="text-center text-[10px] font-bold text-slate-400 mt-6 uppercase tracking-widest">Historiken är tom</p>`;
+    } else {
+        list.innerHTML = html;
+    }
+}
+
+function createCallCard(call, color) {
+    const cleanTitle = (call.title || 'Samtal').replace('[BRA] ', '').replace('[UTV] ', '');
+    const dateStr = new Date(call.created_at).toLocaleDateString('sv-SE', {day: 'numeric', month: 'short'});
+    return `
+        <div onclick="openCoachCall('${call.id}')" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 hover:border-${color}-300 cursor-pointer active:scale-95 transition-all flex justify-between items-center relative overflow-hidden group">
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-${color}-400 opacity-80 group-hover:opacity-100 transition-opacity"></div>
+            <div class="pl-3 flex flex-col">
+                <span class="text-[11px] font-black uppercase text-slate-800 tracking-wider">${cleanTitle}</span>
+                <span class="text-[9px] font-bold text-slate-400 mt-1">${dateStr}</span>
+            </div>
+            <span class="text-[14px] opacity-40 group-hover:opacity-100 transition-opacity">👉</span>
+        </div>`;
+}
+
+function formatCoachText(rawText) {
+    let t = rawText || '';
+    t = t.replace(/### (.*)/g, '<h3 class="text-[11px] font-black text-[#0ea5e9] uppercase tracking-widest mt-5 mb-2 border-b border-slate-100 pb-1">$1</h3>');
+    t = t.replace(/## (.*)/g, '<h2 class="text-[12px] font-black text-slate-800 uppercase tracking-widest mt-5 mb-2">$1</h2>');
+    t = t.replace(/\*\*(.*?)\*\*/g, '<span class="font-black text-slate-800">$1</span>');
+    t = t.replace(/^- (.*)/gm, '<li class="ml-4 mb-1.5 list-disc text-slate-600 pl-1">$1</li>');
+    t = t.replace(/\*/g, ''); 
+    t = t.replace(/\n\n/g, '<div class="h-2"></div>');
+    return t;
+}
+
+function openCoachCall(id) {
+    const call = savedCalls.find(c => c.id === id || c.id === parseInt(id));
+    if(!call) return;
+    activeCoachCallId = call.id;
+
+    const cleanTitle = (call.title || 'Samtal').replace('[BRA] ', '').replace('[UTV] ', '');
+    document.getElementById('crm-title').innerText = cleanTitle;
+    document.getElementById('crm-date').innerText = new Date(call.created_at).toLocaleString('sv-SE').substring(0,16);
+    
+    document.getElementById('crm-read-view').innerHTML = formatCoachText(call.analysis);
+    
+    document.getElementById('crm-edit-title').value = call.title; 
+    document.getElementById('crm-edit-text').value = call.analysis;
+
+    document.getElementById('crm-read-view').classList.remove('hidden');
+    document.getElementById('crm-read-buttons').classList.remove('hidden');
+    document.getElementById('crm-edit-view').classList.add('hidden');
+    document.getElementById('crm-edit-buttons').classList.add('hidden');
+
+    const m = document.getElementById('coach-read-modal');
+    if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); }
+}
+
+function closeCoachCall() {
+    const m = document.getElementById('coach-read-modal');
+    if(m) { m.classList.add('opacity-0'); setTimeout(() => m.classList.add('hidden'), 300); }
+    activeCoachCallId = null;
+}
+
+function toggleCoachEdit() {
+    const rView = document.getElementById('crm-read-view');
+    const eView = document.getElementById('crm-edit-view');
+    const rBtn = document.getElementById('crm-read-buttons');
+    const eBtn = document.getElementById('crm-edit-buttons');
+    
+    if(rView.classList.contains('hidden')) {
+        rView.classList.remove('hidden'); rBtn.classList.remove('hidden');
+        eView.classList.add('hidden'); eBtn.classList.add('hidden');
+    } else {
+        rView.classList.add('hidden'); rBtn.classList.add('hidden');
+        eView.classList.remove('hidden'); eView.classList.add('flex'); eBtn.classList.remove('hidden');
+    }
+}
+
+async function saveCoachCall() {
+    if(!activeCoachCallId || !sb) return;
+    const nTitle = document.getElementById('crm-edit-title').value;
+    const nText = document.getElementById('crm-edit-text').value;
+
+    const { error } = await sb.from('sales_calls').update({ title: nTitle, analysis: nText }).eq('id', activeCoachCallId);
+    if(!error) {
+        const idx = savedCalls.findIndex(c => c.id === activeCoachCallId);
+        if(idx !== -1) {
+            savedCalls[idx].title = nTitle;
+            savedCalls[idx].analysis = nText;
+        }
+        renderCoachingLibrary();
+        
+        document.getElementById('crm-title').innerText = nTitle.replace('[BRA] ', '').replace('[UTV] ', '');
+        document.getElementById('crm-read-view').innerHTML = formatCoachText(nText);
+        toggleCoachEdit();
+    } else { alert("Kunde inte spara uppdateringen."); }
+}
+
+async function deleteCoachCall() {
+    if(!activeCoachCallId || !sb) return;
+    if(!confirm("Vill du verkligen radera denna insikt? Det går inte att ångra.")) return;
+
+    const { error } = await sb.from('sales_calls').delete().eq('id', activeCoachCallId);
+    if(!error) {
+        savedCalls = savedCalls.filter(c => c.id !== activeCoachCallId);
+        renderCoachingLibrary();
+        closeCoachCall();
+    } else { alert("Kunde inte radera."); }
+}
+
+function closeRedThreadModal() {
+    const m = document.getElementById('red-thread-modal');
+    if(m) { m.classList.add('opacity-0'); setTimeout(() => m.classList.add('hidden'), 300); }
+}
 
 // ==========================================
 //  INITIALIZATION & DATA LOADING
@@ -111,10 +406,11 @@ function processParsedEvent(ev, desc) {
 async function loadAllData() {
     try {
         if (sb) {
-            const [salesRes, budgetRes, notesRes] = await Promise.all([
+            const [salesRes, budgetRes, notesRes, callsRes] = await Promise.all([
                 sb.from('sales_data').select('*'),
                 sb.from('monthly_budgets').select('*'),
-                sb.from('notes').select('*').order('id', { ascending: false })
+                sb.from('notes').select('*').order('id', { ascending: false }),
+                sb.from('sales_calls').select('*').order('created_at', { ascending: false })
             ]);
 
             if (salesRes.data) {
@@ -136,6 +432,10 @@ async function loadAllData() {
                     id: r.id, name: r.customer_name || '', phone: r.phone || '', order: r.order_nr || '', text: r.note_text
                 }));
                 try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
+            }
+
+            if (callsRes && callsRes.data) {
+                savedCalls = callsRes.data;
             }
         }
 
@@ -211,8 +511,13 @@ async function syncData() {
 function setMode(mode) {
     if (currentFocusReason && mode !== 'month') { closeFocusMode(true); }
     
-    if (!viewDate) viewDate = new Date(realToday); if (!currentWeekStart) currentWeekStart = new Date(realToday);
-    multiSelectKeys.clear(); closeMonthEdit(); if(numpadTarget) closeNumpad();
+    if (!viewDate) viewDate = new Date(realToday); 
+    if (!currentWeekStart) currentWeekStart = new Date(realToday);
+    
+    multiSelectKeys.clear(); 
+    closeMonthEdit(); 
+    if(numpadTarget) closeNumpad();
+    
     viewMode = mode; 
     document.body.className = `mode-${mode} ${currentFocusReason ? 'focus-mode-active' : ''}`;
 
@@ -223,23 +528,44 @@ function setMode(mode) {
             else b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50"; 
         }
     });
+
     if (mode === 'dash' && !activeK) { activeK = getK(realToday); }
-    calculateTimeline(); updateDash();
-    if (mode === 'dash') { renderWeekSlides(); updateDashboardView(); } 
-    else if (mode === 'month') { renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1); } 
-    else if (mode === 'absence') { renderAbsence(); } 
+    
+    calculateTimeline(); 
+    updateDash();
+    
+    if (mode === 'dash') { 
+        renderWeekSlides(); 
+        updateDashboardView(); 
+    } else if (mode === 'month') { 
+        renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1); 
+    } else if (mode === 'absence') { 
+        renderAbsence(); 
+    }
     updateTopTitle();
 }
 
 function toggleDashMode() {
-    activeK = getK(realToday); currentWeekStart = new Date(realToday);
-    const sdo = currentWeekStart.getDay() || 7; currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); currentWeekStart.setHours(0,0,0,0);
+    activeK = getK(realToday); 
+    currentWeekStart = new Date(realToday);
+    const sdo = currentWeekStart.getDay() || 7; 
+    currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); 
+    currentWeekStart.setHours(0,0,0,0);
     viewDate = new Date(realToday); 
     db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
-    if (viewMode !== 'dash') { setMode('dash'); } 
-    else {
-        calculateTimeline(); renderWeekSlides(); updateDashboardView(); updateTopTitle(); updateTopInfoBar();
-        document.querySelectorAll('.vp-cell, .day-cell').forEach(c => { if(activeK && c.dataset.key === activeK) c.classList.add('active-focus'); else c.classList.remove('active-focus'); });
+    
+    if (viewMode !== 'dash') { 
+        setMode('dash'); 
+    } else {
+        calculateTimeline(); 
+        renderWeekSlides(); 
+        updateDashboardView(); 
+        updateTopTitle(); 
+        updateTopInfoBar();
+        document.querySelectorAll('.vp-cell, .day-cell').forEach(c => { 
+            if(activeK && c.dataset.key === activeK) c.classList.add('active-focus'); 
+            else c.classList.remove('active-focus'); 
+        });
     }
 }
 
@@ -253,13 +579,7 @@ function navArrow(dir) {
 
 function navDay(offset) {
     multiSelectKeys.clear(); closeMonthEdit(); if(numpadTarget) closeNumpad();
-    let baseDate;
-    if (activeK) {
-        let p = activeK.split('-');
-        baseDate = new Date(p[0], p[1]-1, p[2]);
-    } else {
-        baseDate = new Date(realToday);
-    }
+    let baseDate = activeK ? new Date(activeK.split('-')[0], activeK.split('-')[1]-1, activeK.split('-')[2]) : new Date(realToday);
     baseDate.setDate(baseDate.getDate() + offset);
     activeK = getK(baseDate);
     
@@ -293,9 +613,9 @@ function navCal(offset) {
         viewDate.setMonth(viewDate.getMonth() + offset); 
         currentWeekStart = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
         const sdo = currentWeekStart.getDay() || 7; currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); currentWeekStart.setHours(0,0,0,0);
-        calculateTimeline(); updateDash(); if (viewMode === 'absence') renderAbsence(); 
-    } 
-    else if (viewMode === 'dash') { 
+        calculateTimeline(); updateDash(); 
+        if (viewMode === 'absence') renderAbsence(); 
+    } else if (viewMode === 'dash') { 
         currentWeekStart.setDate(currentWeekStart.getDate() + (offset * 7)); activeK = null; 
         let thursday = new Date(currentWeekStart); thursday.setDate(thursday.getDate() + 3); const majorityMonth = thursday.getMonth();
         if (majorityMonth !== viewDate.getMonth()) {
@@ -313,12 +633,7 @@ function goToDayFromMonth(k) {
     viewDate = new Date(d.getFullYear(), d.getMonth(), 1); currentWeekStart = new Date(d);
     const sdo = currentWeekStart.getDay() || 7; currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); currentWeekStart.setHours(0,0,0,0);
     multiSelectKeys.clear(); closeMonthEdit(); if(numpadTarget) closeNumpad();
-    viewMode = 'dash'; document.body.className = `mode-dash ${currentFocusReason ? 'focus-mode-active' : ''}`;
-    ['dash', 'month', 'absence'].forEach(m => {
-        const b = document.getElementById(`tab-${m}`);
-        if(b) { if(m === 'dash') b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm"; else b.className = "flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50"; }
-    });
-    calculateTimeline(); updateDash(); renderWeekSlides(); updateDashboardView(); updateTopTitle();
+    setMode('dash');
 }
 
 function selectDay(k, el, e) {
@@ -486,7 +801,6 @@ function updateTopInfoBar() {
             
             if (qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester') { 
                 if (isToday && now >= shiftEnd) {
-                    // Skippa
                 } else {
                     nextShiftDate = new Date(cDate); 
                     break; 
@@ -517,25 +831,31 @@ function updateTopInfoBar() {
 }
 
 function updateDashboardView() {
-    const dashTab = document.getElementById('tab-dash'); if (dashTab) dashTab.innerText = activeK ? 'DAG' : 'VECKA';
-    let dTarget = 0, dSales = 0, dDiff = 0; let title = "", subtitle = "", statusText = "VÄLJ DAG"; let showActions = false; let absType = null; let isReached = false; let isActiveNow = false;
+    const dashInner = document.getElementById('dash-inner-card');
+    if (!dashInner) return;
+
+    const dashTab = document.getElementById('tab-dash'); 
+    if (dashTab) dashTab.innerText = activeK ? 'DAG' : 'VECKA';
+    
+    let dTarget = 0, dSales = 0, dDiff = 0; 
+    let title = "", subtitle = "", statusText = "VÄLJ DAG"; 
+    let showActions = false, absType = null, isReached = false, isActiveNow = false;
 
     if (activeK) {
         const parts = activeK.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]); const o = db.d[activeK] || {s:0}; const qData = db.q[activeK] || {};
         const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']; const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
         title = `${daysLong[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`; subtitle = qData.start ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
         dTarget = timeline[activeK]?.target || 0; dSales = o.s || 0; dDiff = dSales - dTarget; absType = o.abs;
+        
         const state = getCellState(activeK);
         if (state === 'absent') statusText = absType.toUpperCase(); else if (state === 'semester') statusText = 'SEMESTER'; else if (state === 'ledig' || state === 'unplanned') statusText = 'LEDIG'; else statusText = 'ARBETSPASS';
         showActions = true; isReached = dTarget > 0 && dSales >= dTarget;
 
         const isToday = dObj.getTime() === realToday.getTime(); 
         let now = new Date();
+        let isPastShift = dObj.getTime() < realToday.getTime();
         
-        let isPastShift = false;
-        if (dObj.getTime() < realToday.getTime()) {
-            isPastShift = true;
-        } else if (isToday) {
+        if (isToday) {
             let endH = qData.end ? parseInt(qData.end.split(':')[0]) : 19;
             let endM = qData.end ? parseInt(qData.end.split(':')[1]) : 0;
             let shiftEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
@@ -543,18 +863,12 @@ function updateDashboardView() {
         }
 
         if (isToday && qData.start && !o.abs && state !== 'ledig' && state !== 'semester' && state !== 'unplanned') { 
-            let startH = parseInt(qData.start.split(':')[0]||10);
-            let startM = parseInt(qData.start.split(':')[1]||0);
-            let endH = parseInt(qData.end.split(':')[0]||19);
-            let endM = parseInt(qData.end.split(':')[1]||0);
-            
+            let startH = parseInt(qData.start.split(':')[0]||10); let startM = parseInt(qData.start.split(':')[1]||0);
+            let endH = parseInt(qData.end.split(':')[0]||19); let endM = parseInt(qData.end.split(':')[1]||0);
             let shiftStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM);
             let shiftEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
 
-            if (now >= shiftStart && now < shiftEnd) {
-                isActiveNow = true; 
-            }
-            
+            if (now >= shiftStart && now < shiftEnd) { isActiveNow = true; }
             if (now >= shiftEnd && !o.has_eval_saved && !window.evalPromptedToday) {
                 window.evalPromptedToday = true;
                 setTimeout(openEvalModal, 1500);
@@ -562,65 +876,80 @@ function updateDashboardView() {
         }
 
         const btnEval = document.getElementById('btn-trigger-eval');
-        if (qData.start && state !== 'ledig' && state !== 'semester') { 
-            btnEval.classList.remove('hidden'); btnEval.classList.add('flex');
-            if(o.has_eval_saved || (o.eval && Object.keys(o.eval).length > 0)) {
-                btnEval.innerText = "✅"; 
-                btnEval.classList.remove('eval-needs-action');
-            } else { 
-                btnEval.innerText = "✏️";
-                if (isPastShift) {
-                    btnEval.classList.add('eval-needs-action');
-                } else {
-                    btnEval.classList.remove('eval-needs-action');
+        if (btnEval) {
+            if (qData.start && state !== 'ledig' && state !== 'semester') { 
+                btnEval.classList.remove('hidden'); btnEval.classList.add('flex');
+                if(o.has_eval_saved || (o.eval && Object.keys(o.eval).length > 0)) {
+                    btnEval.innerText = "✅"; btnEval.classList.remove('eval-needs-action');
+                } else { 
+                    btnEval.innerText = "✏️";
+                    if (isPastShift) btnEval.classList.add('eval-needs-action');
+                    else btnEval.classList.remove('eval-needs-action');
                 }
-            }
-        } else { 
-            btnEval.classList.add('hidden'); btnEval.classList.remove('flex'); 
+            } else { btnEval.classList.add('hidden'); btnEval.classList.remove('flex'); }
         }
 
-        const actsGrid = document.getElementById('dash-actions-grid'); const stdActions = `<div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50"><button onclick="handleDashAction('Arbete')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button><button onclick="handleDashAction('Ledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button><button onclick="handleDashAction('Semester')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button><button onclick="handleDashAction('Sjuk')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button><button onclick="handleDashAction('VAB')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button><button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button></div>`;
-        if (absType === 'VAB' || absType === 'Föräldraledig') { actsGrid.innerHTML = `<div class="p-0.5 bg-slate-50 w-full h-full flex gap-1"><button onclick="triggerChildSelection('${absType}', 'dash')" class="w-full h-full bg-[#fef3c7] hover:bg-[#fde68a] text-[#d97706] font-black text-[10px] rounded-[10px] border border-[#fcd34d] shadow-sm flex items-center justify-center uppercase tracking-widest active:scale-95 transition-transform">⚠️ Välj Barn</button></div>`; } else { actsGrid.innerHTML = stdActions; }
+        const actsGrid = document.getElementById('dash-actions-grid'); 
+        const stdActions = `<div class="absolute inset-0 flex gap-0.5 p-0.5 bg-slate-50"><button onclick="handleDashAction('Arbete')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">⚒️</button><button onclick="handleDashAction('Ledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🏠</button><button onclick="handleDashAction('Semester')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">✈️</button><button onclick="handleDashAction('Sjuk')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🤒</button><button onclick="handleDashAction('VAB')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">👶</button><button onclick="handleDashAction('Föräldraledig')" class="flex-1 text-[16px] bg-white hover:bg-slate-50 border border-slate-100 rounded-[10px] active:scale-95 flex items-center justify-center transition-colors shadow-sm drop-shadow-sm">🍼</button></div>`;
+        if (actsGrid) {
+            if (absType === 'VAB' || absType === 'Föräldraledig') { actsGrid.innerHTML = `<div class="p-0.5 bg-slate-50 w-full h-full flex gap-1"><button onclick="triggerChildSelection('${absType}', 'dash')" class="w-full h-full bg-[#fef3c7] hover:bg-[#fde68a] text-[#d97706] font-black text-[10px] rounded-[10px] border border-[#fcd34d] shadow-sm flex items-center justify-center uppercase tracking-widest active:scale-95 transition-transform">⚠️ Välj Barn</button></div>`; } else { actsGrid.innerHTML = stdActions; }
+        }
         
-        let metaText = ""; if (absType && o.abs_hours && absType !== 'Åtgärd krävs') { let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours; let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH)*100) : 100; metaText = `${o.abs_hours.toFixed(2).replace('.00','')}h | ${actualP}% (${o.fk_perc || 0}%)`; } document.getElementById('dash-status-meta').innerText = metaText;
+        const statusMetaEl = document.getElementById('dash-status-meta');
+        if (statusMetaEl) {
+            let metaText = ""; if (absType && o.abs_hours && absType !== 'Åtgärd krävs') { let totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours; let actualP = totalH > 0 ? Math.round((o.abs_hours / totalH)*100) : 100; metaText = `${o.abs_hours.toFixed(2).replace('.00','')}h | ${actualP}% (${o.fk_perc || 0}%)`; } 
+            statusMetaEl.innerText = metaText;
+        }
     } else {
         let wPass = 0, firstShiftTarget = null; let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6); const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
         for(let i=0; i<7; i++) { const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); const k = getK(cd); const state = getCellState(k); dSales += (db.d[k]?.s || 0); if(state === 'worked' || state === 'planned') { if(firstShiftTarget === null) firstShiftTarget = (timeline[k]?.target || 0); wPass++; } }
-        dTarget = (firstShiftTarget || 0) * wPass; dDiff = dSales - dTarget; title = `VECKA ${getWeekNumber(currentWeekStart)}`; subtitle = `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`; statusText = "VÄLJ DAG..."; showActions = false; absType = null; isReached = dTarget > 0 && dSales >= dTarget; document.getElementById('dash-status-meta').innerText = "";
-        document.getElementById('btn-trigger-eval').classList.add('hidden');
+        dTarget = (firstShiftTarget || 0) * wPass; dDiff = dSales - dTarget; title = `VECKA ${getWeekNumber(currentWeekStart)}`; subtitle = `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`; statusText = "VÄLJ DAG..."; showActions = false; absType = null; isReached = dTarget > 0 && dSales >= dTarget; 
+        const statusMetaEl = document.getElementById('dash-status-meta'); if(statusMetaEl) statusMetaEl.innerText = "";
+        const btnEval = document.getElementById('btn-trigger-eval'); if(btnEval) btnEval.classList.add('hidden');
     }
 
-    document.getElementById('dash-title').innerText = title.toUpperCase(); document.getElementById('dash-subtitle').innerText = subtitle; document.getElementById('dash-status-text').innerText = statusText;
-    document.getElementById('dash-lbl-target').innerText = activeK ? "DAGSMÅL" : "VECKOMÅL"; document.getElementById('dash-val-target').innerText = (dTarget/1000).toFixed(1) + " k";
-    const salesEl = document.getElementById('dash-val-sales'); salesEl.innerText = (dSales/1000).toFixed(1) + " k"; salesEl.style.color = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)');
-    const diffEl = document.getElementById('dash-val-diff'); diffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; diffEl.style.color = dDiff >= 0 ? "var(--sting-blue)" : "var(--neg)";
-    const p = dTarget > 0 ? Math.min(100, Math.round((dSales / dTarget) * 100)) : 0; document.getElementById('dash-val-perc').innerText = p + "%";
+    const titleEl = document.getElementById('dash-title'); if(titleEl) titleEl.innerText = title.toUpperCase(); 
+    const subtitleEl = document.getElementById('dash-subtitle'); if(subtitleEl) subtitleEl.innerText = subtitle; 
+    const statusTextEl = document.getElementById('dash-status-text'); if(statusTextEl) statusTextEl.innerText = statusText;
+    const lblTargetEl = document.getElementById('dash-lbl-target'); if(lblTargetEl) lblTargetEl.innerText = activeK ? "DAGSMÅL" : "VECKOMÅL"; 
+    const valTargetEl = document.getElementById('dash-val-target'); if(valTargetEl) valTargetEl.innerText = (dTarget/1000).toFixed(1) + " k";
+    
+    const salesEl = document.getElementById('dash-val-sales'); if(salesEl) { salesEl.innerText = (dSales/1000).toFixed(1) + " k"; salesEl.style.color = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)'); }
+    const diffEl = document.getElementById('dash-val-diff'); if(diffEl) { diffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; diffEl.style.color = dDiff >= 0 ? "var(--sting-blue)" : "var(--neg)"; }
+    
+    const p = dTarget > 0 ? Math.min(100, Math.round((dSales / dTarget) * 100)) : 0; 
+    const valPercEl = document.getElementById('dash-val-perc'); if(valPercEl) valPercEl.innerText = p + "%";
     
     const g = document.getElementById('dash-gauge-prog'); if(g) { g.style.strokeDashoffset = 283 - ((p / 100) * 212); g.style.stroke = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)'); }
-    const badgeEl = document.getElementById('dash-abs-badge');
-    if (absType) { const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; let bKey = absType.split(' ')[0]; badgeEl.innerText = em[absType] || em[bKey] || '•'; badgeEl.classList.remove('hidden'); badgeEl.className = `absolute top-0 right-2 w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[14px] z-20 ${absType.includes('Semester') ? 'bg-teal-100 text-teal-600' : (absType.includes('VAB') ? 'bg-amber-100 text-amber-600' : (absType.includes('Föräldraledig') ? 'bg-purple-100 text-purple-600' : (absType === 'Åtgärd krävs' ? 'bg-rose-500 text-white border-none' : 'bg-rose-100 text-rose-600')))}`; } else { badgeEl.classList.add('hidden'); }
-    const acts = document.getElementById('dash-actions'); if (showActions) { acts.classList.remove('opacity-0', 'pointer-events-none', 'h-0', 'mt-0'); acts.classList.add('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1'); } else { acts.classList.remove('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1'); acts.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'mt-0'); }
     
-    const innerCard = document.getElementById('dash-inner-card');
-    const scannerLayer = document.getElementById('cyber-scanner-layer');
-    const gProg = document.getElementById('dash-gauge-prog');
+    const badgeEl = document.getElementById('dash-abs-badge');
+    if (badgeEl) {
+        if (absType) { const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; let bKey = absType.split(' ')[0]; badgeEl.innerText = em[absType] || em[bKey] || '•'; badgeEl.classList.remove('hidden'); badgeEl.className = `absolute top-0 right-2 w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-[14px] z-20 ${absType.includes('Semester') ? 'bg-teal-100 text-teal-600' : (absType.includes('VAB') ? 'bg-amber-100 text-amber-600' : (absType.includes('Föräldraledig') ? 'bg-purple-100 text-purple-600' : (absType === 'Åtgärd krävs' ? 'bg-rose-500 text-white border-none' : 'bg-rose-100 text-rose-600')))}`; } 
+        else { badgeEl.classList.add('hidden'); }
+    }
 
-    innerCard.classList.remove('goal-ambient', 'red-cyber', 'blue-cyber'); 
-    innerCard.style.borderColor = '';
-    gProg.classList.remove('goal-ambient-gauge', 'red-cyber-gauge', 'blue-cyber-gauge');
-    scannerLayer.style.display = 'none';
+    const acts = document.getElementById('dash-actions'); 
+    if (acts) {
+        if (showActions) { acts.classList.remove('opacity-0', 'pointer-events-none', 'h-0', 'mt-0'); acts.classList.add('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1'); } 
+        else { acts.classList.remove('opacity-100', 'pointer-events-auto', 'h-[42px]', 'mt-1'); acts.classList.add('opacity-0', 'pointer-events-none', 'h-0', 'mt-0'); }
+    }
+    
+    const scannerLayer = document.getElementById('cyber-scanner-layer');
+    if (dashInner) { dashInner.classList.remove('goal-ambient', 'red-cyber', 'blue-cyber'); }
+    if (g) { g.classList.remove('goal-ambient-gauge', 'red-cyber-gauge', 'blue-cyber-gauge'); }
+    if (scannerLayer) scannerLayer.style.display = 'none';
     
     if (activeK && viewMode === 'dash') {
-        if (isActiveNow) {
-            scannerLayer.style.display = 'block';
-            gProg.classList.add('blue-cyber-gauge');
-            innerCard.classList.add('blue-cyber'); 
-        } else if (isReached) {
-            innerCard.classList.add('goal-ambient');
-            gProg.classList.add('goal-ambient-gauge');
-        } else if (dTarget > 0) {
-            innerCard.classList.add('red-cyber');
-            gProg.classList.add('red-cyber-gauge');
+        if (isActiveNow) { 
+            if(scannerLayer) scannerLayer.style.display = 'block'; 
+            if(g) g.classList.add('blue-cyber-gauge'); 
+            if(dashInner) dashInner.classList.add('blue-cyber'); 
+        } else if (isReached) { 
+            if(dashInner) dashInner.classList.add('goal-ambient'); 
+            if(g) g.classList.add('goal-ambient-gauge'); 
+        } else if (dTarget > 0) { 
+            if(dashInner) dashInner.classList.add('red-cyber'); 
+            if(g) g.classList.add('red-cyber-gauge'); 
         }
     }
 }
@@ -630,22 +959,12 @@ function createSliderCell(cd, k) {
     const isPast = cd < realToday, isToday = cd.getTime() === realToday.getTime(), state = getCellState(k);
     
     let cls = 'vp-cell';
+    if (o.abs) { cls += ' type-unplanned'; } 
+    else if (state === 'ledig' || state === 'unplanned') { cls += ' type-unplanned'; } 
+    else if (qData.start) { cls += ' type-planned'; }
 
-    if (o.abs) {
-       cls += ' type-unplanned'; 
-    } else if (state === 'ledig' || state === 'unplanned') {
-       cls += ' type-unplanned';
-    } else if (qData.start) {
-       cls += ' type-planned';
-    }
-
-    if (isPast) {
-        cls += ' vp-past';
-        if (o.s >= t.target && o.s > 0) cls += ' history-success';
-        else cls += ' history-fail';
-    } else if (isToday) {
-        cls += ' status-today'; 
-    }
+    if (isPast) { cls += ' vp-past'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; } 
+    else if (isToday) { cls += ' status-today'; }
 
     if (activeK === k) cls += ' active-focus';
     if (currentFocusReason && o.abs && o.abs.includes(currentFocusReason)) cls += ' focus-highlight';
@@ -654,7 +973,6 @@ function createSliderCell(cd, k) {
     const dayName = dayNames[cd.getDay()];
     
     let valStr = '';
-    
     let now = new Date();
     let startH = qData.start ? parseInt(qData.start.split(':')[0]) : 10;
     let startM = qData.start ? parseInt(qData.start.split(':')[1]) : 0;
@@ -670,20 +988,15 @@ function createSliderCell(cd, k) {
         let bKey = o.abs.split(' ')[0]; 
         const em = { 'Sjuk': '🤒', 'VAB': '👶', 'Föräldraledig': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' };
         valStr = `${em[o.abs] || em[bKey] || '•'}`;
-    } else if (o.s > 0) { 
-        valStr = `${(o.s/1000).toFixed(1)}k`; 
-    } else if (qData.start) { 
-        valStr = `${liveDot}${qData.start.substring(0,5)}`; 
-    } else { 
-        valStr = `Ledig`; 
-    }
+    } else if (o.s > 0) { valStr = `${(o.s/1000).toFixed(1)}k`; } 
+    else if (qData.start) { valStr = `${liveDot}${qData.start.substring(0,5)}`; } 
+    else { valStr = `Ledig`; }
 
     const cell = document.createElement('div');
     cell.className = cls;
     cell.dataset.key = k;
     cell.onclick = (e) => selectDay(k, cell, e);
 
-    // --- NYCKEL-LOGIK FÖR SLIDER ---
     let keyBadge = '';
     if (!o.abs && qData.end) {
         let dayOfWeek = cd.getDay();
@@ -693,12 +1006,7 @@ function createSliderCell(cd, k) {
         }
     }
 
-    cell.innerHTML = `
-        ${keyBadge}
-        <span class="vp-name">${dayName}</span>
-        <span class="vp-date">${cd.getDate()}</span>
-        <span class="vp-val flex items-center justify-center">${valStr}</span>
-    `;
+    cell.innerHTML = `${keyBadge}<span class="vp-name">${dayName}</span><span class="vp-date">${cd.getDate()}</span><span class="vp-val flex items-center justify-center">${valStr}</span>`;
     return cell;
 }
 
@@ -720,15 +1028,11 @@ function createDayCell(cd, k) {
     
     if (dayOfWeek === 1 && viewMode === 'month') wt = `<div class="week-tag">${getWeekNumber(cd)}</div>`;
     
-    // Frånvaro-badge
     if (o.abs) { let bKey = o.abs.split(' ')[0]; if (o.abs === 'Åtgärd krävs') { b += `<div class="u-badge badge-abs badge-action" style="background:#ef4444; color:white; border:none;">${em[o.abs] || '•'}</div>`; } else { b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; } }
     
-    // --- NYCKEL-LOGIK FÖR MÅNAD ---
     if (!o.abs && qData.end) {
         let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        if ((!isWeekend && qData.end.includes('19:30')) || (isWeekend && qData.end.includes('16:30'))) {
-            b += `<div class="u-badge badge-key">🔑</div>`;
-        }
+        if ((!isWeekend && qData.end.includes('19:30')) || (isWeekend && qData.end.includes('16:30'))) { b += `<div class="u-badge badge-key">🔑</div>`; }
     }
 
     if (o.s > 0) { content = `<span class="cell-main-val mt-1">${(o.s/1000).toFixed(1)} k</span>`; } else if (qData.start && !o.abs) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`; } else if (state === 'unplanned' || (state === 'ledig' && o.s === 0)) { content = `<span class="text-[7.5px] font-black text-slate-800 mt-1 uppercase tracking-widest opacity-50">LEDIG</span>`; }
@@ -753,14 +1057,8 @@ function renderCal(y, m) {
 }
 
 function populateSlide(cId, sD) { 
-    const c = document.getElementById(cId); 
-    if(!c) return; 
-    c.innerHTML = ''; 
-    for(let i=0; i<7; i++) { 
-        const cd = new Date(sD); 
-        cd.setDate(cd.getDate() + i); 
-        c.appendChild(createSliderCell(cd, getK(cd))); 
-    } 
+    const c = document.getElementById(cId); if(!c) return; c.innerHTML = ''; 
+    for(let i=0; i<7; i++) { const cd = new Date(sD); cd.setDate(cd.getDate() + i); c.appendChild(createSliderCell(cd, getK(cd))); } 
 }
 
 function renderWeekSlides() { populateSlide('slide-curr', currentWeekStart); }
@@ -768,7 +1066,7 @@ function getWeekNumber(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(),
 
 function renderAbsence() {
     const pane = document.getElementById('pane-absence'); if(!pane) return;
-    const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate(); let absCounts = {}; let absListHTML = ''; let totalAbs = 0; const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag'];
+    const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate(); let absCounts = {}; let absListHTML = ''; let totalAbs = 0; const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lörsdag'];
     const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; const col = { 'Sjuk': 'text-rose-600', 'VAB': 'text-amber-600', 'VAB Belma': 'text-amber-600', 'VAB Wilma': 'text-amber-600', 'Föräldraledig': 'text-purple-600', 'Föräldraledig Belma': 'text-purple-600', 'Föräldraledig Wilma': 'text-purple-600', 'Semester': 'text-teal-600', 'Tjänstledig': 'text-slate-600', 'Åtgärd krävs': 'text-rose-600' }; const bgClass = { 'Sjuk': 'bg-rose-50', 'VAB': 'bg-amber-50', 'VAB Belma': 'bg-amber-50', 'VAB Wilma': 'bg-amber-50', 'Föräldraledig': 'bg-purple-50', 'Föräldraledig Belma': 'bg-purple-50', 'Föräldraledig Wilma': 'bg-purple-50', 'Semester': 'bg-teal-50', 'Tjänstledig': 'bg-slate-50', 'Åtgärd krävs': 'bg-rose-50' };
 
     for (let d = 1; d <= daysM; d++) {
@@ -790,12 +1088,16 @@ function renderAbsence() {
 //  UI & MODAL LOGIC
 // ==========================================
 async function init() {
+    try {
+        const savedTheme = localStorage.getItem('sf_theme') || 'light';
+        if (document.body) { document.body.setAttribute('data-theme', savedTheme); }
+    } catch(e) { console.warn('Theme init error', e); }
+
     await loadAllData();
     setMode('dash');
     updateTopTitle();
 }
 
-// --- INLINE NUMPAD (DASHBOARD) ---
 function openInlineNumpad() {
     if (!activeK) return;
     const o = db.d[activeK] || {s: 0};
@@ -856,7 +1158,6 @@ function saveInlineNumpad() {
     closeInlineNumpad();
 }
 
-// --- MAIN NUMPAD (MONTH VIEW) ---
 function openNumpad(mode, defaultVal, title) {
     numpadTarget = mode;
     numpadValue = defaultVal > 0 ? String(defaultVal) : "";
@@ -900,9 +1201,7 @@ function numpadPress(key) {
 function numpadSave() {
     let val = Number(numpadValue) || 0;
     if (numpadTarget === 'month' && multiSelectKeys.size > 0) {
-        multiSelectKeys.forEach(k => {
-            pushMatrixSync(k, { s: val, st: 'Arbete', abs: null });
-        });
+        multiSelectKeys.forEach(k => { pushMatrixSync(k, { s: val, st: 'Arbete', abs: null }); });
         closeMonthEdit();
     }
     closeNumpad();
@@ -925,7 +1224,6 @@ function closeMonthEdit() {
     updateTopInfoBar();
 }
 
-// --- UTVÄRDERING (NY SKALA 1-5) ---
 function openEvalModal() { 
     if (!activeK) return;
     const o = db.d[activeK] || {};
@@ -933,12 +1231,9 @@ function openEvalModal() {
     if (o.eval) {
         evalState = typeof o.eval === 'string' ? JSON.parse(o.eval) : JSON.parse(JSON.stringify(o.eval));
         if(evalState.emoji) evalState = {}; 
-    } else {
-        evalState = {};
-    }
+    } else { evalState = {}; }
     
     renderEvalMetricsUI();
-    
     const m = document.getElementById('eval-modal'); 
     if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } 
 }
@@ -965,15 +1260,7 @@ function renderEvalMetricsUI() {
             let activeClass = (i === score) ? 'active' : 'bg-slate-50 text-slate-500 border-slate-200';
             btnHtml += `<button onclick="setEvalScore('${m.id}', ${i})" class="eval-scale-btn flex-1 py-2.5 rounded-xl text-[12px] font-black border shadow-sm ${activeClass}">${i}</button>`;
         }
-
-        html += `
-            <div class="flex flex-col gap-1.5 p-2 bg-slate-50/50 rounded-2xl border border-slate-100">
-                <span class="text-[9px] font-black uppercase text-slate-400 tracking-widest pl-1">${m.label}</span>
-                <div class="flex gap-1.5 justify-between">
-                    ${btnHtml}
-                </div>
-            </div>
-        `;
+        html += `<div class="flex flex-col gap-1.5 p-2 bg-slate-50/50 rounded-2xl border border-slate-100"><span class="text-[9px] font-black uppercase text-slate-400 tracking-widest pl-1">${m.label}</span><div class="flex gap-1.5 justify-between">${btnHtml}</div></div>`;
     });
     cont.innerHTML = html;
 }
@@ -986,26 +1273,12 @@ async function saveEvalModal() {
     try { localStorage.setItem('sf_eval_obj_' + activeK, JSON.stringify(evalState)); } catch(e){}
     
     if (sb) {
-        const merged = {
-            date_key: activeK,
-            status: db.d[activeK].st || 'Arbete',
-            sales: db.d[activeK].s || 0,
-            is_absent: db.d[activeK].abs || null,
-            raw_reason: db.d[activeK].raw || null,
-            fk_perc: db.d[activeK].fk_perc || null,
-            abs_hours: db.d[activeK].abs_hours || null,
-            eval_data: evalState
-        };
-        sb.from('sales_data').upsert(merged).then(({error}) => { 
-            if(error) console.warn("Supabase utvärdering fel:", error); 
-        });
+        const merged = { date_key: activeK, status: db.d[activeK].st || 'Arbete', sales: db.d[activeK].s || 0, is_absent: db.d[activeK].abs || null, raw_reason: db.d[activeK].raw || null, fk_perc: db.d[activeK].fk_perc || null, abs_hours: db.d[activeK].abs_hours || null, eval_data: evalState };
+        sb.from('sales_data').upsert(merged).then(({error}) => { if(error) console.warn("Supabase utvärdering fel:", error); });
     }
-
-    closeEvalModal(); 
-    updateDashboardView();
+    closeEvalModal(); updateDashboardView();
 }
 
-// --- ANTECKNINGAR I POPUP --- //
 let currentEditId = null;
 
 function openNotesModal() {
@@ -1054,15 +1327,11 @@ function addNote() {
     try { cleanNotes = JSON.parse(localStorage.getItem('sf_notes_clean')) || []; } catch(e){}
 
     if (currentEditId) {
-        // Uppdatera befintlig
         const index = cleanNotes.findIndex(n => n.id === currentEditId);
-        if (index !== -1) {
-            cleanNotes[index] = { ...cleanNotes[index], name, phone, order, text, due, prio };
-        }
+        if (index !== -1) { cleanNotes[index] = { ...cleanNotes[index], name, phone, order, text, due, prio }; }
         currentEditId = null;
         document.getElementById('note-submit-btn').innerText = "SPARA ANTECKNING";
     } else {
-        // Lägg till ny
         const newNote = { id: Date.now(), name, phone, order, text, due, prio };
         cleanNotes.unshift(newNote);
         if (typeof sb !== 'undefined' && sb) {
@@ -1109,9 +1378,7 @@ function renderNotes() {
     const c = document.getElementById('notes-list-container'); 
     if(!c) return;
     
-    // Tar bort den gamla trasiga datan
     localStorage.removeItem('sf_notes');
-    
     let cleanNotes = [];
     try { cleanNotes = JSON.parse(localStorage.getItem('sf_notes_clean')) || []; } catch(e){}
     
@@ -1168,86 +1435,48 @@ function checkUrgentNotes(notes) {
         if (n.prio === '1' && n.due) {
             const dueDate = new Date(n.due);
             const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-            
-            if (diffDays <= 7 && diffDays >= -30) {
-                hasUrgent = true;
-                break;
-            }
+            if (diffDays <= 7 && diffDays >= -30) { hasUrgent = true; break; }
         }
     }
 
-    if (hasUrgent) {
-        penBtn.classList.add('urgent-note-blink');
-    } else {
-        penBtn.classList.remove('urgent-note-blink');
-    }
+    if (hasUrgent) { penBtn.classList.add('urgent-note-blink'); } else { penBtn.classList.remove('urgent-note-blink'); }
 }
 
-// --- SAMMANFATTNING & INSIKTER ---
 function toggleSummaryView() {
     const stats = document.getElementById('summary-stats-view');
     const insights = document.getElementById('summary-insights-view');
     const title = document.getElementById('summary-modal-title');
     if (currentSummaryView === 'stats') {
-        stats.classList.add('hidden'); 
-        insights.classList.remove('hidden'); 
-        currentSummaryView = 'insights';
-        title.innerText = "INSIKTER";
+        stats.classList.add('hidden'); insights.classList.remove('hidden'); currentSummaryView = 'insights'; title.innerText = "INSIKTER";
     } else {
-        insights.classList.add('hidden'); 
-        stats.classList.remove('hidden'); 
-        currentSummaryView = 'stats';
-        title.innerText = "SAMMANFATTNING";
+        insights.classList.add('hidden'); stats.classList.remove('hidden'); currentSummaryView = 'stats'; title.innerText = "SAMMANFATTNING";
     }
 }
 
 function calculateSummaryStats() {
-    const cy = viewDate.getFullYear();
-    const cm = viewDate.getMonth() + 1;
-    const daysM = new Date(cy, cm, 0).getDate();
-    
+    const cy = viewDate.getFullYear(); const cm = viewDate.getMonth() + 1; const daysM = new Date(cy, cm, 0).getDate();
     let wDays = 0, aDays = 0, bestS = 0, bestD = "--", worstS = Infinity, worstD = "--";
-    let streak = 0, maxStreak = 0;
-    let absCounts = {};
-    
+    let streak = 0, maxStreak = 0; let absCounts = {};
     let totalEvals = 0;
-    let goodScores = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
-    let goodCount = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
-    let badScores = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
-    let badCount = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
+    let goodScores = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 }; let goodCount = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
+    let badScores = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 }; let badCount = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
     
     for (let d=1; d<=daysM; d++) {
-        const k = `${cy}-${cm}-${d}`;
-        const o = db.d[k] || {s:0};
-        const tgt = timeline[k]?.target || 0;
-        const qData = db.q[k] || {};
+        const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const tgt = timeline[k]?.target || 0; const qData = db.q[k] || {};
         
         if ((o.s > 0) || (qData.start && !o.abs && o.st !== 'Ledig' && o.st !== 'Semester')) wDays++;
-        
-        if (o.abs && !o.abs.includes('Semester') && o.abs !== 'Åtgärd krävs') {
-            aDays++;
-            let baseAbs = o.abs.split(' ')[0];
-            absCounts[baseAbs] = (absCounts[baseAbs] || 0) + 1;
-        }
+        if (o.abs && !o.abs.includes('Semester') && o.abs !== 'Åtgärd krävs') { aDays++; let baseAbs = o.abs.split(' ')[0]; absCounts[baseAbs] = (absCounts[baseAbs] || 0) + 1; }
         
         if (o.s > 0) {
             if (o.s > bestS) { bestS = o.s; bestD = `${d}/${cm}`; }
             if (o.s < worstS) { worstS = o.s; worstD = `${d}/${cm}`; }
         }
         
-        if (tgt > 0 && o.s >= tgt) {
-            streak++;
-            if (streak > maxStreak) maxStreak = streak;
-        } else if (tgt > 0 && o.s < tgt) {
-            streak = 0;
-        }
+        if (tgt > 0 && o.s >= tgt) { streak++; if (streak > maxStreak) maxStreak = streak; } else if (tgt > 0 && o.s < tgt) { streak = 0; }
 
         if (o.eval) {
-            totalEvals++;
-            let ev = typeof o.eval === 'string' ? JSON.parse(o.eval) : o.eval;
-            let isGood = tgt > 0 && o.s >= tgt;
-            let isBad = tgt > 0 && o.s < tgt;
-
+            totalEvals++; let ev = typeof o.eval === 'string' ? JSON.parse(o.eval) : o.eval;
+            let isGood = tgt > 0 && o.s >= tgt; let isBad = tgt > 0 && o.s < tgt;
             evalMetrics.forEach(m => {
                 let score = ev[m.id];
                 if (score) {
@@ -1258,125 +1487,64 @@ function calculateSummaryStats() {
         }
     }
     
-    document.getElementById('sum-workdays').innerText = wDays;
-    document.getElementById('sum-absdays').innerText = aDays;
+    document.getElementById('sum-workdays').innerText = wDays; document.getElementById('sum-absdays').innerText = aDays;
     
-    if (bestS > 0) {
-        document.getElementById('sum-bestday-val').innerText = (bestS/1000).toFixed(1) + "k";
-        document.getElementById('sum-bestday-lbl').innerText = bestD;
-    } else {
-        document.getElementById('sum-bestday-val').innerText = "0k";
-        document.getElementById('sum-bestday-lbl').innerText = "--";
-    }
-    
-    if (worstS !== Infinity) {
-        document.getElementById('sum-worstday-val').innerText = (worstS/1000).toFixed(1) + "k";
-        document.getElementById('sum-worstday-lbl').innerText = worstD;
-    } else {
-        document.getElementById('sum-worstday-val').innerText = "0k";
-        document.getElementById('sum-worstday-lbl').innerText = "--";
-    }
+    if (bestS > 0) { document.getElementById('sum-bestday-val').innerText = (bestS/1000).toFixed(1) + "k"; document.getElementById('sum-bestday-lbl').innerText = bestD; } else { document.getElementById('sum-bestday-val').innerText = "0k"; document.getElementById('sum-bestday-lbl').innerText = "--"; }
+    if (worstS !== Infinity) { document.getElementById('sum-worstday-val').innerText = (worstS/1000).toFixed(1) + "k"; document.getElementById('sum-worstday-lbl').innerText = worstD; } else { document.getElementById('sum-worstday-val').innerText = "0k"; document.getElementById('sum-worstday-lbl').innerText = "--"; }
     
     document.getElementById('sum-streak').innerText = maxStreak + " 🔥";
     
     let bestWk = 0; let bestWkLbl = "--";
-    for (let d=1; d<=daysM-6; d++) {
-        let wkS = 0;
-        for(let i=0; i<7; i++) { wkS += (db.d[`${cy}-${cm}-${d+i}`]?.s || 0); }
-        if (wkS > bestWk) {
-            bestWk = wkS;
-            bestWkLbl = `V.${getWeekNumber(new Date(cy, cm-1, d))}`;
-        }
-    }
-    document.getElementById('sum-bestweek-val').innerText = (bestWk/1000).toFixed(1) + "k";
-    document.getElementById('sum-bestweek-lbl').innerText = bestWkLbl;
+    for (let d=1; d<=daysM-6; d++) { let wkS = 0; for(let i=0; i<7; i++) { wkS += (db.d[`${cy}-${cm}-${d+i}`]?.s || 0); } if (wkS > bestWk) { bestWk = wkS; bestWkLbl = `V.${getWeekNumber(new Date(cy, cm-1, d))}`; } }
+    document.getElementById('sum-bestweek-val').innerText = (bestWk/1000).toFixed(1) + "k"; document.getElementById('sum-bestweek-lbl').innerText = bestWkLbl;
     
-    const absDetails = document.getElementById('sum-abs-details');
-    const absList = document.getElementById('sum-abs-list');
+    const absDetails = document.getElementById('sum-abs-details'); const absList = document.getElementById('sum-abs-list');
     if (Object.keys(absCounts).length > 0) {
-        absDetails.classList.remove('hidden');
-        let h = "";
-        const em = { 'Sjuk': '🤒', 'VAB': '👶', 'Föräldraledig': '🍼' };
-        for(let a in absCounts) {
-            h += `<div class="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border border-slate-100"><span class="text-[9px] font-black uppercase tracking-wider text-slate-600">${em[a] || '⚠️'} ${a}</span><span class="text-[10px] font-black text-slate-800">${absCounts[a]} st</span></div>`;
-        }
+        absDetails.classList.remove('hidden'); let h = ""; const em = { 'Sjuk': '🤒', 'VAB': '👶', 'Föräldraledig': '🍼' };
+        for(let a in absCounts) { h += `<div class="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border border-slate-100"><span class="text-[9px] font-black uppercase tracking-wider text-slate-600">${em[a] || '⚠️'} ${a}</span><span class="text-[10px] font-black text-slate-800">${absCounts[a]} st</span></div>`; }
         absList.innerHTML = h;
-    } else {
-        absDetails.classList.add('hidden');
-    }
+    } else { absDetails.classList.add('hidden'); }
 
     const insightCont = document.getElementById('insight-container');
     if (totalEvals === 0) {
         insightCont.innerHTML = `<div class="flex flex-col items-center justify-center py-10 opacity-50"><span class="text-4xl mb-2">🫙</span><p class="text-[10px] font-black uppercase tracking-widest text-center text-slate-500">Inga utvärderingar<br>denna månad</p></div>`;
     } else {
-        let goodHtml = '';
-        let badHtml = '';
-
+        let goodHtml = ''; let badHtml = '';
         evalMetrics.forEach(m => {
             let gAvg = goodCount[m.id] > 0 ? (goodScores[m.id] / goodCount[m.id]).toFixed(1) : '-';
             let bAvg = badCount[m.id] > 0 ? (badScores[m.id] / badCount[m.id]).toFixed(1) : '-';
-
-            if(gAvg !== '-') {
-                goodHtml += `<div class="flex justify-between items-center py-0.5 border-b border-[#bbf7d0] last:border-0"><span class="text-[9.5px] font-bold text-emerald-700">${m.label}</span><span class="text-[11px] font-black text-emerald-600 bg-white px-2 py-0.5 rounded shadow-sm">${gAvg}</span></div>`;
-            }
-            if(bAvg !== '-') {
-                badHtml += `<div class="flex justify-between items-center py-0.5 border-b border-[#fecdd3] last:border-0"><span class="text-[9.5px] font-bold text-rose-700">${m.label}</span><span class="text-[11px] font-black text-rose-600 bg-white px-2 py-0.5 rounded shadow-sm">${bAvg}</span></div>`;
-            }
+            if(gAvg !== '-') { goodHtml += `<div class="flex justify-between items-center py-0.5 border-b border-[#bbf7d0] last:border-0"><span class="text-[9.5px] font-bold text-emerald-700">${m.label}</span><span class="text-[11px] font-black text-emerald-600 bg-white px-2 py-0.5 rounded shadow-sm">${gAvg}</span></div>`; }
+            if(bAvg !== '-') { badHtml += `<div class="flex justify-between items-center py-0.5 border-b border-[#fecdd3] last:border-0"><span class="text-[9.5px] font-bold text-rose-700">${m.label}</span><span class="text-[11px] font-black text-rose-600 bg-white px-2 py-0.5 rounded shadow-sm">${bAvg}</span></div>`; }
         });
 
         insightCont.innerHTML = `
             <div class="bg-white border border-slate-100 rounded-[20px] p-2 shadow-sm flex flex-col gap-2">
                 <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block text-center mb-0.5">Dina mönster (${totalEvals} pass)</span>
-                
-                ${goodHtml ? `
-                <div class="bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl p-2 shadow-inner">
-                    <span class="text-[8px] font-black text-emerald-500 uppercase tracking-widest block mb-1.5 flex items-center gap-1">✅ Snitt när du NÅTT MÅL</span>
-                    <div class="flex flex-col">${goodHtml}</div>
-                </div>` : ''}
-
-                ${badHtml ? `
-                <div class="bg-[#fff1f2] border border-[#fecdd3] rounded-xl p-2 shadow-inner">
-                    <span class="text-[8px] font-black text-rose-500 uppercase tracking-widest block mb-1.5 flex items-center gap-1">❌ Snitt när du MISSAT MÅL</span>
-                    <div class="flex flex-col">${badHtml}</div>
-                </div>` : ''}
+                ${goodHtml ? `<div class="bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl p-2 shadow-inner"><span class="text-[8px] font-black text-emerald-500 uppercase tracking-widest block mb-1.5 flex items-center gap-1">✅ Snitt när du NÅTT MÅL</span><div class="flex flex-col">${goodHtml}</div></div>` : ''}
+                ${badHtml ? `<div class="bg-[#fff1f2] border border-[#fecdd3] rounded-xl p-2 shadow-inner"><span class="text-[8px] font-black text-rose-500 uppercase tracking-widest block mb-1.5 flex items-center gap-1">❌ Snitt när du MISSAT MÅL</span><div class="flex flex-col">${badHtml}</div></div>` : ''}
             </div>
         `;
     }
 }
 
 function openSummaryModal(mode) { 
-    calculateSummaryStats();
-    currentSummaryView = 'stats';
-    document.getElementById('summary-stats-view').classList.remove('hidden');
-    document.getElementById('summary-insights-view').classList.add('hidden');
-    document.getElementById('summary-modal-title').innerText = "SAMMANFATTNING";
-    
-    const m = document.getElementById('summary-modal'); 
-    if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } 
+    calculateSummaryStats(); currentSummaryView = 'stats';
+    document.getElementById('summary-stats-view').classList.remove('hidden'); document.getElementById('summary-insights-view').classList.add('hidden'); document.getElementById('summary-modal-title').innerText = "SAMMANFATTNING";
+    const m = document.getElementById('summary-modal'); if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } 
 }
 
 function closeSummaryModal() { const m = document.getElementById('summary-modal'); if(m) { m.classList.add('opacity-0'); setTimeout(() => m.classList.add('hidden'), 300); } }
 
 function selectChild(name) { 
     closeChildModal();
-    let absStr = pendingAbsenceType;
-    if (absStr === 'VAB' || absStr === 'Föräldraledig') absStr += ' ' + name;
-    
-    if (pendingAbsenceSource === 'dash' && activeK) {
-        pushMatrixSync(activeK, { abs: absStr, st: 'Arbete', s: 0 });
-    } else if (pendingAbsenceSource === 'month' && multiSelectKeys.size > 0) {
-        multiSelectKeys.forEach(k => pushMatrixSync(k, { abs: absStr, st: 'Arbete', s: 0 }));
-        closeMonthEdit();
-    }
+    let absStr = pendingAbsenceType; if (absStr === 'VAB' || absStr === 'Föräldraledig') absStr += ' ' + name;
+    if (pendingAbsenceSource === 'dash' && activeK) { pushMatrixSync(activeK, { abs: absStr, st: 'Arbete', s: 0 }); } 
+    else if (pendingAbsenceSource === 'month' && multiSelectKeys.size > 0) { multiSelectKeys.forEach(k => pushMatrixSync(k, { abs: absStr, st: 'Arbete', s: 0 })); closeMonthEdit(); }
 }
 function closeChildModal() { const m = document.getElementById('child-select-modal'); if(m) m.classList.add('hidden'); }
 function triggerChildSelection(type, source) { 
     pendingAbsenceType = type; pendingAbsenceSource = source;
-    const m = document.getElementById('child-select-modal'); 
-    if(m) { 
-        document.getElementById('child-modal-title').innerText = type + ' GÄLLER VEM?'; 
-        m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); 
-    } 
+    const m = document.getElementById('child-select-modal'); if(m) { document.getElementById('child-modal-title').innerText = type + ' GÄLLER VEM?'; m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } 
 }
 
 function openBudgetModal() { const m = document.getElementById('budget-modal'); if(m) m.classList.remove('hidden'); }
@@ -1386,8 +1554,7 @@ function closeNoteConfirmModal() { const m = document.getElementById('note-confi
 function checkOverwriteFromPopup(type) { 
     if (type === 'VAB' || type === 'Föräldraledig') { triggerChildSelection(type, 'month'); return; }
     if (type === 'delete') { multiSelectKeys.forEach(k => pushMatrixSync(k, { abs: null, st: 'Arbete', s: 0 })); closeMonthEdit(); return; }
-    multiSelectKeys.forEach(k => pushMatrixSync(k, { abs: type === 'Arbete' ? null : type, st: type, s: 0 })); 
-    closeMonthEdit(); 
+    multiSelectKeys.forEach(k => pushMatrixSync(k, { abs: type === 'Arbete' ? null : type, st: type, s: 0 })); closeMonthEdit(); 
 }
 
 function handleDashAction(type) { 
@@ -1399,21 +1566,12 @@ function handleDashAction(type) {
 function hideConfirm() { const box = document.getElementById('confirm-box'); if(box) box.style.display = 'none'; }
 
 function triggerFocusMode(reason) { 
-    currentFocusReason = reason; 
-    
-    let temp = currentFocusReason;
-    currentFocusReason = null;
-    setMode('month'); 
-    currentFocusReason = temp;
-
+    currentFocusReason = reason; let temp = currentFocusReason; currentFocusReason = null; setMode('month'); currentFocusReason = temp;
     document.body.classList.add('focus-mode-active');
     document.querySelectorAll('.day-cell, .vp-cell').forEach(c => {
-        const k = c.dataset.key;
-        const o = db.d[k];
-        if(o && o.abs && o.abs.includes(reason)) c.classList.add('focus-highlight');
-        else c.classList.remove('focus-highlight');
+        const k = c.dataset.key; const o = db.d[k];
+        if(o && o.abs && o.abs.includes(reason)) c.classList.add('focus-highlight'); else c.classList.remove('focus-highlight');
     });
-    
     closeSummaryModal();
 }
 
@@ -1422,50 +1580,52 @@ function triggerFocusMode(reason) {
 // ==========================================
 function handleSwipeStart(e) { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }
 function handleSwipeEnd(e, targetView) { 
-    let dx = e.changedTouches[0].screenX - touchStartX; 
-    let dy = e.changedTouches[0].screenY - touchStartY; 
+    let dx = e.changedTouches[0].screenX - touchStartX; let dy = e.changedTouches[0].screenY - touchStartY; 
     if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) { 
         let dir = dx > 0 ? -1 : 1; 
         if (targetView === 'day') navDay(dir);
         else if (targetView === 'week') navCal(dir);
         else if (targetView === 'month' && viewMode === 'month') navCal(dir);
         else if (targetView === 'absence' && viewMode === 'absence') navCal(dir);
+        else if (targetView === 'coach' && viewMode === 'coach') navCal(dir);
     } 
 }
 
-// Touch Listeners uppdelade mellan vecka och dag
 const pdInner = document.getElementById('dash-inner-card'); 
-if(pdInner) { 
-    pdInner.addEventListener('touchstart', handleSwipeStart, {passive: true}); 
-    pdInner.addEventListener('touchend', (e) => handleSwipeEnd(e, 'day'), {passive: true}); 
-}
+if(pdInner) { pdInner.addEventListener('touchstart', handleSwipeStart, {passive: true}); pdInner.addEventListener('touchend', (e) => handleSwipeEnd(e, 'day'), {passive: true}); }
 const sCurr = document.getElementById('slide-curr'); 
-if(sCurr) { 
-    sCurr.addEventListener('touchstart', handleSwipeStart, {passive: true}); 
-    sCurr.addEventListener('touchend', (e) => handleSwipeEnd(e, 'week'), {passive: true}); 
-}
+if(sCurr) { sCurr.addEventListener('touchstart', handleSwipeStart, {passive: true}); sCurr.addEventListener('touchend', (e) => handleSwipeEnd(e, 'week'), {passive: true}); }
 
 const pm = document.getElementById('pane-month'); if(pm) { pm.addEventListener('touchstart', handleSwipeStart, {passive: true}); pm.addEventListener('touchend', (e) => handleSwipeEnd(e, 'month'), {passive: true}); }
 const pa = document.getElementById('pane-absence'); if(pa) { pa.addEventListener('touchstart', handleSwipeStart, {passive: true}); pa.addEventListener('touchend', (e) => handleSwipeEnd(e, 'absence'), {passive: true}); }
+const pc = document.getElementById('pane-coach'); if(pc) { pc.addEventListener('touchstart', handleSwipeStart, {passive: true}); pc.addEventListener('touchend', (e) => handleSwipeEnd(e, 'coach'), {passive: true}); }
 
-document.getElementById('top-info-bar').addEventListener('click', () => {
-    if (viewMode !== 'dash' && !multiSelectKeys.size) return;
-    let cDate = new Date(realToday);
-    for(let i=0; i<30; i++) {
-        const k = getK(cDate); const qData = db.q[k] || {}; const state = getCellState(k);
-        if (qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester') {
-            if(!activeK) { goToDayFromMonth(k); }
-            break;
+const infoBar = document.getElementById('top-info-bar');
+if (infoBar) {
+    infoBar.addEventListener('click', () => {
+        if (viewMode !== 'dash' && !multiSelectKeys.size) return;
+        let cDate = new Date(realToday);
+        for(let i=0; i<30; i++) {
+            const k = getK(cDate); const qData = db.q[k] || {}; const state = getCellState(k);
+            if (qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester') {
+                if(!activeK) { goToDayFromMonth(k); }
+                break;
+            }
+            cDate.setDate(cDate.getDate() + 1);
         }
-        cDate.setDate(cDate.getDate() + 1);
-    }
+    });
+}
+
+document.addEventListener('click', (e) => { 
+    const mMenu = document.getElementById('month-edit-menu'); 
+    if (mMenu && !mMenu.classList.contains('hidden') && !e.target.closest('#month-edit-menu') && !e.target.closest('.day-cell') && !e.target.closest('.vp-cell') && !e.target.closest('#bottom-numpad-view') && !e.target.closest('#top-info-bar')) { 
+        multiSelectKeys.clear(); 
+        document.querySelectorAll('.day-cell, .vp-cell').forEach(c => c.classList.remove('active-focus')); 
+        closeMonthEdit(); 
+        updateTopInfoBar(); 
+    } 
 });
 
-document.addEventListener('click', (e) => { const mMenu = document.getElementById('month-edit-menu'); if (mMenu && !mMenu.classList.contains('hidden') && !e.target.closest('#month-edit-menu') && !e.target.closest('.day-cell') && !e.target.closest('.vp-cell') && !e.target.closest('#bottom-numpad-view') && !e.target.closest('#top-info-bar')) { multiSelectKeys.clear(); document.querySelectorAll('.day-cell, .vp-cell').forEach(c => c.classList.remove('active-focus')); closeMonthEdit(); updateTopInfoBar(); } });
+window.addEventListener('DOMContentLoaded', () => { init(); });
 
-// Start the application
-init();
-
-if ("serviceWorker" in navigator) { 
-    navigator.serviceWorker.register("sw.js").catch(e => {}); 
-}
+if ("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js").catch(e => {}); }

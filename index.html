@@ -10,12 +10,22 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="mode-dash">
     
-    <div id="confirm-box" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:14000;display:none;width:280px;background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.6);border-radius:28px;padding:24px;box-shadow:0 24px 60px -12px rgba(15,23,42,0.25);"><p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p><div class="flex gap-3"><button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button><button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button></div></div>
+    <div id="sf-toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60000] bg-slate-800 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 text-[11px] font-black uppercase tracking-widest transition-all duration-300 opacity-0 pointer-events-none -translate-y-8 min-w-[280px] justify-center border border-slate-700">
+        <span id="sf-toast-icon" class="text-[16px]">🔔</span>
+        <span id="sf-toast-msg" class="leading-tight">Meddelande här</span>
+    </div>
+
+    <div id="confirm-box" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:14000;display:none;width:280px;background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.6);border-radius:28px;padding:24px;box-shadow:0 24px 60px -12px rgba(15,23,42,0.25);">
+        <p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p>
+        <div class="flex gap-3">
+            <button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button>
+            <button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button>
+        </div>
+    </div>
 
     <div id="eval-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-full max-w-[320px] bg-white rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="eval-modal-content">
@@ -25,46 +35,46 @@
             </div>
 
             <div class="flex flex-col gap-3" id="eval-metrics-container">
-                </div>
+            </div>
             
             <button onclick="saveEvalModal()" class="w-full py-4 mt-2 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all">SPARA UTVÄRDERING</button>
         </div>
     </div>
 
-<div id="notes-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div class="w-full max-w-[340px] bg-white rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100 max-h-[85vh]">
-        <div class="flex justify-between items-center shrink-0">
-            <h2 class="text-[13px] font-black text-slate-800 uppercase tracking-widest">ANTECKNINGAR</h2>
-            <button onclick="closeNotesModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
-        </div>
-        
-        <div class="flex flex-col gap-2.5 shrink-0 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-            <input type="text" id="note-name" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Namn / Ämne">
+    <div id="notes-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="w-full max-w-[340px] bg-white rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100 max-h-[85vh]">
+            <div class="flex justify-between items-center shrink-0">
+                <h2 class="text-[13px] font-black text-slate-800 uppercase tracking-widest">ANTECKNINGAR</h2>
+                <button onclick="closeNotesModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
+            </div>
             
-            <div class="flex gap-2">
-                <input type="tel" id="note-phone" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Telefon">
-                <input type="text" id="note-order" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Ordernr">
+            <div class="flex flex-col gap-2.5 shrink-0 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <input type="text" id="note-name" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Namn / Ämne">
+                
+                <div class="flex gap-2">
+                    <input type="tel" id="note-phone" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Telefon">
+                    <input type="text" id="note-order" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Ordernr">
+                </div>
+
+                <div class="flex gap-2">
+                    <input type="date" id="note-due" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]">
+                    <select id="note-prio" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]">
+                        <option value="">Ingen Prio</option>
+                        <option value="1">🔴 Prio 1 (Hög)</option>
+                        <option value="2">🟡 Prio 2 (Medel)</option>
+                        <option value="3">🔵 Prio 3 (Låg)</option>
+                    </select>
+                </div>
+                
+                <textarea id="note-text" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] min-h-[60px] resize-none" placeholder="Skriv din anteckning här..."></textarea>
+                
+                <button id="note-submit-btn" onclick="addNote()" class="w-full bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:brightness-110 text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 py-3 mt-1 transition-all">SPARA ANTECKNING</button>
             </div>
 
-            <div class="flex gap-2">
-                <input type="date" id="note-due" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]">
-                <select id="note-prio" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]">
-                    <option value="">Ingen Prio</option>
-                    <option value="1">🔴 Prio 1 (Hög)</option>
-                    <option value="2">🟡 Prio 2 (Medel)</option>
-                    <option value="3">🔵 Prio 3 (Låg)</option>
-                </select>
+            <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-2 rounded-xl" id="notes-list-container">
             </div>
-            
-            <textarea id="note-text" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] min-h-[60px] resize-none" placeholder="Skriv din anteckning här..."></textarea>
-            
-            <button id="note-submit-btn" onclick="addNote()" class="w-full bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:brightness-110 text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 py-3 mt-1 transition-all">SPARA ANTECKNING</button>
         </div>
-
-        <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-2 rounded-xl" id="notes-list-container">
-            </div>
     </div>
-</div>
 
     <div id="summary-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[30000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-full max-w-[320px] bg-white rounded-[32px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="summary-modal-content">
@@ -100,7 +110,7 @@
 
                 <div class="bg-gradient-to-r from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-2xl p-3 flex items-center justify-between shadow-sm mt-1">
                     <div class="flex flex-col">
-                        <span class="text-[9px] font-black text-[#0284c7] uppercase tracking-widest">Grön Streak (Mål Nått)</span>
+                        <span class="text-[9px] font-black text-[#0ea5e9] uppercase tracking-widest">Grön Streak (Mål Nått)</span>
                         <span class="text-[10px] font-bold text-[#0369a1] mt-0.5">Längsta raden av gröna dagar</span>
                     </div>
                     <span id="sum-streak" class="text-[22px] font-black text-[#0ea5e9]">0 🔥</span>
@@ -175,8 +185,88 @@
         </div>
     </div>
 
+    <div id="coach-main-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[36000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="w-full max-w-[360px] bg-slate-50 rounded-[28px] shadow-2xl flex flex-col overflow-hidden transform scale-95 transition-transform duration-300 border border-slate-100">
+            <div class="flex justify-between items-center p-4 border-b border-slate-200 bg-white shrink-0">
+                <h2 class="text-[13px] font-black text-[#0ea5e9] uppercase tracking-widest flex items-center gap-1.5"><span class="text-[16px]">🤖</span> SÄLJCOACH</h2>
+                <button onclick="closeCoachModalMain()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold shrink-0">✕</button>
+            </div>
+            
+            <div class="p-4 flex flex-col gap-4 overflow-y-auto hide-scrollbar max-h-[80vh]">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200">
+                    <h3 class="text-[10px] font-black uppercase text-slate-800 tracking-widest mb-3 flex items-center gap-1.5"><span>✍️</span> NYTT SAMTAL</h3>
+                    <select id="call-input-type" class="w-full bg-slate-50 border border-slate-100 p-3 mb-2 rounded-xl text-[11px] font-black text-slate-700 outline-none focus:border-[#0ea5e9]">
+                        <option value="bra">✅ Lyckat Avslut (Starkt)</option>
+                        <option value="utv">🎯 Missat / Utvecklingspotential</option>
+                    </select>
+                    <input type="text" id="call-input-title" placeholder="Kund / Företag..." class="w-full bg-slate-50 border border-slate-100 p-3 mb-2 rounded-xl text-[12px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]">
+                    <textarea id="call-input-text" placeholder="Klistra in transkribering här..." class="w-full h-24 bg-slate-50 border border-slate-100 p-3 rounded-xl text-[11px] font-bold text-slate-700 mb-3 resize-none outline-none focus:border-[#0ea5e9]"></textarea>
+                    <button id="btn-analyze-call" onclick="submitNewCall()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl active:scale-95 transition-transform shadow-md">✨ ANALYSERA & SPARA</button>
+                    <p id="coach-status-text" class="text-center text-[10px] font-bold text-[#0ea5e9] mt-2 hidden uppercase tracking-widest animate-pulse">Hjärnan jobbar...</p>
+                </div>
+
+                <button onclick="openCoachHistoryModal()" class="w-full py-4 bg-white text-slate-700 font-black text-[11px] uppercase tracking-widest rounded-2xl shadow-sm border border-slate-200 active:scale-95 transition-transform flex items-center justify-center gap-2">
+                    <span class="text-[16px]">📚</span> ÖPPNA HISTORIK
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="coach-history-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[37000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="w-full max-w-[360px] bg-slate-50 rounded-[28px] shadow-2xl flex flex-col overflow-hidden max-h-[90vh] transform scale-95 transition-transform duration-300 border border-slate-100">
+            <div class="flex justify-between items-center p-4 border-b border-slate-200 bg-white shrink-0">
+                <h2 class="text-[13px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5"><span class="text-[16px]">📚</span> HISTORIK</h2>
+                <button onclick="closeCoachHistoryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold shrink-0">✕</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 hide-scrollbar relative">
+                <div id="coach-history-list" class="flex flex-col gap-4 pb-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="coach-read-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[40000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="w-full max-w-[360px] bg-white rounded-[28px] shadow-2xl flex flex-col overflow-hidden max-h-[85vh] transform scale-95 transition-transform duration-300 border border-slate-100">
+            <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50 shrink-0">
+                <div class="flex flex-col">
+                    <h2 id="crm-title" class="text-[13px] font-black text-slate-800 uppercase tracking-widest truncate pr-2">SAMTAL</h2>
+                    <span id="crm-date" class="text-[9px] font-bold text-slate-400">--</span>
+                </div>
+                <button onclick="closeCoachCall()" class="w-8 h-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold shrink-0">✕</button>
+            </div>
+            
+            <div id="crm-read-view" class="overflow-y-auto p-5 flex-1 hide-scrollbar text-[11.5px] leading-relaxed text-slate-700"></div>
+            
+            <div id="crm-edit-view" class="hidden flex-1 flex flex-col p-4 bg-slate-50">
+                <input type="text" id="crm-edit-title" class="w-full bg-white border border-slate-200 p-3 mb-2 rounded-xl text-[12px] font-bold text-slate-700 outline-none">
+                <textarea id="crm-edit-text" class="w-full flex-1 min-h-[150px] bg-white border border-slate-200 p-3 rounded-xl text-[11px] font-medium text-slate-700 resize-none outline-none"></textarea>
+            </div>
+
+            <div id="crm-read-buttons" class="p-3 bg-white border-t border-slate-100 flex gap-2 shrink-0">
+                <button onclick="toggleCoachEdit()" class="flex-1 py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-black text-[10px] uppercase tracking-widest rounded-xl active:scale-95 transition-all shadow-sm">✏️ REDIGERA</button>
+                <button onclick="deleteCoachCall()" class="flex-1 py-3 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-black text-[10px] uppercase tracking-widest rounded-xl active:scale-95 transition-all shadow-sm">🗑️ TA BORT</button>
+            </div>
+            
+            <div id="crm-edit-buttons" class="hidden p-3 bg-white border-t border-slate-100 flex gap-2 shrink-0">
+                <button onclick="toggleCoachEdit()" class="flex-1 py-3 bg-slate-100 text-slate-500 font-black text-[10px] uppercase tracking-widest rounded-xl active:scale-95 transition-all">AVBRYT</button>
+                <button onclick="saveCoachCall()" class="flex-[2] py-3 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white font-black text-[10px] uppercase tracking-widest rounded-xl active:scale-95 transition-all shadow-md">✓ SPARA</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="red-thread-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[41000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+         <div class="w-full max-w-[340px] bg-white rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100 max-h-[80vh]">
+            <div class="flex justify-between items-center mb-1 shrink-0">
+                <h2 class="text-[12px] font-black text-[#0ea5e9] uppercase tracking-widest flex items-center gap-1.5"><span class="text-[16px]">🧠</span> RÖD TRÅD</h2>
+                <button onclick="closeRedThreadModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
+            </div>
+            <div id="rt-content" class="text-[11.5px] font-medium text-slate-700 leading-relaxed overflow-y-auto hide-scrollbar flex-1 p-1 whitespace-pre-wrap"></div>
+            <button onclick="closeRedThreadModal()" class="w-full py-3.5 bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest rounded-xl active:scale-95 transition-all shadow-md">STÄNG</button>
+        </div>
+    </div>
+
     <div id="app-shell">
         <div class="content-locker">
+            
             <div class="app-card top-section premium-slate-banner relative">
                 <button onclick="openBudgetModal()" class="absolute top-4 left-4 text-slate-300 hover:text-white text-[22px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">⚙️</button>
                 <button onclick="openNotesModal()" class="absolute top-4 right-4 text-slate-300 hover:text-white text-[20px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">✏️</button>
@@ -234,13 +324,16 @@
                         <div id="cal-standard-header" class="flex-1 flex flex-col justify-center items-center w-full px-1">
                             <h3 id="dynamic-view-title" class="text-[9.5px] font-black uppercase tracking-widest text-slate-800 mb-1.5 text-center leading-none">LADDAR...</h3>
                             
-                            <div class="relative flex gap-1 p-0.5 bg-slate-50 rounded-lg border border-slate-100 shadow-inner w-full max-w-[200px] overflow-hidden">
+                            <div class="relative flex gap-1 p-0.5 bg-slate-50 rounded-lg border border-slate-100 shadow-inner w-full max-w-[240px] overflow-hidden">
+                                <button onclick="openCoachModalMain()" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">COACH</button>
+                                
                                 <button id="tab-absence" onclick="setMode('absence')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">FRÅNV.</button>
                                 <button id="tab-dash" onclick="toggleDashMode()" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm">VECKA</button>
                                 <button id="tab-month" onclick="setMode('month')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">MÅNAD</button>
                                 <button id="btn-close-focus" onclick="closeFocusMode()" class="absolute inset-0 m-[2px] bg-gradient-to-r from-rose-500 to-rose-600 text-white font-black text-[9px] uppercase tracking-widest flex items-center justify-center transition-transform duration-300 translate-y-[110%] rounded-md shadow-sm z-50">✕ STÄNG FOKUS</button>
                             </div>
                         </div>
+                        
                         <div id="month-edit-menu" class="hidden absolute inset-0 flex items-center justify-between px-3 z-50 bg-slate-50" style="border-radius: 28px 28px 0 0;">
                             <div class="flex items-center justify-between w-full h-full pb-0.5">
                                 <button onclick="openNumpad('month', 0, 'VÄLJ BELOPP'); event.stopPropagation();" class="flex items-center justify-between gap-2 px-3 py-2 bg-white border border-slate-200 rounded-[12px] shadow-sm active:scale-95 transition-transform flex-1 max-w-[100px]">
@@ -267,11 +360,9 @@
                     <div id="container-dash-views">
                         
                         <div id="pane-dash" class="dash-view-pane h-full justify-start pt-1.5 flex flex-col overflow-hidden" style="touch-action: pan-y;">
-                            
                             <div id="slide-curr" class="w-full flex-shrink-0 mb-1 py-1 flex gap-1 px-3 items-center justify-between"></div>
 
                             <div class="mx-3 mt-1 mb-2 relative flex flex-col flex-shrink-0 z-20 flex-1 min-h-0" id="dash-main-container">
-                                
                                 <div id="dash-inner-card" class="relative w-full h-full bg-white rounded-[24px] border border-slate-100 shadow-md overflow-hidden z-10 flex flex-col transition-colors duration-300">
                                     
                                     <div id="cyber-scanner-layer" class="cyber-scanner-overlay"></div>

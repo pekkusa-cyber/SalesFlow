@@ -45,10 +45,25 @@
         <div class="w-full max-w-[340px] bg-white rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100 max-h-[85vh]">
             <div class="flex justify-between items-center shrink-0">
                 <h2 class="text-[13px] font-black text-slate-800 uppercase tracking-widest">ANTECKNINGAR</h2>
-                <button onclick="closeNotesModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
+                <div class="flex gap-2">
+                    <button onclick="closeNotesModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
+                </div>
             </div>
             
-            <div class="flex flex-col gap-2.5 shrink-0 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+            <div class="flex flex-col gap-2.5 shrink-0 bg-slate-50 p-3 rounded-2xl border border-slate-100 relative">
+                
+                <div class="flex gap-2 mb-2 items-center w-full">
+                    <button onclick="document.getElementById('camera-input').click()" class="flex-1 py-3 bg-teal-600 hover:bg-teal-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all">📷 KAMERA</button>
+                    <button onclick="document.getElementById('gallery-input').click()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all">🖼️ GALLERI</button>
+                    
+                    <div id="image-load-spinner" class="w-8 h-8 hidden shrink-0 ml-1">
+                        <div class="animate-spin rounded-full h-full w-full border-t-2 border-b-2 border-teal-500"></div>
+                    </div>
+                </div>
+
+                <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleNoteImageSelect(this)">
+                <input type="file" id="gallery-input" accept="image/*" class="hidden" onchange="handleNoteImageSelect(this)">
+
                 <input type="text" id="note-name" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Namn / Ämne">
                 
                 <div class="flex gap-2">
@@ -71,10 +86,24 @@
                 <button id="note-submit-btn" onclick="addNote()" class="w-full bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:brightness-110 text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 py-3 mt-1 transition-all">SPARA ANTECKNING</button>
             </div>
 
-            <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-2 rounded-xl" id="notes-list-container">
+            <button onclick="openSavedNotesModal()" class="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 border border-slate-200">
+                <span class="text-[14px]">📂</span> VISA SPARADE ANTECKNINGAR
+            </button>
+        </div>
+    </div>
+
+    <div id="saved-notes-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[36000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="w-full max-w-[340px] bg-slate-50 rounded-[28px] shadow-2xl flex flex-col transform scale-95 transition-transform duration-300 border border-slate-100 max-h-[85vh] overflow-hidden">
+            <div class="flex justify-between items-center p-4 bg-white border-b border-slate-200 shrink-0">
+                <h2 class="text-[13px] font-black text-[#0ea5e9] uppercase tracking-widest flex items-center gap-1.5"><span class="text-[16px]">📂</span> SPARADE</h2>
+                <button onclick="closeSavedNotesModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-3 p-4" id="notes-list-container">
             </div>
         </div>
     </div>
+
 
     <div id="summary-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[30000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="w-full max-w-[320px] bg-white rounded-[32px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="summary-modal-content">
@@ -119,7 +148,7 @@
                 <div id="sum-bestweek-container" class="bg-indigo-50 border border-indigo-100 rounded-2xl p-3 flex items-center justify-between shadow-sm">
                     <div class="flex flex-col">
                         <span class="text-[9px] font-black text-indigo-500 uppercase tracking-widest">Bästa Veckan</span>
-                        <span class="text-[10px] font-bold text-indigo-400 mt-0.5">Periodens starkaste 7 dagar</span>
+                        <span class="text-[10px] font-bold text-indigo-400 mt-0.5">Starkaste kalenderveckan</span>
                     </div>
                     <div class="text-right">
                         <span id="sum-bestweek-val" class="text-[18px] font-black text-indigo-600 block leading-none mb-0.5">0k</span>

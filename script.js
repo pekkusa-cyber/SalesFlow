@@ -75,7 +75,6 @@ function showToast(icon, msg, duration = 4000) {
     document.getElementById('sf-toast-msg').innerText = msg;
     toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-8');
     
-    // Rensa eventuell gammal timer
     if(window.toastTimer) clearTimeout(window.toastTimer);
     
     window.toastTimer = setTimeout(() => {
@@ -170,8 +169,6 @@ async function submitNewCall() {
                     }, 2500);
                 }
 
-                // AI: AUTOMATISK RÖD TRÅD
-                // Triggar om du har 2 samtal, och därefter var 3:e samtal.
                 const callCount = savedCalls.length;
                 if (callCount >= 2 && (callCount === 2 || callCount % 3 === 0)) {
                     setTimeout(autoAnalyzeRedThread, 1500);
@@ -196,10 +193,9 @@ async function autoAnalyzeRedThread() {
         const result = await response.json();
         
         if (response.ok && result.analysis) {
-            // Spara tråden lokalt i webbläsaren så vi alltid har senaste
             localStorage.setItem('sf_latest_red_thread', result.analysis);
             showToast("🧠", "Röd tråd hittad i dina sälj! (Både bra & utveckling)", 6000);
-            renderCoachingLibrary(); // Uppdaterar vyn så kortet dyker upp direkt!
+            renderCoachingLibrary(); 
         } else {
             showToast("⚠️", "Behöver fler samtal för att hitta en tydlig röd tråd.", 4000);
         }
@@ -225,7 +221,6 @@ function renderCoachingLibrary() {
 
     let html = '';
 
-    // Kolla om vi har en sparad Röd Tråd!
     const savedThread = localStorage.getItem('sf_latest_red_thread');
     if (savedThread) {
         html += `
@@ -1087,6 +1082,106 @@ function renderAbsence() {
 // ==========================================
 //  UI & MODAL LOGIC
 // ==========================================
+// ==========================================
+//  NOTE IMAGE SCANNING LOGIC (GOOGLE VISION + AI)
+// ==========================================
+function triggerNoteImageSelect() {
+    const input = document.getElementById('note-image-input');
+    if (input) input.click();
+}
+
+function showNoteImageLoader() {
+    const spinner = document.getElementById('image-load-spinner');
+    if (spinner) spinner.classList.remove('hidden');
+}
+
+function hideNoteImageLoader() {
+    const spinner = document.getElementById('image-load-spinner');
+    if (spinner) spinner.classList.add('hidden');
+}
+
+function handleNoteImageSelect(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    
+    console.log("Fil mottagen:", file.name, file.type);
+    
+    showNoteImageLoader();
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = async function() {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const max_dim = 1200; 
+
+            if (width > max_dim || height > max_dim) {
+                if (width > height) {
+                    height = Math.round((height * max_dim) / width);
+                    width = max_dim;
+                } else {
+                    width = Math.round((width * max_dim) / height);
+                    height = max_dim;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const base64Image = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+            
+            await analyzeImageForNote(base64Image);
+            input.value = ''; 
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+async function analyzeImageForNote(base64Image) {
+    if (!sb) { showToast("❌", "Supabase-anslutning saknas."); hideNoteImageLoader(); return; }
+
+    showToast("📷", "Hjärnan analyserar bilden...", 4000);
+    
+    try {
+        const { data: resultData, error: funcError } = await sb.functions.invoke('analyze-sales-note-image', {
+            body: { image_base64: base64Image }
+        });
+
+        if (funcError) throw funcError;
+
+        if (resultData) {
+            let foundAnything = false;
+            
+            if (resultData.name) { 
+                document.getElementById('note-name').value = resultData.name; foundAnything = true; 
+            }
+            if (resultData.order) { 
+                document.getElementById('note-order').value = resultData.order; foundAnything = true; 
+            }
+            if (resultData.phone) { 
+                document.getElementById('note-phone').value = resultData.phone; foundAnything = true; 
+            }
+            
+            if (foundAnything) {
+                showToast("✅", "Skanning lyckades! Komplettera och spara.");
+            } else {
+                showToast("⚠️", "Ingen tydlig information (namn, ordernr, telefon) hittades.");
+            }
+        }
+    } catch (error) {
+        console.error("Fel vid bildanalys:", error);
+        showToast("❌", "Kunde inte skanna bilden. Testa igen eller fyll i manuellt.");
+    } finally {
+        hideNoteImageLoader();
+    }
+}
+
+
 async function init() {
     try {
         const savedTheme = localStorage.getItem('sf_theme') || 'light';
@@ -1279,12 +1374,36 @@ async function saveEvalModal() {
     closeEvalModal(); updateDashboardView();
 }
 
+// NYTT: Hantera den sparade anteckningar-modalen
+function openSavedNotesModal() {
+    renderNotes(); 
+    const m = document.getElementById('saved-notes-modal');
+    if(m) {
+        m.classList.remove('hidden');
+        closeNotesModal(); 
+        setTimeout(() => {
+            m.classList.remove('opacity-0');
+            if(m.children[0]) m.children[0].classList.remove('scale-95');
+        }, 10);
+    }
+}
+
+function closeSavedNotesModal() {
+    const m = document.getElementById('saved-notes-modal');
+    if(m) {
+        m.classList.add('opacity-0');
+        if(m.children[0]) m.children[0].classList.add('scale-95');
+        setTimeout(() => {
+            m.classList.add('hidden');
+        }, 300);
+    }
+}
+
 let currentEditId = null;
 
 function openNotesModal() {
     const m = document.getElementById('notes-modal');
     if(m) {
-        renderNotes();
         m.classList.remove('hidden');
         setTimeout(() => m.classList.replace('opacity-0', 'opacity-100'), 10);
     }
@@ -1344,7 +1463,9 @@ function addNote() {
     if(nameEl) nameEl.value = ''; if(phoneEl) phoneEl.value = ''; if(orderEl) orderEl.value = ''; 
     if(textEl) textEl.value = ''; if(dueEl) dueEl.value = ''; if(prioEl) prioEl.value = ''; 
     
-    renderNotes(); 
+    // Stäng inmatningsrutan och öppna istället listvyn när man sparat
+    closeNotesModal();
+    setTimeout(openSavedNotesModal, 300);
 }
 
 function editNote(id) {
@@ -1362,7 +1483,10 @@ function editNote(id) {
 
     currentEditId = id;
     document.getElementById('note-submit-btn').innerText = "UPPDATERA ANTECKNING";
-    document.getElementById('notes-list-container').scrollTop = 0;
+    
+    // Stäng listan och öppna redigeraren
+    closeSavedNotesModal();
+    setTimeout(openNotesModal, 300);
 }
 
 function deleteNote(id) {
@@ -1388,6 +1512,13 @@ function renderNotes() {
         c.innerHTML = '<div class="h-full flex flex-col items-center justify-center p-4 mt-4"><span class="text-3xl mb-2 opacity-40">📝</span><p class="text-[10px] text-slate-400 font-bold text-center uppercase tracking-widest">Inga anteckningar</p></div>'; 
         return;
     }
+
+    // NYTT: Sortera anteckningarna efter Prio
+    cleanNotes.sort((a, b) => {
+        const prioA = a.prio ? parseInt(a.prio) : 99; 
+        const prioB = b.prio ? parseInt(b.prio) : 99;
+        return prioA - prioB;
+    });
 
     const prioIcons = { '1': '🔴 Prio 1', '2': '🟡 Prio 2', '3': '🔵 Prio 3' };
 
@@ -1494,8 +1625,32 @@ function calculateSummaryStats() {
     
     document.getElementById('sum-streak').innerText = maxStreak + " 🔥";
     
+    // NYTT: BÄSTA VECKAN - Baserat på Kalenderveckor (ISO) för att matcha dash-kortet exakt
+    let weeklySalesMap = {};
+    for (let d=1; d<=daysM; d++) {
+        const k = `${cy}-${cm}-${d}`;
+        const sales = db.d[k]?.s || 0;
+        if (sales > 0) {
+            let dObj = new Date(cy, cm-1, d);
+            dObj = new Date(Date.UTC(dObj.getFullYear(), dObj.getMonth(), dObj.getDate()));
+            let dayNum = dObj.getUTCDay() || 7; 
+            dObj.setUTCDate(dObj.getUTCDate() + 4 - dayNum);
+            let yearStart = new Date(Date.UTC(dObj.getUTCFullYear(),0,1));
+            let weekNo = Math.ceil((((dObj - yearStart) / 86400000) + 1)/7);
+            let weekKey = dObj.getUTCFullYear() + '-W' + weekNo;
+
+            if (!weeklySalesMap[weekKey]) weeklySalesMap[weekKey] = 0;
+            weeklySalesMap[weekKey] += sales;
+        }
+    }
+
     let bestWk = 0; let bestWkLbl = "--";
-    for (let d=1; d<=daysM-6; d++) { let wkS = 0; for(let i=0; i<7; i++) { wkS += (db.d[`${cy}-${cm}-${d+i}`]?.s || 0); } if (wkS > bestWk) { bestWk = wkS; bestWkLbl = `V.${getWeekNumber(new Date(cy, cm-1, d))}`; } }
+    for (const [wKey, wSum] of Object.entries(weeklySalesMap)) {
+        if (wSum > bestWk) {
+            bestWk = wSum;
+            bestWkLbl = "V." + wKey.split('-W')[1];
+        }
+    }
     document.getElementById('sum-bestweek-val').innerText = (bestWk/1000).toFixed(1) + "k"; document.getElementById('sum-bestweek-lbl').innerText = bestWkLbl;
     
     const absDetails = document.getElementById('sum-abs-details'); const absList = document.getElementById('sum-abs-list');

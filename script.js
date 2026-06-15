@@ -1083,7 +1083,7 @@ function renderAbsence() {
 //  UI & MODAL LOGIC
 // ==========================================
 // ==========================================
-//  NOTE IMAGE SCANNING LOGIC (GOOGLE VISION + AI)
+//  NOTE IMAGE SCANNING LOGIC (SUPABASE EDGE FUNCTION)
 // ==========================================
 function triggerNoteImageSelect() {
     const input = document.getElementById('note-image-input');
@@ -1100,84 +1100,99 @@ function hideNoteImageLoader() {
     if (spinner) spinner.classList.add('hidden');
 }
 
-function handleNoteImageSelect(input) {
-    if (!input.files || !input.files[0]) return;
+async function handleNoteImageSelect(input) {
     const file = input.files[0];
-    
-    console.log("Fil mottagen:", file.name, file.type);
-    
-    showNoteImageLoader();
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image();
-        img.onload = async function() {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-            const max_dim = 1200; 
+    if (!file) return;
 
-            if (width > max_dim || height > max_dim) {
-                if (width > height) {
-                    height = Math.round((height * max_dim) / width);
-                    width = max_dim;
-                } else {
-                    width = Math.round((width * max_dim) / height);
-                    height = max_dim;
-                }
-            }
+    const spinner = document.getElementById('image-load-spinner');
+    if (spinner) spinner.classList.remove('hidden');
 
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            
-            ctx.drawImage(img, 0, 0, width, height);
-
-            const base64Image = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
-            
-            await analyzeImageForNote(base64Image);
-            input.value = ''; 
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-}
-
-async function analyzeImageForNote(base64Image) {
-    if (!sb) { showToast("❌", "Supabase-anslutning saknas."); hideNoteImageLoader(); return; }
-
-    showToast("📷", "Hjärnan analyserar bilden...", 4000);
-    
     try {
-        const { data: resultData, error: funcError } = await sb.functions.invoke('analyze-sales-note-image', {
-            body: { image_base64: base64Image }
+        if (!sb) throw new Error("Supabase-klienten saknas. Ladda om appen.");
+
+        // Komprimera bilden till max ~500KB
+        const compressed = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const maxW = 1024;
+                    const scale = Math.min(1, maxW / img.width);
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
         });
 
-        if (funcError) throw funcError;
+        const { data, error } = await sb.functions.invoke('analyze-sales-note-image', {
+            body: { image_base64: compressed }
+        });
 
-        if (resultData) {
-            let foundAnything = false;
-            
-            if (resultData.name) { 
-                document.getElementById('note-name').value = resultData.name; foundAnything = true; 
-            }
-            if (resultData.order) { 
-                document.getElementById('note-order').value = resultData.order; foundAnything = true; 
-            }
-            if (resultData.phone) { 
-                document.getElementById('note-phone').value = resultData.phone; foundAnything = true; 
-            }
-            
-            if (foundAnything) {
-                showToast("✅", "Skanning lyckades! Komplettera och spara.");
-            } else {
-                showToast("⚠️", "Ingen tydlig information (namn, ordernr, telefon) hittades.");
-            }
-        }
-    } catch (error) {
-        console.error("Fel vid bildanalys:", error);
-        showToast("❌", "Kunde inte skanna bilden. Testa igen eller fyll i manuellt.");
+        if (error) throw new Error(error.message);
+
+        // Stöd både snake_case och camelCase från Gemini
+        if (data.namn || data.name)        document.getElementById('note-name').value  = data.namn || data.name;
+        if (data.telefon || data.phone)    document.getElementById('note-phone').value = data.telefon || data.phone;
+        if (data.ordernummer || data.order) document.getElementById('note-order').value = data.ordernummer || data.order;
+
+    } catch (err) {
+        alert("Kunde inte analysera: " + err.message);
     } finally {
-        hideNoteImageLoader();
+        if (spinner) spinner.classList.add('hidden');
+        input.value = '';
+    }
+}
+
+async function handleNoteImageSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const spinner = document.getElementById('image-load-spinner');
+    if (spinner) spinner.classList.remove('hidden');
+
+    try {
+        if (!sb) throw new Error("Supabase-klienten saknas. Ladda om appen.");
+
+        // Komprimera bilden till max ~500KB
+        const compressed = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const maxW = 1024;
+                    const scale = Math.min(1, maxW / img.width);
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        const { data, error } = await sb.functions.invoke('analyze-sales-note-image', {
+            body: { image_base64: compressed }
+        });
+
+        if (error) throw new Error(error.message);
+
+        // Stöd både snake_case och camelCase från Gemini
+        if (data.namn || data.name)        document.getElementById('note-name').value  = data.namn || data.name;
+        if (data.telefon || data.phone)    document.getElementById('note-phone').value = data.telefon || data.phone;
+        if (data.ordernummer || data.order) document.getElementById('note-order').value = data.ordernummer || data.order;
+
+    } catch (err) {
+        alert("Kunde inte analysera: " + err.message);
+    } finally {
+        if (spinner) spinner.classList.add('hidden');
+        input.value = '';
     }
 }
 
@@ -1374,7 +1389,6 @@ async function saveEvalModal() {
     closeEvalModal(); updateDashboardView();
 }
 
-// NYTT: Hantera den sparade anteckningar-modalen
 function openSavedNotesModal() {
     renderNotes(); 
     const m = document.getElementById('saved-notes-modal');
@@ -1463,7 +1477,6 @@ function addNote() {
     if(nameEl) nameEl.value = ''; if(phoneEl) phoneEl.value = ''; if(orderEl) orderEl.value = ''; 
     if(textEl) textEl.value = ''; if(dueEl) dueEl.value = ''; if(prioEl) prioEl.value = ''; 
     
-    // Stäng inmatningsrutan och öppna istället listvyn när man sparat
     closeNotesModal();
     setTimeout(openSavedNotesModal, 300);
 }
@@ -1484,7 +1497,6 @@ function editNote(id) {
     currentEditId = id;
     document.getElementById('note-submit-btn').innerText = "UPPDATERA ANTECKNING";
     
-    // Stäng listan och öppna redigeraren
     closeSavedNotesModal();
     setTimeout(openNotesModal, 300);
 }
@@ -1513,7 +1525,6 @@ function renderNotes() {
         return;
     }
 
-    // NYTT: Sortera anteckningarna efter Prio
     cleanNotes.sort((a, b) => {
         const prioA = a.prio ? parseInt(a.prio) : 99; 
         const prioB = b.prio ? parseInt(b.prio) : 99;
@@ -1625,7 +1636,6 @@ function calculateSummaryStats() {
     
     document.getElementById('sum-streak').innerText = maxStreak + " 🔥";
     
-    // NYTT: BÄSTA VECKAN - Baserat på Kalenderveckor (ISO) för att matcha dash-kortet exakt
     let weeklySalesMap = {};
     for (let d=1; d<=daysM; d++) {
         const k = `${cy}-${cm}-${d}`;

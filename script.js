@@ -993,18 +993,35 @@ function createSliderCell(cd, k) {
     cell.onclick = (e) => selectDay(k, cell, e);
 
     let keyBadge = '';
-    if (!o.abs && qData.end) {
+    if (!o.abs && qData.start && qData.end) {
         let dayOfWeek = cd.getDay();
         let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        if ((!isWeekend && qData.end.includes('19:30')) || (isWeekend && qData.end.includes('16:30'))) {
+        const isClosing = (!isWeekend && qData.end.substring(0,5) === '19:30') ||
+                          (isWeekend && qData.end.substring(0,5) === '16:30');
+        if (isClosing) {
             keyBadge = `<div class="u-badge badge-key">🔑</div>`;
+        } else {
+            let endCounts = {};
+            for (let k2 in db.q) {
+                const qd2 = db.q[k2];
+                if (!qd2.end) continue;
+                const d2 = new Date(k2.split('-')[0], k2.split('-')[1]-1, k2.split('-')[2]);
+                if (d2.getDay() !== dayOfWeek) continue;
+                const e = qd2.end.substring(0,5);
+                if (e === '19:30' || e === '16:30') continue;
+                endCounts[e] = (endCounts[e] || 0) + 1;
+            }
+            let normalEnd = null, maxCount = 0;
+            for (let t in endCounts) { if (endCounts[t] > maxCount) { maxCount = endCounts[t]; normalEnd = t; } }
+            if (normalEnd && qData.end.substring(0,5) !== normalEnd) {
+                keyBadge = `<div class="u-badge badge-key" style="font-size:10px;">🔄 </div>`;
+            }
         }
     }
 
     cell.innerHTML = `${keyBadge}<span class="vp-name">${dayName}</span><span class="vp-date">${cd.getDate()}</span><span class="vp-val flex items-center justify-center">${valStr}</span>`;
     return cell;
 }
-
 function createDayCell(cd, k) {
     const o = db.d[k] || {s:0}, t = timeline[k] || {target:0}, qData = db.q[k] || {}; 
     let cls = 'day-cell', b = '', content = '', wt = ''; 
@@ -1025,9 +1042,29 @@ function createDayCell(cd, k) {
     
     if (o.abs) { let bKey = o.abs.split(' ')[0]; if (o.abs === 'Åtgärd krävs') { b += `<div class="u-badge badge-abs badge-action" style="background:#ef4444; color:white; border:none;">${em[o.abs] || '•'}</div>`; } else { b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; } }
     
-    if (!o.abs && qData.end) {
+    if (!o.abs && qData.start && qData.end) {
         let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        if ((!isWeekend && qData.end.includes('19:30')) || (isWeekend && qData.end.includes('16:30'))) { b += `<div class="u-badge badge-key">🔑</div>`; }
+        const isClosing = (!isWeekend && qData.end.substring(0,5) === '19:30') ||
+                          (isWeekend && qData.end.substring(0,5) === '16:30');
+        if (isClosing) {
+            b += `<div class="u-badge badge-key">🔑</div>`;
+        } else {
+            let endCounts = {};
+            for (let k2 in db.q) {
+                const qd2 = db.q[k2];
+                if (!qd2.end) continue;
+                const d2 = new Date(k2.split('-')[0], k2.split('-')[1]-1, k2.split('-')[2]);
+                if (d2.getDay() !== dayOfWeek) continue;
+                const e = qd2.end.substring(0,5);
+                if (e === '19:30' || e === '16:30') continue;
+                endCounts[e] = (endCounts[e] || 0) + 1;
+            }
+            let normalEnd = null, maxCount = 0;
+            for (let t in endCounts) { if (endCounts[t] > maxCount) { maxCount = endCounts[t]; normalEnd = t; } }
+            if (normalEnd && qData.end.substring(0,5) !== normalEnd) {
+                b += `<div class="u-badge badge-key" style="font-size:10px;">🔄 </div>`;
+            }
+        }
     }
 
     if (o.s > 0) { content = `<span class="cell-main-val mt-1">${(o.s/1000).toFixed(1)} k</span>`; } else if (qData.start && !o.abs) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`; } else if (state === 'unplanned' || (state === 'ledig' && o.s === 0)) { content = `<span class="text-[7.5px] font-black text-slate-800 mt-1 uppercase tracking-widest opacity-50">LEDIG</span>`; }
@@ -1041,7 +1078,6 @@ function createDayCell(cd, k) {
     const cell = document.createElement('div'); cell.className = cls; cell.dataset.key = k; cell.onclick = (e) => selectDay(k, cell, e);
     cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[6px] text-center tracking-tighter">${b}${content}</div>`; return cell;
 }
-
 function renderCal(y, m) { 
     const g = document.getElementById('d-cal'); if(!g) return; g.innerHTML = ''; 
     const lastDate = new Date(y, m, 0).getDate(); const firstDay = new Date(y, m-1, 1).getDay() || 7; const prevMonthLastDate = new Date(y, m-1, 0).getDate();
@@ -1196,6 +1232,51 @@ async function handleNoteImageSelect(input) {
     }
 }
 
+async function handleGMImageSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    showToast('📷', 'Skannar GM-rapport...', 3000);
+
+    try {
+        const compressed = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const maxW = 1024;
+                    const scale = Math.min(1, maxW / img.width);
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        const { data, error } = await sb.functions.invoke('scan-gm-image', {
+            body: { image_base64: compressed }
+        });
+
+        if (error) throw new Error(error.message);
+        if (!data.gm || isNaN(data.gm)) throw new Error('Kunde inte hitta GM-värde');
+
+        // Lägg in i dagens försäljning
+        const gmValue = Math.round(Number(data.gm));
+        inlineNumpadValue = String(gmValue);
+        updateInlineNumpadDisplay();
+
+        showToast('✅', `GM inlagt: ${gmValue.toLocaleString('sv-SE')} kr`, 3000);
+
+    } catch (err) {
+        showToast('❌', 'Kunde inte skanna: ' + err.message, 4000);
+    } finally {
+        input.value = '';
+    }
+}
 
 async function init() {
     try {

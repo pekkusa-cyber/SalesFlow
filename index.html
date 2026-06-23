@@ -3,317 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a73e8">
     <title>SalesFlow</title>
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
-   
-       
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="mode-dash">
-    
-    <div id="sf-toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[60000] bg-slate-800 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 text-[11px] font-black uppercase tracking-widest transition-all duration-300 opacity-0 pointer-events-none -translate-y-8 min-w-[280px] justify-center border border-slate-700">
-        <span id="sf-toast-icon" class="text-[16px]">🔔</span>
+
+    <!-- TOAST -->
+    <div id="sf-toast" data-testid="sf-toast" class="md-toast fixed top-4 left-1/2 -translate-x-1/2 z-[60000] flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none -translate-y-8">
+        <span id="sf-toast-icon" class="text-[18px]">🔔</span>
         <span id="sf-toast-msg" class="leading-tight">Meddelande här</span>
     </div>
 
-    <div id="confirm-box" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:14000;display:none;width:280px;background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.6);border-radius:28px;padding:24px;box-shadow:0 24px 60px -12px rgba(15,23,42,0.25);">
-        <p class="text-[10px] font-black text-center mb-6 uppercase tracking-widest text-slate-500">Skriva över data?</p>
-        <div class="flex gap-3">
-            <button id="conf-yes" class="flex-1 text-white py-4 rounded-2xl font-black text-[10px] premium-slate-banner">JA</button>
-            <button onclick="hideConfirm()" class="flex-1 bg-slate-100 text-slate-500 py-4 rounded-2xl font-black text-[10px]">NEJ</button>
+    <div id="confirm-box" class="md-confirm-box" style="display:none;">
+        <p class="md-confirm-title">Skriva över data?</p>
+        <div class="flex gap-2">
+            <button id="conf-yes" class="md-btn-filled flex-1">JA</button>
+            <button onclick="hideConfirm()" class="md-btn-tonal flex-1">NEJ</button>
         </div>
     </div>
 
-    <div id="eval-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="w-full max-w-[320px] bg-white rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="eval-modal-content">
-            <div class="flex justify-between items-center mb-1">
-                <h2 class="text-[12px] font-black text-slate-800 uppercase tracking-widest">UTVÄRDERA PASS</h2>
-                <button onclick="closeEvalModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
+    <!-- UTVÄRDERA PASS -->
+    <div id="eval-modal" class="md-scrim fixed inset-0 z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[340px]" id="eval-modal-content">
+            <div class="md-dialog-header">
+                <h2 class="md-dialog-title">Utvärdera pass</h2>
+                <button onclick="closeEvalModal()" class="md-icon-btn" data-testid="close-eval"><span class="material-symbols-rounded">close</span></button>
             </div>
-
-            <div class="flex flex-col gap-3" id="eval-metrics-container">
+            <div class="flex flex-col gap-3 px-1" id="eval-metrics-container"></div>
+            <div class="md-dialog-actions">
+                <button onclick="saveEvalModal()" class="md-btn-filled w-full" data-testid="save-eval">Spara utvärdering</button>
             </div>
-            
-            <button onclick="saveEvalModal()" class="w-full py-4 mt-2 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all">SPARA UTVÄRDERING</button>
         </div>
     </div>
 
-    <div id="notes-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="w-full max-w-[340px] bg-white rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100 max-h-[85vh]">
-            <div class="flex justify-between items-center shrink-0">
-                <h2 class="text-[13px] font-black text-slate-800 uppercase tracking-widest">ANTECKNINGAR</h2>
-                <div class="flex gap-2">
-                    <button onclick="closeNotesModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
-                </div>
+    <!-- ANTECKNINGAR -->
+    <div id="notes-modal" class="md-scrim fixed inset-0 z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[360px] max-h-[85vh]">
+            <div class="md-dialog-header">
+                <h2 class="md-dialog-title">Anteckningar</h2>
+                <button onclick="closeNotesModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
             </div>
-            
-            <div class="flex flex-col gap-2.5 shrink-0 bg-slate-50 p-3 rounded-2xl border border-slate-100 relative">
-                
-                <div class="flex gap-2 mb-2 items-center w-full">
-                    <button onclick="document.getElementById('camera-input').click()" class="flex-1 py-3 bg-teal-600 hover:bg-teal-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all">📷 KAMERA</button>
-                    <button onclick="document.getElementById('gallery-input').click()" class="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all">🖼️ GALLERI</button>
-                    
-                    <div id="image-load-spinner" class="w-8 h-8 hidden shrink-0 ml-1">
-                        <div class="animate-spin rounded-full h-full w-full border-t-2 border-b-2 border-teal-500"></div>
-                    </div>
-                </div>
 
+            <div class="md-form-card">
+                <div class="flex gap-2 items-center w-full">
+                    <button onclick="document.getElementById('camera-input').click()" class="md-btn-cam flex-1 md-btn-icon-text" data-testid="btn-camera">
+                        <span class="material-symbols-rounded">photo_camera</span> Kamera
+                    </button>
+                    <button onclick="document.getElementById('gallery-input').click()" class="md-btn-gal flex-1 md-btn-icon-text" data-testid="btn-gallery">
+                        <span class="material-symbols-rounded">image</span> Galleri
+                    </button>
+                    <div id="image-load-spinner" class="md-spinner hidden shrink-0"></div>
+                </div>
                 <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleNoteImageSelect(this)">
                 <input type="file" id="gallery-input" accept="image/*" class="hidden" onchange="handleNoteImageSelect(this)">
-
-                <input type="text" id="note-name" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Namn / Ämne">
-                
+                <input type="text" id="note-name" class="md-input" placeholder="Namn / Ämne">
                 <div class="flex gap-2">
-                    <input type="tel" id="note-phone" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Telefon">
-                    <input type="text" id="note-order" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]" placeholder="Ordernr">
+                    <input type="tel" id="note-phone" class="md-input w-1/2" placeholder="Telefon">
+                    <input type="text" id="note-order" class="md-input w-1/2" placeholder="Ordernr">
                 </div>
-
                 <div class="flex gap-2">
-                    <input type="date" id="note-due" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]">
-                    <select id="note-prio" class="w-1/2 bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]">
+                    <input type="date" id="note-due" class="md-input w-1/2">
+                    <select id="note-prio" class="md-input w-1/2">
                         <option value="">Ingen Prio</option>
                         <option value="1">🔴 Prio 1 (Hög)</option>
                         <option value="2">🟡 Prio 2 (Medel)</option>
                         <option value="3">🔵 Prio 3 (Låg)</option>
                     </select>
                 </div>
-                
-                <textarea id="note-text" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9] min-h-[60px] resize-none" placeholder="Skriv din anteckning här..."></textarea>
-                
-                <button id="note-submit-btn" onclick="addNote()" class="w-full bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:brightness-110 text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 py-3 mt-1 transition-all">SPARA ANTECKNING</button>
+                <textarea id="note-text" class="md-input min-h-[70px] resize-none" placeholder="Skriv din anteckning här..."></textarea>
+                <button id="note-submit-btn" onclick="addNote()" class="md-btn-filled w-full" data-testid="save-note">Spara anteckning</button>
             </div>
 
-            <button onclick="openSavedNotesModal()" class="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-black text-[10px] uppercase tracking-widest rounded-xl shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 border border-slate-200">
-                <span class="text-[14px]">📂</span> VISA SPARADE ANTECKNINGAR
+            <button onclick="openSavedNotesModal()" class="md-btn-outlined w-full md-btn-icon-text" data-testid="open-saved-notes">
+                <span class="material-symbols-rounded">folder_open</span> Visa sparade anteckningar
             </button>
         </div>
     </div>
 
-    <div id="saved-notes-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[36000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="w-full max-w-[340px] bg-slate-50 rounded-[28px] shadow-2xl flex flex-col transform scale-95 transition-transform duration-300 border border-slate-100 max-h-[85vh] overflow-hidden">
-            <div class="flex justify-between items-center p-4 bg-white border-b border-slate-200 shrink-0">
-                <h2 class="text-[13px] font-black text-[#0ea5e9] uppercase tracking-widest flex items-center gap-1.5"><span class="text-[16px]">📂</span> SPARADE</h2>
-                <button onclick="closeSavedNotesModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
+    <!-- SPARADE ANTECKNINGAR -->
+    <div id="saved-notes-modal" class="md-scrim fixed inset-0 z-[36000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[360px] max-h-[85vh] !p-0 overflow-hidden">
+            <div class="md-dialog-header md-dialog-header-bar">
+                <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded text-google-blue">folder</span>Sparade</h2>
+                <button onclick="closeSavedNotesModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
             </div>
-            
-            <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-3 p-4" id="notes-list-container">
-            </div>
+            <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-3 p-4" id="notes-list-container"></div>
         </div>
     </div>
 
-
-    <div id="summary-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[30000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="w-full max-w-[320px] bg-white rounded-[32px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100" id="summary-modal-content">
-            <div class="flex justify-between items-center mb-1">
-                <h2 id="summary-modal-title" class="text-[12px] font-black text-slate-800 uppercase tracking-widest">SAMMANFATTNING</h2>
-                <div class="flex gap-2 items-center">
-                    <button id="btn-sum-toggle" onclick="toggleSummaryView()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-[14px] active:scale-90 transition-all font-bold" title="Insikter">💡</bulet staystton>
-                    <button onclick="closeSummaryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
+    <!-- SAMMANFATTNING -->
+    <div id="summary-modal" class="md-scrim fixed inset-0 z-[30000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[340px]" id="summary-modal-content">
+            <div class="md-dialog-header">
+                <h2 id="summary-modal-title" class="md-dialog-title">Sammanfattning</h2>
+                <div class="flex gap-1 items-center">
+                    <button id="btn-sum-toggle" onclick="toggleSummaryView()" class="md-icon-btn" title="Insikter"><span class="material-symbols-rounded">lightbulb</span></button>
+                    <button onclick="closeSummaryModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
                 </div>
             </div>
 
-            <div id="summary-stats-view" class="flex flex-col gap-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
-                        <span class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-1">Pass / Jobb</span>
-                        <span id="sum-workdays" class="text-[18px] font-black text-[#0ea5e9]">0</span>
+            <div id="summary-stats-view" class="flex flex-col gap-3">
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="md-stat-card md-stat-blue">
+                        <span class="md-stat-lbl">Pass / Jobb</span>
+                        <span id="sum-workdays" class="md-stat-val">0</span>
                     </div>
-                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
-                        <span class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-1">Frånvaro</span>
-                        <span id="sum-absdays" class="text-[18px] font-black text-amber-500">0</span>
+                    <div class="md-stat-card md-stat-yellow">
+                        <span class="md-stat-lbl">Frånvaro</span>
+                        <span id="sum-absdays" class="md-stat-val">0</span>
                     </div>
-                    <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
-                        <span class="text-[8.5px] font-black text-emerald-600/70 uppercase tracking-widest mb-1">Bästa Dag</span>
-                        <span id="sum-bestday-val" class="text-[16px] font-black text-emerald-600 leading-none mb-1">0k</span>
-                        <span id="sum-bestday-lbl" class="text-[9px] font-bold text-emerald-600/70">--</span>
+                    <div class="md-stat-card md-stat-green">
+                        <span class="md-stat-lbl">Bästa dag</span>
+                        <span id="sum-bestday-val" class="md-stat-val">0k</span>
+                        <span id="sum-bestday-lbl" class="md-stat-sub">--</span>
                     </div>
-                    <div class="bg-rose-50 border border-rose-100 rounded-2xl p-3 flex flex-col items-center text-center shadow-sm">
-                        <span class="text-[8.5px] font-black text-rose-500/70 uppercase tracking-widest mb-1">Sämsta Dag</span>
-                        <span id="sum-worstday-val" class="text-[16px] font-black text-rose-500 leading-none mb-1">0k</span>
-                        <span id="sum-worstday-lbl" class="text-[9px] font-bold text-rose-500/70">--</span>
+                    <div class="md-stat-card md-stat-red">
+                        <span class="md-stat-lbl">Sämsta dag</span>
+                        <span id="sum-worstday-val" class="md-stat-val">0k</span>
+                        <span id="sum-worstday-lbl" class="md-stat-sub">--</span>
                     </div>
                 </div>
 
-                <div class="bg-gradient-to-r from-[#f0f9ff] to-[#e0f2fe] border border-[#bae6fd] rounded-2xl p-3 flex items-center justify-between shadow-sm mt-1">
+                <div class="md-row-card md-row-blue">
                     <div class="flex flex-col">
-                        <span class="text-[9px] font-black text-[#0ea5e9] uppercase tracking-widest">Grön Streak (Mål Nått)</span>
-                        <span class="text-[10px] font-bold text-[#0369a1] mt-0.5">Längsta raden av gröna dagar</span>
+                        <span class="md-row-title">Grön streak (mål nått)</span>
+                        <span class="md-row-sub">Längsta raden av gröna dagar</span>
                     </div>
-                    <span id="sum-streak" class="text-[22px] font-black text-[#0ea5e9]">0 🔥</span>
+                    <span id="sum-streak" class="md-row-val">0 🔥</span>
                 </div>
 
-                <div id="sum-bestweek-container" class="bg-indigo-50 border border-indigo-100 rounded-2xl p-3 flex items-center justify-between shadow-sm">
+                <div id="sum-bestweek-container" class="md-row-card md-row-indigo">
                     <div class="flex flex-col">
-                        <span class="text-[9px] font-black text-indigo-500 uppercase tracking-widest">Bästa Veckan</span>
-                        <span class="text-[10px] font-bold text-indigo-400 mt-0.5">Starkaste kalenderveckan</span>
+                        <span class="md-row-title">Bästa veckan</span>
+                        <span class="md-row-sub">Starkaste kalenderveckan</span>
                     </div>
                     <div class="text-right">
-                        <span id="sum-bestweek-val" class="text-[18px] font-black text-indigo-600 block leading-none mb-0.5">0k</span>
-                        <span id="sum-bestweek-lbl" class="text-[9px] font-black text-indigo-400">--</span>
+                        <span id="sum-bestweek-val" class="md-row-val block">0k</span>
+                        <span id="sum-bestweek-lbl" class="md-row-sub">--</span>
                     </div>
                 </div>
 
-                <div id="sum-abs-details" class="flex flex-col gap-1.5 hidden mt-1">
-                    <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1 mb-1">Frånvaro Orsaker</h3>
+                <div id="sum-abs-details" class="flex flex-col gap-1 hidden">
+                    <h3 class="md-section-lbl">Frånvaro orsaker</h3>
                     <div id="sum-abs-list" class="flex flex-col gap-1"></div>
                 </div>
             </div>
 
             <div id="summary-insights-view" class="hidden flex flex-col gap-3">
-                <div id="insight-container" class="flex flex-col gap-2">
-                </div>
+                <div id="insight-container" class="flex flex-col gap-2"></div>
             </div>
-            
-            <button onclick="closeSummaryModal()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all mt-1">STÄNG</button>
+
+            <button onclick="closeSummaryModal()" class="md-btn-filled w-full mt-2">Stäng</button>
         </div>
     </div>
 
-    <div id="note-confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-3 transform scale-95 transition-transform duration-300" id="note-modal-content">
-            <p class="text-[11px] font-black text-center uppercase tracking-widest text-slate-800 mb-2">Vill du stänga ärendet?</p>
+    <!-- NOTE CONFIRM -->
+    <div id="note-confirm-modal" class="md-scrim fixed inset-0 z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-[300px]" id="note-modal-content">
+            <p class="md-dialog-title text-center mb-2">Vill du stänga ärendet?</p>
             <div class="flex gap-2">
-                <button id="btn-note-yes" class="flex-1 py-4 bg-[#f0f9ff] hover:bg-[#e0f2fe] text-[#0ea5e9] font-black text-xs rounded-2xl border border-[#bae6fd] active:scale-95 transition-all shadow-sm">JA</button>
-                <button onclick="closeNoteConfirmModal()" class="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-500 font-black text-xs rounded-2xl border border-slate-200 active:scale-95 transition-all shadow-sm">NEJ</button>
+                <button id="btn-note-yes" class="md-btn-tonal-blue flex-1">JA</button>
+                <button onclick="closeNoteConfirmModal()" class="md-btn-tonal flex-1">NEJ</button>
             </div>
         </div>
     </div>
 
-    <div id="child-select-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-3 transform scale-95 transition-transform duration-300" id="child-modal-content">
-            <p id="child-modal-title" class="text-[10px] font-black text-center uppercase tracking-widest text-slate-400 mb-2">VEM GÄLLER DET?</p>
+    <!-- BARN VAL -->
+    <div id="child-select-modal" class="md-scrim fixed inset-0 z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-[300px]" id="child-modal-content">
+            <p id="child-modal-title" class="md-section-lbl text-center mb-2">VEM GÄLLER DET?</p>
             <div class="flex gap-2">
-                <button onclick="selectChild('Belma')" class="flex-1 py-4 bg-[#f0f9ff] hover:bg-[#e0f2fe] text-[#0ea5e9] font-black text-xs rounded-2xl border border-[#bae6fd] active:scale-95 transition-all flex flex-col items-center justify-center gap-1 shadow-sm"><span class="text-2xl">👶</span><span class="text-[10px] uppercase tracking-wider mt-1">Belma</span></button>
-                <button onclick="selectChild('Wilma')" class="flex-1 py-4 bg-[#fff1f2] hover:bg-[#ffe4e6] text-[#e11d48] font-black text-xs rounded-2xl border border-[#fecdd3] active:scale-95 transition-all flex flex-col items-center justify-center gap-1 shadow-sm"><span class="text-2xl">👧</span><span class="text-[10px] uppercase tracking-wider mt-1">Wilma</span></button>
+                <button onclick="selectChild('Belma')" class="md-child-btn md-child-blue">
+                    <span class="text-3xl">👶</span><span class="md-child-name">Belma</span>
+                </button>
+                <button onclick="selectChild('Wilma')" class="md-child-btn md-child-red">
+                    <span class="text-3xl">👧</span><span class="md-child-name">Wilma</span>
+                </button>
             </div>
-            <button onclick="closeChildModal()" class="mt-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Avbryt</button>
+            <button onclick="closeChildModal()" class="md-btn-text mt-2">Avbryt</button>
         </div>
     </div>
 
-    <div id="budget-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[15000] hidden flex items-center justify-center p-4">
-        <div class="w-[280px] bg-white border border-slate-100 rounded-[28px] p-5 shadow-2xl flex flex-col gap-4">
-            <p class="text-[10px] font-black text-center uppercase tracking-widest text-slate-400">Inställningar</p>
-            <button id="sync-btn" onclick="syncData()" class="w-full py-3.5 bg-[#0ea5e9] hover:bg-[#0284c7] text-white font-black text-[11px] uppercase tracking-widest rounded-xl shadow-md active:scale-95 transition-all flex justify-center items-center gap-2"><span>⚡</span> Synkronisera Data</button>
-            <div class="h-px w-full bg-slate-100 mt-1"></div>
-            <p class="text-[9px] font-black text-center uppercase tracking-widest text-slate-400 mb-[-4px]">Välj Tema</p>
-            <div class="grid grid-cols-3 gap-2">
-                <button onclick="setTheme('light')" class="py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black text-slate-700 active:scale-95 transition-all shadow-sm">Ljust</button>
-                <button onclick="setTheme('dark')" class="py-2.5 bg-[#1e293b] border border-[#334155] rounded-xl text-[10px] font-black text-[#f8fafc] active:scale-95 transition-all shadow-sm">Mörkt</button>
-                <button onclick="setTheme('rustic')" class="py-2.5 bg-[#f4f0ec] border border-[#d6ccc2] rounded-xl text-[10px] font-black text-[#5c544e] active:scale-95 transition-all shadow-sm">Rustikt</button>
-            </div>
-            <div class="h-px w-full bg-slate-100 my-1"></div>
-            <p class="text-[9px] font-black text-center uppercase tracking-widest text-slate-400 mb-[-4px]">Månadsmål</p>
+    <!-- INSTÄLLNINGAR -->
+    <div id="budget-modal" class="md-scrim fixed inset-0 z-[15000] hidden flex items-center justify-center p-4">
+        <div class="md-dialog w-[320px]">
+            <p class="md-section-lbl text-center">Inställningar</p>
+            <button id="sync-btn" onclick="syncData()" class="md-btn-filled w-full md-btn-icon-text" data-testid="sync-data">
+                <span class="material-symbols-rounded">sync</span> Synkronisera data
+            </button>
+            <div class="md-divider"></div>
+            <p class="md-section-lbl text-center">Månadsmål</p>
             <div class="flex flex-col gap-2">
-                <button onclick="setGlobalBudget(180000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">180 000 kr</button>
-                <button onclick="setGlobalBudget(240000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">240 000 kr</button>
-                <button onclick="setGlobalBudget(350000)" class="w-full py-3 bg-slate-50 hover:bg-[#f0f9ff] text-slate-800 font-black text-xs rounded-xl border border-slate-100 active:scale-95 transition-all shadow-sm">350 000 kr</button>
+                <button onclick="setGlobalBudget(180000)" class="md-budget-btn">180 000 kr</button>
+                <button onclick="setGlobalBudget(240000)" class="md-budget-btn">240 000 kr</button>
+                <button onclick="setGlobalBudget(350000)" class="md-budget-btn">350 000 kr</button>
             </div>
-            <button onclick="closeBudgetModal()" class="mt-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all">Stäng</button>
+            <button onclick="closeBudgetModal()" class="md-btn-text mt-1">Stäng</button>
         </div>
     </div>
 
-    <div id="coach-main-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[36000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="w-full max-w-[360px] bg-slate-50 rounded-[28px] shadow-2xl flex flex-col overflow-hidden transform scale-95 transition-transform duration-300 border border-slate-100">
-            <div class="flex justify-between items-center p-4 border-b border-slate-200 bg-white shrink-0">
-                <h2 class="text-[13px] font-black text-[#0ea5e9] uppercase tracking-widest flex items-center gap-1.5"><span class="text-[16px]">🤖</span> SÄLJCOACH</h2>
-                <button onclick="closeCoachModalMain()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold shrink-0">✕</button>
+    <!-- COACH MAIN -->
+    <div id="coach-main-modal" class="md-scrim fixed inset-0 z-[36000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[380px] !p-0 overflow-hidden max-h-[90vh]">
+            <div class="md-dialog-header md-dialog-header-bar">
+                <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded text-google-blue">smart_toy</span>Säljcoach</h2>
+                <button onclick="closeCoachModalMain()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
             </div>
-            
-            <div class="p-4 flex flex-col gap-4 overflow-y-auto hide-scrollbar max-h-[80vh]">
-                <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200">
-                    <h3 class="text-[10px] font-black uppercase text-slate-800 tracking-widest mb-3 flex items-center gap-1.5"><span>✍️</span> NYTT SAMTAL</h3>
-                    <select id="call-input-type" class="w-full bg-slate-50 border border-slate-100 p-3 mb-2 rounded-xl text-[11px] font-black text-slate-700 outline-none focus:border-[#0ea5e9]">
-                        <option value="bra">✅ Lyckat Avslut (Starkt)</option>
+            <div class="p-4 flex flex-col gap-3 overflow-y-auto hide-scrollbar">
+                <div class="md-form-card !p-4">
+                    <h3 class="md-section-lbl flex items-center gap-1.5 !text-left"><span class="material-symbols-rounded text-[16px] text-google-blue">edit_note</span>Nytt samtal</h3>
+                    <select id="call-input-type" class="md-input">
+                        <option value="bra">✅ Lyckat avslut (starkt)</option>
                         <option value="utv">🎯 Missat / Utvecklingspotential</option>
                     </select>
-                    <input type="text" id="call-input-title" placeholder="Kund / Företag..." class="w-full bg-slate-50 border border-slate-100 p-3 mb-2 rounded-xl text-[12px] font-bold text-slate-700 outline-none focus:border-[#0ea5e9]">
-                    <textarea id="call-input-text" placeholder="Klistra in transkribering här..." class="w-full h-24 bg-slate-50 border border-slate-100 p-3 rounded-xl text-[11px] font-bold text-slate-700 mb-3 resize-none outline-none focus:border-[#0ea5e9]"></textarea>
-                    <button id="btn-analyze-call" onclick="submitNewCall()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl active:scale-95 transition-transform shadow-md">✨ ANALYSERA & SPARA</button>
-                    <p id="coach-status-text" class="text-center text-[10px] font-bold text-[#0ea5e9] mt-2 hidden uppercase tracking-widest animate-pulse">Hjärnan jobbar...</p>
+                    <input type="text" id="call-input-title" placeholder="Kund / Företag..." class="md-input">
+                    <textarea id="call-input-text" placeholder="Klistra in transkribering här..." class="md-input h-24 resize-none"></textarea>
+                    <button id="btn-analyze-call" onclick="submitNewCall()" class="md-btn-filled w-full md-btn-icon-text" data-testid="analyze-call">
+                        <span class="material-symbols-rounded">auto_awesome</span> Analysera & spara
+                    </button>
+                    <p id="coach-status-text" class="md-status-text hidden">Hjärnan jobbar...</p>
                 </div>
-
-                <button onclick="openCoachHistoryModal()" class="w-full py-4 bg-white text-slate-700 font-black text-[11px] uppercase tracking-widest rounded-2xl shadow-sm border border-slate-200 active:scale-95 transition-transform flex items-center justify-center gap-2">
-                    <span class="text-[16px]">📚</span> ÖPPNA HISTORIK
+                <button onclick="openCoachHistoryModal()" class="md-btn-outlined w-full md-btn-icon-text">
+                    <span class="material-symbols-rounded">history</span> Öppna historik
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="coach-history-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[37000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="w-full max-w-[360px] bg-slate-50 rounded-[28px] shadow-2xl flex flex-col overflow-hidden max-h-[90vh] transform scale-95 transition-transform duration-300 border border-slate-100">
-            <div class="flex justify-between items-center p-4 border-b border-slate-200 bg-white shrink-0">
-                <h2 class="text-[13px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5"><span class="text-[16px]">📚</span> HISTORIK</h2>
-                <button onclick="closeCoachHistoryModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold shrink-0">✕</button>
+    <!-- COACH HISTORY -->
+    <div id="coach-history-modal" class="md-scrim fixed inset-0 z-[37000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[380px] !p-0 overflow-hidden max-h-[90vh]">
+            <div class="md-dialog-header md-dialog-header-bar">
+                <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded">history</span>Historik</h2>
+                <button onclick="closeCoachHistoryModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
             </div>
-            <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 hide-scrollbar relative">
-                <div id="coach-history-list" class="flex flex-col gap-4 pb-4"></div>
+            <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 hide-scrollbar">
+                <div id="coach-history-list" class="flex flex-col gap-3 pb-4"></div>
             </div>
         </div>
     </div>
 
-    <div id="coach-read-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[40000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="w-full max-w-[360px] bg-white rounded-[28px] shadow-2xl flex flex-col overflow-hidden max-h-[85vh] transform scale-95 transition-transform duration-300 border border-slate-100">
-            <div class="flex justify-between items-center p-4 border-b border-slate-100 bg-slate-50 shrink-0">
+    <!-- COACH READ -->
+    <div id="coach-read-modal" class="md-scrim fixed inset-0 z-[40000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[380px] !p-0 overflow-hidden max-h-[85vh]">
+            <div class="md-dialog-header md-dialog-header-bar">
                 <div class="flex flex-col">
-                    <h2 id="crm-title" class="text-[13px] font-black text-slate-800 uppercase tracking-widest truncate pr-2">SAMTAL</h2>
-                    <span id="crm-date" class="text-[9px] font-bold text-slate-400">--</span>
+                    <h2 id="crm-title" class="md-dialog-title truncate pr-2">Samtal</h2>
+                    <span id="crm-date" class="md-row-sub">--</span>
                 </div>
-                <button onclick="closeCoachCall()" class="w-8 h-8 rounded-full bg-white border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold shrink-0">✕</button>
+                <button onclick="closeCoachCall()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
             </div>
-            
-            <div id="crm-read-view" class="overflow-y-auto p-5 flex-1 hide-scrollbar text-[11.5px] leading-relaxed text-slate-700"></div>
-            
-            <div id="crm-edit-view" class="hidden flex-1 flex flex-col p-4 bg-slate-50">
-                <input type="text" id="crm-edit-title" class="w-full bg-white border border-slate-200 p-3 mb-2 rounded-xl text-[12px] font-bold text-slate-700 outline-none">
-                <textarea id="crm-edit-text" class="w-full flex-1 min-h-[150px] bg-white border border-slate-200 p-3 rounded-xl text-[11px] font-medium text-slate-700 resize-none outline-none"></textarea>
+            <div id="crm-read-view" class="overflow-y-auto p-5 flex-1 hide-scrollbar md-prose"></div>
+            <div id="crm-edit-view" class="hidden flex-1 flex flex-col p-4 bg-surface-2">
+                <input type="text" id="crm-edit-title" class="md-input mb-2">
+                <textarea id="crm-edit-text" class="md-input flex-1 min-h-[150px] resize-none"></textarea>
             </div>
-
-            <div id="crm-read-buttons" class="p-3 bg-white border-t border-slate-100 flex gap-2 shrink-0">
-                <button onclick="toggleCoachEdit()" class="flex-1 py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-black text-[10px] uppercase tracking-widest rounded-xl active:scale-95 transition-all shadow-sm">✏️ REDIGERA</button>
-                <button onclick="deleteCoachCall()" class="flex-1 py-3 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 font-black text-[10px] uppercase tracking-widest rounded-xl active:scale-95 transition-all shadow-sm">🗑️ TA BORT</button>
+            <div id="crm-read-buttons" class="md-dialog-footer flex gap-2">
+                <button onclick="toggleCoachEdit()" class="md-btn-tonal flex-1 md-btn-icon-text"><span class="material-symbols-rounded">edit</span> Redigera</button>
+                <button onclick="deleteCoachCall()" class="md-btn-tonal-red flex-1 md-btn-icon-text"><span class="material-symbols-rounded">delete</span> Ta bort</button>
             </div>
-            
-            <div id="crm-edit-buttons" class="hidden p-3 bg-white border-t border-slate-100 flex gap-2 shrink-0">
-                <button onclick="toggleCoachEdit()" class="flex-1 py-3 bg-slate-100 text-slate-500 font-black text-[10px] uppercase tracking-widest rounded-xl active:scale-95 transition-all">AVBRYT</button>
-                <button onclick="saveCoachCall()" class="flex-[2] py-3 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white font-black text-[10px] uppercase tracking-widest rounded-xl active:scale-95 transition-all shadow-md">✓ SPARA</button>
+            <div id="crm-edit-buttons" class="hidden md-dialog-footer flex gap-2">
+                <button onclick="toggleCoachEdit()" class="md-btn-text flex-1">Avbryt</button>
+                <button onclick="saveCoachCall()" class="md-btn-filled flex-[2] md-btn-icon-text"><span class="material-symbols-rounded">check</span> Spara</button>
             </div>
         </div>
     </div>
 
-    <div id="red-thread-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[41000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-         <div class="w-full max-w-[340px] bg-white rounded-[28px] p-5 shadow-2xl flex flex-col gap-4 transform scale-95 transition-transform duration-300 border border-slate-100 max-h-[80vh]">
-            <div class="flex justify-between items-center mb-1 shrink-0">
-                <h2 class="text-[12px] font-black text-[#0ea5e9] uppercase tracking-widest flex items-center gap-1.5"><span class="text-[16px]">🧠</span> RÖD TRÅD</h2>
-                <button onclick="closeRedThreadModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-90 transition-all font-bold">✕</button>
+    <!-- RED THREAD -->
+    <div id="red-thread-modal" class="md-scrim fixed inset-0 z-[41000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+         <div class="md-dialog w-full max-w-[360px] max-h-[80vh]">
+            <div class="md-dialog-header">
+                <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded text-google-blue">psychology</span>Röd tråd</h2>
+                <button onclick="closeRedThreadModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
             </div>
-            <div id="rt-content" class="text-[11.5px] font-medium text-slate-700 leading-relaxed overflow-y-auto hide-scrollbar flex-1 p-1 whitespace-pre-wrap"></div>
-            <button onclick="closeRedThreadModal()" class="w-full py-3.5 bg-slate-800 text-white font-black text-[10px] uppercase tracking-widest rounded-xl active:scale-95 transition-all shadow-md">STÄNG</button>
+            <div id="rt-content" class="md-prose overflow-y-auto hide-scrollbar flex-1 whitespace-pre-wrap"></div>
+            <button onclick="closeRedThreadModal()" class="md-btn-filled w-full">Stäng</button>
         </div>
     </div>
 
+    <!-- ==================== APP SHELL ==================== -->
     <div id="app-shell">
         <div class="content-locker">
-            
+
+            <!-- TOP HEADER -->
             <div class="app-card top-section premium-slate-banner relative">
-                <button onclick="openBudgetModal()" class="absolute top-4 left-4 text-slate-300 hover:text-white text-[22px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">⚙️</button>
-                <button onclick="openNotesModal()" class="absolute top-4 right-4 text-slate-300 hover:text-white text-[20px] active:scale-75 transition-transform select-none drop-shadow-sm z-50">✏️</button>
-                
+                <button onclick="openBudgetModal()" class="md-header-icon md-header-icon-left" data-testid="open-settings">
+                    <span class="material-symbols-rounded">tune</span>
+                </button>
+                <button onclick="openNotesModal()" class="md-header-icon md-header-icon-right" id="btn-notes" data-testid="open-notes">
+                    <span class="material-symbols-rounded">edit_note</span>
+                </button>
+
                 <div id="top-monthly-ui" class="flex flex-col w-full h-full justify-center px-4 py-2 transition-opacity duration-300">
                     <div class="budget-header" onclick="openSummaryModal('month')">
-                        <p class="budget-label mt-1 flex items-center justify-center gap-1 opacity-100">
-                            <span id="top-month-lbl" class="text-[12px] font-black tracking-[0.2em] drop-shadow-sm">MÅNAD</span> 
-                            <span class="text-[10px] opacity-80" title="Sammanfattning" style="color: white; letter-spacing: normal;">📊</span>
+                        <p class="budget-label">
+                            <span id="top-month-lbl">MÅNAD</span>
+                            <span class="material-symbols-rounded text-[14px] opacity-80">insights</span>
                         </p>
-                        <p id="d-budget-val" class="budget-val">240,000 kr</p>
+                        <p id="d-budget-val" class="budget-val">240 000 kr</p>
                     </div>
+
                     <div class="gauge-layout">
                         <div class="side-col">
-                            <p class="micro-lbl">Dagens Krav</p><p id="d-today-target" class="val-display pop-highlight">0 k</p>
-                            <div class="status-pill pill-blue"><span id="d-work-left">0 Pass Kvar</span></div>
+                            <p class="micro-lbl">Dagens krav</p>
+                            <p id="d-today-target" class="val-display pop-highlight">0 k</p>
+                            <div class="status-pill pill-blue"><span id="d-work-left">0 pass kvar</span></div>
                         </div>
                         <div class="gauge-container">
                             <span class="g-label-0">0</span>
@@ -322,157 +325,161 @@
                                 <circle class="g-marks" cx="65" cy="65" r="44" stroke-dasharray="1 18" transform="rotate(135 65 65)"></circle>
                                 <circle id="h-circle-prog" class="g-prog" cx="65" cy="65" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"></circle>
                             </svg>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center pt-0.5"><span id="h-main-val" class="text-[20px] font-black tracking-tighter text-white drop-shadow-md">0 k</span><span id="h-perc-val" class="text-[10px] font-extrabold text-white/90">0%</span></div>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center pt-0.5">
+                                <span id="h-main-val" class="text-[20px] font-black tracking-tighter text-white">0 k</span>
+                                <span id="h-perc-val" class="text-[10px] font-bold text-white/90">0%</span>
+                            </div>
                             <span id="g-max-lbl" class="g-label-240">240</span>
                         </div>
                         <div class="side-col">
-                            <p class="micro-lbl">Kvar Till Mål</p><p id="d-kvar" class="val-display pop-highlight">0 k</p>
-                            <div class="status-pill pill-blue"><span id="d-work-total">0 Totalt</span></div>
+                            <p class="micro-lbl">Kvar till mål</p>
+                            <p id="d-kvar" class="val-display pop-highlight">0 k</p>
+                            <div class="status-pill pill-blue"><span id="d-work-total">0 totalt</span></div>
                         </div>
                     </div>
-                    
-                    <div class="flex justify-between items-center mt-1.5 pt-1.5 border-t border-white/10 px-1">
-                        <div class="flex-1 text-center"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">Snitt / Pass</p><p id="d-avg-val" class="text-[14px] font-black text-[#38bdf8]">0 k</p></div>
-                        <div class="flex-1 text-center border-l border-white/10"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">Prognos</p><p id="d-prog" class="text-[14px] font-black text-white">0</p></div>
-                        <div class="flex-1 text-center border-l border-white/10"><p class="text-[7.5px] font-black uppercase mb-0.5 tracking-wide text-white/50">Status</p><p id="d-status" class="text-[12px] font-black mt-0.5 uppercase tracking-wider text-white">LADDAR</p></div>
+
+                    <div class="meta-row">
+                        <div class="meta-cell"><p class="meta-lbl">Snitt / Pass</p><p id="d-avg-val" class="meta-val text-google-blue">0 k</p></div>
+                        <div class="meta-cell border-left"><p class="meta-lbl">Prognos</p><p id="d-prog" class="meta-val text-white">0</p></div>
+                        <div class="meta-cell border-left"><p class="meta-lbl">Status</p><p id="d-status" class="meta-val text-white text-[12px]">LADDAR</p></div>
                     </div>
 
-                    <div id="top-info-bar" class="mt-2 px-3 py-1.5 rounded-[10px] mx-1 flex items-center justify-center transition-all duration-300 cursor-pointer active:scale-95 relative" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 12px rgba(0,0,0,0.1);">
-                         <span id="top-info-text" class="text-[8.5px] font-black uppercase tracking-widest text-white/90 w-full text-center flex items-center justify-center gap-1.5 leading-none z-20 relative">LADDAR INFO...</span>
+                    <div id="top-info-bar" class="md-info-bar">
+                         <span id="top-info-text" class="md-info-text">LADDAR INFO...</span>
                     </div>
                 </div>
             </div>
 
-            <div class="app-card bottom-section" style="background: var(--white);">
+            <!-- BOTTOM CONTENT -->
+            <div class="app-card bottom-section">
                 <div id="bottom-standard-views" class="flex flex-col w-full h-full transition-opacity duration-300 relative">
 
-                    <div class="flex justify-between items-center px-2 py-1 border-b flex-shrink-0 relative z-30 h-[54px]" style="border-color: rgba(15,23,42,0.05); background: var(--white); border-radius: 28px 28px 0 0;">
-                        
-                        <button onclick="navArrow(-1)" class="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-[#0ea5e9] active:scale-90 transition-transform">
-                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    <!-- NAV BAR -->
+                    <div class="md-nav-bar">
+                        <button onclick="navArrow(-1)" class="md-nav-arrow" data-testid="nav-prev">
+                            <span class="material-symbols-rounded">chevron_left</span>
                         </button>
-                        
+
                         <div id="cal-standard-header" class="flex-1 flex flex-col justify-center items-center w-full px-1">
-                            <h3 id="dynamic-view-title" class="text-[9.5px] font-black uppercase tracking-widest text-slate-800 mb-1.5 text-center leading-none">LADDAR...</h3>
-                            
-                            <div class="relative flex gap-1 p-0.5 bg-slate-50 rounded-lg border border-slate-100 shadow-inner w-full max-w-[240px] overflow-hidden">
-                                <button onclick="openCoachModalMain()" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">COACH</button>
-                                
-                                <button id="tab-absence" onclick="setMode('absence')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">FRÅNV.</button>
-                                <button id="tab-dash" onclick="toggleDashMode()" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md transition-all bg-[#0ea5e9] text-white shadow-sm">VECKA</button>
-                                <button id="tab-month" onclick="setMode('month')" class="flex-1 text-[6.5px] font-black uppercase tracking-wider py-1.5 rounded-md text-slate-500 transition-all hover:bg-slate-200/50">MÅNAD</button>
-                                <button id="btn-close-focus" onclick="closeFocusMode()" class="absolute inset-0 m-[2px] bg-gradient-to-r from-rose-500 to-rose-600 text-white font-black text-[9px] uppercase tracking-widest flex items-center justify-center transition-transform duration-300 translate-y-[110%] rounded-md shadow-sm z-50">✕ STÄNG FOKUS</button>
+                            <h3 id="dynamic-view-title" class="md-view-title">LADDAR...</h3>
+                            <div class="md-segmented relative">
+                                <button onclick="openCoachModalMain()" class="md-seg-btn" data-testid="tab-coach">COACH</button>
+                                <button id="tab-absence" onclick="setMode('absence')" class="md-seg-btn" data-testid="tab-absence">FRÅNV.</button>
+                                <button id="tab-dash" onclick="toggleDashMode()" class="md-seg-btn md-seg-active" data-testid="tab-dash">DAG</button>
+                                <button id="tab-month" onclick="setMode('month')" class="md-seg-btn" data-testid="tab-month">MÅNAD</button>
+                                <button id="btn-close-focus" onclick="closeFocusMode()" class="md-focus-close">✕ STÄNG FOKUS</button>
                             </div>
                         </div>
-                        
-                        <div id="month-edit-menu" class="hidden absolute inset-0 flex items-center justify-between px-3 z-50 bg-slate-50" style="border-radius: 28px 28px 0 0;">
+
+                        <div id="month-edit-menu" class="hidden absolute inset-0 flex items-center justify-between px-3 z-50 md-edit-menu">
                             <div class="flex items-center justify-between w-full h-full pb-0.5">
-                                <button onclick="openNumpad('month', 0, 'VÄLJ BELOPP'); event.stopPropagation();" class="flex items-center justify-between gap-2 px-3 py-2 bg-white border border-slate-200 rounded-[12px] shadow-sm active:scale-95 transition-transform flex-1 max-w-[100px]">
-                                    <span class="text-[13px] font-black text-slate-400" id="month-sales-text">0 kr</span><span class="text-slate-400 text-[10px]">✏️</span>
+                                <button onclick="openNumpad('month', 0, 'VÄLJ BELOPP'); event.stopPropagation();" class="md-edit-amount">
+                                    <span class="text-[13px] font-bold text-on-surface-variant" id="month-sales-text">0 kr</span>
+                                    <span class="material-symbols-rounded text-[14px] text-on-surface-variant">edit</span>
                                 </button>
-                                <div class="flex items-center gap-1 border-l border-slate-200 pl-2 ml-1">
-                                    <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">⚒️</button>
-                                    <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">🏠</button>
-                                    <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">✈️</button>
-                                    <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">🤒</button>
-                                    <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">👶</button>
-                                    <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="text-[16px] transform active:scale-90 px-0.5 drop-shadow-sm transition-transform">🍼</button>
-                                    <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="text-red-500 text-[16px] transform active:scale-90 border-l border-slate-200 pl-2 ml-1 drop-shadow-sm transition-transform">🗑️</button>
+                                <div class="flex items-center gap-1 border-l border-outline-variant pl-2 ml-1">
+                                    <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="md-emoji-btn">⚒️</button>
+                                    <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="md-emoji-btn">🏠</button>
+                                    <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="md-emoji-btn">✈️</button>
+                                    <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="md-emoji-btn">🤒</button>
+                                    <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="md-emoji-btn">👶</button>
+                                    <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="md-emoji-btn">🍼</button>
+                                    <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="md-emoji-btn text-google-red border-l border-outline-variant pl-2 ml-1">🗑️</button>
                                 </div>
                             </div>
                         </div>
-                        
-                        <button onclick="navArrow(1)" class="w-12 h-12 flex items-center justify-center text-slate-400 hover:text-[#0ea5e9] active:scale-90 transition-transform">
-                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                        </button>
 
+                        <button onclick="navArrow(1)" class="md-nav-arrow" data-testid="nav-next">
+                            <span class="material-symbols-rounded">chevron_right</span>
+                        </button>
                     </div>
 
                     <div id="container-dash-views">
-                        
+
+                        <!-- DASH PANE -->
                         <div id="pane-dash" class="dash-view-pane h-full justify-start pt-1.5 flex flex-col overflow-hidden" style="touch-action: pan-y;">
                             <div id="slide-curr" class="w-full flex-shrink-0 mb-1 py-1 flex gap-1 px-3 items-center justify-between"></div>
 
-                            <div class="mx-3 mt-1 mb-2 relative flex flex-col flex-shrink-0 z-20 flex-1 min-h-0" id="dash-main-container">
-                                <div id="dash-inner-card" class="relative w-full h-full bg-white rounded-[24px] border border-slate-100 shadow-md overflow-hidden z-10 flex flex-col transition-colors duration-300">
-                                    
+                            <div class="mx-3 mt-1 mb-2 relative flex flex-col flex-shrink-0 z-20 flex-1 min-h-0" id="dash-main-container">                                <div id="dash-inner-card" class="md-day-card relative w-full h-full flex flex-col">
                                     <div id="cyber-scanner-layer" class="cyber-scanner-overlay"></div>
 
-                                    <div id="dash-standard-content" class="absolute inset-0 flex flex-col p-3 transition-all duration-300 transform origin-top opacity-100 scale-100 pointer-events-auto bg-gradient-to-b from-[#f8fafc] to-white z-30">
-                                        <div class="flex justify-between items-end pb-2 border-b border-slate-100 flex-shrink-0">
+                                    <div id="dash-standard-content" class="absolute inset-0 flex flex-col p-3 transition-all duration-300 transform origin-top opacity-100 scale-100 pointer-events-auto z-30">
+                                        <div class="flex justify-between items-end pb-2 border-b border-outline-variant flex-shrink-0">
                                             <div class="flex flex-col">
-                                                <span id="dash-title" class="text-[10.5px] font-black uppercase tracking-widest text-slate-800">LADDAR...</span>
-                                                <span id="dash-subtitle" class="text-[9.5px] font-bold text-slate-400 mt-1">0 Pass</span>
+                                                <span id="dash-title" class="md-day-title">LADDAR...</span>
+                                                <span id="dash-subtitle" class="md-day-subtitle">0 pass</span>
                                             </div>
                                             <div class="flex items-center gap-1.5">
-                                                <button id="btn-trigger-eval" onclick="openEvalModal()" class="w-7 h-7 hidden bg-slate-50 hover:bg-slate-100 rounded-full border border-slate-200 active:scale-90 transition-transform items-center justify-center shadow-sm text-[12px]" title="Utvärdera Pass">✏️</button>
+                                                <button id="btn-trigger-eval" onclick="openEvalModal()" class="md-eval-trigger hidden" title="Utvärdera pass">
+                                                    <span class="material-symbols-rounded text-[16px]">rate_review</span>
+                                                </button>
                                                 <div class="flex flex-col text-right justify-end">
-                                                    <p id="dash-status-meta" class="text-[8.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5 min-h-[12px]"></p>
-                                                    <p id="dash-status-text" class="text-[10px] font-black text-[#0ea5e9] uppercase tracking-widest mb-0.5">VÄLJ DAG...</p>
+                                                    <p id="dash-status-meta" class="md-day-meta min-h-[12px]"></p>
+                                                    <p id="dash-status-text" class="md-day-status">VÄLJ DAG...</p>
                                                 </div>
                                             </div>
                                         </div>
-                                        
-                                        <div id="dash-gauge-container" class="flex items-center justify-between w-full flex-1 my-2 relative">
-                                            <div id="dash-abs-badge" class="absolute top-0 right-2 w-7 h-7 rounded-full border border-white shadow-sm flex items-center justify-center text-[14px] z-20 hidden"></div>
 
+                                        <div id="dash-gauge-container" class="flex items-center justify-between w-full flex-1 my-2 relative">
+                                            <div id="dash-abs-badge" class="md-abs-badge hidden"></div>
                                             <div class="flex flex-col justify-center text-left flex-1 pl-1">
-                                                <span id="dash-lbl-target" class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">MÅL</span>
-                                                <p id="dash-val-target" class="text-[16px] font-black leading-none text-slate-700 drop-shadow-sm">0 k</p>
+                                                <span id="dash-lbl-target" class="md-gauge-lbl">MÅL</span>
+                                                <p id="dash-val-target" class="md-gauge-val">0 k</p>
                                             </div>
-                                            
-                                            <div id="dash-gauge-wrapper" class="relative flex flex-col justify-center items-center flex-[1.5] max-w-[100px] aspect-square mx-1 transition-all duration-300">
-                                                <div class="absolute inset-0 cursor-pointer z-30" onclick="openInlineNumpad()"></div>
-                                                <svg class="w-full h-full drop-shadow-md z-10 relative" viewBox="0 0 120 120">
+                                            <div id="dash-gauge-wrapper" class="relative flex flex-col justify-center items-center flex-[1.5] max-w-[110px] aspect-square mx-1 transition-all duration-300">
+                                                <div class="absolute inset-0 cursor-pointer z-30" onclick="openInlineNumpad()" data-testid="open-numpad"></div>
+                                                <svg class="w-full h-full z-10 relative" viewBox="0 0 120 120">
                                                     <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
                                                     <circle id="dash-gauge-prog" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
                                                 </svg>
                                                 <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5 pointer-events-none z-20">
-                                                    <span id="dash-val-sales" class="text-[20px] font-black tracking-tighter leading-none text-slate-700 drop-shadow-sm">0 k</span>
-                                                    <span id="dash-val-perc" class="text-[9px] font-black text-slate-400 mt-1">0%</span>
+                                                    <span id="dash-val-sales" class="md-gauge-main">0 k</span>
+                                                    <span id="dash-val-perc" class="md-gauge-perc">0%</span>
                                                 </div>
                                             </div>
-
                                             <div class="flex flex-col justify-center text-right flex-1 pr-1">
-                                                <span class="text-[7.5px] font-black uppercase tracking-wider text-slate-400 mb-0.5">DIFF</span>
-                                                <p id="dash-val-diff" class="text-[16px] font-black leading-none drop-shadow-sm">0 k</p>
+                                                <span class="md-gauge-lbl">DIFF</span>
+                                                <p id="dash-val-diff" class="md-gauge-val">0 k</p>
                                             </div>
                                         </div>
 
                                         <div id="dash-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 h-[42px] flex justify-end">
-                                            <div class="relative w-full h-full overflow-hidden rounded-[14px] border border-slate-200 shadow-sm" id="dash-actions-grid"></div>
+                                            <div class="relative w-full h-full overflow-hidden rounded-[14px] md-action-bar" id="dash-actions-grid"></div>
                                         </div>
                                     </div>
 
-                                    <div id="dash-inline-numpad" class="absolute inset-0 bg-white z-40 flex flex-col p-2.5 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4">
+                                    <!-- INLINE NUMPAD -->
+                                    <div id="dash-inline-numpad" class="absolute inset-0 md-numpad-surface z-40 flex flex-col p-2.5 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4">
                                         <div class="flex items-center justify-between mb-2 flex-shrink-0">
-                                            <button onclick="closeInlineNumpad()" class="text-slate-400 font-bold px-2 py-1.5 bg-slate-50 rounded-lg active:scale-95 text-[10px] uppercase tracking-wider border border-slate-100 transition-transform">✕ Avbryt</button>
+                                            <button onclick="closeInlineNumpad()" class="md-numpad-cancel">✕ Avbryt</button>
                                             <div class="text-center flex-1">
-                                                <p id="inline-numpad-display" class="text-[22px] font-black text-[#0ea5e9] leading-none drop-shadow-sm">0 kr</p>
+                                                <p id="inline-numpad-display" class="md-numpad-display">0 kr</p>
                                             </div>
-                                            <button onclick="saveInlineNumpad()" class="text-white font-black px-3 py-1.5 bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-lg shadow-sm active:scale-95 text-[10px] uppercase tracking-wider transition-transform">✓ SPARA</button>
+                                            <button onclick="saveInlineNumpad()" class="md-numpad-save" data-testid="save-inline">✓ Spara</button>
                                         </div>
-                                        
                                         <div class="flex-1 flex gap-2 min-h-0">
                                             <div class="flex-[3] grid grid-cols-3 gap-1">
-                                                <button onclick="inlinePress('1')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">1</button>
-                                                <button onclick="inlinePress('2')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">2</button>
-                                                <button onclick="inlinePress('3')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">3</button>
-                                                <button onclick="inlinePress('4')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">4</button>
-                                                <button onclick="inlinePress('5')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">5</button>
-                                                <button onclick="inlinePress('6')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">6</button>
-                                                <button onclick="inlinePress('7')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">7</button>
-                                                <button onclick="inlinePress('8')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">8</button>
-                                                <button onclick="inlinePress('9')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">9</button>
-                                                <button onclick="inlinePress('clear')" class="bg-rose-50 flex items-center justify-center text-rose-500 font-black text-sm rounded-xl border border-rose-100 active:scale-95 shadow-sm transition-transform">C</button>
-                                                <button onclick="inlinePress('0')" class="bg-slate-50 flex items-center justify-center text-slate-700 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">0</button>
-                                                <button onclick="inlinePress('back')" class="bg-slate-50 flex items-center justify-center text-slate-500 font-black text-xl rounded-xl border border-slate-100 active:scale-95 shadow-sm transition-transform">⌫</button>
+                                                <button onclick="inlinePress('1')" class="md-numkey">1</button>
+                                                <button onclick="inlinePress('2')" class="md-numkey">2</button>
+                                                <button onclick="inlinePress('3')" class="md-numkey">3</button>
+                                                <button onclick="inlinePress('4')" class="md-numkey">4</button>
+                                                <button onclick="inlinePress('5')" class="md-numkey">5</button>
+                                                <button onclick="inlinePress('6')" class="md-numkey">6</button>
+                                                <button onclick="inlinePress('7')" class="md-numkey">7</button>
+                                                <button onclick="inlinePress('8')" class="md-numkey">8</button>
+                                                <button onclick="inlinePress('9')" class="md-numkey">9</button>
+                                                <button onclick="inlinePress('clear')" class="md-numkey md-numkey-clear">C</button>
+                                                <button onclick="inlinePress('0')" class="md-numkey">0</button>
+                                                <button onclick="inlinePress('back')" class="md-numkey md-numkey-back">⌫</button>
                                             </div>
                                             <div class="flex-[1] flex flex-col gap-1">
                                                 <input type="file" id="gm-camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleGMImageSelect(this)">
-<button onclick="document.getElementById('gm-camera-input').click()" class="flex-[1.5] bg-[#f0fdfa] text-teal-600 font-black text-[9px] uppercase tracking-widest rounded-xl border border-teal-200 shadow-sm active:scale-95 flex flex-col items-center justify-center leading-tight transition-transform"><span>📷</span><span class="mt-0.5">GM Scan</span></button>
-                                                <button onclick="inlineAdd(5000)" class="flex-1 bg-[#f0f9ff] text-[#0ea5e9] font-black text-[10px] rounded-xl border border-[#bae6fd] shadow-sm active:scale-95 flex items-center justify-center transition-transform">+5k</button>
-                                                <button onclick="inlineAdd(10000)" class="flex-1 bg-[#f0f9ff] text-[#0ea5e9] font-black text-[10px] rounded-xl border border-[#bae6fd] shadow-sm active:scale-95 flex items-center justify-center transition-transform">+10k</button>
+                                                <button onclick="document.getElementById('gm-camera-input').click()" class="md-numside md-numside-teal flex-[1.5]">
+                                                    <span class="material-symbols-rounded text-[18px]">photo_camera</span>
+                                                    <span>GM Scan</span>
+                                                </button>
+                                                <button onclick="inlineAdd(5000)" class="md-numside md-numside-blue flex-1">+5k</button>
+                                                <button onclick="inlineAdd(10000)" class="md-numside md-numside-blue flex-1">+10k</button>
                                             </div>
                                         </div>
                                     </div>
@@ -480,6 +487,47 @@
                             </div>
                         </div>
 
+                        <!-- MONTH and ABSENCE panes moved into bottom-sheets (see below) -->
+                    </div>
+                </div>
+
+                <!-- BOTTOM NUMPAD -->
+                <div id="bottom-numpad-view" class="absolute inset-0 flex flex-col p-3 transition-opacity duration-300 opacity-0 pointer-events-none md-numpad-surface z-50 rounded-[28px]">
+                    <div class="grid grid-cols-3 gap-2 flex-1 mb-2">
+                        <button onclick="numpadPress('1')" class="md-numkey-lg">1</button>
+                        <button onclick="numpadPress('2')" class="md-numkey-lg">2</button>
+                        <button onclick="numpadPress('3')" class="md-numkey-lg">3</button>
+                        <button onclick="numpadPress('4')" class="md-numkey-lg">4</button>
+                        <button onclick="numpadPress('5')" class="md-numkey-lg">5</button>
+                        <button onclick="numpadPress('6')" class="md-numkey-lg">6</button>
+                        <button onclick="numpadPress('7')" class="md-numkey-lg">7</button>
+                        <button onclick="numpadPress('8')" class="md-numkey-lg">8</button>
+                        <button onclick="numpadPress('9')" class="md-numkey-lg">9</button>
+                        <button onclick="numpadPress('clear')" class="md-numkey-lg md-numkey-clear">C</button>
+                        <button onclick="numpadPress('0')" class="md-numkey-lg">0</button>
+                        <button onclick="numpadPress('back')" class="md-numkey-lg md-numkey-back">⌫</button>
+                    </div>
+                    <div class="flex gap-2 h-[52px] flex-shrink-0">
+                        <button onclick="closeNumpad()" class="md-btn-tonal flex-1">Avbryt</button>
+                        <button onclick="numpadSave()" class="md-btn-filled flex-[2]" data-testid="save-numpad">Spara</button>
+                    </div>
+                </div>
+                <!-- ===== BOTTOM SHEETS — Month & Absence ===== -->
+                <div id="sheet-month" class="sf-sheet" data-testid="sheet-month">
+                    <div class="sheet-handle" data-testid="sheet-month-handle"><span></span></div>
+                    <div class="sheet-header">
+                        <button onclick="sheetNav(-1)" class="sheet-nav-btn" data-testid="sheet-month-prev">
+                            <span class="material-symbols-rounded">chevron_left</span>
+                        </button>
+                        <div class="sheet-title-area">
+                            <h2 id="sheet-month-title" class="sheet-title">JUNI 2026</h2>
+                            <span class="sheet-subtitle">Kalender</span>
+                        </div>
+                        <button onclick="sheetNav(1)" class="sheet-nav-btn" data-testid="sheet-month-next">
+                            <span class="material-symbols-rounded">chevron_right</span>
+                        </button>
+                    </div>
+                    <div class="sheet-content">
                         <div id="pane-month" class="dash-view-pane h-full flex flex-col overflow-hidden p-1.5">
                             <div class="grid grid-cols-7 gap-1 px-1 mb-0.5 flex-shrink-0">
                                 <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
@@ -487,29 +535,25 @@
                             </div>
                             <div id="d-cal" class="cal-grid w-full flex-1 relative"></div>
                         </div>
-                        
-                        <div id="pane-absence" class="dash-view-pane h-full overflow-y-auto hide-scrollbar p-3 flex flex-col gap-2"></div>
                     </div>
                 </div>
 
-                <div id="bottom-numpad-view" class="absolute inset-0 flex flex-col p-3 transition-opacity duration-300 opacity-0 pointer-events-none bg-white z-50 rounded-[28px]">
-                    <div class="grid grid-cols-3 gap-2 flex-1 mb-2">
-                        <button onclick="numpadPress('1')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">1</button>
-                        <button onclick="numpadPress('2')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">2</button>
-                        <button onclick="numpadPress('3')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">3</button>
-                        <button onclick="numpadPress('4')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">4</button>
-                        <button onclick="numpadPress('5')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">5</button>
-                        <button onclick="numpadPress('6')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">6</button>
-                        <button onclick="numpadPress('7')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">7</button>
-                        <button onclick="numpadPress('8')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">8</button>
-                        <button onclick="numpadPress('9')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">9</button>
-                        <button onclick="numpadPress('clear')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-xl font-black text-slate-400 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center uppercase tracking-wider">C</button>
-                        <button onclick="numpadPress('0')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-800 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">0</button>
-                        <button onclick="numpadPress('back')" class="w-full h-full bg-slate-50 hover:bg-slate-100 rounded-2xl text-2xl font-black text-slate-500 shadow-sm border border-slate-100 active:scale-95 transition-transform flex items-center justify-center">⌫</button>
+                <div id="sheet-absence" class="sf-sheet" data-testid="sheet-absence">
+                    <div class="sheet-handle" data-testid="sheet-absence-handle"><span></span></div>
+                    <div class="sheet-header">
+                        <button onclick="sheetNav(-1)" class="sheet-nav-btn" data-testid="sheet-absence-prev">
+                            <span class="material-symbols-rounded">chevron_left</span>
+                        </button>
+                        <div class="sheet-title-area">
+                            <h2 id="sheet-absence-title" class="sheet-title">JUNI 2026</h2>
+                            <span class="sheet-subtitle">Frånvaro</span>
+                        </div>
+                        <button onclick="sheetNav(1)" class="sheet-nav-btn" data-testid="sheet-absence-next">
+                            <span class="material-symbols-rounded">chevron_right</span>
+                        </button>
                     </div>
-                    <div class="flex gap-2 h-[52px] flex-shrink-0">
-                        <button onclick="closeNumpad()" class="flex-1 h-full bg-slate-100 hover:bg-slate-200 rounded-2xl text-[12px] font-black text-slate-500 uppercase tracking-widest active:scale-95 transition-transform shadow-sm border border-slate-200">Avbryt</button>
-                        <button onclick="numpadSave()" class="flex-[2] h-full bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] hover:from-[#0284c7] hover:to-[#0369a1] rounded-2xl text-[13px] font-black text-white uppercase tracking-widest shadow-md active:scale-95 transition-transform">Spara</button>
+                    <div class="sheet-content">
+                        <div id="pane-absence" class="dash-view-pane h-full overflow-y-auto hide-scrollbar p-3 flex flex-col gap-2"></div>
                     </div>
                 </div>
             </div>
@@ -517,5 +561,323 @@
     </div>
 
     <script src="script.js"></script>
+    <script>
+    // ============================================================
+    // SHEET CONTROLLER — slide-up bottom sheets for Month/Absence
+    // + history-aware back button + drag-to-close + uniform UX
+    // ============================================================
+    (function() {
+        const sheetMonth   = document.getElementById('sheet-month');
+        const sheetAbsence = document.getElementById('sheet-absence');
+        const titleMonth   = document.getElementById('sheet-month-title');
+        const titleAbs     = document.getElementById('sheet-absence-title');
+        const bottomSec    = document.querySelector('.bottom-section');
+        const months = ['JANUARI','FEBRUARI','MARS','APRIL','MAJ','JUNI','JULI','AUGUSTI','SEPTEMBER','OKTOBER','NOVEMBER','DECEMBER'];
+
+        const _origSetMode  = window.setMode;
+        const _origNavArrow = window.navArrow;
+        const _origNavCal   = window.navCal;
+
+        // ----- History stack for back button -----
+        const histStack = []; // [{type, close()}]
+        let suppressPop = false;
+
+        function pushHist(entry) {
+            histStack.push(entry);
+            try { history.pushState({ sf: histStack.length }, ''); } catch(e) {}
+        }
+        function popHistSilent() {
+            histStack.pop();
+            suppressPop = true;
+            try { history.back(); } catch(e) {}
+            setTimeout(() => { suppressPop = false; }, 50);
+        }
+        window.addEventListener('popstate', function() {
+            if (suppressPop) return;
+            if (histStack.length > 0) {
+                const top = histStack.pop();
+                if (top && top.close) top.close({ fromHistory: true });
+            }
+        });
+
+        // ----- Title sync -----
+        // viewDate is a `let` in script.js (not on window). Mirror from
+        // #top-month-lbl which script.js keeps in sync with viewDate.
+        function updateSheetTitles() {
+            try {
+                const tmLbl = document.getElementById('top-month-lbl');
+                if (tmLbl) {
+                    const txt = (tmLbl.innerText || tmLbl.textContent || '').trim();
+                    if (txt) {
+                        if (titleMonth) titleMonth.innerText = txt;
+                        if (titleAbs)   titleAbs.innerText   = txt;
+                        return;
+                    }
+                }
+                // Fallback: use today
+                const vd = new Date();
+                const txt2 = `${months[vd.getMonth()]} ${vd.getFullYear()}`;
+                if (titleMonth) titleMonth.innerText = txt2;
+                if (titleAbs)   titleAbs.innerText   = txt2;
+            } catch(e) {}
+        }
+
+        // ----- Open / Close sheets -----
+        function activeSheet() {
+            if (sheetMonth.classList.contains('is-open')) return sheetMonth;
+            if (sheetAbsence.classList.contains('is-open')) return sheetAbsence;
+            return null;
+        }
+
+        function openSheet(which) {
+            const target = (which === 'absence') ? sheetAbsence : sheetMonth;
+            const other  = (which === 'absence') ? sheetMonth   : sheetAbsence;
+            // close the other immediately (no animation overlap)
+            if (other.classList.contains('is-open')) {
+                other.classList.remove('is-open');
+                document.body.classList.remove('sheet-open');
+            }
+            document.body.classList.add('sheet-open');
+            target.classList.add('is-open');
+            updateSheetTitles();
+
+            // history entry — close on back
+            if (!target._histRegistered) {
+                pushHist({
+                    type: 'sheet',
+                    close: function() { closeActiveSheet({ fromHistory: true }); }
+                });
+                target._histRegistered = true;
+            }
+        }
+
+        window.closeActiveSheet = function(opts) {
+            opts = opts || {};
+            const s = activeSheet();
+            if (!s) return;
+            s.classList.remove('is-open');
+            document.body.classList.remove('sheet-open');
+            // mark all sheets unregistered for next open
+            sheetMonth._histRegistered = false;
+            sheetAbsence._histRegistered = false;
+            // restore mode to dash without re-triggering sheet open
+            _origSetMode('dash');
+            if (!opts.fromHistory && histStack.length > 0) popHistSilent();
+        };
+
+        window.sheetNav = function(dir) {
+            if (typeof _origNavCal === 'function') _origNavCal(dir);
+            updateSheetTitles();
+        };
+
+        // ----- Wrap setMode -----
+        window.setMode = function(mode) {
+            if (mode === 'month') {
+                openSheet('month');
+                _origSetMode('month');
+                updateSheetTitles();
+            } else if (mode === 'absence') {
+                openSheet('absence');
+                _origSetMode('absence');
+                updateSheetTitles();
+            } else {
+                // closing any open sheet
+                if (activeSheet()) {
+                    sheetMonth.classList.remove('is-open');
+                    sheetAbsence.classList.remove('is-open');
+                    document.body.classList.remove('sheet-open');
+                    sheetMonth._histRegistered = false;
+                    sheetAbsence._histRegistered = false;
+                }
+                _origSetMode(mode);
+            }
+        };
+
+        // ----- Wrap navArrow + navCal to update title on any nav -----
+        window.navArrow = function(dir) {
+            _origNavArrow(dir);
+            updateSheetTitles();
+        };
+        window.navCal = function(dir) {
+            _origNavCal(dir);
+            updateSheetTitles();
+        };
+
+        // ----- Drag-to-close gesture — ONLY on the handle (so header buttons work) -----
+        function attachDrag(sheetEl) {
+            const handle = sheetEl.querySelector('.sheet-handle');
+            if (!handle) return;
+            let startY = 0, dy = 0, dragging = false, sheetHeight = 0;
+
+            function onStart(e) {
+                dragging = true;
+                startY = (e.touches ? e.touches[0].clientY : e.clientY);
+                dy = 0;
+                sheetHeight = sheetEl.offsetHeight;
+                sheetEl.style.transition = 'none';
+            }
+            function onMove(e) {
+                if (!dragging) return;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY);
+                dy = Math.max(0, y - startY);
+                sheetEl.style.transform = `translateY(${dy}px)`;
+            }
+            function onEnd() {
+                if (!dragging) return;
+                dragging = false;
+                sheetEl.style.transition = '';
+                if (dy > sheetHeight * 0.25) {
+                    sheetEl.style.transform = '';
+                    closeActiveSheet();
+                } else {
+                    sheetEl.style.transform = '';
+                }
+                dy = 0;
+            }
+            handle.addEventListener('touchstart', onStart, { passive: true });
+            handle.addEventListener('touchmove',  onMove,  { passive: true });
+            handle.addEventListener('touchend',   onEnd);
+            handle.addEventListener('touchcancel',onEnd);
+            handle.addEventListener('mousedown',  onStart);
+            document.addEventListener('mousemove', function(e) { if (dragging) onMove(e); });
+            document.addEventListener('mouseup',   function() { if (dragging) onEnd(); });
+        }
+        attachDrag(sheetMonth);
+        attachDrag(sheetAbsence);
+
+        // ESC closes sheet
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && activeSheet()) closeActiveSheet();
+        });
+
+        // ----- Tap outside sheet (on blue banner empty area) closes it -----
+        const topSection = document.querySelector('.top-section');
+        if (topSection) {
+            topSection.addEventListener('click', function(e) {
+                if (!activeSheet()) return;
+                // Allow interactive elements to keep working
+                if (e.target.closest('[data-testid="open-settings"], [data-testid="open-notes"], #top-info-bar, .budget-header, .gauge-container, .gauge-layout')) {
+                    return;
+                }
+                closeActiveSheet();
+            });
+        }
+        // Tap anywhere on app body outside sheet ALSO closes (excluding the sheet itself)
+        document.addEventListener('click', function(e) {
+            if (!activeSheet()) return;
+            const sheet = activeSheet();
+            if (sheet.contains(e.target)) return;
+            // Skip modals on top of sheet
+            if (e.target.closest('.md-scrim')) return;
+            // Skip nav arrows in the (now hidden) main bar
+            if (e.target.closest('.bottom-section') && !sheet.contains(e.target)) {
+                closeActiveSheet();
+            }
+        }, true);
+
+        // ----- Universal "tap outside" close for all .md-scrim modals -----
+        const modalCloseMap = {
+            'budget-modal':       'closeBudgetModal',
+            'notes-modal':        'closeNotesModal',
+            'saved-notes-modal':  'closeSavedNotesModal',
+            'eval-modal':         'closeEvalModal',
+            'summary-modal':      'closeSummaryModal',
+            'coach-main-modal':   'closeCoachModalMain',
+            'coach-history-modal':'closeCoachHistoryModal',
+            'coach-read-modal':   'closeCoachCall',
+            'red-thread-modal':   'closeRedThreadModal',
+            'child-select-modal': 'closeChildModal',
+            'note-confirm-modal': 'closeNoteConfirmModal'
+        };
+        Object.keys(modalCloseMap).forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('click', function(e) {
+                if (e.target === el) {
+                    const fnName = modalCloseMap[id];
+                    const fn = window[fnName];
+                    if (typeof fn === 'function') fn();
+                }
+            });
+        });
+
+        // ----- Numpad close on outside tap (inline) -----
+        document.addEventListener('click', function(e) {
+            const inlineNumpad = document.getElementById('dash-inline-numpad');
+            if (inlineNumpad && !inlineNumpad.classList.contains('pointer-events-none')) {
+                if (!inlineNumpad.contains(e.target) && !e.target.closest('[data-testid="open-numpad"]')) {
+                    if (typeof closeInlineNumpad === 'function') closeInlineNumpad();
+                }
+            }
+        }, true);
+
+        // ----- Day card absence visual enhancement -----
+        const dashInner = document.getElementById('dash-inner-card');
+        const badgeEl = document.getElementById('dash-abs-badge');
+        if (badgeEl && dashInner) {
+            const mo = new MutationObserver(function() {
+                dashInner.classList.remove('is-absent','is-absent-sjuk','is-absent-semester','is-absent-fledig');
+                if (!badgeEl.classList.contains('hidden')) {
+                    const txt = badgeEl.innerText || '';
+                    dashInner.classList.add('is-absent');
+                    if (txt.includes('🤒')) dashInner.classList.add('is-absent-sjuk');
+                    else if (txt.includes('✈️')) dashInner.classList.add('is-absent-semester');
+                    else if (txt.includes('🍼')) dashInner.classList.add('is-absent-fledig');
+                }
+            });
+            mo.observe(badgeEl, { attributes: true, attributeFilter: ['class'], childList: true, characterData: true, subtree: true });
+        }
+
+        // ----- Force light theme — remove dark/rustic -----
+        try { document.documentElement.removeAttribute('data-theme'); } catch(e) {}
+        try { localStorage.setItem('sf_theme', 'light'); } catch(e) {}
+        const _origSetTheme = window.setTheme;
+        window.setTheme = function(t) {
+            // ignore any non-light theme
+            document.documentElement.removeAttribute('data-theme');
+            try { localStorage.setItem('sf_theme', 'light'); } catch(e) {}
+        };
+
+        // Initial title sync
+        setTimeout(updateSheetTitles, 600);
+
+        // ----- Title sync via MutationObserver on top-month-lbl + dynamic-view-title -----
+        // (script.js calls navCal() locally on swipe, bypassing our wrapper.
+        // Observe both elements it updates on every render.)
+        const dynTitle = document.getElementById('dynamic-view-title');
+        const tmLbl    = document.getElementById('top-month-lbl');
+        const titleObserver = new MutationObserver(updateSheetTitles);
+        if (dynTitle) titleObserver.observe(dynTitle, { childList: true, characterData: true, subtree: true });
+        if (tmLbl)    titleObserver.observe(tmLbl,    { childList: true, characterData: true, subtree: true });
+        // Also poll while a sheet is open as a safety net
+        setInterval(function() {
+            if (activeSheet()) updateSheetTitles();
+        }, 350);
+
+        // ----- HAPTIC FEEDBACK on every interaction -----
+        function haptic(ms) {
+            try {
+                if (navigator.vibrate) navigator.vibrate(ms || 12);
+            } catch(e) {}
+        }
+        // Listen for clicks on all interactive elements
+        document.addEventListener('click', function(e) {
+            const t = e.target;
+            if (!t) return;
+            // Trigger on buttons, links, day cells, navigation arrows, tabs, anything that looks tappable
+            if (t.closest('button, .day-cell, .vp-cell, .md-info-bar, .budget-header, .sheet-nav-btn, .sheet-handle, [onclick], [data-testid]')) {
+                haptic(10);
+            }
+        }, { capture: true, passive: true });
+        // Stronger haptic on save/important actions
+        document.addEventListener('click', function(e) {
+            const t = e.target.closest('[data-testid]');
+            if (!t) return;
+            const tid = t.getAttribute('data-testid') || '';
+            if (/save|sync|analyze/i.test(tid)) haptic(22);
+            else if (/close|tab/i.test(tid)) haptic(8);
+        }, { capture: true, passive: true });
+    })();
+    </script>
 </body>
-</html> 
+</html>

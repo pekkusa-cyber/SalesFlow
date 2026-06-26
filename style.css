@@ -462,13 +462,23 @@ body #dash-abs-badge:not(.hidden) {
 .history-success .vp-val, .history-fail .vp-val { color: inherit !important; }
 
 /* Today / Active focus */
-.status-today, .active-focus, .vp-cell.active-focus {
+.active-focus, .vp-cell.active-focus {
   background: var(--g-blue) !important;
   color: #ffffff !important;
   border-color: var(--g-blue-deep) !important;
   opacity: 1 !important; z-index: 20 !important;
   box-shadow: 0 6px 16px -4px rgba(26,115,232,0.45) !important;
 }
+.active-focus .date-num, .active-focus .cell-main-val { color: #ffffff !important; }
+.vp-cell.active-focus .vp-name { color: rgba(255,255,255,0.7) !important; }
+.vp-cell.active-focus .vp-date { color: #ffffff !important; }
+.vp-cell.active-focus .vp-val { color: rgba(255,255,255,0.95) !important; }
+.day-cell.active-focus { transform: translateY(-2px) scale(1.02); }
+.vp-cell.active-focus { transform: translateY(-3px) scale(1.04) !important; }
+
+/* Gör "Idag" texten blå när den inte är markerad (så den inte är helt osynlig) */
+.status-today .date-num, .status-today .vp-date { color: var(--g-blue) !important; }
+
 .status-today .date-num, .active-focus .date-num,
 .status-today .cell-main-val, .active-focus .cell-main-val { color: #ffffff !important; }
 .vp-cell.active-focus .vp-name { color: rgba(255,255,255,0.7) !important; }
@@ -1542,3 +1552,122 @@ body.variant-c .md-input { background: #ffffff !important; border-color: #dadce0
 body.variant-c .md-btn-tonal, body.variant-c .md-btn-outlined { background: #f6f8fb !important; border: 1px solid #ebedf0 !important; }
 body.variant-c .md-icon-btn { background: transparent !important; border: none !important; }
 body.variant-c .md-budget-btn { background: #fafbfd !important; border: 1px solid #ebedf0 !important; border-radius: 14px !important; }
+
+/* ============================================================
+   NAV V2 — bottenmeny, helvy-sheets, symbolrader, helskärms-notes
+   ============================================================ */
+
+/* ---- Bottenmeny ---- */
+.app-bottom-nav {
+  flex-shrink: 0;
+  display: flex; align-items: stretch; justify-content: space-around;
+  gap: 2px;
+  margin: 0 12px;
+  padding: 4px 4px calc(env(safe-area-inset-bottom, 4px) + 4px);
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: 28px;
+  box-shadow: var(--elev-2);
+  position: relative; z-index: 9000;
+}
+.bn-item {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 4px 2px 2px;
+  border-radius: 18px;
+  color: var(--on-surface-variant);
+  transition: color .2s var(--ease-emp), transform .15s var(--ease-emp);
+}
+.bn-item .bn-ic { font-size: 23px; line-height: 1; transition: all .2s var(--ease-emp); padding: 3px 14px; border-radius: 16px; }
+.bn-item .bn-lbl { font-size: 9.5px; font-weight: 700; letter-spacing: .005em; line-height: 1; white-space: nowrap; }
+.bn-item:active { transform: scale(.9); }
+.bn-item.is-active { color: var(--g-blue); }
+.bn-item.is-active .bn-ic {
+  font-variation-settings: 'FILL' 1;
+  background: var(--g-blue-soft);
+}
+
+/* ---- HELVY: dölj blå översikten när ett sheet expanderats ---- */
+body.sheet-full .top-section {
+  height: 0 !important; min-height: 0 !important;
+  margin-top: 0 !important; margin-bottom: 0 !important;
+  opacity: 0; pointer-events: none; overflow: hidden;
+  border: none; box-shadow: none;
+}
+
+/* Numpad alltid ovanpå kalender-sheetet */
+#bottom-numpad-view { z-index: 600 !important; }
+
+/* ---- Symbol/verktygsrad (kalender) + filter (frånvaro) ---- */
+.cal-symbol-bar {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--outline-variant);
+  background: var(--surface-1);
+}
+.cal-amount-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 8px 10px; border-radius: 12px;
+  background: var(--surface); border: 1px solid var(--outline-variant);
+  box-shadow: var(--elev-1); flex-shrink: 0;
+  transition: transform .12s var(--ease-emp);
+}
+.cal-amount-chip:active { transform: scale(.94); }
+.cal-amount-val { font-size: 12px; font-weight: 800; color: var(--on-surface-variant); white-space: nowrap; }
+.cal-amount-ic { font-size: 14px; color: var(--on-surface-variant); }
+.cal-symbol-group {
+  flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 4px;
+  overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none;
+}
+.cal-symbol-group::-webkit-scrollbar { display: none; }
+.cal-sym-btn {
+  flex: 1; min-width: 34px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; line-height: 1;
+  background: var(--surface); border: 1px solid var(--outline-variant);
+  border-radius: 12px; box-shadow: var(--elev-1);
+  transition: transform .12s var(--ease-emp), background .2s var(--ease-emp), box-shadow .2s;
+}
+.cal-sym-btn:active { transform: scale(.88); }
+.cal-sym-del { color: var(--g-red); }
+
+/* Dämpa kalender-symbolerna tills dag(ar) markerats */
+.cal-symbol-bar:not(.has-selection):not(.abs-filter-bar) .cal-symbol-group,
+.cal-symbol-bar:not(.has-selection):not(.abs-filter-bar) .cal-amount-chip { opacity: .42; }
+.cal-symbol-bar.has-selection .cal-amount-chip { border-color: var(--g-blue-tint); }
+.cal-symbol-bar.has-selection .cal-amount-val,
+.cal-symbol-bar.has-selection .cal-amount-ic { color: var(--g-blue); }
+
+/* Frånvaro-filter */
+.abs-filter-bar { background: var(--surface-1); }
+.abs-fil-btn.is-on {
+  background: var(--g-blue-soft);
+  border-color: var(--g-blue-tint);
+  box-shadow: 0 0 0 2px var(--g-blue-tint) inset;
+}
+.abs-fil-clear { color: var(--on-surface-variant); font-size: 17px; font-weight: 800; }
+.abs-card { transition: opacity .2s var(--ease-emp), filter .2s var(--ease-emp); }
+.abs-card.abs-dim { opacity: .26; filter: grayscale(.5); }
+
+/* ---- Helskärms-anteckningar ---- */
+.md-dialog.notes-fullscreen {
+  max-width: 420px; width: 100%;
+  height: 100%; max-height: 100%;
+  border-radius: 0;
+  padding: calc(env(safe-area-inset-top, 12px) + 14px) 16px calc(env(safe-area-inset-bottom, 12px) + 16px);
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+/* ---- Mindre nedre marginal på botten-kortet (bottenmenyn tar plats) ---- */
+.bottom-section { margin: 0 12px 8px; }
+
+/* Mjuk animation när blå översikten fälls ihop till helvy */
+.top-section { transition: height .34s var(--ease-spring), margin .34s var(--ease-spring), opacity .24s ease, box-shadow .24s ease; }
+
+/* ---- Dölj headers i sheet peek-läge (visas enbart när de expanderas) ---- */
+.sf-sheet:not(.is-full) .sheet-header,
+.sf-sheet:not(.is-full) .cal-symbol-bar {
+  display: none !important;
+}

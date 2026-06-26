@@ -541,6 +541,7 @@ function setMode(mode) {
         updateDashboardView(); 
     } else if (mode === 'month') { 
         renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1); 
+        updateCalToolbar();
     } else if (mode === 'absence') { 
         renderAbsence(); 
     }
@@ -642,11 +643,7 @@ function selectDay(k, el, e) {
     e.stopPropagation();
     if (viewMode === 'month') {
         if (multiSelectKeys.has(k)) { multiSelectKeys.delete(k); el.classList.remove('active-focus'); } else { multiSelectKeys.add(k); el.classList.add('active-focus'); }
-        if (multiSelectKeys.size > 0) {
-            document.getElementById('cal-standard-header').classList.add('hidden'); document.getElementById('month-edit-menu').classList.remove('hidden');
-            const mText = document.getElementById('month-sales-text');
-            if(multiSelectKeys.size === 1) { const singleK = Array.from(multiSelectKeys)[0]; const o = db.d[singleK] || {}; if (mText) { if (o.s > 0) { mText.innerText = o.s + ' kr'; mText.classList.replace('text-slate-400', 'text-[#0ea5e9]'); } else { mText.innerText = '0 kr'; mText.classList.replace('text-[#0ea5e9]', 'text-slate-400'); } } } else { if (mText) { mText.innerText = '0 kr'; mText.classList.replace('text-[#0ea5e9]', 'text-slate-400'); } }
-        } else { closeMonthEdit(); }
+        updateCalToolbar();
     } else {
         const isSameDay = (activeK === k);
         if (isSameDay) { activeK = null; document.querySelectorAll('.vp-cell').forEach(c => c.classList.remove('active-focus')); if (viewMode === 'dash') { updateDashboardView(); } updateTopInfoBar(); return; }
@@ -1118,6 +1115,25 @@ function populateSlide(cId, sD) {
 function renderWeekSlides() { populateSlide('slide-curr', currentWeekStart); }
 function getWeekNumber(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7); }
 
+let absFilterSet = new Set();
+function absFilter(type) {
+    if (absFilterSet.has(type)) absFilterSet.delete(type); else absFilterSet.add(type);
+    applyAbsFilter(); updateAbsFilterButtons();
+}
+function absFilterClear() { absFilterSet.clear(); applyAbsFilter(); updateAbsFilterButtons(); }
+function applyAbsFilter() {
+    document.querySelectorAll('#pane-absence [data-abs]').forEach(c => {
+        const t = c.getAttribute('data-abs');
+        if (absFilterSet.size === 0 || absFilterSet.has(t)) c.classList.remove('abs-dim');
+        else c.classList.add('abs-dim');
+    });
+}
+function updateAbsFilterButtons() {
+    document.querySelectorAll('.abs-fil-btn').forEach(b => {
+        b.classList.toggle('is-on', absFilterSet.has(b.getAttribute('data-abs')));
+    });
+}
+
 function renderAbsence() {
     const pane = document.getElementById('pane-absence'); if(!pane) return;
     const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate(); let absCounts = {}; let absListHTML = ''; let totalAbs = 0; const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lörsdag'];
@@ -1141,14 +1157,15 @@ function renderAbsence() {
             if (o.fk_perc !== undefined && o.abs_hours && reason !== 'Åtgärd krävs') { 
                 statsHtml = `<div class="flex items-center gap-2 mt-3"><div ${hasToggle ? `onclick="event.stopPropagation(); const el=this.querySelector('.tb-total'); const el2=this.querySelector('.tb-periods'); el.classList.toggle('hidden'); el2.classList.toggle('hidden');" style="cursor:pointer;"` : ''} class="bg-white border border-slate-100 rounded-xl px-2 py-2 flex flex-col items-center justify-center flex-1 shadow-sm" style="min-height:46px; max-height:46px; overflow:hidden;"><span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Tid Borta</span><span class="tb-total text-[12px] font-black text-slate-700 leading-tight">${hStr} tim</span><span class="tb-periods hidden text-[9px] font-black text-slate-700 leading-tight text-center">${periodsStr}</span></div><div class="bg-white border border-slate-100 rounded-xl px-2 py-2 flex flex-col items-center justify-center flex-1 shadow-sm" style="min-height:46px; max-height:46px; overflow:hidden;"><span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Frånvaro (FK)</span><span class="text-[12px] font-black text-[#0ea5e9]">${actualP}% <span class="text-slate-400 text-[9.5px]">(${o.fk_perc}%)</span></span></div></div>`; 
             }
-            absListHTML += `<div class="flex flex-col p-3 mb-2 border border-slate-100/60 rounded-[20px] bg-white shadow-sm hover:shadow-md transition-shadow"><div class="flex justify-between items-center"><span class="text-[9.5px] font-black uppercase text-slate-500 tracking-wider flex items-center">${dayStr}</span><span class="text-[10px] font-black ${tCol} ${bCol} border border-slate-100/50 uppercase tracking-widest px-2.5 py-1.5 rounded-lg">${icon} ${reason}</span></div>${statsHtml}</div>`;
+            absListHTML += `<div data-abs="${bKey}" class="abs-card flex flex-col p-3 mb-2 border border-slate-100/60 rounded-[20px] bg-white shadow-sm hover:shadow-md transition-shadow"><div class="flex justify-between items-center"><span class="text-[9.5px] font-black uppercase text-slate-500 tracking-wider flex items-center">${dayStr}</span><span class="text-[10px] font-black ${tCol} ${bCol} border border-slate-100/50 uppercase tracking-widest px-2.5 py-1.5 rounded-lg">${icon} ${reason}</span></div>${statsHtml}</div>`;
         }
     }
     if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
 
     let summaryHTML = `<div class="mb-2 bg-white rounded-[20px] border border-slate-200 p-3 shadow-md flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
-    for (let reason in absCounts) { let bKey = reason.split(' ')[0]; const icon = em[reason] || em[bKey] || '•'; const tCol = col[reason] || col[bKey] || 'text-slate-500'; summaryHTML += `<div onclick="triggerFocusMode('${reason}')" class="flex justify-between items-center mb-1 last:mb-0 cursor-pointer active:scale-95 transition-transform hover:bg-slate-50 p-1.5 -mx-1.5 rounded-lg"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; }
+    for (let reason in absCounts) { let bKey = reason.split(' ')[0]; const icon = em[reason] || em[bKey] || '•'; const tCol = col[reason] || col[bKey] || 'text-slate-500'; summaryHTML += `<div onclick="absFilter('${bKey}')" class="flex justify-between items-center mb-1 last:mb-0 cursor-pointer active:scale-95 transition-transform hover:bg-slate-50 p-1.5 -mx-1.5 rounded-lg"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; }
     summaryHTML += `</div>`; pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="overflow-y-auto hide-scrollbar flex-1 pb-2">${absListHTML}</div></div>`;
+    applyAbsFilter(); updateAbsFilterButtons();
 }
 
 // ==========================================
@@ -1441,13 +1458,32 @@ function closeFocusMode(force) {
     updateDashboardView(); updateTopInfoBar(); 
 }
 
-function closeMonthEdit() { 
-    const menu = document.getElementById('month-edit-menu'); 
-    if(menu) menu.classList.add('hidden'); 
-    const head = document.getElementById('cal-standard-header'); 
-    if(head) head.classList.remove('hidden'); 
-    multiSelectKeys.clear(); 
-    document.querySelectorAll('.day-cell').forEach(c => c.classList.remove('active-focus')); 
+function updateCalToolbar() {
+    const bar = document.getElementById('cal-symbol-bar');
+    const mText = document.getElementById('month-sales-text');
+    const n = multiSelectKeys.size;
+    if (bar) bar.classList.toggle('has-selection', n > 0);
+    if (mText) {
+        if (n === 1) { const o = db.d[Array.from(multiSelectKeys)[0]] || {}; mText.innerText = (o.s > 0 ? Number(o.s).toLocaleString('sv-SE') : '0') + ' kr'; }
+        else if (n > 1) { mText.innerText = n + ' dagar'; }
+        else { mText.innerText = '0 kr'; }
+    }
+}
+
+function calApply(type) {
+    if (!multiSelectKeys.size) { showToast('☝️', 'Markera dag(ar) i kalendern först'); return; }
+    checkOverwriteFromPopup(type);
+}
+
+function calAmountEdit() {
+    if (!multiSelectKeys.size) { showToast('☝️', 'Markera dag(ar) i kalendern först'); return; }
+    openNumpad('month', 0, 'VÄLJ BELOPP');
+}
+
+function closeMonthEdit() {
+    multiSelectKeys.clear();
+    document.querySelectorAll('.day-cell, .vp-cell').forEach(c => c.classList.remove('active-focus'));
+    updateCalToolbar();
     updateTopInfoBar();
 }
 

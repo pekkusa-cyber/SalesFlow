@@ -46,8 +46,8 @@
     </div>
 
     <!-- ANTECKNINGAR -->
-    <div id="notes-modal" class="md-scrim fixed inset-0 z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="md-dialog w-full max-w-[360px] max-h-[85vh]">
+    <div id="notes-modal" class="md-scrim fixed inset-0 z-[35000] hidden flex items-stretch justify-center opacity-0 transition-opacity duration-300">
+        <div class="md-dialog notes-fullscreen w-full max-w-[420px]">
             <div class="md-dialog-header">
                 <h2 class="md-dialog-title">Anteckningar</h2>
                 <button onclick="closeNotesModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
@@ -299,8 +299,8 @@
                 <button onclick="openBudgetModal()" class="md-header-icon md-header-icon-left" data-testid="open-settings">
                     <span class="material-symbols-rounded">tune</span>
                 </button>
-                <button onclick="openNotesModal()" class="md-header-icon md-header-icon-right" id="btn-notes" data-testid="open-notes">
-                    <span class="material-symbols-rounded">edit_note</span>
+                <button onclick="openCoachModalMain()" class="md-header-icon md-header-icon-right" id="btn-coach-top" data-testid="open-coach" title="Säljcoach">
+                    <span class="material-symbols-rounded">smart_toy</span>
                 </button>
 
                 <div id="top-monthly-ui" class="flex flex-col w-full h-full justify-center px-4 py-2 transition-opacity duration-300">
@@ -353,46 +353,6 @@
             <!-- BOTTOM CONTENT -->
             <div class="app-card bottom-section">
                 <div id="bottom-standard-views" class="flex flex-col w-full h-full transition-opacity duration-300 relative">
-
-                    <!-- NAV BAR -->
-                    <div class="md-nav-bar">
-                        <button onclick="navArrow(-1)" class="md-nav-arrow" data-testid="nav-prev">
-                            <span class="material-symbols-rounded">chevron_left</span>
-                        </button>
-
-                        <div id="cal-standard-header" class="flex-1 flex flex-col justify-center items-center w-full px-1">
-                            <h3 id="dynamic-view-title" class="md-view-title">LADDAR...</h3>
-                            <div class="md-segmented relative">
-                                <button onclick="openCoachModalMain()" class="md-seg-btn" data-testid="tab-coach">COACH</button>
-                                <button id="tab-absence" onclick="setMode('absence')" class="md-seg-btn" data-testid="tab-absence">FRÅNV.</button>
-                                <button id="tab-dash" onclick="toggleDashMode()" class="md-seg-btn md-seg-active" data-testid="tab-dash">DAG</button>
-                                <button id="tab-month" onclick="setMode('month')" class="md-seg-btn" data-testid="tab-month">MÅNAD</button>
-                                <button id="btn-close-focus" onclick="closeFocusMode()" class="md-focus-close">✕ STÄNG FOKUS</button>
-                            </div>
-                        </div>
-
-                        <div id="month-edit-menu" class="hidden absolute inset-0 flex items-center justify-between px-3 z-50 md-edit-menu">
-                            <div class="flex items-center justify-between w-full h-full pb-0.5">
-                                <button onclick="openNumpad('month', 0, 'VÄLJ BELOPP'); event.stopPropagation();" class="md-edit-amount">
-                                    <span class="text-[13px] font-bold text-on-surface-variant" id="month-sales-text">0 kr</span>
-                                    <span class="material-symbols-rounded text-[14px] text-on-surface-variant">edit</span>
-                                </button>
-                                <div class="flex items-center gap-1 border-l border-outline-variant pl-2 ml-1">
-                                    <button onclick="checkOverwriteFromPopup('Arbete'); event.stopPropagation();" class="md-emoji-btn">⚒️</button>
-                                    <button onclick="checkOverwriteFromPopup('Ledig'); event.stopPropagation();" class="md-emoji-btn">🏠</button>
-                                    <button onclick="checkOverwriteFromPopup('Semester'); event.stopPropagation();" class="md-emoji-btn">✈️</button>
-                                    <button onclick="checkOverwriteFromPopup('Sjuk'); event.stopPropagation();" class="md-emoji-btn">🤒</button>
-                                    <button onclick="checkOverwriteFromPopup('VAB'); event.stopPropagation();" class="md-emoji-btn">👶</button>
-                                    <button onclick="checkOverwriteFromPopup('Föräldraledig'); event.stopPropagation();" class="md-emoji-btn">🍼</button>
-                                    <button onclick="checkOverwriteFromPopup('delete'); event.stopPropagation();" class="md-emoji-btn text-google-red border-l border-outline-variant pl-2 ml-1">🗑️</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button onclick="navArrow(1)" class="md-nav-arrow" data-testid="nav-next">
-                            <span class="material-symbols-rounded">chevron_right</span>
-                        </button>
-                    </div>
 
                     <div id="container-dash-views">
 
@@ -512,7 +472,7 @@
                         <button onclick="numpadSave()" class="md-btn-filled flex-[2]" data-testid="save-numpad">Spara</button>
                     </div>
                 </div>
-                <!-- ===== BOTTOM SHEETS — Month & Absence ===== -->
+                <!-- ===== BOTTOM SHEETS — Kalender & Frånvaro ===== -->
                 <div id="sheet-month" class="sf-sheet" data-testid="sheet-month">
                     <div class="sheet-handle" data-testid="sheet-month-handle"><span></span></div>
                     <div class="sheet-header">
@@ -520,13 +480,31 @@
                             <span class="material-symbols-rounded">chevron_left</span>
                         </button>
                         <div class="sheet-title-area">
-                            <h2 id="sheet-month-title" class="sheet-title">JUNI 2026</h2>
-                            <span class="sheet-subtitle">Kalender</span>
+                            <h2 class="sheet-title">Kalender</h2>
+                            <span id="sheet-month-sub" class="sheet-subtitle">JUNI 2026</span>
                         </div>
                         <button onclick="sheetNav(1)" class="sheet-nav-btn" data-testid="sheet-month-next">
                             <span class="material-symbols-rounded">chevron_right</span>
                         </button>
                     </div>
+
+                    <!-- SYMBOL-VERKTYGSRAD (markera dag/dagar → registrera) -->
+                    <div id="cal-symbol-bar" class="cal-symbol-bar">
+                        <button onclick="calAmountEdit()" id="cal-amount-chip" class="cal-amount-chip" title="Redigera belopp">
+                            <span id="month-sales-text" class="cal-amount-val">0 kr</span>
+                            <span class="material-symbols-rounded cal-amount-ic">edit</span>
+                        </button>
+                        <div class="cal-symbol-group">
+                            <button onclick="calApply('Arbete')" class="cal-sym-btn" title="Arbete">⚒️</button>
+                            <button onclick="calApply('Ledig')" class="cal-sym-btn" title="Ledig">🏠</button>
+                            <button onclick="calApply('Semester')" class="cal-sym-btn" title="Semester">✈️</button>
+                            <button onclick="calApply('Sjuk')" class="cal-sym-btn" title="Sjuk">🤒</button>
+                            <button onclick="calApply('VAB')" class="cal-sym-btn" title="VAB">👶</button>
+                            <button onclick="calApply('Föräldraledig')" class="cal-sym-btn" title="Föräldraledig">🍼</button>
+                            <button onclick="calApply('delete')" class="cal-sym-btn cal-sym-del" title="Radera">🗑️</button>
+                        </div>
+                    </div>
+
                     <div class="sheet-content">
                         <div id="pane-month" class="dash-view-pane h-full flex flex-col overflow-hidden p-1.5">
                             <div class="grid grid-cols-7 gap-1 px-1 mb-0.5 flex-shrink-0">
@@ -545,278 +523,265 @@
                             <span class="material-symbols-rounded">chevron_left</span>
                         </button>
                         <div class="sheet-title-area">
-                            <h2 id="sheet-absence-title" class="sheet-title">JUNI 2026</h2>
-                            <span class="sheet-subtitle">Frånvaro</span>
+                            <h2 class="sheet-title">Frånvaro</h2>
+                            <span id="sheet-absence-sub" class="sheet-subtitle">JUNI 2026</span>
                         </div>
                         <button onclick="sheetNav(1)" class="sheet-nav-btn" data-testid="sheet-absence-next">
                             <span class="material-symbols-rounded">chevron_right</span>
                         </button>
                     </div>
+
+                    <!-- SYMBOL-FILTER (tona ner övriga) -->
+                    <div id="abs-filter-bar" class="cal-symbol-bar abs-filter-bar">
+                        <div class="cal-symbol-group abs-filter-group">
+                            <button onclick="absFilter('Semester')" data-abs="Semester" class="cal-sym-btn abs-fil-btn" title="Semester">✈️</button>
+                            <button onclick="absFilter('Sjuk')" data-abs="Sjuk" class="cal-sym-btn abs-fil-btn" title="Sjuk">🤒</button>
+                            <button onclick="absFilter('VAB')" data-abs="VAB" class="cal-sym-btn abs-fil-btn" title="VAB">👶</button>
+                            <button onclick="absFilter('Föräldraledig')" data-abs="Föräldraledig" class="cal-sym-btn abs-fil-btn" title="Föräldraledig">🍼</button>
+                            <button onclick="absFilter('Tjänstledig')" data-abs="Tjänstledig" class="cal-sym-btn abs-fil-btn" title="Tjänstledig">🏢</button>
+                            <button onclick="absFilterClear()" class="cal-sym-btn abs-fil-clear" title="Visa alla">↺</button>
+                        </div>
+                    </div>
+
                     <div class="sheet-content">
                         <div id="pane-absence" class="dash-view-pane h-full overflow-y-auto hide-scrollbar p-3 flex flex-col gap-2"></div>
                     </div>
                 </div>
             </div>
+
+            <!-- ===== BOTTEN-NAVIGERING ===== -->
+            <nav id="app-bottom-nav" class="app-bottom-nav" data-testid="bottom-nav">
+                <button onclick="navTo('dash')" data-nav="dash" class="bn-item is-active" data-testid="nav-home">
+                    <span class="material-symbols-rounded bn-ic">home</span>
+                    <span class="bn-lbl">Hem</span>
+                </button>
+                <button onclick="navTo('month')" data-nav="month" class="bn-item" data-testid="nav-calendar">
+                    <span class="material-symbols-rounded bn-ic">calendar_month</span>
+                    <span class="bn-lbl">Kalender</span>
+                </button>
+                <button onclick="navTo('absence')" data-nav="absence" class="bn-item" data-testid="nav-absence">
+                    <span class="material-symbols-rounded bn-ic">event_busy</span>
+                    <span class="bn-lbl">Frånvaro</span>
+                </button>
+                <button onclick="navTo('notes')" data-nav="notes" class="bn-item" data-testid="nav-notes">
+                    <span class="material-symbols-rounded bn-ic">sticky_note_2</span>
+                    <span class="bn-lbl">Anteckningar</span>
+                </button>
+            </nav>
         </div>
     </div>
 
     <script src="script.js"></script>
     <script>
     // ============================================================
-    // SHEET CONTROLLER — slide-up bottom sheets for Month/Absence
-    // + history-aware back button + drag-to-close + uniform UX
+    // SALESFLOW — Navigationscontroller
+    // Bottenmeny + bottom-sheets (peek / helvy), drag i strecket,
+    // svep upp/ner, svep vänster/höger för månad. Ingen datalogik.
     // ============================================================
     (function() {
         const sheetMonth   = document.getElementById('sheet-month');
         const sheetAbsence = document.getElementById('sheet-absence');
-        const titleMonth   = document.getElementById('sheet-month-title');
-        const titleAbs     = document.getElementById('sheet-absence-title');
-        const bottomSec    = document.querySelector('.bottom-section');
-        const months = ['JANUARI','FEBRUARI','MARS','APRIL','MAJ','JUNI','JULI','AUGUSTI','SEPTEMBER','OKTOBER','NOVEMBER','DECEMBER'];
+        const subMonth     = document.getElementById('sheet-month-sub');
+        const subAbs       = document.getElementById('sheet-absence-sub');
+        const notesModal   = document.getElementById('notes-modal');
+        const body = document.body;
 
-        const _origSetMode  = window.setMode;
-        const _origNavArrow = window.navArrow;
-        const _origNavCal   = window.navCal;
+        const _setMode    = window.setMode;
+        const _navCal     = window.navCal;
+        const _navArrow   = window.navArrow;
+        const _openNotes  = window.openNotesModal;
+        const _closeNotes = window.closeNotesModal;
 
-        // ----- History stack for back button -----
-        const histStack = []; // [{type, close()}]
-        let suppressPop = false;
-
-        function pushHist(entry) {
-            histStack.push(entry);
-            try { history.pushState({ sf: histStack.length }, ''); } catch(e) {}
-        }
-        function popHistSilent() {
-            histStack.pop();
-            suppressPop = true;
-            try { history.back(); } catch(e) {}
-            setTimeout(() => { suppressPop = false; }, 50);
-        }
-        window.addEventListener('popstate', function() {
-            if (suppressPop) return;
-            if (histStack.length > 0) {
-                const top = histStack.pop();
-                if (top && top.close) top.close({ fromHistory: true });
-            }
-        });
-
-        // ----- Title sync -----
-        // viewDate is a `let` in script.js (not on window). Mirror from
-        // #top-month-lbl which script.js keeps in sync with viewDate.
-        function updateSheetTitles() {
-            try {
-                const tmLbl = document.getElementById('top-month-lbl');
-                if (tmLbl) {
-                    const txt = (tmLbl.innerText || tmLbl.textContent || '').trim();
-                    if (txt) {
-                        if (titleMonth) titleMonth.innerText = txt;
-                        if (titleAbs)   titleAbs.innerText   = txt;
-                        return;
-                    }
-                }
-                // Fallback: use today
-                const vd = new Date();
-                const txt2 = `${months[vd.getMonth()]} ${vd.getFullYear()}`;
-                if (titleMonth) titleMonth.innerText = txt2;
-                if (titleAbs)   titleAbs.innerText   = txt2;
-            } catch(e) {}
-        }
-
-        // ----- Open / Close sheets -----
         function activeSheet() {
-            if (sheetMonth.classList.contains('is-open')) return sheetMonth;
+            if (sheetMonth.classList.contains('is-open'))   return sheetMonth;
             if (sheetAbsence.classList.contains('is-open')) return sheetAbsence;
             return null;
         }
+        function isFull() { return body.classList.contains('sheet-full'); }
+        function notesOpen() { return notesModal && !notesModal.classList.contains('hidden'); }
 
+        function setActiveNav(name) {
+            document.querySelectorAll('#app-bottom-nav .bn-item').forEach(function(b) {
+                b.classList.toggle('is-active', b.getAttribute('data-nav') === name);
+            });
+        }
+        function refreshNavActive() {
+            if (notesOpen()) { setActiveNav('notes'); return; }
+            const s = activeSheet();
+            if (s === sheetMonth)        setActiveNav('month');
+            else if (s === sheetAbsence) setActiveNav('absence');
+            else                         setActiveNav('dash');
+        }
+        function updateTitles() {
+            try {
+                const lbl = document.getElementById('top-month-lbl');
+                const t = lbl ? (lbl.innerText || lbl.textContent || '').trim() : '';
+                if (t) { if (subMonth) subMonth.innerText = t; if (subAbs) subAbs.innerText = t; }
+            } catch (e) {}
+        }
+
+                // ---------- Open / Close / Expand ----------
         function openSheet(which) {
             const target = (which === 'absence') ? sheetAbsence : sheetMonth;
             const other  = (which === 'absence') ? sheetMonth   : sheetAbsence;
-            // close the other immediately (no animation overlap)
-            if (other.classList.contains('is-open')) {
-                other.classList.remove('is-open');
-                document.body.classList.remove('sheet-open');
-            }
-            document.body.classList.add('sheet-open');
-            target.classList.add('is-open');
-            updateSheetTitles();
+            
+            // Spara nuvarande status: är skärmen i expanderat läge?
+            const wasFull = body.classList.contains('sheet-full');
 
-            // history entry — close on back
-            if (!target._histRegistered) {
-                pushHist({
-                    type: 'sheet',
-                    close: function() { closeActiveSheet({ fromHistory: true }); }
-                });
-                target._histRegistered = true;
+            other.classList.remove('is-open', 'is-full');
+            other.style.transform = '';
+            _setMode(which);                       // renders calendar / absence
+            body.classList.add('sheet-open');
+            
+            target.classList.add('is-open');
+            
+            // Applicera samma expanderade läge på den nya vyn (om vi var i det)
+            if (wasFull) {
+                body.classList.add('sheet-full');
+                target.classList.add('is-full');
+            } else {
+                body.classList.remove('sheet-full');
+                target.classList.remove('is-full');
             }
+            
+            target.style.transform = '';
+            updateTitles();
+            setActiveNav(which === 'absence' ? 'absence' : 'month');
+            pushHist();
         }
 
-        window.closeActiveSheet = function(opts) {
-            opts = opts || {};
-            const s = activeSheet();
-            if (!s) return;
-            s.classList.remove('is-open');
-            document.body.classList.remove('sheet-open');
-            // mark all sheets unregistered for next open
-            sheetMonth._histRegistered = false;
-            sheetAbsence._histRegistered = false;
-            // restore mode to dash without re-triggering sheet open
-            _origSetMode('dash');
-            if (!opts.fromHistory && histStack.length > 0) popHistSilent();
+        window.closeActiveSheet = function() {
+            sheetMonth.classList.remove('is-open', 'is-full');
+            sheetAbsence.classList.remove('is-open', 'is-full');
+            sheetMonth.style.transform = ''; sheetAbsence.style.transform = '';
+            body.classList.remove('sheet-open', 'sheet-full');
+            _setMode('dash');                      // renders dash + resets body class
+            setActiveNav('dash');
         };
+        function closeSheet() { window.closeActiveSheet(); }
 
-        window.sheetNav = function(dir) {
-            if (typeof _origNavCal === 'function') _origNavCal(dir);
-            updateSheetTitles();
-        };
+        function expandSheet() {
+            const s = activeSheet(); if (!s) return;
+            body.classList.add('sheet-full'); s.classList.add('is-full'); s.style.transform = '';
+        }
+        function collapseSheet() {
+            const s = activeSheet(); if (!s) return;
+            body.classList.remove('sheet-full'); s.classList.remove('is-full'); s.style.transform = '';
+        }
 
-        // ----- Wrap setMode -----
-        window.setMode = function(mode) {
-            if (mode === 'month') {
-                openSheet('month');
-                _origSetMode('month');
-                updateSheetTitles();
-            } else if (mode === 'absence') {
-                openSheet('absence');
-                _origSetMode('absence');
-                updateSheetTitles();
-            } else {
-                // closing any open sheet
-                if (activeSheet()) {
-                    sheetMonth.classList.remove('is-open');
-                    sheetAbsence.classList.remove('is-open');
-                    document.body.classList.remove('sheet-open');
-                    sheetMonth._histRegistered = false;
-                    sheetAbsence._histRegistered = false;
+               // ---------- Bottenmeny ----------
+        window.navTo = function(target) {
+            if (target === 'notes') { if (_openNotes) _openNotes(); setActiveNav('notes'); return; }
+            if (notesOpen() && _closeNotes) _closeNotes();
+            if (target === 'dash') {
+                // Tvinga appen att alltid sätta "Idag" som vald dag när du trycker på Hem
+                if(typeof activeK !== 'undefined' && typeof getK !== 'undefined' && typeof realToday !== 'undefined') {
+                    activeK = getK(realToday);
                 }
-                _origSetMode(mode);
+                closeSheet();
             }
+            else if (target === 'month')   openSheet('month');
+            else if (target === 'absence') openSheet('absence');
         };
 
-        // ----- Wrap navArrow + navCal to update title on any nav -----
-        window.navArrow = function(dir) {
-            _origNavArrow(dir);
-            updateSheetTitles();
-        };
-        window.navCal = function(dir) {
-            _origNavCal(dir);
-            updateSheetTitles();
+
+        // ---------- Header-pilar i sheet ----------
+        window.sheetNav = function(dir) {
+            if (typeof _navCal === 'function') _navCal(dir);
+            updateTitles();
         };
 
-        // ----- Drag-to-close gesture — ONLY on the handle (so header buttons work) -----
-        function attachDrag(sheetEl) {
-            const handle = sheetEl.querySelector('.sheet-handle');
-            if (!handle) return;
-            let startY = 0, dy = 0, dragging = false, sheetHeight = 0;
+        // ---------- Wrappa setMode så interna anrop routas rätt ----------
+        window.setMode = function(mode) {
+            if (mode === 'month')        openSheet('month');
+            else if (mode === 'absence') openSheet('absence');
+            else                         closeSheet();
+        };
+        window.navArrow = function(dir) { if (typeof _navArrow === 'function') _navArrow(dir); updateTitles(); };
+        window.navCal   = function(dir) { if (typeof _navCal === 'function')   _navCal(dir);   updateTitles(); };
 
-            function onStart(e) {
-                dragging = true;
-                startY = (e.touches ? e.touches[0].clientY : e.clientY);
-                dy = 0;
-                sheetHeight = sheetEl.offsetHeight;
+        if (_closeNotes) {
+            window.closeNotesModal = function() { _closeNotes(); refreshNavActive(); };
+        }
+
+        // ---------- Bakåtknapp (Android) ----------
+        let histDepth = 0;
+        function pushHist() { try { history.pushState({ sf: ++histDepth }, ''); } catch (e) {} }
+        window.addEventListener('popstate', function() {
+            if (notesOpen()) { window.closeNotesModal(); return; }
+            if (activeSheet()) { isFull() ? collapseSheet() : closeSheet(); }
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (notesOpen()) { window.closeNotesModal(); return; }
+                if (activeSheet()) { isFull() ? collapseSheet() : closeSheet(); }
+            }
+        });
+
+        // ---------- Gest: drag i strecket / titelytan ----------
+        function attachGesture(sheetEl) {
+            const grips = [ sheetEl.querySelector('.sheet-handle'), sheetEl.querySelector('.sheet-title-area') ];
+            let startY = 0, startX = 0, dy = 0, dx = 0, dragging = false, moved = false;
+            function start(e) {
+                if (e.target.closest('button')) { dragging = false; return; }
+                dragging = true; moved = false;
+                const p = e.touches ? e.touches[0] : e;
+                startY = p.clientY; startX = p.clientX; dy = 0; dx = 0;
                 sheetEl.style.transition = 'none';
             }
-            function onMove(e) {
+            function move(e) {
                 if (!dragging) return;
-                const y = (e.touches ? e.touches[0].clientY : e.clientY);
-                dy = Math.max(0, y - startY);
-                sheetEl.style.transform = `translateY(${dy}px)`;
+                const p = e.touches ? e.touches[0] : e;
+                dy = p.clientY - startY; dx = p.clientX - startX;
+                if (Math.abs(dy) > 6 || Math.abs(dx) > 6) moved = true;
+                if (Math.abs(dy) > Math.abs(dx)) {
+                    if (dy > 0) sheetEl.style.transform = 'translateY(' + dy + 'px)';
+                    else if (!isFull()) sheetEl.style.transform = 'translateY(' + (dy * 0.35) + 'px)';
+                }
             }
-            function onEnd() {
+            function end() {
                 if (!dragging) return;
                 dragging = false;
                 sheetEl.style.transition = '';
-                if (dy > sheetHeight * 0.25) {
-                    sheetEl.style.transform = '';
-                    closeActiveSheet();
-                } else {
-                    sheetEl.style.transform = '';
-                }
-                dy = 0;
+                sheetEl.style.transform = '';
+                if (!moved) { isFull() ? collapseSheet() : expandSheet(); return; }   // tap = toggla
+                if (Math.abs(dy) <= Math.abs(dx)) return;                              // horisontellt = ignorera
+                if (dy < -40) { if (!isFull()) expandSheet(); }
+                else if (dy > 60) { isFull() ? collapseSheet() : closeSheet(); }
             }
-            handle.addEventListener('touchstart', onStart, { passive: true });
-            handle.addEventListener('touchmove',  onMove,  { passive: true });
-            handle.addEventListener('touchend',   onEnd);
-            handle.addEventListener('touchcancel',onEnd);
-            handle.addEventListener('mousedown',  onStart);
-            document.addEventListener('mousemove', function(e) { if (dragging) onMove(e); });
-            document.addEventListener('mouseup',   function() { if (dragging) onEnd(); });
-        }
-        attachDrag(sheetMonth);
-        attachDrag(sheetAbsence);
-
-        // ESC closes sheet
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && activeSheet()) closeActiveSheet();
-        });
-
-        // ----- Tap outside sheet (on blue banner empty area) closes it -----
-        const topSection = document.querySelector('.top-section');
-        if (topSection) {
-            topSection.addEventListener('click', function(e) {
-                if (!activeSheet()) return;
-                // Allow interactive elements to keep working
-                if (e.target.closest('[data-testid="open-settings"], [data-testid="open-notes"], #top-info-bar, .budget-header, .gauge-container, .gauge-layout')) {
-                    return;
-                }
-                closeActiveSheet();
+            grips.forEach(function(g) {
+                if (!g) return;
+                g.addEventListener('touchstart', start, { passive: true });
+                g.addEventListener('touchmove',  move,  { passive: true });
+                g.addEventListener('touchend',   end);
+                g.addEventListener('touchcancel',end);
+                g.addEventListener('mousedown',  start);
             });
+            document.addEventListener('mousemove', function(e) { if (dragging) move(e); });
+            document.addEventListener('mouseup',   function()  { if (dragging) end(); });
         }
-        // Tap anywhere on app body outside sheet ALSO closes (excluding the sheet itself)
-        document.addEventListener('click', function(e) {
-            if (!activeSheet()) return;
-            const sheet = activeSheet();
-            if (sheet.contains(e.target)) return;
-            // Skip modals on top of sheet
-            if (e.target.closest('.md-scrim')) return;
-            // Skip nav arrows in the (now hidden) main bar
-            if (e.target.closest('.bottom-section') && !sheet.contains(e.target)) {
-                closeActiveSheet();
-            }
-        }, true);
+        attachGesture(sheetMonth);
+        attachGesture(sheetAbsence);
 
-        // ----- Universal "tap outside" close for all .md-scrim modals -----
-        const modalCloseMap = {
-            'budget-modal':       'closeBudgetModal',
-            'notes-modal':        'closeNotesModal',
-            'saved-notes-modal':  'closeSavedNotesModal',
-            'eval-modal':         'closeEvalModal',
-            'summary-modal':      'closeSummaryModal',
-            'coach-main-modal':   'closeCoachModalMain',
-            'coach-history-modal':'closeCoachHistoryModal',
-            'coach-read-modal':   'closeCoachCall',
-            'red-thread-modal':   'closeRedThreadModal',
-            'child-select-modal': 'closeChildModal',
-            'note-confirm-modal': 'closeNoteConfirmModal'
+        // ---------- Tvinga ljust tema ----------
+        try { document.documentElement.removeAttribute('data-theme'); } catch (e) {}
+        try { localStorage.setItem('sf_theme', 'light'); } catch (e) {}
+        window.setTheme = function() {
+            document.documentElement.removeAttribute('data-theme');
+            try { localStorage.setItem('sf_theme', 'light'); } catch (e) {}
         };
-        Object.keys(modalCloseMap).forEach(id => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.addEventListener('click', function(e) {
-                if (e.target === el) {
-                    const fnName = modalCloseMap[id];
-                    const fn = window[fnName];
-                    if (typeof fn === 'function') fn();
-                }
-            });
-        });
 
-        // ----- Numpad close on outside tap (inline) -----
-        document.addEventListener('click', function(e) {
-            const inlineNumpad = document.getElementById('dash-inline-numpad');
-            if (inlineNumpad && !inlineNumpad.classList.contains('pointer-events-none')) {
-                if (!inlineNumpad.contains(e.target) && !e.target.closest('[data-testid="open-numpad"]')) {
-                    if (typeof closeInlineNumpad === 'function') closeInlineNumpad();
-                }
-            }
-        }, true);
+        // ---------- Titel-synk ----------
+        setTimeout(updateTitles, 500);
+        const tmLbl = document.getElementById('top-month-lbl');
+        if (tmLbl) new MutationObserver(updateTitles).observe(tmLbl, { childList: true, characterData: true, subtree: true });
 
-        // ----- Day card absence visual enhancement -----
+        // ---------- Dagskortets frånvaro-visual ----------
         const dashInner = document.getElementById('dash-inner-card');
         const badgeEl = document.getElementById('dash-abs-badge');
         if (badgeEl && dashInner) {
             const mo = new MutationObserver(function() {
-                dashInner.classList.remove('is-absent','is-absent-sjuk','is-absent-semester','is-absent-fledig');
+                dashInner.classList.remove('is-absent', 'is-absent-sjuk', 'is-absent-semester', 'is-absent-fledig');
                 if (!badgeEl.classList.contains('hidden')) {
                     const txt = badgeEl.innerText || '';
                     dashInner.classList.add('is-absent');
@@ -828,55 +793,40 @@
             mo.observe(badgeEl, { attributes: true, attributeFilter: ['class'], childList: true, characterData: true, subtree: true });
         }
 
-        // ----- Force light theme — remove dark/rustic -----
-        try { document.documentElement.removeAttribute('data-theme'); } catch(e) {}
-        try { localStorage.setItem('sf_theme', 'light'); } catch(e) {}
-        const _origSetTheme = window.setTheme;
-        window.setTheme = function(t) {
-            // ignore any non-light theme
-            document.documentElement.removeAttribute('data-theme');
-            try { localStorage.setItem('sf_theme', 'light'); } catch(e) {}
-        };
-
-        // Initial title sync
-        setTimeout(updateSheetTitles, 600);
-
-        // ----- Title sync via MutationObserver on top-month-lbl + dynamic-view-title -----
-        // (script.js calls navCal() locally on swipe, bypassing our wrapper.
-        // Observe both elements it updates on every render.)
-        const dynTitle = document.getElementById('dynamic-view-title');
-        const tmLbl    = document.getElementById('top-month-lbl');
-        const titleObserver = new MutationObserver(updateSheetTitles);
-        if (dynTitle) titleObserver.observe(dynTitle, { childList: true, characterData: true, subtree: true });
-        if (tmLbl)    titleObserver.observe(tmLbl,    { childList: true, characterData: true, subtree: true });
-        // Also poll while a sheet is open as a safety net
-        setInterval(function() {
-            if (activeSheet()) updateSheetTitles();
-        }, 350);
-
-        // ----- HAPTIC FEEDBACK on every interaction -----
-        function haptic(ms) {
-            try {
-                if (navigator.vibrate) navigator.vibrate(ms || 12);
-            } catch(e) {}
-        }
-        // Listen for clicks on all interactive elements
+        // ---------- Haptik ----------
+        function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms || 12); } catch (e) {} }
         document.addEventListener('click', function(e) {
-            const t = e.target;
-            if (!t) return;
-            // Trigger on buttons, links, day cells, navigation arrows, tabs, anything that looks tappable
-            if (t.closest('button, .day-cell, .vp-cell, .md-info-bar, .budget-header, .sheet-nav-btn, .sheet-handle, [onclick], [data-testid]')) {
-                haptic(10);
+            const t = e.target; if (!t) return;
+            if (t.closest('button, .day-cell, .vp-cell, .bn-item, .sheet-handle, .cal-sym-btn, [onclick], [data-testid]')) haptic(10);
+        }, { capture: true, passive: true });
+
+        // ---------- Numpad: stäng vid tap utanför (inline) ----------
+        document.addEventListener('click', function(e) {
+            const inlineNumpad = document.getElementById('dash-inline-numpad');
+            if (inlineNumpad && !inlineNumpad.classList.contains('pointer-events-none')) {
+                if (!inlineNumpad.contains(e.target) && !e.target.closest('[data-testid="open-numpad"]')) {
+                    if (typeof closeInlineNumpad === 'function') closeInlineNumpad();
+                }
             }
-        }, { capture: true, passive: true });
-        // Stronger haptic on save/important actions
-        document.addEventListener('click', function(e) {
-            const t = e.target.closest('[data-testid]');
-            if (!t) return;
-            const tid = t.getAttribute('data-testid') || '';
-            if (/save|sync|analyze/i.test(tid)) haptic(22);
-            else if (/close|tab/i.test(tid)) haptic(8);
-        }, { capture: true, passive: true });
+        }, { capture: true });
+
+        // ---------- Tap utanför stänger modaler ----------
+        const modalCloseMap = {
+            'budget-modal': 'closeBudgetModal', 'notes-modal': 'closeNotesModal',
+            'saved-notes-modal': 'closeSavedNotesModal', 'eval-modal': 'closeEvalModal',
+            'summary-modal': 'closeSummaryModal', 'coach-main-modal': 'closeCoachModalMain',
+            'coach-history-modal': 'closeCoachHistoryModal', 'coach-read-modal': 'closeCoachCall',
+            'red-thread-modal': 'closeRedThreadModal', 'child-select-modal': 'closeChildModal',
+            'note-confirm-modal': 'closeNoteConfirmModal'
+        };
+        Object.keys(modalCloseMap).forEach(function(id) {
+            const el = document.getElementById(id); if (!el) return;
+            el.addEventListener('click', function(e) {
+                if (e.target === el) { const fn = window[modalCloseMap[id]]; if (typeof fn === 'function') fn(); }
+            });
+        });
+
+        refreshNavActive();
     })();
     </script>
 </body>

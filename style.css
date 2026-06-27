@@ -462,23 +462,13 @@ body #dash-abs-badge:not(.hidden) {
 .history-success .vp-val, .history-fail .vp-val { color: inherit !important; }
 
 /* Today / Active focus */
-.active-focus, .vp-cell.active-focus {
+.status-today, .active-focus, .vp-cell.active-focus {
   background: var(--g-blue) !important;
   color: #ffffff !important;
   border-color: var(--g-blue-deep) !important;
   opacity: 1 !important; z-index: 20 !important;
   box-shadow: 0 6px 16px -4px rgba(26,115,232,0.45) !important;
 }
-.active-focus .date-num, .active-focus .cell-main-val { color: #ffffff !important; }
-.vp-cell.active-focus .vp-name { color: rgba(255,255,255,0.7) !important; }
-.vp-cell.active-focus .vp-date { color: #ffffff !important; }
-.vp-cell.active-focus .vp-val { color: rgba(255,255,255,0.95) !important; }
-.day-cell.active-focus { transform: translateY(-2px) scale(1.02); }
-.vp-cell.active-focus { transform: translateY(-3px) scale(1.04) !important; }
-
-/* Gör "Idag" texten blå när den inte är markerad (så den inte är helt osynlig) */
-.status-today .date-num, .status-today .vp-date { color: var(--g-blue) !important; }
-
 .status-today .date-num, .active-focus .date-num,
 .status-today .cell-main-val, .active-focus .cell-main-val { color: #ffffff !important; }
 .vp-cell.active-focus .vp-name { color: rgba(255,255,255,0.7) !important; }
@@ -1563,22 +1553,22 @@ body.variant-c .md-budget-btn { background: #fafbfd !important; border: 1px soli
   display: flex; align-items: stretch; justify-content: space-around;
   gap: 2px;
   margin: 0 12px;
-  padding: 4px 4px calc(env(safe-area-inset-bottom, 4px) + 4px);
+  padding: 1px 4px calc(env(safe-area-inset-bottom, 2px) + 1px);
   background: var(--surface);
   border: 1px solid var(--outline-variant);
-  border-radius: 28px;
+  border-radius: 22px;
   box-shadow: var(--elev-2);
   position: relative; z-index: 9000;
 }
 .bn-item {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 4px; padding: 4px 2px 2px;
-  border-radius: 18px;
+  gap: 1px; padding: 2px 2px 1px;
+  border-radius: 14px;
   color: var(--on-surface-variant);
   transition: color .2s var(--ease-emp), transform .15s var(--ease-emp);
 }
-.bn-item .bn-ic { font-size: 23px; line-height: 1; transition: all .2s var(--ease-emp); padding: 3px 14px; border-radius: 16px; }
+.bn-item .bn-ic { font-size: 21px; line-height: 1; transition: all .2s var(--ease-emp); padding: 2px 14px; border-radius: 14px; }
 .bn-item .bn-lbl { font-size: 9.5px; font-weight: 700; letter-spacing: .005em; line-height: 1; white-space: nowrap; }
 .bn-item:active { transform: scale(.9); }
 .bn-item.is-active { color: var(--g-blue); }
@@ -1595,8 +1585,43 @@ body.sheet-full .top-section {
   border: none; box-shadow: none;
 }
 
+/* ---- Lika stora celler i kalendern (minimerat + expanderat) ---- */
+#d-cal .day-cell.history-cell,
+#d-cal .day-cell.status-today,
+#d-cal .day-cell.active-focus { transform: none !important; }
+
+/* ---- Markerad dag: tydlig ring + djupare blå (skiljs från dagens standard-blå) ---- */
+#d-cal .day-cell.active-focus {
+  background: var(--g-blue-deep) !important;
+  border-color: var(--g-blue-deep) !important;
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--g-blue-deep), 0 6px 16px -4px rgba(26,115,232,0.5) !important;
+  z-index: 45 !important;
+}
+
+/* ---- Dölj headers + symboler/filter i minimerade (peek) sheets ---- */
+body:not(.sheet-full) .sf-sheet .sheet-header,
+body:not(.sheet-full) .sf-sheet .cal-symbol-bar { display: none !important; }
+
 /* Numpad alltid ovanpå kalender-sheetet */
 #bottom-numpad-view { z-index: 600 !important; }
+#bottom-numpad-view .np-display-wrap {
+  background: var(--surface-1);
+  border: 1px solid var(--outline-variant);
+  border-radius: 18px;
+  padding: 14px 18px;
+  display: flex; flex-direction: column; gap: 2px;
+  box-shadow: var(--elev-1);
+}
+#bottom-numpad-view .np-display-lbl {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.16em;
+  color: var(--on-surface-variant); text-transform: uppercase;
+}
+#bottom-numpad-view .np-display-val {
+  font-family: 'Google Sans', sans-serif;
+  font-size: 32px; font-weight: 700; color: var(--g-blue);
+  line-height: 1.05; letter-spacing: -0.02em;
+}
+#bottom-numpad-view .np-pad .grid > button { height: 52px; font-size: 19px; }
 
 /* ---- Symbol/verktygsrad (kalender) + filter (frånvaro) ---- */
 .cal-symbol-bar {
@@ -1661,13 +1686,7 @@ body.sheet-full .top-section {
 }
 
 /* ---- Mindre nedre marginal på botten-kortet (bottenmenyn tar plats) ---- */
-.bottom-section { margin: 0 12px 8px; }
+.bottom-section { margin: 0 12px 3px; }
 
 /* Mjuk animation när blå översikten fälls ihop till helvy */
 .top-section { transition: height .34s var(--ease-spring), margin .34s var(--ease-spring), opacity .24s ease, box-shadow .24s ease; }
-
-/* ---- Dölj headers i sheet peek-läge (visas enbart när de expanderas) ---- */
-.sf-sheet:not(.is-full) .sheet-header,
-.sf-sheet:not(.is-full) .cal-symbol-bar {
-  display: none !important;
-}

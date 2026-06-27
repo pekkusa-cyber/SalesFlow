@@ -639,6 +639,15 @@ function goToDayFromMonth(k) {
     setMode('dash');
 }
 
+function syncTodayBlue() {
+    const todayK = getK(realToday);
+    document.querySelectorAll('.vp-cell').forEach(c => {
+        if (c.dataset.key === todayK) {
+            if (!activeK || activeK === todayK) c.classList.add('status-today');
+            else c.classList.remove('status-today');
+        }
+    });
+}
 function selectDay(k, el, e) {
     e.stopPropagation();
     if (viewMode === 'month') {
@@ -646,8 +655,8 @@ function selectDay(k, el, e) {
         updateCalToolbar();
     } else {
         const isSameDay = (activeK === k);
-        if (isSameDay) { activeK = null; document.querySelectorAll('.vp-cell').forEach(c => c.classList.remove('active-focus')); if (viewMode === 'dash') { updateDashboardView(); } updateTopInfoBar(); return; }
-        activeK = k; document.querySelectorAll('.vp-cell').forEach(c => c.classList.remove('active-focus')); el.classList.add('active-focus'); if (viewMode === 'dash') { updateDashboardView(); }
+        if (isSameDay) { activeK = null; document.querySelectorAll('.vp-cell').forEach(c => c.classList.remove('active-focus')); syncTodayBlue(); if (viewMode === 'dash') { updateDashboardView(); } updateTopInfoBar(); return; }
+        activeK = k; document.querySelectorAll('.vp-cell').forEach(c => c.classList.remove('active-focus')); el.classList.add('active-focus'); syncTodayBlue(); if (viewMode === 'dash') { updateDashboardView(); }
     }
     if(numpadTarget) closeNumpad(); updateTopTitle(); updateTopInfoBar();
 }
@@ -963,7 +972,7 @@ function createSliderCell(cd, k) {
     else if (qData.start) { cls += ' type-planned'; }
 
     if (isPast) { cls += ' vp-past'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; } 
-    else if (isToday) { cls += ' status-today'; }
+    else if (isToday && (!activeK || activeK === k)) { cls += ' status-today'; }
 
     if (activeK === k) cls += ' active-focus';
     if (currentFocusReason && o.abs && o.abs.includes(currentFocusReason)) cls += ' focus-highlight';
@@ -1091,6 +1100,7 @@ function createDayCell(cd, k) {
     if (o.abs) { let baseAbs = o.abs.split(' ')[0]; if (qData.start && baseAbs !== 'Åtgärd krävs') { if (baseAbs === 'Sjuk') cls += ' bg-split-sjuk'; else if (baseAbs === 'VAB') cls += ' bg-split-vab'; else if (baseAbs === 'Föräldraledig') cls += ' bg-split-fledig'; else if (baseAbs === 'Semester') cls += ' bg-split-sem'; else cls += ' type-absent'; } else { if (baseAbs === 'Sjuk' || baseAbs === 'Åtgärd krävs') cls += ' type-absent'; else if (baseAbs === 'Semester') cls += ' type-semester'; else cls += ' type-absent'; } } else if (state === 'ledig' || state === 'unplanned') { cls += ' type-unplanned'; } else if (isPast) { cls += ' history-cell'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; } else { if (isToday) cls += ' status-today'; else if (qData.start) cls += ' type-planned'; }
     if (isShiftActive) cls += ' active-shift-pulse'; 
     
+    if (isToday) cls += ' status-today';
     if (viewMode === 'month' && multiSelectKeys.has(k)) { cls += ' active-focus'; } else if (viewMode !== 'month' && activeK === k) { cls += ' active-focus'; }
     if (currentFocusReason && o.abs && o.abs.includes(currentFocusReason)) { cls += ' focus-highlight'; }
     
@@ -1122,11 +1132,20 @@ function absFilter(type) {
 }
 function absFilterClear() { absFilterSet.clear(); applyAbsFilter(); updateAbsFilterButtons(); }
 function applyAbsFilter() {
-    document.querySelectorAll('#pane-absence [data-abs]').forEach(c => {
+    document.querySelectorAll('#pane-absence .abs-card[data-abs]').forEach(c => {
         const t = c.getAttribute('data-abs');
         if (absFilterSet.size === 0 || absFilterSet.has(t)) c.classList.remove('abs-dim');
         else c.classList.add('abs-dim');
     });
+    let anyVisible = false;
+    document.querySelectorAll('#pane-absence .abs-sum-row[data-abs]').forEach(r => {
+        const t = r.getAttribute('data-abs');
+        const show = absFilterSet.size === 0 || absFilterSet.has(t);
+        r.style.display = show ? '' : 'none';
+        if (show) anyVisible = true;
+    });
+    const card = document.getElementById('abs-summary-card');
+    if (card) card.style.display = anyVisible ? '' : 'none';
 }
 function updateAbsFilterButtons() {
     document.querySelectorAll('.abs-fil-btn').forEach(b => {
@@ -1162,8 +1181,8 @@ function renderAbsence() {
     }
     if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
 
-    let summaryHTML = `<div class="mb-2 bg-white rounded-[20px] border border-slate-200 p-3 shadow-md flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
-    for (let reason in absCounts) { let bKey = reason.split(' ')[0]; const icon = em[reason] || em[bKey] || '•'; const tCol = col[reason] || col[bKey] || 'text-slate-500'; summaryHTML += `<div onclick="absFilter('${bKey}')" class="flex justify-between items-center mb-1 last:mb-0 cursor-pointer active:scale-95 transition-transform hover:bg-slate-50 p-1.5 -mx-1.5 rounded-lg"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; }
+    let summaryHTML = `<div id="abs-summary-card" class="mb-2 bg-white rounded-[20px] border border-slate-200 p-3 shadow-md flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
+    for (let reason in absCounts) { let bKey = reason.split(' ')[0]; const icon = em[reason] || em[bKey] || '•'; const tCol = col[reason] || col[bKey] || 'text-slate-500'; summaryHTML += `<div data-abs="${bKey}" onclick="absFilter('${bKey}')" class="abs-sum-row flex justify-between items-center mb-1 last:mb-0 cursor-pointer active:scale-95 transition-transform hover:bg-slate-50 p-1.5 -mx-1.5 rounded-lg"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; }
     summaryHTML += `</div>`; pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="overflow-y-auto hide-scrollbar flex-1 pb-2">${absListHTML}</div></div>`;
     applyAbsFilter(); updateAbsFilterButtons();
 }
@@ -1398,7 +1417,9 @@ function inlineAdd(amount) {
 function saveInlineNumpad() {
     if (!activeK) return;
     let val = Number(inlineNumpadValue) || 0;
-    pushMatrixSync(activeK, { s: val, st: 'Arbete', abs: null });
+    const ex = db.d[activeK] || {};
+    if (ex.abs) { pushMatrixSync(activeK, { s: val }); }              // behåll frånvaro – siffror räknas ändå
+    else { pushMatrixSync(activeK, { s: val, st: 'Arbete', abs: null }); }
     closeInlineNumpad();
 }
 
@@ -1418,12 +1439,12 @@ function closeNumpad() {
 }
 
 function updateNumpadDisplay() {
+    const str = (numpadValue === "") ? "0 kr" : (Number(numpadValue).toLocaleString('sv-SE') + " kr");
+    const dispEl = document.getElementById('numpad-display');
+    if(dispEl) dispEl.innerText = str;
     if(numpadTarget === 'month') {
         const textEl = document.getElementById('month-sales-text');
-        if(textEl) {
-            if(numpadValue === "") textEl.innerText = "0 kr";
-            else textEl.innerText = Number(numpadValue).toLocaleString('sv-SE') + " kr";
-        }
+        if(textEl) textEl.innerText = str;
     }
 }
 
@@ -1445,7 +1466,11 @@ function numpadPress(key) {
 function numpadSave() {
     let val = Number(numpadValue) || 0;
     if (numpadTarget === 'month' && multiSelectKeys.size > 0) {
-        multiSelectKeys.forEach(k => { pushMatrixSync(k, { s: val, st: 'Arbete', abs: null }); });
+        multiSelectKeys.forEach(k => {
+            const ex = db.d[k] || {};
+            if (ex.abs) { pushMatrixSync(k, { s: val }); }            // behåll frånvaro – siffror räknas ändå
+            else { pushMatrixSync(k, { s: val, st: 'Arbete', abs: null }); }
+        });
         closeMonthEdit();
     }
     closeNumpad();

@@ -452,24 +452,32 @@
                 </div>
 
                 <!-- BOTTOM NUMPAD -->
-                <div id="bottom-numpad-view" class="absolute inset-0 flex flex-col p-3 transition-opacity duration-300 opacity-0 pointer-events-none md-numpad-surface z-50 rounded-[28px]">
-                    <div class="grid grid-cols-3 gap-2 flex-1 mb-2">
-                        <button onclick="numpadPress('1')" class="md-numkey-lg">1</button>
-                        <button onclick="numpadPress('2')" class="md-numkey-lg">2</button>
-                        <button onclick="numpadPress('3')" class="md-numkey-lg">3</button>
-                        <button onclick="numpadPress('4')" class="md-numkey-lg">4</button>
-                        <button onclick="numpadPress('5')" class="md-numkey-lg">5</button>
-                        <button onclick="numpadPress('6')" class="md-numkey-lg">6</button>
-                        <button onclick="numpadPress('7')" class="md-numkey-lg">7</button>
-                        <button onclick="numpadPress('8')" class="md-numkey-lg">8</button>
-                        <button onclick="numpadPress('9')" class="md-numkey-lg">9</button>
-                        <button onclick="numpadPress('clear')" class="md-numkey-lg md-numkey-clear">C</button>
-                        <button onclick="numpadPress('0')" class="md-numkey-lg">0</button>
-                        <button onclick="numpadPress('back')" class="md-numkey-lg md-numkey-back">⌫</button>
+                <div id="bottom-numpad-view" class="absolute inset-0 flex flex-col transition-opacity duration-300 opacity-0 pointer-events-none md-numpad-surface z-50 rounded-[28px]">
+                    <div class="flex-1 flex flex-col justify-end px-4 pt-4 min-h-0">
+                        <div class="np-display-wrap">
+                            <span class="np-display-lbl">Belopp</span>
+                            <span id="numpad-display" class="np-display-val">0 kr</span>
+                        </div>
                     </div>
-                    <div class="flex gap-2 h-[52px] flex-shrink-0">
-                        <button onclick="closeNumpad()" class="md-btn-tonal flex-1">Avbryt</button>
-                        <button onclick="numpadSave()" class="md-btn-filled flex-[2]" data-testid="save-numpad">Spara</button>
+                    <div class="np-pad flex flex-col p-3">
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                            <button onclick="numpadPress('1')" class="md-numkey">1</button>
+                            <button onclick="numpadPress('2')" class="md-numkey">2</button>
+                            <button onclick="numpadPress('3')" class="md-numkey">3</button>
+                            <button onclick="numpadPress('4')" class="md-numkey">4</button>
+                            <button onclick="numpadPress('5')" class="md-numkey">5</button>
+                            <button onclick="numpadPress('6')" class="md-numkey">6</button>
+                            <button onclick="numpadPress('7')" class="md-numkey">7</button>
+                            <button onclick="numpadPress('8')" class="md-numkey">8</button>
+                            <button onclick="numpadPress('9')" class="md-numkey">9</button>
+                            <button onclick="numpadPress('clear')" class="md-numkey md-numkey-clear">C</button>
+                            <button onclick="numpadPress('0')" class="md-numkey">0</button>
+                            <button onclick="numpadPress('back')" class="md-numkey md-numkey-back">⌫</button>
+                        </div>
+                        <div class="flex gap-2 h-[48px] flex-shrink-0">
+                            <button onclick="closeNumpad()" class="md-btn-tonal flex-1">Avbryt</button>
+                            <button onclick="numpadSave()" class="md-btn-filled flex-[2]" data-testid="save-numpad">Spara</button>
+                        </div>
                     </div>
                 </div>
                 <!-- ===== BOTTOM SHEETS — Kalender & Frånvaro ===== -->
@@ -495,7 +503,6 @@
                             <span class="material-symbols-rounded cal-amount-ic">edit</span>
                         </button>
                         <div class="cal-symbol-group">
-                            <button onclick="calApply('Arbete')" class="cal-sym-btn" title="Arbete">⚒️</button>
                             <button onclick="calApply('Ledig')" class="cal-sym-btn" title="Ledig">🏠</button>
                             <button onclick="calApply('Semester')" class="cal-sym-btn" title="Semester">✈️</button>
                             <button onclick="calApply('Sjuk')" class="cal-sym-btn" title="Sjuk">🤒</button>
@@ -620,30 +627,18 @@
             } catch (e) {}
         }
 
-                // ---------- Open / Close / Expand ----------
+        // ---------- Open / Close / Expand ----------
         function openSheet(which) {
+            const wasFull = body.classList.contains('sheet-full');
             const target = (which === 'absence') ? sheetAbsence : sheetMonth;
             const other  = (which === 'absence') ? sheetMonth   : sheetAbsence;
-            
-            // Spara nuvarande status: är skärmen i expanderat läge?
-            const wasFull = body.classList.contains('sheet-full');
-
             other.classList.remove('is-open', 'is-full');
             other.style.transform = '';
             _setMode(which);                       // renders calendar / absence
             body.classList.add('sheet-open');
-            
+            if (wasFull) { body.classList.add('sheet-full'); target.classList.add('is-full'); }
+            else { body.classList.remove('sheet-full'); target.classList.remove('is-full'); }
             target.classList.add('is-open');
-            
-            // Applicera samma expanderade läge på den nya vyn (om vi var i det)
-            if (wasFull) {
-                body.classList.add('sheet-full');
-                target.classList.add('is-full');
-            } else {
-                body.classList.remove('sheet-full');
-                target.classList.remove('is-full');
-            }
-            
             target.style.transform = '';
             updateTitles();
             setActiveNav(which === 'absence' ? 'absence' : 'month');
@@ -669,21 +664,14 @@
             body.classList.remove('sheet-full'); s.classList.remove('is-full'); s.style.transform = '';
         }
 
-               // ---------- Bottenmeny ----------
+        // ---------- Bottenmeny ----------
         window.navTo = function(target) {
             if (target === 'notes') { if (_openNotes) _openNotes(); setActiveNav('notes'); return; }
             if (notesOpen() && _closeNotes) _closeNotes();
-            if (target === 'dash') {
-                // Tvinga appen att alltid sätta "Idag" som vald dag när du trycker på Hem
-                if(typeof activeK !== 'undefined' && typeof getK !== 'undefined' && typeof realToday !== 'undefined') {
-                    activeK = getK(realToday);
-                }
-                closeSheet();
-            }
+            if (target === 'dash')         { closeSheet(); if (typeof toggleDashMode === 'function') toggleDashMode(); }
             else if (target === 'month')   openSheet('month');
             else if (target === 'absence') openSheet('absence');
         };
-
 
         // ---------- Header-pilar i sheet ----------
         window.sheetNav = function(dir) {

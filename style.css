@@ -1569,7 +1569,8 @@ body.variant-c .md-budget-btn { background: #fafbfd !important; border: 1px soli
   transition: color .2s var(--ease-emp), transform .15s var(--ease-emp);
 }
 .bn-item .bn-ic { font-size: 21px; line-height: 1; transition: all .2s var(--ease-emp); padding: 2px 14px; border-radius: 14px; }
-.bn-item .bn-lbl { font-size: 9.5px; font-weight: 700; letter-spacing: .005em; line-height: 1; white-space: nowrap; }
+.bn-item .bn-lbl { font-size: 8.5px; font-weight: 700; letter-spacing: -.01em; line-height: 1; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.bn-item .bn-ic { font-size: 20px; }
 .bn-item:active { transform: scale(.9); }
 .bn-item.is-active { color: var(--g-blue); }
 .bn-item.is-active .bn-ic {
@@ -1597,6 +1598,50 @@ body.sheet-full .top-section {
   box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--g-blue-deep), 0 6px 16px -4px rgba(26,115,232,0.5) !important;
   z-index: 45 !important;
 }
+
+/* ---- Mindre, enhetliga badges i kalendern (täcker ej datumet) ---- */
+#d-cal .u-badge { width: 14px; height: 14px; font-size: 8px; top: -4px; right: -4px; border-width: 1.5px; }
+
+/* ---- Frånvaro-emoji centrerad i hela rutan när ingen summa finns ---- */
+.day-cell .cell-abs-emoji { font-size: 16px; line-height: 1; margin-top: 2px; pointer-events: none; }
+
+/* ============================================================
+   LÖN
+   ============================================================ */
+.lon-month-nav { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:4px 0 10px; }
+#lon-month-lbl { font-family:'Google Sans',sans-serif; font-size:15px; font-weight:700; color:var(--on-surface); text-transform:capitalize; }
+.lon-result-card { background:linear-gradient(135deg,var(--g-blue-deep),var(--g-blue)); border-radius:24px; padding:18px 18px 14px; color:#fff; box-shadow:var(--elev-2); margin-bottom:12px; }
+.lon-net-lbl { font-size:11px; font-weight:700; letter-spacing:.04em; opacity:.85; }
+.lon-net-val { display:block; font-family:'Google Sans',sans-serif; font-size:38px; font-weight:700; line-height:1.05; letter-spacing:-.02em; margin:2px 0 12px; }
+.lon-result-rows { display:flex; flex-direction:column; gap:6px; border-top:1px solid rgba(255,255,255,.22); padding-top:10px; }
+.lon-rrow { display:flex; justify-content:space-between; align-items:center; font-size:13px; }
+.lon-rrow > span:first-child { opacity:.9; font-weight:500; }
+.lon-rrow > span:last-child { font-weight:800; font-family:'Google Sans',sans-serif; }
+.lon-rrow-neg > span:last-child { color:#ffd7d7; }
+.lon-section-lbl { font-size:9px; font-weight:900; letter-spacing:.14em; text-transform:uppercase; color:var(--on-surface-variant); display:block; margin-bottom:4px; }
+.lon-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.lon-fld { display:flex; flex-direction:column; gap:3px; }
+.lon-fld > span { font-size:10px; font-weight:700; color:var(--on-surface-variant); }
+.lon-fld .md-input { width:100%; }
+.lon-file-name { font-size:11px; font-weight:700; color:var(--g-blue); padding:6px 2px 0; }
+.lon-details { background:var(--surface); border:1px solid var(--outline-variant); border-radius:18px; padding:10px 14px; margin-top:10px; box-shadow:var(--elev-1); }
+.lon-details > summary { font-size:12px; font-weight:800; color:var(--on-surface); cursor:pointer; list-style:none; padding:2px 0; }
+.lon-details > summary::-webkit-details-marker { display:none; }
+.lon-details > summary::after { content:'＋'; float:right; color:var(--on-surface-variant); font-weight:700; }
+.lon-details[open] > summary::after { content:'－'; }
+.lon-details[open] > summary { margin-bottom:8px; }
+.lon-tier-row { display:flex; gap:6px; align-items:center; margin-bottom:6px; }
+.lon-tier-row .md-input { flex:1; min-width:0; }
+.lon-del-btn { flex-shrink:0; width:30px; height:30px; border-radius:10px; border:none; background:#fde8e8; color:#d33; font-weight:800; }
+.lon-hint { font-size:10px; color:var(--on-surface-variant); margin-top:6px; line-height:1.4; }
+.lon-rrow-bonus small { display:block; font-size:9px; font-weight:600; opacity:.8; margin-top:1px; }
+.lon-seg { display:flex; gap:6px; }
+.lon-seg button { flex:1; padding:9px 4px; border-radius:12px; border:1px solid var(--outline-variant); background:var(--surface); color:var(--on-surface-variant); font-size:12px; font-weight:800; transition:all .15s var(--ease-emp); }
+.lon-seg button.active { background:var(--g-blue); color:#fff; border-color:var(--g-blue); box-shadow:var(--elev-1); }
+.lon-file-open, .lon-file-del { display:inline-block; margin-left:8px; font-size:10px; font-weight:800; text-decoration:underline; cursor:pointer; }
+.lon-file-del { color:#d33; }
+.mt-3 { margin-top:12px; }
+.lon-auto { background:var(--surface-1) !important; color:var(--g-blue) !important; font-weight:800 !important; }
 
 /* ---- Dölj headers + symboler/filter i minimerade (peek) sheets ---- */
 body:not(.sheet-full) .sf-sheet .sheet-header,

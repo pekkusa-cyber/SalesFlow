@@ -89,6 +89,121 @@
         </div>
     </div>
 
+    <!-- ===== LÖN ===== -->
+    <div id="lon-modal" class="md-scrim fixed inset-0 z-[35500] hidden flex items-stretch justify-center opacity-0 transition-opacity duration-300">
+        <div class="md-dialog notes-fullscreen w-full max-w-[420px]">
+
+            <!-- ===== HUVUDVY ===== -->
+            <div id="lon-view-main">
+                <div class="md-dialog-header">
+                    <h2 class="md-dialog-title">Lön</h2>
+                    <button onclick="closeLonModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
+                </div>
+
+                <div class="lon-month-nav">
+                    <button onclick="lonNavMonth(-1)" class="md-icon-btn"><span class="material-symbols-rounded">chevron_left</span></button>
+                    <span id="lon-month-lbl">—</span>
+                    <button onclick="lonNavMonth(1)" class="md-icon-btn"><span class="material-symbols-rounded">chevron_right</span></button>
+                </div>
+
+                <!-- RESULTAT -->
+                <div class="lon-result-card">
+                    <span class="lon-net-lbl">Lön efter skatt (netto)</span>
+                    <span id="lon-net" class="lon-net-val">0 kr</span>
+                    <div class="lon-result-rows">
+                        <div class="lon-rrow"><span>🟡 Skatt</span><span id="lon-tax">0 kr</span></div>
+                        <div class="lon-rrow"><span>Lön före skatt (brutto)</span><span id="lon-gross">0 kr</span></div>
+                        <div class="lon-rrow lon-rrow-bonus"><span>↳ varav bonus<small id="lon-bonus-sub"></small></span><span id="lon-bonus-out">0 kr</span></div>
+                        <div class="lon-rrow"><span>↳ varav OB-tillägg</span><span id="lon-ob-out">0 kr</span></div>
+                        <div class="lon-rrow lon-rrow-neg"><span>↳ frånvaroavdrag</span><span id="lon-franvaro-out">0 kr</span></div>
+                    </div>
+                </div>
+
+                <!-- BONUS + AVDRAG (under blåa) -->
+                <div class="md-form-card">
+                    <span class="lon-section-lbl">Bonus</span>
+                    <label class="lon-fld"><span>💰 Försäljning denna månad (auto)</span><input id="lon-sales" type="tel" inputmode="numeric" class="md-input" oninput="lonRecalc()" placeholder="0"></label>
+                    <span class="lon-section-lbl mt-3">Bonusavdrag (dras på bonusdelen)</span>
+                    <div id="lon-avdrag-seg" class="lon-seg">
+                        <button data-av="0" class="active" onclick="lonSetAvdrag(0)">Inget</button>
+                        <button data-av="10" onclick="lonSetAvdrag(10)">10 %</button>
+                        <button data-av="20" onclick="lonSetAvdrag(20)">20 %</button>
+                        <button data-av="30" onclick="lonSetAvdrag(30)">30 %</button>
+                    </div>
+                    <label class="lon-fld mt-2"><span>Manuell bonus (kr) — lämna tomt för auto</span><input id="lon-bonus-manual" type="tel" inputmode="numeric" class="md-input" oninput="lonRecalc()" placeholder="Auto"></label>
+                </div>
+
+                <button onclick="lonShowSettings(true)" class="md-btn-outlined w-full md-btn-icon-text"><span class="material-symbols-rounded">settings</span> Inställningar &amp; lönearter</button>
+                <div class="h-4"></div>
+            </div>
+
+            <!-- ===== INSTÄLLNINGAR (egen sida) ===== -->
+            <div id="lon-view-settings" class="hidden">
+                <div class="md-dialog-header">
+                    <button onclick="lonShowSettings(false)" class="md-icon-btn"><span class="material-symbols-rounded">arrow_back</span></button>
+                    <h2 class="md-dialog-title">Inställningar</h2>
+                    <button onclick="closeLonModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
+                </div>
+
+                <!-- LÖNEARTER (auto) -->
+                <div class="md-form-card">
+                    <span class="lon-section-lbl">Lönearter — räknas automatiskt</span>
+                    <div class="lon-grid2">
+                        <label class="lon-fld"><span>OB 50 % (tim)</span><input id="lon-ob50" type="tel" class="md-input lon-auto" readonly></label>
+                        <label class="lon-fld"><span>OB 100 % (tim)</span><input id="lon-ob100" type="tel" class="md-input lon-auto" readonly></label>
+                    </div>
+                    <span id="lon-ob-hint" class="lon-hint"></span>
+                    <label class="lon-fld mt-2"><span>Frånvaro totalt (tim)</span><input id="lon-franv" type="tel" class="md-input lon-auto" readonly></label>
+                    <span id="lon-franv-hint" class="lon-hint"></span>
+                    <div class="lon-grid2 mt-2">
+                        <label class="lon-fld"><span>Övriga tillägg (kr)</span><input id="lon-extra-add" type="tel" inputmode="numeric" class="md-input" oninput="lonRecalc()" placeholder="0"></label>
+                        <label class="lon-fld"><span>Övriga avdrag (kr)</span><input id="lon-extra-ded" type="tel" inputmode="numeric" class="md-input" oninput="lonRecalc()" placeholder="0"></label>
+                    </div>
+                    <p class="lon-hint">OB beräknas från dina pass (Handels: 50 % vardagskväll, 100 % lör efter 12, sön &amp; röda dagar). Frånvaro hämtas från appen. Bifoga tidrapport/lönespec nedan så kalibreras siffrorna mot facit.</p>
+                </div>
+
+                <!-- BILAGOR -->
+                <div class="md-form-card">
+                    <span class="lon-section-lbl">Bilagor — denna månad</span>
+                    <input type="file" id="lon-file-input-tidrapport" accept="image/*,application/pdf" class="hidden" onchange="lonHandleUpload(this,'tidrapport')">
+                    <button onclick="document.getElementById('lon-file-input-tidrapport').click()" class="md-btn-outlined w-full md-btn-icon-text"><span class="material-symbols-rounded">upload_file</span> Quinyx tidrapport / lönearter</button>
+                    <div id="lon-file-tidrapport" class="lon-file-name hidden"></div>
+                    <input type="file" id="lon-file-input-lonespec" accept="image/*,application/pdf" class="hidden" onchange="lonHandleUpload(this,'lonespec')">
+                    <button onclick="document.getElementById('lon-file-input-lonespec').click()" class="md-btn-outlined w-full md-btn-icon-text mt-1"><span class="material-symbols-rounded">upload_file</span> Lönespecifikation</button>
+                    <div id="lon-file-lonespec" class="lon-file-name hidden"></div>
+                </div>
+
+                <!-- BONUS-SPANN -->
+                <details class="lon-details">
+                    <summary>Bonus — spann &amp; procent</summary>
+                    <div id="lon-bonus-tiers"></div>
+                    <button onclick="lonAddTier()" class="md-btn-outlined w-full md-btn-icon-text mt-1"><span class="material-symbols-rounded">add</span> Lägg till spann</button>
+                </details>
+
+                <!-- GRUND -->
+                <details class="lon-details">
+                    <summary>Grundlön</summary>
+                    <div class="lon-grid2">
+                        <label class="lon-fld"><span>Månadslön (kr)</span><input id="lon-cfg-manadslon" type="tel" inputmode="numeric" class="md-input" oninput="lonRecalc()"></label>
+                        <label class="lon-fld"><span>Fast tillägg (kr)</span><input id="lon-cfg-tillagg" type="tel" inputmode="numeric" class="md-input" oninput="lonRecalc()"></label>
+                        <label class="lon-fld"><span>Timpris (auto)</span><input id="lon-cfg-timpris" type="tel" class="md-input" readonly></label>
+                    </div>
+                    <p class="lon-hint">Timpris = månadslön ÷ 163,17 och används för OB och frånvaro. Räknas om automatiskt.</p>
+                </details>
+
+                <!-- SKATT -->
+                <details class="lon-details">
+                    <summary>Skattetabell 33 (2026)</summary>
+                    <div id="lon-tax-anchors"></div>
+                    <button onclick="lonAddAnchor()" class="md-btn-outlined w-full md-btn-icon-text mt-1"><span class="material-symbols-rounded">add</span> Lägg till ankare</button>
+                    <p class="lon-hint">Officiell tabell 33 (Strängnäs), kolumn 1, 2026. Interpoleras rätlinjigt; >80 000 kr → 34 %.</p>
+                </details>
+
+                <div class="h-4"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- SPARADE ANTECKNINGAR -->
     <div id="saved-notes-modal" class="md-scrim fixed inset-0 z-[36000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="md-dialog w-full max-w-[360px] max-h-[85vh] !p-0 overflow-hidden">
@@ -570,6 +685,10 @@
                     <span class="material-symbols-rounded bn-ic">event_busy</span>
                     <span class="bn-lbl">Frånvaro</span>
                 </button>
+                <button onclick="navTo('lon')" data-nav="lon" class="bn-item" data-testid="nav-lon">
+                    <span class="material-symbols-rounded bn-ic">payments</span>
+                    <span class="bn-lbl">Lön</span>
+                </button>
                 <button onclick="navTo('notes')" data-nav="notes" class="bn-item" data-testid="nav-notes">
                     <span class="material-symbols-rounded bn-ic">sticky_note_2</span>
                     <span class="bn-lbl">Anteckningar</span>
@@ -666,7 +785,9 @@
 
         // ---------- Bottenmeny ----------
         window.navTo = function(target) {
-            if (target === 'notes') { if (_openNotes) _openNotes(); setActiveNav('notes'); return; }
+            if (target === 'lon') { if (notesOpen() && _closeNotes) _closeNotes(); if (typeof openLonModal === 'function') openLonModal(); setActiveNav('lon'); return; }
+            if (target === 'notes') { if (typeof closeLonModal === 'function') closeLonModal(); if (_openNotes) _openNotes(); setActiveNav('notes'); return; }
+            if (typeof closeLonModal === 'function') closeLonModal();
             if (notesOpen() && _closeNotes) _closeNotes();
             if (target === 'dash')         { closeSheet(); if (typeof toggleDashMode === 'function') toggleDashMode(); }
             else if (target === 'month')   openSheet('month');
@@ -696,6 +817,7 @@
         let histDepth = 0;
         function pushHist() { try { history.pushState({ sf: ++histDepth }, ''); } catch (e) {} }
         window.addEventListener('popstate', function() {
+            if (typeof lonOpen === 'function' && lonOpen()) { closeLonModal(); return; }
             if (notesOpen()) { window.closeNotesModal(); return; }
             if (activeSheet()) { isFull() ? collapseSheet() : closeSheet(); }
         });

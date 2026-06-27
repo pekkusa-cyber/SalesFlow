@@ -1068,7 +1068,7 @@ function createDayCell(cd, k) {
     
     if (dayOfWeek === 1 && viewMode === 'month') wt = `<div class="week-tag">${getWeekNumber(cd)}</div>`;
     
-    if (o.abs) { let bKey = o.abs.split(' ')[0]; if (o.abs === 'Åtgärd krävs') { b += `<div class="u-badge badge-abs badge-action" style="background:#ef4444; color:white; border:none;">${em[o.abs] || '•'}</div>`; } else { b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; } }
+    if (o.abs && o.s > 0) { let bKey = o.abs.split(' ')[0]; if (o.abs === 'Åtgärd krävs') { b += `<div class="u-badge badge-abs badge-action" style="background:#ef4444; color:white; border:none;">${em[o.abs] || '•'}</div>`; } else { b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; } }
     
     if (!o.abs && qData.start && qData.end) {
         let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
@@ -1090,12 +1090,12 @@ function createDayCell(cd, k) {
             let normalEnd = null, maxCount = 0;
             for (let t2 in endCounts) { if (endCounts[t2] > maxCount) { maxCount = endCounts[t2]; normalEnd = t2; } }
             if (normalEnd && qData.end.substring(0,5) !== normalEnd) {
-                b += `<div class="u-badge badge-key" style="font-size:10px;">🔀</div>`;
+                b += `<div class="u-badge badge-key">🔀</div>`;
             }
         }
     }
 
-    if (o.s > 0) { content = `<span class="cell-main-val mt-1">${(o.s/1000).toFixed(1)} k</span>`; } else if (qData.start && !o.abs) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`; } else if (state === 'unplanned' || (state === 'ledig' && o.s === 0)) { content = `<span class="text-[7.5px] font-black text-slate-800 mt-1 uppercase tracking-widest opacity-50">LEDIG</span>`; }
+    if (o.s > 0) { content = `<span class="cell-main-val mt-1">${(o.s/1000).toFixed(1)} k</span>`; } else if (o.abs) { let bKey = o.abs.split(' ')[0]; content = `<span class="cell-abs-emoji">${em[o.abs] || em[bKey] || '•'}</span>`; } else if (qData.start && !o.abs) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`; } else if (state === 'unplanned' || (state === 'ledig' && o.s === 0)) { content = `<span class="text-[7.5px] font-black text-slate-800 mt-1 uppercase tracking-widest opacity-50">LEDIG</span>`; }
 
     if (o.abs) { let baseAbs = o.abs.split(' ')[0]; if (qData.start && baseAbs !== 'Åtgärd krävs') { if (baseAbs === 'Sjuk') cls += ' bg-split-sjuk'; else if (baseAbs === 'VAB') cls += ' bg-split-vab'; else if (baseAbs === 'Föräldraledig') cls += ' bg-split-fledig'; else if (baseAbs === 'Semester') cls += ' bg-split-sem'; else cls += ' type-absent'; } else { if (baseAbs === 'Sjuk' || baseAbs === 'Åtgärd krävs') cls += ' type-absent'; else if (baseAbs === 'Semester') cls += ' type-semester'; else cls += ' type-absent'; } } else if (state === 'ledig' || state === 'unplanned') { cls += ' type-unplanned'; } else if (isPast) { cls += ' history-cell'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; } else { if (isToday) cls += ' status-today'; else if (qData.start) cls += ' type-planned'; }
     if (isShiftActive) cls += ' active-shift-pulse'; 
@@ -1348,6 +1348,329 @@ async function handleGMImageSelect(input) {
     } finally {
         input.value = '';
     }
+}
+
+// ==========================================
+//  LÖN — prognos brutto/netto/skatt/bonus
+// ==========================================
+let lonViewDate = null;
+let lonCfg = null;
+let lonMonthly = {};
+let lonAvdrag = 0;
+function lonSetAvdrag(v){ lonAvdrag = v; const seg=document.getElementById('lon-avdrag-seg'); if(seg) seg.querySelectorAll('button').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.av)===v)); lonRecalc(); }
+
+const LON_CFG_DEF = {
+    manadslon: 29554, tillagg: 515, timpris: 181.14, timdivisor: 163.17,
+    obWindows: {
+        weekday: [ {from:'18:15', to:'20:00', bucket:50}, {from:'20:00', to:'24:00', bucket:100} ],
+        sat:     [ {from:'12:00', to:'24:00', bucket:100} ],
+        sun:     [ {from:'00:00', to:'24:00', bucket:100} ],
+        red:     [ {from:'00:00', to:'24:00', bucket:100} ]
+    },
+    obCorr: { ob50: 1, ob100: 1 },
+    taxAnchors: [
+        [10000,1196],[11000,1403],[11768,1568],[12000,1609],[13000,1815],[14000,2020],[15000,2219],[16000,2419],[17000,2662],[18000,2905],[19000,3148],
+        [20000,3391],[21000,3634],[22000,3877],[23000,4120],[24000,4371],[25000,4622],[26000,4873],[26458,5024],[27000,5124],[28000,5376],[29000,5627],
+        [30000,5878],[31000,6129],[32000,6381],[33000,6632],[34000,6883],[35000,7134],[36000,7386],[37000,7637],[38000,7888],[39000,8139],
+        [40000,8402],[41000,8732],[42000,9062],[43000,9392],[44000,9722],[44015,9788],[45000,10052],[46000,10382],[47000,10712],[48000,11042],[49000,11372],
+        [50000,11702],[51000,12032],[52000,12362],[53000,12692],[54000,13022],[55000,13352],[56000,13875],[57000,14405],[58000,14935],[59000,15465],
+        [60000,15995],[62000,17055],[64000,18115],[66000,19175],[68000,20235],[70000,21295],[75000,23945],[80000,26595]
+    ],
+    bonusTiers: [{min:180000,max:240000,pct:10},{min:240000,max:350000,pct:12},{min:350000,max:null,pct:15}]
+};
+
+function lonNormalizeCfg(c){
+    if (!c || typeof c !== 'object') c = {};
+    const D = LON_CFG_DEF;
+    if (typeof c.manadslon !== 'number' || !c.manadslon) c.manadslon = D.manadslon;
+    if (typeof c.tillagg !== 'number') c.tillagg = D.tillagg;
+    if (!c.timdivisor) c.timdivisor = D.timdivisor;
+    if (typeof c.timpris !== 'number') c.timpris = D.timpris;
+    if (!c.obWindows) c.obWindows = JSON.parse(JSON.stringify(D.obWindows));
+    if (!c.obCorr || typeof c.obCorr.ob50 !== 'number' || typeof c.obCorr.ob100 !== 'number') c.obCorr = { ob50:1, ob100:1 };
+    if (!Array.isArray(c.taxAnchors) || c.taxAnchors.length < 30) c.taxAnchors = JSON.parse(JSON.stringify(D.taxAnchors));
+    if (!Array.isArray(c.bonusTiers) || !c.bonusTiers.length) c.bonusTiers = JSON.parse(JSON.stringify(D.bonusTiers));
+    return c;
+}
+function lonLoad() {
+    let loaded = null;
+    try { loaded = JSON.parse(localStorage.getItem('sf_lon_cfg')); } catch(e){ loaded = null; }
+    lonCfg = lonNormalizeCfg(loaded || JSON.parse(JSON.stringify(LON_CFG_DEF)));
+    try { lonMonthly = JSON.parse(localStorage.getItem('sf_lon_monthly')) || {}; } catch(e){ lonMonthly = {}; }
+}
+function lonSaveCfg(){ try { localStorage.setItem('sf_lon_cfg', JSON.stringify(lonCfg)); } catch(e){} lonPushRemote('cfg', lonCfg); }
+function lonSaveMonthly(){ try { localStorage.setItem('sf_lon_monthly', JSON.stringify(lonMonthly)); } catch(e){} lonPushRemote('monthly', lonMonthly); }
+function lonKey(){ return `${lonViewDate.getFullYear()}-${lonViewDate.getMonth()+1}`; }
+
+function getMonthlySales(y, m){
+    let tot = 0; const dim = new Date(y, m, 0).getDate();
+    for (let d=1; d<=dim; d++){ const o = db.d[`${y}-${m}-${d}`]; if (o && o.s) tot += o.s; }
+    return tot;
+}
+function getMonthlyFranvaroHours(y, m){
+    let h = 0; const dim = new Date(y, m, 0).getDate();
+    for (let d=1; d<=dim; d++){ const o = db.d[`${y}-${m}-${d}`]; if (o && o.abs_hours && o.abs !== 'Åtgärd krävs') h += o.abs_hours; }
+    return Math.round(h*100)/100;
+}
+function lonTimpris(){ const mn = lonNum('lon-cfg-manadslon') || (lonCfg && lonCfg.manadslon) || LON_CFG_DEF.manadslon; const div = (lonCfg && lonCfg.timdivisor) || 163.17; return Math.round(mn/div*100)/100; }
+
+// ---- Svenska röda dagar (helgdagar) ----
+function lonEaster(y){ const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1; return new Date(y,mo-1,da); }
+function lonHolidays(y){
+    const s=new Set(); const add=(d)=>s.add(`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`);
+    [[0,1],[0,6],[4,1],[5,6],[11,24],[11,25],[11,26],[11,31]].forEach(([mo,da])=>add(new Date(y,mo,da)));
+    const e=lonEaster(y); const off=(n)=>{const d=new Date(e); d.setDate(e.getDate()+n); return d;};
+    add(off(-2)); add(off(1)); add(off(39)); add(off(49)); // långfredag, annandag påsk, Kristi himmelsfärd, pingstdagen
+    // Midsommardagen = lördag 20-26 juni; Alla helgons dag = lördag 31okt-6nov
+    for(let d=20; d<=26; d++){ const dt=new Date(y,5,d); if(dt.getDay()===6) add(dt); }
+    for(let d=31; d<=37; d++){ const dt=new Date(y,9,d); if(dt.getDay()===6) add(dt); }
+    return s;
+}
+function lonMinutes(t){ const p=String(t).split(':'); return (parseInt(p[0])||0)*60+(parseInt(p[1])||0); }
+function lonOverlap(s1,e1,s2,e2){ return Math.max(0, Math.min(e1,e2)-Math.max(s1,s2)); }
+
+// ---- Skatta OB-timmar ur passen i appen ----
+function lonEstimateOB(y, m){
+    const dim = new Date(y, m, 0).getDate();
+    const hol = lonHolidays(y);
+    const W = (lonCfg.obWindows || LON_CFG_DEF.obWindows);
+    let ob50=0, ob100=0;
+    for (let d=1; d<=dim; d++){
+        const k=`${y}-${m}-${d}`; const q=db.q[k]; if(!q || !q.start || !q.end) continue;
+        const o=db.d[k]||{}; if(o.abs && o.abs!=='Åtgärd krävs') continue; // frånvarodag → ingen OB
+        const ds=lonMinutes(q.start), de=lonMinutes(q.end); if(de<=ds) continue;
+        const dow=new Date(y,m-1,d).getDay();
+        const isRed = hol.has(k);
+        let wins = isRed ? W.red : (dow===0 ? W.sun : (dow===6 ? W.sat : W.weekday));
+        wins.forEach(w=>{ const h=lonOverlap(ds,de,lonMinutes(w.from), w.to==='24:00'?1440:lonMinutes(w.to))/60; if(h>0){ if(w.bucket===100) ob100+=h; else ob50+=h; } });
+    }
+    const c=lonCfg.obCorr||{ob50:1,ob100:1};
+    return { ob50: Math.round(ob50*(c.ob50||1)*100)/100, ob100: Math.round(ob100*(c.ob100||1)*100)/100 };
+}
+
+// ---- Inlärning från bilaga (faktiska värden) ----
+function lonApplyCalibration(d){
+    const k = lonKey(); const m = lonMonthly[k] || {};
+    const y=lonViewDate.getFullYear(), mo=lonViewDate.getMonth()+1;
+    let touched=false;
+    if (d.ob50!=null || d.ob100!=null){
+        const est = lonEstimateOB(y, mo);
+        if (d.ob50!=null){ m.actualOb50 = +d.ob50; if(est.ob50>0){ lonCfg.obCorr.ob50 = Math.round(((lonCfg.obCorr.ob50||1)*0.5 + (d.ob50/ (est.ob50/(lonCfg.obCorr.ob50||1)))*0.5)*1000)/1000; } touched=true; }
+        if (d.ob100!=null){ m.actualOb100 = +d.ob100; if(est.ob100>0){ lonCfg.obCorr.ob100 = Math.round(((lonCfg.obCorr.ob100||1)*0.5 + (d.ob100/ (est.ob100/(lonCfg.obCorr.ob100||1)))*0.5)*1000)/1000; } touched=true; }
+    }
+    if (d.franvaro_tim!=null){ m.franv = +d.franvaro_tim; touched=true; }
+    if (d.bonus!=null){ m.bonusActual = +d.bonus; touched=true; }
+    if (d.brutto!=null && d.skatt!=null){ // lär skatten exakt vid observerad punkt
+        const g=Math.round(+d.brutto); const tax=Math.round(+d.skatt);
+        const a=lonCfg.taxAnchors; const idx=a.findIndex(p=>Math.abs(p[0]-g)<=50);
+        if(idx>=0) a[idx]=[g,tax]; else a.push([g,tax]);
+        a.sort((x,y)=>x[0]-y[0]); touched=true;
+    }
+    if (touched){ lonMonthly[k]=m; lonSaveMonthly(); lonSaveCfg(); lonFillFields(); lonRecalc(); }
+}
+function lonNum(id){ const el = document.getElementById(id); if(!el) return 0; const v = parseFloat(String(el.value).replace(/\s/g,'').replace(',','.')); return isNaN(v) ? 0 : v; }
+function lonKr(n){ return Math.round(n).toLocaleString('sv-SE') + ' kr'; }
+
+function lonTax(g){
+    if (g <= 0) return 0;
+    if (g > 80000) return g * 0.34;
+    const a = [...lonCfg.taxAnchors].filter(p=>p && p.length===2).sort((x,y)=>x[0]-y[0]);
+    if (a.length === 0) return 0;
+    if (a.length === 1) return Math.max(0, a[0][1]);
+    if (g <= a[0][0]){ const s=(a[1][1]-a[0][1])/(a[1][0]-a[0][0]); return Math.max(0, a[0][1]+(g-a[0][0])*s); }
+    for (let i=0;i<a.length-1;i++){ if (g <= a[i+1][0]){ const s=(a[i+1][1]-a[i][1])/(a[i+1][0]-a[i][0]); return a[i][1]+(g-a[i][0])*s; } }
+    const n=a.length, s=(a[n-1][1]-a[n-2][1])/(a[n-1][0]-a[n-2][0]); return Math.max(0, a[n-1][1]+(g-a[n-1][0])*s);
+}
+function lonBonusAuto(sales){
+    for (const t of lonCfg.bonusTiers){ const max=(t.max==null?Infinity:t.max); if (sales>=t.min && sales<max) return sales*((t.pct||0)/100); }
+    return 0;
+}
+
+function lonGetOB(){
+    const m = lonMonthly[lonKey()] || {};
+    if (m.actualOb50!=null || m.actualOb100!=null){
+        const est = lonEstimateOB(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
+        return { ob50: (m.actualOb50!=null? m.actualOb50: est.ob50), ob100: (m.actualOb100!=null? m.actualOb100: est.ob100), src:'faktisk' };
+    }
+    const est = lonEstimateOB(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
+    return { ...est, src:'auto' };
+}
+function lonRecalc(){
+    if (!lonViewDate) return;
+    const H = lonTimpris();
+    const tpEl = document.getElementById('lon-cfg-timpris'); if (tpEl) tpEl.value = H;
+    const manadslon = lonNum('lon-cfg-manadslon') || (lonCfg && lonCfg.manadslon) || LON_CFG_DEF.manadslon;
+    const tillagg = lonNum('lon-cfg-tillagg') || (lonCfg && lonCfg.tillagg) || 0;
+    const sales = lonNum('lon-sales');
+    const OB = lonGetOB();
+    const ob50 = OB.ob50 * H * 0.5;
+    const ob100 = OB.ob100 * H;
+    const franvTim = lonNum('lon-franv');
+    const franvKr = franvTim * H;
+    const extraAdd = lonNum('lon-extra-add');
+    const extraDed = lonNum('lon-extra-ded');
+
+    const obEl=document.getElementById('lon-ob50'); if(obEl) obEl.value=OB.ob50; const ob1El=document.getElementById('lon-ob100'); if(ob1El) ob1El.value=OB.ob100;
+    const obHint=document.getElementById('lon-ob-hint'); if(obHint) obHint.innerText = OB.src==='faktisk' ? 'Från bilaga (faktisk)' : 'Auto från dina pass';
+
+    const manualEl = document.getElementById('lon-bonus-manual');
+    const manualRaw = manualEl ? manualEl.value.trim() : '';
+    let bonusBrutto, bonus;
+    if (manualRaw !== '') { bonusBrutto = lonNum('lon-bonus-manual'); bonus = bonusBrutto; }
+    else { bonusBrutto = lonBonusAuto(sales); bonus = bonusBrutto * (1 - (lonAvdrag||0)/100); }
+
+    const obTot = ob50 + ob100;
+    const franvTot = franvKr + extraDed;
+    const brutto = manadslon + tillagg + obTot + bonus + extraAdd - franvTot;
+    const skatt = lonTax(brutto);
+    const netto = brutto - skatt;
+
+    document.getElementById('lon-net').innerText = lonKr(netto);
+    document.getElementById('lon-tax').innerText = '−' + lonKr(skatt);
+    document.getElementById('lon-gross').innerText = lonKr(brutto);
+    document.getElementById('lon-bonus-out').innerText = lonKr(bonus);
+    document.getElementById('lon-ob-out').innerText = lonKr(obTot);
+    document.getElementById('lon-franvaro-out').innerText = '−' + lonKr(franvTot);
+    const avEl = document.getElementById('lon-bonus-sub');
+    if (avEl){ if (manualRaw==='' && (lonAvdrag||0)>0) avEl.innerText = `${Math.round(lonBonusPct(sales))}% av ${lonKr(sales)} − ${lonAvdrag}% avdrag`; else if (manualRaw==='') avEl.innerText = `${Math.round(lonBonusPct(sales))}% av ${lonKr(sales)}`; else avEl.innerText = 'manuell'; }
+
+    lonCfg.manadslon = manadslon || lonCfg.manadslon;
+    lonCfg.tillagg = tillagg || lonCfg.tillagg;
+    lonCfg.timpris = H;
+    lonSaveCfg();
+    const k = lonKey(); const prev = lonMonthly[k] || {};
+    lonMonthly[k] = { ...prev, franv:lonNum('lon-franv'), extraAdd, extraDed, bonusManual: manualRaw, avdrag: lonAvdrag||0 };
+    lonSaveMonthly();
+}
+function lonBonusPct(sales){ for (const t of lonCfg.bonusTiers){ const max=(t.max==null?Infinity:t.max); if (sales>=t.min && sales<max) return t.pct||0; } return 0; }
+
+function lonRenderTiers(){
+    const c = document.getElementById('lon-bonus-tiers'); if(!c) return; c.innerHTML='';
+    lonCfg.bonusTiers.forEach((t,i)=>{
+        const row = document.createElement('div'); row.className='lon-tier-row';
+        row.innerHTML = `<input type="tel" inputmode="numeric" class="md-input" value="${t.min}" placeholder="från" onchange="lonTierEdit(${i},'min',this.value)">
+            <input type="tel" inputmode="numeric" class="md-input" value="${t.max==null?'':t.max}" placeholder="till (tomt=∞)" onchange="lonTierEdit(${i},'max',this.value)">
+            <input type="tel" inputmode="decimal" class="md-input" value="${t.pct}" placeholder="%" onchange="lonTierEdit(${i},'pct',this.value)">
+            <button class="lon-del-btn" onclick="lonTierDel(${i})">✕</button>`;
+        c.appendChild(row);
+    });
+}
+function lonTierEdit(i,f,v){ const n=parseFloat(String(v).replace(',','.')); if(f==='max'){ lonCfg.bonusTiers[i].max = (String(v).trim()===''?null:(isNaN(n)?null:n)); } else { lonCfg.bonusTiers[i][f] = isNaN(n)?0:n; } lonSaveCfg(); lonRecalc(); }
+function lonTierDel(i){ lonCfg.bonusTiers.splice(i,1); lonSaveCfg(); lonRenderTiers(); lonRecalc(); }
+function lonAddTier(){ lonCfg.bonusTiers.push({min:0,max:null,pct:0}); lonSaveCfg(); lonRenderTiers(); }
+
+function lonRenderAnchors(){
+    const c = document.getElementById('lon-tax-anchors'); if(!c) return; c.innerHTML='';
+    lonCfg.taxAnchors.sort((a,b)=>a[0]-b[0]).forEach((p,i)=>{
+        const row = document.createElement('div'); row.className='lon-tier-row';
+        row.innerHTML = `<input type="tel" inputmode="numeric" class="md-input" value="${p[0]}" placeholder="brutto" onchange="lonAnchorEdit(${i},0,this.value)">
+            <input type="tel" inputmode="numeric" class="md-input" value="${p[1]}" placeholder="skatt" onchange="lonAnchorEdit(${i},1,this.value)">
+            <button class="lon-del-btn" onclick="lonAnchorDel(${i})">✕</button>`;
+        c.appendChild(row);
+    });
+}
+function lonAnchorEdit(i,j,v){ const n=parseFloat(String(v).replace(/\s/g,'').replace(',','.')); lonCfg.taxAnchors[i][j]=isNaN(n)?0:n; lonSaveCfg(); lonRecalc(); }
+function lonAnchorDel(i){ lonCfg.taxAnchors.splice(i,1); lonSaveCfg(); lonRenderAnchors(); lonRecalc(); }
+function lonAddAnchor(){ lonCfg.taxAnchors.push([0,0]); lonSaveCfg(); lonRenderAnchors(); }
+
+function lonFillFields(){
+    const k = lonKey(); const m = lonMonthly[k] || {};
+    const y = lonViewDate.getFullYear(), mo = lonViewDate.getMonth()+1;
+    const setV=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=(v===undefined||v===null||v==='')?'':v; };
+    setV('lon-sales', getMonthlySales(y, mo) || '');
+    const OB = lonGetOB(); setV('lon-ob50', OB.ob50); setV('lon-ob100', OB.ob100);
+    const obHint=document.getElementById('lon-ob-hint'); if(obHint) obHint.innerText = OB.src==='faktisk' ? 'Från bilaga (faktisk)' : 'Auto från dina pass';
+    const appFranv = getMonthlyFranvaroHours(y, mo);
+    setV('lon-franv', (m.franv!==undefined && m.franv!=='') ? m.franv : (appFranv || ''));
+    const fHint = document.getElementById('lon-franv-hint'); if (fHint) fHint.innerText = appFranv ? `Appens frånvaro: ${appFranv} tim` : 'Ingen frånvaro registrerad';
+    setV('lon-extra-add', m.extraAdd); setV('lon-extra-ded', m.extraDed);
+    setV('lon-bonus-manual', m.bonusManual||'');
+    lonAvdrag = m.avdrag || 0;
+    const seg=document.getElementById('lon-avdrag-seg'); if(seg) seg.querySelectorAll('button').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.av)===lonAvdrag));
+    setV('lon-cfg-manadslon', lonCfg.manadslon); setV('lon-cfg-tillagg', lonCfg.tillagg);
+    setV('lon-cfg-timpris', lonTimpris());
+    lonRenderFile('tidrapport'); lonRenderFile('lonespec');
+    const months=['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
+    const lbl=document.getElementById('lon-month-lbl'); if(lbl) lbl.innerText = `${months[lonViewDate.getMonth()]} ${lonViewDate.getFullYear()}`;
+}
+
+function lonNavMonth(dir){ lonViewDate = new Date(lonViewDate.getFullYear(), lonViewDate.getMonth()+dir, 1); lonFillFields(); lonRecalc(); }
+
+function lonOpen(){ const m=document.getElementById('lon-modal'); return m && !m.classList.contains('hidden'); }
+function lonShowSettings(on){
+    const main=document.getElementById('lon-view-main'), set=document.getElementById('lon-view-settings');
+    if(main) main.classList.toggle('hidden', on);
+    if(set) set.classList.toggle('hidden', !on);
+    const body=document.querySelector('#lon-modal .notes-fullscreen'); if(body) body.scrollTop=0;
+}
+function openLonModal(){
+    if (!lonCfg) lonLoad();
+    lonViewDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+    lonShowSettings(false);
+    lonRenderTiers(); lonRenderAnchors(); lonFillFields(); lonRecalc();
+    const m=document.getElementById('lon-modal');
+    if(m){ m.classList.remove('hidden'); setTimeout(()=>m.classList.replace('opacity-0','opacity-100'),10); }
+    lonSyncRemote();
+}
+function closeLonModal(){
+    const m=document.getElementById('lon-modal'); if(!m || m.classList.contains('hidden')) return;
+    m.classList.replace('opacity-100','opacity-0');
+    setTimeout(()=>m.classList.add('hidden'),300);
+}
+
+async function lonSyncRemote(){
+    if (typeof sb === 'undefined' || !sb) return;
+    try {
+        const { data, error } = await sb.from('lon_store').select('id,data');
+        if (error || !data) return;
+        let changed=false;
+        data.forEach(row=>{
+            if(row.id==='cfg' && row.data && typeof row.data.manadslon === 'number'){ lonCfg = lonNormalizeCfg(row.data); changed=true; }
+            if(row.id==='monthly' && row.data && typeof row.data === 'object'){ lonMonthly = row.data; changed=true; }
+        });
+        // Om molnet bara har tomma seed-rader: spara upp den lokala (riktiga) konfigen dit
+        const cfgRow = data.find(r=>r.id==='cfg');
+        if (!cfgRow || !cfgRow.data || typeof cfgRow.data.manadslon !== 'number') lonPushRemote('cfg', lonCfg);
+        if (changed){ try{ localStorage.setItem('sf_lon_cfg', JSON.stringify(lonCfg)); localStorage.setItem('sf_lon_monthly', JSON.stringify(lonMonthly)); }catch(e){}
+            lonRenderTiers(); lonRenderAnchors(); lonFillFields(); lonRecalc(); }
+    } catch(e){}
+}
+function lonPushRemote(id, data){ if (typeof sb === 'undefined' || !sb) return; try { sb.from('lon_store').upsert({ id, data, updated_at: new Date().toISOString() }).then(()=>{}); } catch(e){} }
+
+async function lonHandleUpload(input, slot){
+    const file = input.files[0]; if(!file) return;
+    const k = lonKey();
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const rec = { ...(lonMonthly[k]||{}) };
+        rec['file_'+slot] = { name: file.name, data: e.target.result };
+        lonMonthly[k] = rec;
+        try { lonSaveMonthly(); } catch(err){ delete lonMonthly[k]['file_'+slot].data; try{ lonSaveMonthly(); }catch(e2){} }
+        lonRenderFile(slot);
+        showToast('📎','Bilaga infogad',1800);
+        // Lär appen: läs av lönearter via edge-funktion (om utbyggd)
+        if (typeof sb !== 'undefined' && sb){
+            try {
+                showToast('🧠','Läser av & lär...',3000);
+                const { data, error } = await sb.functions.invoke('scan-payslip', { body: { image_base64: e.target.result, kind: slot } });
+                if (!error && data && (data.ob50!=null || data.ob100!=null || data.brutto!=null || data.franvaro_tim!=null || data.bonus!=null)){
+                    lonApplyCalibration(data);
+                    showToast('✅','Lönen uppdaterad & kalibrerad',2500);
+                } else if (error) { /* funktion ej utbyggd → tyst */ }
+            } catch(err){ /* offline / ej utbyggd */ }
+        }
+    };
+    reader.readAsDataURL(file);
+    input.value='';
+}
+function lonRenderFile(slot){
+    const m = lonMonthly[lonKey()] || {};
+    const f = m['file_'+slot];
+    const el = document.getElementById('lon-file-'+slot); if(!el) return;
+    if (f && f.name){ el.classList.remove('hidden'); el.innerHTML = '📎 ' + f.name + (f.data?' <span class="lon-file-open">öppna</span>':'') + ' <span class="lon-file-del">ta bort</span>'; }
+    else { el.classList.add('hidden'); el.innerHTML=''; }
+    const o = el.querySelector('.lon-file-open'); if(o) o.onclick = ()=>{ const w=window.open(); if(w) w.document.write('<iframe src="'+f.data+'" style="border:0;width:100%;height:100%"></iframe>'); };
+    const d = el.querySelector('.lon-file-del'); if(d) d.onclick = ()=>{ delete lonMonthly[lonKey()]['file_'+slot]; lonSaveMonthly(); lonRenderFile(slot); };
 }
 
 async function init() {
@@ -1792,7 +2115,7 @@ function calculateSummaryStats() {
             if (o.s < worstS) { worstS = o.s; worstD = `${d}/${cm}`; }
         }
         
-        if (tgt > 0 && o.s >= tgt) { streak++; if (streak > maxStreak) maxStreak = streak; } else if (tgt > 0 && o.s < tgt) { streak = 0; }
+        if (tgt > 0 && o.s >= tgt) { streak++; if (streak > maxStreak) maxStreak = streak; } else if (tgt > 0 && o.s < tgt && !o.abs) { streak = 0; }
 
         if (o.eval) {
             totalEvals++; let ev = typeof o.eval === 'string' ? JSON.parse(o.eval) : o.eval;

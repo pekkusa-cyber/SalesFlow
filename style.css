@@ -80,7 +80,7 @@ body {
 .material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24; font-size: 20px; vertical-align: middle; user-select: none; }
 
 #app-shell { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
-.content-locker { width: 100%; max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding-top: max(env(safe-area-inset-top), 8px); }
+.content-locker { width: 100%; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; height: 100%; padding-top: env(safe-area-inset-top, 0px); background: var(--header-bg); }
 
 /* ============================================================
    APP CARDS
@@ -97,16 +97,14 @@ body {
 /* TOP BANNER — Sleek deep blue with subtle highlight & soft glow */
 .top-section {
   height: 268px;
-  margin: 8px 12px 8px;
+  margin: 0;
+  border-radius: 0;
   position: relative;
   overflow: hidden;
   background: var(--header-bg) !important;
   color: #ffffff;
   border: none;
-  box-shadow:
-    0 12px 32px -10px rgba(13, 71, 161, 0.55),
-    0 4px 10px -2px rgba(0,0,0,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.18);
+  box-shadow: 0 8px 18px -10px rgba(13, 71, 161, 0.45);
 }
 .premium-slate-banner { background: var(--header-bg) !important; }
 .premium-slate-banner::before {
@@ -264,9 +262,11 @@ body {
    BOTTOM SECTION
    ============================================================ */
 .bottom-section {
-  flex: 1; margin: 0 12px calc(env(safe-area-inset-bottom, 12px) + 8px);
+  flex: 1; margin: 0;
+  border-radius: 0; border: none; box-shadow: none;
   position: relative; min-height: 0; overflow: hidden;
   background: var(--surface);
+  padding-bottom: 84px;
 }
 
 /* Nav Bar */
@@ -824,6 +824,7 @@ body #dash-abs-badge:not(.hidden) {
   position: relative;
   overflow: hidden;
   display: flex; flex-direction: column;
+  padding-bottom: 84px;
 }
 /* Override dash-view-pane behaviour when nested inside sheet */
 .sf-sheet .dash-view-pane {
@@ -1549,34 +1550,44 @@ body.variant-c .md-budget-btn { background: #fafbfd !important; border: 1px soli
 
 /* ---- Bottenmeny ---- */
 .app-bottom-nav {
-  flex-shrink: 0;
+  --nav-h: 64px;
+  position: fixed; z-index: 9500;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom, 8px) + 8px);
+  width: min(440px, calc(100% - 24px));
   display: flex; align-items: stretch; justify-content: space-around;
   gap: 2px;
-  margin: 0 12px;
-  padding: 1px 4px calc(env(safe-area-inset-bottom, 2px) + 1px);
-  background: var(--surface);
-  border: 1px solid var(--outline-variant);
-  border-radius: 22px;
-  box-shadow: var(--elev-2);
-  position: relative; z-index: 9000;
+  padding: 6px 6px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  backdrop-filter: blur(22px) saturate(1.6);
+  border: 1px solid color-mix(in srgb, var(--outline-variant) 60%, transparent);
+  border-radius: 26px;
+  box-shadow: 0 8px 30px -6px rgba(60,64,67,0.30), 0 2px 8px rgba(60,64,67,0.12);
 }
+/* Skjut in alla vyer (dash + sheets) ovanför den flytande menyn */
+.bottom-section { padding-bottom: 84px; }
 .bn-item {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 1px; padding: 2px 2px 1px;
-  border-radius: 14px;
+  gap: 3px; padding: 4px 2px 3px;
+  border-radius: 16px;
   color: var(--on-surface-variant);
   transition: color .2s var(--ease-emp), transform .15s var(--ease-emp);
 }
-.bn-item .bn-ic { font-size: 21px; line-height: 1; transition: all .2s var(--ease-emp); padding: 2px 14px; border-radius: 14px; }
-.bn-item .bn-lbl { font-size: 8.5px; font-weight: 700; letter-spacing: -.01em; line-height: 1; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.bn-item .bn-ic { font-size: 20px; }
+.bn-item .bn-ic { font-size: 25px; line-height: 1; transition: all .22s var(--ease-emp); padding: 5px 16px; border-radius: 16px; }
+.bn-item .bn-lbl { font-size: 9.5px; font-weight: 700; letter-spacing: -.01em; line-height: 1; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .bn-item:active { transform: scale(.9); }
 .bn-item.is-active { color: var(--g-blue); }
 .bn-item.is-active .bn-ic {
   font-variation-settings: 'FILL' 1;
   background: var(--g-blue-soft);
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 4px 14px -5px rgba(26,115,232,.55);
 }
+.bn-item.is-active .bn-lbl { font-weight: 800; }
+@keyframes bnPop { 0%{transform:scale(1)} 45%{transform:scale(1.16) translateY(-2px)} 100%{transform:scale(1.04) translateY(-1px)} }
+.bn-item.is-active .bn-ic { animation: bnPop .34s var(--ease-spring, cubic-bezier(.34,1.56,.64,1)); }
 
 /* ---- HELVY: dölj blå översikten när ett sheet expanderats ---- */
 body.sheet-full .top-section {
@@ -1610,10 +1621,64 @@ body.sheet-full .top-section {
    ============================================================ */
 .lon-month-nav { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:4px 0 10px; }
 #lon-month-lbl { font-family:'Google Sans',sans-serif; font-size:15px; font-weight:700; color:var(--on-surface); text-transform:capitalize; }
-.lon-result-card { background:linear-gradient(135deg,var(--g-blue-deep),var(--g-blue)); border-radius:24px; padding:18px 18px 14px; color:#fff; box-shadow:var(--elev-2); margin-bottom:12px; }
+.lon-result-card { background:linear-gradient(135deg,var(--g-blue-deep),var(--g-blue)); border-radius:24px; padding:16px 18px 12px; color:#fff; box-shadow:var(--elev-2); margin-bottom:0; }
+.lon-dialog { border-radius:28px 28px 0 0 !important; gap:10px !important; }
+.lon-page { display:flex; flex-direction:column; gap:10px; }
+.lon-period-sub { display:block; font-size:10.5px; font-weight:600; opacity:.85; margin:1px 0 10px; }
+.lon-reset-btn { color:var(--g-blue) !important; }
+/* Lön-sheet innehåll */
+.lon-sheet-content { padding: 10px 14px 90px !important; gap:10px; overflow-y:auto; }
+/* Peek (minimerat): visa ENBART blå rutan */
+body:not(.sheet-full) #sheet-lon .lon-full-only,
+body:not(.sheet-full) #sheet-lon #lon-reminder { display:none !important; }
+body:not(.sheet-full) #sheet-lon .lon-sheet-content { overflow:hidden; justify-content:flex-start; }
+/* Enhetliga popup-dialoger i hela appen */
+.md-dialog-std { width:100%; max-width:380px; max-height:82vh; display:flex; flex-direction:column; padding:0 !important; overflow:hidden; }
+.md-dialog-std .md-dialog-body { padding:14px 16px calc(env(safe-area-inset-bottom,12px) + 16px); overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+/* Enhetlig bredd på appens popup-dialoger */
+#summary-modal-content, #eval-modal-content { max-width:380px !important; width:100% !important; }
+/* Lön som flytande ark (likt frånvaro/kalender) med marginal runt om */
+#lon-modal { padding: 0; }
+.lon-sheet {
+    width: calc(100% - 24px); max-width: 440px;
+    margin: 0 12px calc(env(safe-area-inset-bottom, 8px) + 96px);
+    max-height: calc(100% - env(safe-area-inset-top, 12px) - 130px);
+    background: var(--surface); border-radius: 28px;
+    box-shadow: 0 -2px 24px rgba(0,0,0,.18), 0 12px 40px rgba(0,0,0,.22);
+    padding: 8px 16px calc(env(safe-area-inset-bottom, 12px) + 16px);
+    display: flex; flex-direction: column; gap: 10px; overflow: hidden;
+    transform: translateY(12px); transition: transform .32s var(--ease-spring, ease);
+}
+.md-scrim:not(.opacity-0):not(.hidden) .lon-sheet { transform: translateY(0); }
+.lon-sheet-handle { width:38px; height:5px; border-radius:3px; background:var(--outline-variant); margin:2px auto 2px; flex-shrink:0; }
+.lon-page { display:flex; flex-direction:column; gap:10px; min-height:0; }
+.lon-head-sub { display:block; font-size:11px; font-weight:700; color:var(--g-blue); margin-top:1px; }
+.lon-reminder { background:#fff5d6; border:1px solid #f3d98a; color:#7a5a00; border-radius:14px; padding:10px 12px; font-size:12.5px; font-weight:600; line-height:1.35; cursor:pointer; }
+.lon-compact-card { padding:12px 14px !important; }
+.lon-upload-btn.lon-locked { opacity:.55; }
+.lon-reminder-urgent { background:#fde2e1 !important; border-color:#f3a9a4 !important; color:#9b2c22 !important; }
+.lon-history { display:flex; flex-direction:column; gap:5px; margin-top:6px; }
+.lon-hist-row { display:flex; align-items:center; gap:8px; padding:8px 11px; border-radius:13px; font-size:12px; font-weight:600; background:var(--surface-1); }
+.lon-hist-row .lh-month { font-weight:800; min-width:74px; }
+.lon-hist-row .lh-marks { flex:1; opacity:.7; font-size:11px; }
+.lon-hist-row .lh-badge { font-weight:800; font-size:10.5px; padding:2px 9px; border-radius:20px; }
+.lon-hist-row.lh-green { background:#e6f4ea; } .lon-hist-row.lh-green .lh-badge { background:#1e8e3e; color:#fff; }
+.lon-hist-row.lh-amber { background:#fef7e0; } .lon-hist-row.lh-amber .lh-badge { background:#f9ab00; color:#fff; }
+.lon-hist-row.lh-blue  { background:#e8f0fe; } .lon-hist-row.lh-blue .lh-badge { background:var(--g-blue); color:#fff; }
+.lon-hist-row.lh-grey  { background:var(--surface-1); } .lon-hist-row.lh-grey .lh-badge { background:var(--outline); color:#fff; }
+.lon-info summary { font-size:12px; font-weight:700; color:var(--g-blue); cursor:pointer; margin-top:8px; }
+.lon-undo-toast { position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,12px) + 88px); transform:translate(-50%,16px); z-index:38000; background:#202124; color:#fff; border-radius:14px; padding:11px 14px; display:flex; align-items:center; gap:12px; box-shadow:0 8px 24px rgba(0,0,0,.32); opacity:0; transition:opacity .28s, transform .28s; max-width:92%; }
+.lon-undo-toast.show { opacity:1; transform:translate(-50%,0); }
+.lon-undo-toast .lon-undo-txt { font-size:13px; font-weight:600; }
+.lon-undo-toast .lon-undo-btn { background:transparent; color:#8ab4f8; font-weight:800; font-size:13px; padding:4px 8px; border-radius:8px; flex-shrink:0; }
+.lon-bonus-mode-bar { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:2px; }
+.lon-mode-seg { display:flex; gap:4px; }
+.lon-mode-seg button { padding:5px 14px; border-radius:20px; border:1.5px solid var(--outline-variant); background:var(--surface); color:var(--on-surface-variant); font-size:11px; font-weight:800; transition:all .15s; }
+.lon-mode-seg button.active { background:var(--g-blue); color:#fff; border-color:var(--g-blue); }
+.lon-upload-month { font-size:10px; font-weight:600; opacity:.65; margin-left:4px; }
 .lon-net-lbl { font-size:11px; font-weight:700; letter-spacing:.04em; opacity:.85; }
-.lon-net-val { display:block; font-family:'Google Sans',sans-serif; font-size:38px; font-weight:700; line-height:1.05; letter-spacing:-.02em; margin:2px 0 12px; }
-.lon-result-rows { display:flex; flex-direction:column; gap:6px; border-top:1px solid rgba(255,255,255,.22); padding-top:10px; }
+.lon-net-val { display:block; font-family:'Google Sans',sans-serif; font-size:34px; font-weight:700; line-height:1.05; letter-spacing:-.02em; margin:2px 0 2px; }
+.lon-result-rows { display:flex; flex-direction:column; gap:5px; border-top:1px solid rgba(255,255,255,.22); padding-top:9px; }
 .lon-rrow { display:flex; justify-content:space-between; align-items:center; font-size:13px; }
 .lon-rrow > span:first-child { opacity:.9; font-weight:500; }
 .lon-rrow > span:last-child { font-weight:800; font-family:'Google Sans',sans-serif; }
@@ -1722,16 +1787,18 @@ body:not(.sheet-full) .sf-sheet .cal-symbol-bar { display: none !important; }
 
 /* ---- Helskärms-anteckningar ---- */
 .md-dialog.notes-fullscreen {
-  max-width: 420px; width: 100%;
-  height: 100%; max-height: 100%;
+  max-width: 480px; width: 100%;
+  margin-top: 0; height: 100%; max-height: 100%;
   border-radius: 0;
-  padding: calc(env(safe-area-inset-top, 12px) + 14px) 16px calc(env(safe-area-inset-bottom, 12px) + 16px);
+  background: var(--surface);
+  box-shadow: none;
+  padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px 92px;
   overflow-y: auto;
   display: flex; flex-direction: column; gap: 12px;
 }
 
 /* ---- Mindre nedre marginal på botten-kortet (bottenmenyn tar plats) ---- */
-.bottom-section { margin: 0 12px 3px; }
+.bottom-section { margin: 0; }
 
 /* Mjuk animation när blå översikten fälls ihop till helvy */
 .top-section { transition: height .34s var(--ease-spring), margin .34s var(--ease-spring), opacity .24s ease, box-shadow .24s ease; }

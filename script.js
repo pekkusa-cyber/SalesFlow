@@ -11,6 +11,8 @@ currentWeekStart.setDate(currentWeekStart.getDate() - startDayOffset + 1);
 currentWeekStart.setHours(0,0,0,0);
 let multiSelectKeys = new Set();
 let currentFocusReason = null;
+let focusKeySet = null;
+let summaryFocus = null;
 let pendingAbsenceType = null;
 let pendingAbsenceSource = null;
 
@@ -531,7 +533,7 @@ function setMode(mode) {
         }
     });
 
-    if (mode === 'dash' && !activeK) { activeK = getK(realToday); }
+    // Dagens dag visas som ring (ej förvald) – väljs först vid tryck
     
     calculateTimeline(); 
     updateDash();
@@ -549,7 +551,9 @@ function setMode(mode) {
 }
 
 function toggleDashMode() {
-    activeK = getK(realToday); 
+    const todayK = getK(realToday);
+    const alreadyToday = (viewMode === 'dash' && activeK === todayK);
+    activeK = alreadyToday ? null : todayK;   // toggle: markera/avmarkera idag
     currentWeekStart = new Date(realToday);
     const sdo = currentWeekStart.getDay() || 7; 
     currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); 
@@ -642,14 +646,12 @@ function goToDayFromMonth(k) {
 function syncTodayBlue() {
     const todayK = getK(realToday);
     document.querySelectorAll('.vp-cell').forEach(c => {
-        if (c.dataset.key === todayK) {
-            if (!activeK || activeK === todayK) c.classList.add('status-today');
-            else c.classList.remove('status-today');
-        }
+        if (c.dataset.key === todayK) c.classList.add('status-today'); // ringen finns alltid
     });
 }
 function selectDay(k, el, e) {
     e.stopPropagation();
+    if (document.body.classList.contains('focus-mode-active')) { focusShowDay(k, el); return; }
     if (viewMode === 'month') {
         if (multiSelectKeys.has(k)) { multiSelectKeys.delete(k); el.classList.remove('active-focus'); } else { multiSelectKeys.add(k); el.classList.add('active-focus'); }
         updateCalToolbar();
@@ -972,7 +974,7 @@ function createSliderCell(cd, k) {
     else if (qData.start) { cls += ' type-planned'; }
 
     if (isPast) { cls += ' vp-past'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; } 
-    else if (isToday && (!activeK || activeK === k)) { cls += ' status-today'; }
+    else if (isToday) { cls += ' status-today'; }   // dagens dag har alltid sin ring
 
     if (activeK === k) cls += ' active-focus';
     if (currentFocusReason && o.abs && o.abs.includes(currentFocusReason)) cls += ' focus-highlight';
@@ -1102,7 +1104,8 @@ function createDayCell(cd, k) {
     
     if (isToday) cls += ' status-today';
     if (viewMode === 'month' && multiSelectKeys.has(k)) { cls += ' active-focus'; } else if (viewMode !== 'month' && activeK === k) { cls += ' active-focus'; }
-    if (currentFocusReason && o.abs && o.abs.includes(currentFocusReason)) { cls += ' focus-highlight'; }
+    if (currentFocusReason && currentFocusReason !== '__day__' && o.abs && o.abs.includes(currentFocusReason) && cd.getMonth() === viewDate.getMonth() && cd.getFullYear() === viewDate.getFullYear()) { cls += ' focus-highlight'; }
+    if (focusKeySet && focusKeySet.has(k)) { cls += ' focus-highlight'; }
     
     const cell = document.createElement('div'); cell.className = cls; cell.dataset.key = k; cell.onclick = (e) => selectDay(k, cell, e);
     cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[6px] text-center tracking-tighter">${b}${content}</div>`; return cell;
@@ -1132,20 +1135,11 @@ function absFilter(type) {
 }
 function absFilterClear() { absFilterSet.clear(); applyAbsFilter(); updateAbsFilterButtons(); }
 function applyAbsFilter() {
-    document.querySelectorAll('#pane-absence .abs-card[data-abs]').forEach(c => {
+    document.querySelectorAll('#pane-absence .abs-type[data-abs]').forEach(c => {
         const t = c.getAttribute('data-abs');
-        if (absFilterSet.size === 0 || absFilterSet.has(t)) c.classList.remove('abs-dim');
-        else c.classList.add('abs-dim');
-    });
-    let anyVisible = false;
-    document.querySelectorAll('#pane-absence .abs-sum-row[data-abs]').forEach(r => {
-        const t = r.getAttribute('data-abs');
         const show = absFilterSet.size === 0 || absFilterSet.has(t);
-        r.style.display = show ? '' : 'none';
-        if (show) anyVisible = true;
+        c.style.display = show ? '' : 'none';
     });
-    const card = document.getElementById('abs-summary-card');
-    if (card) card.style.display = anyVisible ? '' : 'none';
 }
 function updateAbsFilterButtons() {
     document.querySelectorAll('.abs-fil-btn').forEach(b => {
@@ -1155,36 +1149,171 @@ function updateAbsFilterButtons() {
 
 function renderAbsence() {
     const pane = document.getElementById('pane-absence'); if(!pane) return;
-    const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate(); let absCounts = {}; let absListHTML = ''; let totalAbs = 0; const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lörsdag'];
-    const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; const col = { 'Sjuk': 'text-rose-600', 'VAB': 'text-amber-600', 'VAB Belma': 'text-amber-600', 'VAB Wilma': 'text-amber-600', 'Föräldraledig': 'text-purple-600', 'Föräldraledig Belma': 'text-purple-600', 'Föräldraledig Wilma': 'text-purple-600', 'Semester': 'text-teal-600', 'Tjänstledig': 'text-slate-600', 'Åtgärd krävs': 'text-rose-600' }; const bgClass = { 'Sjuk': 'bg-rose-50', 'VAB': 'bg-amber-50', 'VAB Belma': 'bg-amber-50', 'VAB Wilma': 'bg-amber-50', 'Föräldraledig': 'bg-purple-50', 'Föräldraledig Belma': 'bg-purple-50', 'Föräldraledig Wilma': 'bg-purple-50', 'Semester': 'bg-teal-50', 'Tjänstledig': 'bg-slate-50', 'Åtgärd krävs': 'bg-rose-50' };
-
+    const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate();
+    const daysShort = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+    const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' };
+    const col = { 'Sjuk': 'text-rose-600', 'VAB': 'text-amber-600', 'VAB Belma': 'text-amber-600', 'VAB Wilma': 'text-amber-600', 'Föräldraledig': 'text-purple-600', 'Föräldraledig Belma': 'text-purple-600', 'Föräldraledig Wilma': 'text-purple-600', 'Semester': 'text-teal-600', 'Tjänstledig': 'text-slate-600', 'Åtgärd krävs': 'text-rose-600' };
+    const types = ['Sjuk','VAB','VAB Belma','VAB Wilma','Föräldraledig','Föräldraledig Belma','Föräldraledig Wilma','Semester','Tjänstledig','Åtgärd krävs'];
+    let groups = {}; let order = []; let totalAbs = 0;
     for (let d = 1; d <= daysM; d++) {
         const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {}; const qData = db.q[k] || {};
-        if (o.abs && ['Sjuk', 'VAB', 'VAB Belma', 'VAB Wilma', 'Föräldraledig', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig', 'Åtgärd krävs'].some(a => o.abs.includes(a))) {
-            let reason = o.abs; absCounts[reason] = (absCounts[reason] || 0) + 1; totalAbs++; const dObj = new Date(cy, cm-1, d); const dayStr = `${daysLong[dObj.getDay()]} ${d}`; let bKey = reason.split(' ')[0]; const icon = em[reason] || em[bKey] || '•'; const tCol = col[reason] || col[bKey] || 'text-slate-500'; const bCol = bgClass[reason] || bgClass[bKey] || 'bg-slate-50';
-            let totalH = 0, actualP = 0, hStr = "0";
-            if (o.fk_perc !== undefined && o.abs_hours && reason !== 'Åtgärd krävs') { 
-                totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours; 
-                actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100; 
+        if (o.abs && types.some(a => o.abs.includes(a))) {
+            const reason = o.abs; totalAbs++;
+            if (!groups[reason]) { groups[reason] = []; order.push(reason); }
+            const dObj = new Date(cy, cm-1, d); const dayStr = `${daysShort[dObj.getDay()]} ${d}`;
+            let hStr = null, actualP = null, fk = null;
+            if (o.fk_perc !== undefined && o.abs_hours && reason !== 'Åtgärd krävs') {
+                const totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours;
+                actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100;
                 hStr = o.abs_hours.toFixed(2).replace('.00','');
+                fk = o.fk_perc;
             }
-            let periodsStr = (qData.ledigPeriods && qData.ledigPeriods.length > 0) 
-                ? qData.ledigPeriods.map(p => `${p.start}–${p.end}`).join('<br>') 
-                : '';
-            const hasToggle = periodsStr !== '';
-            let statsHtml = ""; 
-            if (o.fk_perc !== undefined && o.abs_hours && reason !== 'Åtgärd krävs') { 
-                statsHtml = `<div class="flex items-center gap-2 mt-3"><div ${hasToggle ? `onclick="event.stopPropagation(); const el=this.querySelector('.tb-total'); const el2=this.querySelector('.tb-periods'); el.classList.toggle('hidden'); el2.classList.toggle('hidden');" style="cursor:pointer;"` : ''} class="bg-white border border-slate-100 rounded-xl px-2 py-2 flex flex-col items-center justify-center flex-1 shadow-sm" style="min-height:46px; max-height:46px; overflow:hidden;"><span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Tid Borta</span><span class="tb-total text-[12px] font-black text-slate-700 leading-tight">${hStr} tim</span><span class="tb-periods hidden text-[9px] font-black text-slate-700 leading-tight text-center">${periodsStr}</span></div><div class="bg-white border border-slate-100 rounded-xl px-2 py-2 flex flex-col items-center justify-center flex-1 shadow-sm" style="min-height:46px; max-height:46px; overflow:hidden;"><span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Frånvaro (FK)</span><span class="text-[12px] font-black text-[#0ea5e9]">${actualP}% <span class="text-slate-400 text-[9.5px]">(${o.fk_perc}%)</span></span></div></div>`; 
-            }
-            absListHTML += `<div data-abs="${bKey}" class="abs-card flex flex-col p-3 mb-2 border border-slate-100/60 rounded-[20px] bg-white shadow-sm hover:shadow-md transition-shadow"><div class="flex justify-between items-center"><span class="text-[9.5px] font-black uppercase text-slate-500 tracking-wider flex items-center">${dayStr}</span><span class="text-[10px] font-black ${tCol} ${bCol} border border-slate-100/50 uppercase tracking-widest px-2.5 py-1.5 rounded-lg">${icon} ${reason}</span></div>${statsHtml}</div>`;
+            groups[reason].push({ k, dayStr, hStr, actualP, fk });
         }
     }
     if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
 
-    let summaryHTML = `<div id="abs-summary-card" class="mb-2 bg-white rounded-[20px] border border-slate-200 p-3 shadow-md flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
-    for (let reason in absCounts) { let bKey = reason.split(' ')[0]; const icon = em[reason] || em[bKey] || '•'; const tCol = col[reason] || col[bKey] || 'text-slate-500'; summaryHTML += `<div data-abs="${bKey}" onclick="absFilter('${bKey}')" class="abs-sum-row flex justify-between items-center mb-1 last:mb-0 cursor-pointer active:scale-95 transition-transform hover:bg-slate-50 p-1.5 -mx-1.5 rounded-lg"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; }
-    summaryHTML += `</div>`; pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="overflow-y-auto hide-scrollbar flex-1 pb-2">${absListHTML}</div></div>`;
+    let html = `<div class="abs-sum-wrap"><h4 class="abs-sum-title">SAMMANFATTNING</h4>`;
+    order.forEach(reason => {
+        const bKey = reason.split(' ')[0]; const icon = em[reason] || em[bKey] || '•'; const tCol = col[reason] || col[bKey] || 'text-slate-500';
+        const days = groups[reason];
+        const rows = days.map(it => {
+            const meta = it.hStr ? `${it.hStr} tim · andel ${it.actualP}%${it.fk ? ` · FK ${it.fk}%` : ''}` : 'heldag';
+            return `<button onclick="absFocusDay('${it.k}','${reason.replace(/'/g,"\\'")}')" class="abs-day-row"><span class="abs-day-when">${it.dayStr}</span><span class="abs-day-meta">${meta}</span><span class="material-symbols-rounded abs-day-arrow">my_location</span></button>`;
+        }).join('');
+        html += `<div class="abs-type" data-abs="${bKey}" data-reason="${reason.replace(/"/g,'&quot;')}">
+            <button class="abs-type-head" onclick="absToggleType(this)">
+                <span class="abs-type-name ${tCol}">${icon} ${reason}</span>
+                <span class="abs-type-right"><span class="abs-type-count">${days.length} ${days.length === 1 ? 'dag' : 'dagar'}</span><span class="material-symbols-rounded abs-type-chev">expand_more</span></span>
+            </button>
+            <div class="abs-type-list">${rows}</div>
+        </div>`;
+    });
+    html += `<button onclick="absAddType()" class="abs-register-btn"><span class="material-symbols-rounded">add</span> Registrera frånvaro</button></div>`;
+    pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden"><div class="overflow-y-auto hide-scrollbar flex-1">${html}</div></div>`;
     applyAbsFilter(); updateAbsFilterButtons();
+}
+function absToggleType(btn) {
+    const t = btn.closest('.abs-type'); if (!t) return;
+    const reason = t.getAttribute('data-reason');
+    if (t.classList.contains('open')) { absFocusType(reason); return; } // redan öppen → fokusera alla dagar
+    t.parentElement.querySelectorAll('.abs-type.open').forEach(x => x.classList.remove('open'));
+    t.classList.add('open');
+}
+let focusReturn = null;
+const FOCUS_EM = { 'Sjuk':'🤒','VAB':'👶','Föräldraledig':'🍼','Semester':'✈️','Tjänstledig':'🏢','Ledig':'🏠','Åtgärd krävs':'⚠️' };
+function focusEmoji(reason){ if(!reason) return '•'; for(const key in FOCUS_EM){ if(reason.includes(key)) return FOCUS_EM[key]; } return '•'; }
+function setFocusInfo(html){ const el=document.getElementById('focus-info'); if(el) el.innerHTML = html || ''; }
+// Fokusera ALLA dagar för en frånvarotyp
+function absFocusType(reason){
+    focusReturn = { reason };
+    currentFocusReason = reason;
+    document.body.classList.add('focus-mode-active');
+    const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1;
+    let n = 0; Object.keys(db.d).forEach(k => { const p = k.split('-'); if (+p[0]===cy && +p[1]===cm) { const o = db.d[k]; if (o && o.abs && o.abs.includes(reason)) n++; } });
+    setFocusInfo(`<span class="fi-emoji">${focusEmoji(reason)}</span><span class="fi-main">${reason}</span><span class="fi-meta">${n} ${n===1?'dag':'dagar'} denna månad</span>`);
+    if (typeof window.calSeg === 'function') window.calSeg('month');
+}
+// Fokusåtgärder från Sammanfattning → markera dagar i kalendern
+function focusFromSummary(type, arg) {
+    const F = summaryFocus || {};
+    let keys = [], emoji = '•', label = '';
+    if (type === 'work') { keys = F.work || []; emoji = '💼'; label = 'Pass / Jobb'; }
+    else if (type === 'abs') { keys = F.abs || []; emoji = '🚫'; label = 'Frånvaro'; }
+    else if (type === 'best') { keys = F.best || []; emoji = '🚀'; label = 'Bästa dag'; }
+    else if (type === 'worst') { keys = F.worst || []; emoji = '📉'; label = 'Sämsta dag'; }
+    else if (type === 'green') { keys = F.green || []; emoji = '🔥'; label = 'Gröna dagar'; }
+    else if (type === 'week') { keys = F.week || []; emoji = '🏆'; label = 'Bästa veckan'; }
+    else if (type === 'reason') { keys = (F.reasons && F.reasons[arg]) || []; emoji = focusEmoji(arg); label = arg; }
+    if (!keys.length) { showToast('ℹ️', 'Inga dagar att visa', 1800); return; }
+    const meta = `${keys.length} ${keys.length === 1 ? 'dag' : 'dagar'} denna månad`;
+    focusKeySet = new Set(keys);
+    currentFocusReason = '__keys__';
+    focusReturn = { summary: true };
+    document.body.classList.add('focus-mode-active');
+    setFocusInfo(`<span class="fi-emoji">${emoji}</span><span class="fi-main">${label}</span><span class="fi-meta">${meta}</span>`);
+    if (typeof closeSummaryModal === 'function') closeSummaryModal();
+    if (typeof window.openMonthFocus === 'function') window.openMonthFocus();
+}
+window.focusFromSummary = focusFromSummary;
+// I fokusläge: tryck på en markerad dag → visa just den dagens detaljer i info-rutan
+function focusShowDay(k, el){
+    const o = db.d[k] || {}; const qData = db.q[k] || {};
+    const parts = k.split('-'); const dObj = new Date(+parts[0], +parts[1]-1, +parts[2]);
+    const dShort = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'][dObj.getDay()];
+    let emoji, main, metaTxt;
+    if (o.abs) {
+        emoji = focusEmoji(o.abs); main = o.abs;
+        if (o.fk_perc !== undefined && o.abs_hours) { const hStr = o.abs_hours.toFixed(2).replace('.00',''); metaTxt = `${dShort} ${parts[2]} · ${hStr} tim · FK ${o.fk_perc}%`; }
+        else metaTxt = `${dShort} ${parts[2]} · heldag`;
+    } else if (o.s > 0) {
+        const tgt = (timeline[k] && timeline[k].target) || 0;
+        emoji = (tgt > 0 && o.s >= tgt) ? '🔥' : '💰'; main = `${(o.s/1000).toFixed(1)}k`;
+        metaTxt = tgt > 0 ? `${dShort} ${parts[2]} · mål ${(tgt/1000).toFixed(1)}k` : `${dShort} ${parts[2]}`;
+    } else {
+        emoji = '📅'; main = `${dShort} ${parts[2]}`; metaTxt = '';
+    }
+    setFocusInfo(`<span class="fi-emoji">${emoji}</span><span class="fi-main">${main}</span><span class="fi-meta">${metaTxt}</span>`);
+    document.querySelectorAll('#d-cal .day-cell').forEach(c => c.classList.remove('active-focus'));
+    if (el) el.classList.add('active-focus');
+}
+
+// I fokusläge: tryck på en enskild dag → fokusera just den dagen i kalendern
+// I fokusläge: tryck på en enskild dag → fokusera just den dagen i kalendern
+function absFocusDay(k, reason) {
+    focusReturn = { reason: reason || null };
+    currentFocusReason = '__day__';
+    document.body.classList.add('focus-mode-active');
+    const o = db.d[k] || {}; const qData = db.q[k] || {};
+    const parts = k.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]);
+    const r = o.abs || reason || '';
+    let metaTxt;
+    if (o.fk_perc !== undefined && o.abs_hours) {
+        const hStr = o.abs_hours.toFixed(2).replace('.00','');
+        metaTxt = `${hStr} tim · ${o.fk_perc}%`;
+    } else {
+        metaTxt = `heldag`;
+    }
+    setFocusInfo(`<span class="fi-emoji">${focusEmoji(r)}</span><span class="fi-main">${r}</span><span class="fi-meta">${metaTxt}</span>`);
+    if (typeof window.calSeg === 'function') window.calSeg('month');
+    setTimeout(() => {
+        document.querySelectorAll('#d-cal .day-cell').forEach(c => {
+            if (c.dataset.key === k) c.classList.add('focus-highlight'); else c.classList.remove('focus-highlight');
+        });
+        const cell = document.querySelector(`#d-cal .day-cell[data-key="${k}"]`);
+        if (cell) cell.classList.add('active-focus');
+    }, 60);
+}
+
+// "Tillbaka" i fokusläge → tillbaka till Frånvaro med rätt typ expanderad
+function absFocusBack() {
+    const r = focusReturn; closeFocusMode(true);
+    if (r && r.summary) { if (typeof window.closeActiveSheet === 'function') window.closeActiveSheet(); if (typeof openSummaryModal === 'function') openSummaryModal('month'); return; }
+    if (typeof window.calSeg === 'function') window.calSeg('absence');
+    setTimeout(() => {
+        if (r && r.reason) {
+            const t = document.querySelector(`#pane-absence .abs-type[data-reason="${r.reason.replace(/"/g,'&quot;')}"]`);
+            if (t) { t.parentElement.querySelectorAll('.abs-type.open').forEach(x => x.classList.remove('open')); t.classList.add('open'); }
+        }
+    }, 90);
+}
+// "+ Registrera frånvaro" → hoppa till kalendern, markera dag(ar) och tryck en frånvarosymbol
+function absAddType(){
+    if (currentFocusReason) closeFocusMode(true);
+    if (typeof window.calSeg === 'function') window.calSeg('month');
+    if (typeof showToast === 'function') showToast('🗓️','Markera dag(ar) i kalendern och tryck en frånvaro-symbol',4200);
+}
+// Tryck på frånvarotyp i sammanfattningen → hoppa till kalendern och markera dagarna
+function absToCalendar(reason){
+    currentFocusReason = reason;
+    document.body.classList.add('focus-mode-active');
+    if (typeof window.calSeg === 'function') window.calSeg('month');
+    setTimeout(()=>{
+        document.querySelectorAll('#d-cal .day-cell').forEach(c => {
+            const k=c.dataset.key; const o=db.d[k];
+            if (o && o.abs && o.abs.includes(reason)) c.classList.add('focus-highlight'); else c.classList.remove('focus-highlight');
+        });
+    }, 60);
 }
 
 // ==========================================
@@ -1691,7 +1820,7 @@ function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads();
     const m=document.getElementById('lon-settings-modal');
-    if(m){ m.classList.remove('hidden'); setTimeout(()=>m.classList.replace('opacity-0','opacity-100'),10); }
+    if(m){ m.classList.remove('hidden'); setTimeout(()=>m.classList.replace('opacity-0','opacity-100'),10); if(window.sfPushHist) window.sfPushHist(); }
 }
 function closeLonSettings(){
     const m=document.getElementById('lon-settings-modal'); if(!m || m.classList.contains('hidden')) return;
@@ -1994,8 +2123,11 @@ function numpadSave() {
 
 function closeFocusMode(force) { 
     currentFocusReason = null; 
+    focusKeySet = null;
     document.body.classList.remove('focus-mode-active'); 
-    document.querySelectorAll('.day-cell, .vp-cell').forEach(c => c.classList.remove('focus-highlight'));
+    document.querySelectorAll('.day-cell, .vp-cell').forEach(c => c.classList.remove('focus-highlight', 'active-focus'));
+    const fl=document.getElementById('focus-info'); if(fl) fl.innerHTML='';
+    if (viewMode === 'month') { renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1); updateCalToolbar(); }
     updateDashboardView(); updateTopInfoBar(); 
 }
 
@@ -2020,6 +2152,29 @@ function calAmountEdit() {
     if (!multiSelectKeys.size) { showToast('☝️', 'Markera dag(ar) i kalendern först'); return; }
     openNumpad('month', 0, 'VÄLJ BELOPP');
 }
+
+// "Försäljning"-knappen: hoppa till vald dag i dagsvyn (slider) där belopp m.m. kan ändras
+function calToSales() {
+    let k = null;
+    if (multiSelectKeys && multiSelectKeys.size === 1) k = Array.from(multiSelectKeys)[0];
+    else if (multiSelectKeys && multiSelectKeys.size > 1) { showToast('☝️', 'Välj en enstaka dag för att öppna dagsvyn', 2200); return; }
+    else if (activeK) k = activeK;
+    else k = getK(realToday);
+    goToDayDash(k);
+}
+function goToDayDash(k) {
+    if (multiSelectKeys) multiSelectKeys.clear();
+    activeK = k;
+    const p = k.split('-'); const d = new Date(+p[0], +p[1]-1, +p[2]);
+    currentWeekStart = new Date(d); const sdo = currentWeekStart.getDay() || 7; currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); currentWeekStart.setHours(0,0,0,0);
+    viewDate = new Date(d); db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
+    if (document.body.classList.contains('focus-mode-active') && typeof window.closeFocusMode === 'function') window.closeFocusMode(true);
+    if (typeof window.closeActiveSheet === 'function') window.closeActiveSheet();
+    setMode('dash');
+    calculateTimeline(); renderWeekSlides(); updateDashboardView(); updateTopTitle(); updateTopInfoBar();
+    setTimeout(() => { document.querySelectorAll('.vp-cell').forEach(c => c.classList.toggle('active-focus', c.dataset.key === k)); syncTodayBlue && syncTodayBlue(); }, 60);
+}
+window.calToSales = calToSales; window.goToDayDash = goToDayDash;
 
 function closeMonthEdit() {
     multiSelectKeys.clear();
@@ -2084,17 +2239,18 @@ async function saveEvalModal() {
 }
 
 function openSavedNotesModal() {
-    renderNotes(); 
     const m = document.getElementById('saved-notes-modal');
-    if(m) {
-        m.classList.remove('hidden');
-        closeNotesModal(); 
-        setTimeout(() => {
-            m.classList.remove('opacity-0');
-            if(m.children[0]) m.children[0].classList.remove('scale-95');
-        }, 10);
-    }
+    if (!m) return;
+    try { renderNotes(); } catch (e) { console.warn('renderNotes', e); }
+    if (typeof window.closeNotesModal === 'function') window.closeNotesModal();
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => {
+        m.classList.remove('opacity-0'); m.classList.add('opacity-100');
+        if (m.children[0]) m.children[0].classList.remove('scale-95');
+    });
+    if (window.sfPushHist) window.sfPushHist();
 }
+window.openSavedNotesModal = openSavedNotesModal;
 
 function closeSavedNotesModal() {
     const m = document.getElementById('saved-notes-modal');
@@ -2293,6 +2449,7 @@ function calculateSummaryStats() {
     const cy = viewDate.getFullYear(); const cm = viewDate.getMonth() + 1; const daysM = new Date(cy, cm, 0).getDate();
     let wDays = 0, aDays = 0, bestS = 0, bestD = "--", worstS = Infinity, worstD = "--";
     let streak = 0, maxStreak = 0; let absCounts = {};
+    let f_work = [], f_abs = [], f_green = [], f_reasons = {}, f_bestKey = null, f_worstKey = null, weekKeyMap = {};
     let totalEvals = 0;
     let goodScores = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 }; let goodCount = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
     let badScores = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 }; let badCount = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
@@ -2300,15 +2457,16 @@ function calculateSummaryStats() {
     for (let d=1; d<=daysM; d++) {
         const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const tgt = timeline[k]?.target || 0; const qData = db.q[k] || {};
         
-        if ((o.s > 0) || (qData.start && !o.abs && o.st !== 'Ledig' && o.st !== 'Semester')) wDays++;
+        if ((o.s > 0) || (qData.start && !o.abs && o.st !== 'Ledig' && o.st !== 'Semester')) { wDays++; f_work.push(k); }
         if (o.abs && !o.abs.includes('Semester') && o.abs !== 'Åtgärd krävs') { aDays++; let baseAbs = o.abs.split(' ')[0]; absCounts[baseAbs] = (absCounts[baseAbs] || 0) + 1; }
+        if (o.abs && o.abs !== 'Åtgärd krävs') { f_abs.push(k); const full = o.abs; (f_reasons[full] = f_reasons[full] || []).push(k); }
         
         if (o.s > 0) {
-            if (o.s > bestS) { bestS = o.s; bestD = `${d}/${cm}`; }
-            if (o.s < worstS) { worstS = o.s; worstD = `${d}/${cm}`; }
+            if (o.s > bestS) { bestS = o.s; bestD = `${d}/${cm}`; f_bestKey = k; }
+            if (o.s < worstS) { worstS = o.s; worstD = `${d}/${cm}`; f_worstKey = k; }
         }
         
-        if (tgt > 0 && o.s >= tgt) { streak++; if (streak > maxStreak) maxStreak = streak; } else if (tgt > 0 && o.s < tgt && !o.abs) { streak = 0; }
+        if (tgt > 0 && o.s >= tgt) { streak++; if (streak > maxStreak) maxStreak = streak; f_green.push(k); } else if (tgt > 0 && o.s < tgt && !o.abs) { streak = 0; }
 
         if (o.eval) {
             totalEvals++; let ev = typeof o.eval === 'string' ? JSON.parse(o.eval) : o.eval;
@@ -2345,22 +2503,34 @@ function calculateSummaryStats() {
 
             if (!weeklySalesMap[weekKey]) weeklySalesMap[weekKey] = 0;
             weeklySalesMap[weekKey] += sales;
+            (weekKeyMap[weekKey] = weekKeyMap[weekKey] || []).push(k);
         }
     }
 
-    let bestWk = 0; let bestWkLbl = "--";
+    let bestWk = 0; let bestWkLbl = "--"; let bestWkKey = null;
     for (const [wKey, wSum] of Object.entries(weeklySalesMap)) {
         if (wSum > bestWk) {
             bestWk = wSum;
             bestWkLbl = "V." + wKey.split('-W')[1];
+            bestWkKey = wKey;
         }
     }
     document.getElementById('sum-bestweek-val').innerText = (bestWk/1000).toFixed(1) + "k"; document.getElementById('sum-bestweek-lbl').innerText = bestWkLbl;
+
+    // Spara nyckelmängder för sammanfattningens fokusåtgärder
+    summaryFocus = {
+        work: f_work, abs: f_abs, green: f_green, reasons: f_reasons,
+        best: f_bestKey ? [f_bestKey] : [], worst: f_worstKey ? [f_worstKey] : [],
+        week: bestWkKey ? (weekKeyMap[bestWkKey] || []) : []
+    };
     
     const absDetails = document.getElementById('sum-abs-details'); const absList = document.getElementById('sum-abs-list');
-    if (Object.keys(absCounts).length > 0) {
-        absDetails.classList.remove('hidden'); let h = ""; const em = { 'Sjuk': '🤒', 'VAB': '👶', 'Föräldraledig': '🍼' };
-        for(let a in absCounts) { h += `<div class="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border border-slate-100"><span class="text-[9px] font-black uppercase tracking-wider text-slate-600">${em[a] || '⚠️'} ${a}</span><span class="text-[10px] font-black text-slate-800">${absCounts[a]} st</span></div>`; }
+    if (Object.keys(f_reasons).length > 0) {
+        absDetails.classList.remove('hidden'); let h = "";
+        for (let a in f_reasons) {
+            const cnt = f_reasons[a].length;
+            h += `<button onclick="focusFromSummary('reason','${a.replace(/'/g,"\\'")}')" class="sum-reason-row"><span class="sum-reason-name">${focusEmoji(a)} ${a}</span><span class="sum-reason-cnt">${cnt} st <span class="material-symbols-rounded">chevron_right</span></span></button>`;
+        }
         absList.innerHTML = h;
     } else { absDetails.classList.add('hidden'); }
 

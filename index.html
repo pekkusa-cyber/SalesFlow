@@ -48,23 +48,24 @@
     <!-- ANTECKNINGAR -->
     <div id="notes-modal" class="md-scrim fixed inset-0 z-[8000] hidden flex items-stretch justify-center opacity-0 transition-opacity duration-300">
         <div class="md-dialog notes-fullscreen w-full max-w-[480px]">
-            <div class="md-dialog-header">
-                <h2 class="md-dialog-title">Anteckningar</h2>
-                <button onclick="closeNotesModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
+            <div class="notes-head">
+                <h2 class="notes-title">Anteckningar</h2>
+                <span class="notes-sub">Kundinfo &amp; uppgifter</span>
             </div>
 
-            <div class="md-form-card">
-                <div class="flex gap-2 items-center w-full">
-                    <button onclick="document.getElementById('camera-input').click()" class="md-btn-cam flex-1 md-btn-icon-text" data-testid="btn-camera">
+            <div class="notes-body">
+                <div class="notes-imgrow">
+                    <button onclick="document.getElementById('camera-input').click()" class="notes-imgbtn" data-testid="btn-camera">
                         <span class="material-symbols-rounded">photo_camera</span> Kamera
                     </button>
-                    <button onclick="document.getElementById('gallery-input').click()" class="md-btn-gal flex-1 md-btn-icon-text" data-testid="btn-gallery">
+                    <button onclick="document.getElementById('gallery-input').click()" class="notes-imgbtn" data-testid="btn-gallery">
                         <span class="material-symbols-rounded">image</span> Galleri
                     </button>
                     <div id="image-load-spinner" class="md-spinner hidden shrink-0"></div>
                 </div>
                 <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleNoteImageSelect(this)">
                 <input type="file" id="gallery-input" accept="image/*" class="hidden" onchange="handleNoteImageSelect(this)">
+
                 <input type="text" id="note-name" class="md-input" placeholder="Namn / Ämne">
                 <div class="flex gap-2">
                     <input type="tel" id="note-phone" class="md-input w-1/2" placeholder="Telefon">
@@ -73,19 +74,19 @@
                 <div class="flex gap-2">
                     <input type="date" id="note-due" class="md-input w-1/2">
                     <select id="note-prio" class="md-input w-1/2">
-                        <option value="">Ingen Prio</option>
+                        <option value="">Ingen prio</option>
                         <option value="1">🔴 Prio 1 (Hög)</option>
                         <option value="2">🟡 Prio 2 (Medel)</option>
                         <option value="3">🔵 Prio 3 (Låg)</option>
                     </select>
                 </div>
-                <textarea id="note-text" class="md-input min-h-[70px] resize-none" placeholder="Skriv din anteckning här..."></textarea>
-                <button id="note-submit-btn" onclick="addNote()" class="md-btn-filled w-full" data-testid="save-note">Spara anteckning</button>
-            </div>
+                <textarea id="note-text" class="md-input notes-textarea" placeholder="Skriv din anteckning här..."></textarea>
 
-            <button onclick="openSavedNotesModal()" class="md-btn-outlined w-full md-btn-icon-text" data-testid="open-saved-notes">
-                <span class="material-symbols-rounded">folder_open</span> Visa sparade anteckningar
-            </button>
+                <button id="note-submit-btn" onclick="addNote()" class="md-btn-filled w-full" data-testid="save-note">Spara anteckning</button>
+                <button onclick="openSavedNotesModal()" class="md-btn-tonal w-full md-btn-icon-text" data-testid="open-saved-notes">
+                    <span class="material-symbols-rounded">folder_open</span> Visa sparade anteckningar
+                </button>
+            </div>
         </div>
     </div>
 
@@ -151,7 +152,7 @@
 
     <!-- SPARADE ANTECKNINGAR -->
     <div id="saved-notes-modal" class="md-scrim fixed inset-0 z-[36000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="md-dialog w-full max-w-[360px] max-h-[85vh] !p-0 overflow-hidden">
+        <div class="md-dialog w-full max-w-[360px] max-h-[85vh] !p-0 overflow-hidden flex flex-col">
             <div class="md-dialog-header md-dialog-header-bar">
                 <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded text-google-blue">folder</span>Sparade</h2>
                 <button onclick="closeSavedNotesModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
@@ -173,38 +174,38 @@
 
             <div id="summary-stats-view" class="flex flex-col gap-3">
                 <div class="grid grid-cols-2 gap-2">
-                    <div class="md-stat-card md-stat-blue">
+                    <div onclick="focusFromSummary('work')" class="md-stat-card md-stat-blue sum-clickable">
                         <span class="md-stat-lbl">Pass / Jobb</span>
                         <span id="sum-workdays" class="md-stat-val">0</span>
                     </div>
-                    <div class="md-stat-card md-stat-yellow">
+                    <div onclick="focusFromSummary('abs')" class="md-stat-card md-stat-yellow sum-clickable">
                         <span class="md-stat-lbl">Frånvaro</span>
                         <span id="sum-absdays" class="md-stat-val">0</span>
                     </div>
-                    <div class="md-stat-card md-stat-green">
+                    <div onclick="focusFromSummary('best')" class="md-stat-card md-stat-green sum-clickable">
                         <span class="md-stat-lbl">Bästa dag</span>
                         <span id="sum-bestday-val" class="md-stat-val">0k</span>
                         <span id="sum-bestday-lbl" class="md-stat-sub">--</span>
                     </div>
-                    <div class="md-stat-card md-stat-red">
+                    <div onclick="focusFromSummary('worst')" class="md-stat-card md-stat-red sum-clickable">
                         <span class="md-stat-lbl">Sämsta dag</span>
                         <span id="sum-worstday-val" class="md-stat-val">0k</span>
                         <span id="sum-worstday-lbl" class="md-stat-sub">--</span>
                     </div>
                 </div>
 
-                <div class="md-row-card md-row-blue">
+                <div onclick="focusFromSummary('green')" class="md-row-card md-row-blue sum-clickable">
                     <div class="flex flex-col">
                         <span class="md-row-title">Grön streak (mål nått)</span>
-                        <span class="md-row-sub">Längsta raden av gröna dagar</span>
+                        <span class="md-row-sub">Markera alla gröna dagar</span>
                     </div>
                     <span id="sum-streak" class="md-row-val">0 🔥</span>
                 </div>
 
-                <div id="sum-bestweek-container" class="md-row-card md-row-indigo">
+                <div id="sum-bestweek-container" onclick="focusFromSummary('week')" class="md-row-card md-row-indigo sum-clickable">
                     <div class="flex flex-col">
                         <span class="md-row-title">Bästa veckan</span>
-                        <span class="md-row-sub">Starkaste kalenderveckan</span>
+                        <span class="md-row-sub">Markera hela veckan</span>
                     </div>
                     <div class="text-right">
                         <span id="sum-bestweek-val" class="md-row-val block">0k</span>
@@ -556,11 +557,18 @@
                         </button>
                     </div>
 
+                    <div class="cal-seg-bar">
+                        <div class="cal-seg">
+                            <button data-seg="month" class="active" onclick="calSegTap('month')"><span class="seg-normal"><span class="material-symbols-rounded">calendar_month</span> Kalender</span><span class="seg-focus"><span class="material-symbols-rounded">grid_view</span> Visa alla</span></button>
+                            <button data-seg="absence" onclick="calSegTap('absence')"><span class="seg-normal"><span class="material-symbols-rounded">event_busy</span> Frånvaro</span><span class="seg-focus"><span class="material-symbols-rounded">arrow_back</span> Tillbaka</span></button>
+                        </div>
+                    </div>
+
                     <!-- SYMBOL-VERKTYGSRAD (markera dag/dagar → registrera) -->
                     <div id="cal-symbol-bar" class="cal-symbol-bar">
-                        <button onclick="calAmountEdit()" id="cal-amount-chip" class="cal-amount-chip" title="Redigera belopp">
-                            <span id="month-sales-text" class="cal-amount-val">0 kr</span>
-                            <span class="material-symbols-rounded cal-amount-ic">edit</span>
+                        <button onclick="calToSales()" id="cal-sales-btn" class="cal-sales-btn" title="Öppna dagsvyn">
+                            <span class="material-symbols-rounded">point_of_sale</span>
+                            <span>Försäljning</span>
                         </button>
                         <div class="cal-symbol-group">
                             <button onclick="calApply('Ledig')" class="cal-sym-btn" title="Ledig">🏠</button>
@@ -571,6 +579,8 @@
                             <button onclick="calApply('delete')" class="cal-sym-btn cal-sym-del" title="Radera">🗑️</button>
                         </div>
                     </div>
+                    <!-- FOKUS-INFO (visas i fokusläge där symbolraden annars är) -->
+                    <div id="focus-info" class="focus-info"></div>
 
                     <div class="sheet-content">
                         <div id="pane-month" class="dash-view-pane h-full flex flex-col overflow-hidden p-1.5">
@@ -596,6 +606,13 @@
                         <button onclick="sheetNav(1)" class="sheet-nav-btn" data-testid="sheet-absence-next">
                             <span class="material-symbols-rounded">chevron_right</span>
                         </button>
+                    </div>
+
+                    <div class="cal-seg-bar">
+                        <div class="cal-seg">
+                            <button data-seg="month" onclick="calSeg('month')"><span class="material-symbols-rounded">calendar_month</span> Kalender</button>
+                            <button data-seg="absence" class="active" onclick="calSeg('absence')"><span class="material-symbols-rounded">event_busy</span> Frånvaro</button>
+                        </div>
                     </div>
 
                     <!-- SYMBOL-FILTER (tona ner övriga) -->
@@ -648,7 +665,7 @@
                                     <button data-av="30" onclick="lonSetAvdrag(30)">30 %</button>
                                 </div>
                             </div>
-                            <button onclick="openLonSettings()" class="md-btn-outlined w-full md-btn-icon-text"><span class="material-symbols-rounded">settings</span> Bilagor &amp; bonusspann</button>
+                            <button onclick="openLonSettings()" class="md-btn-outlined w-full md-btn-icon-text" style="margin-top:20px"><span class="material-symbols-rounded">settings</span> Bilagor &amp; bonusspann</button>
                         </div>
                         <!-- Dolda auto-fält -->
                         <div class="hidden">
@@ -660,31 +677,32 @@
                 </div>
             </div>
 
-            <!-- ===== BOTTEN-NAVIGERING ===== -->
-            <nav id="app-bottom-nav" class="app-bottom-nav" data-testid="bottom-nav">
-                <button onclick="navTo('dash')" data-nav="dash" class="bn-item is-active" data-testid="nav-home">
-                    <span class="material-symbols-rounded bn-ic">home</span>
-                    <span class="bn-lbl">Hem</span>
-                </button>
-                <button onclick="navTo('month')" data-nav="month" class="bn-item" data-testid="nav-calendar">
-                    <span class="material-symbols-rounded bn-ic">calendar_month</span>
-                    <span class="bn-lbl">Kalender</span>
-                </button>
-                <button onclick="navTo('absence')" data-nav="absence" class="bn-item" data-testid="nav-absence">
-                    <span class="material-symbols-rounded bn-ic">event_busy</span>
-                    <span class="bn-lbl">Frånvaro</span>
-                </button>
-                <button onclick="navTo('lon')" data-nav="lon" class="bn-item" data-testid="nav-lon">
-                    <span class="material-symbols-rounded bn-ic">payments</span>
-                    <span class="bn-lbl">Lön</span>
-                </button>
-                <button onclick="navTo('notes')" data-nav="notes" class="bn-item" data-testid="nav-notes">
-                    <span class="material-symbols-rounded bn-ic">sticky_note_2</span>
-                    <span class="bn-lbl">Anteckningar</span>
-                </button>
-            </nav>
         </div>
     </div>
+
+    <!-- ===== BOTTEN-NAVIGERING (på body-nivå → ligger alltid ovanför helskärmsvyerna) ===== -->
+    <nav id="app-bottom-nav" class="app-bottom-nav" data-testid="bottom-nav">
+        <button onclick="navTo('absence')" data-nav="absence" class="bn-item" data-testid="nav-absence">
+            <span class="material-symbols-rounded bn-ic">event_busy</span>
+            <span class="bn-lbl">Frånvaro</span>
+        </button>
+        <button onclick="navTo('month')" data-nav="month" class="bn-item" data-testid="nav-calendar">
+            <span class="material-symbols-rounded bn-ic">calendar_month</span>
+            <span class="bn-lbl">Kalender</span>
+        </button>
+        <button onclick="navTo('dash')" data-nav="dash" class="bn-item bn-home is-active" data-testid="nav-home">
+            <span class="material-symbols-rounded bn-ic">home</span>
+            <span class="bn-lbl">Hem</span>
+        </button>
+        <button onclick="navTo('lon')" data-nav="lon" class="bn-item" data-testid="nav-lon">
+            <span class="material-symbols-rounded bn-ic">payments</span>
+            <span class="bn-lbl">Lön</span>
+        </button>
+        <button onclick="navTo('notes')" data-nav="notes" class="bn-item" data-testid="nav-notes">
+            <span class="material-symbols-rounded bn-ic">sticky_note_2</span>
+            <span class="bn-lbl">Anteckningar</span>
+        </button>
+    </nav>
 
     <script src="script.js"></script>
     <script>
@@ -764,7 +782,26 @@
                 if (b.getAttribute('data-nav') === name) b.setAttribute('data-sheet', isFull() ? 'full' : 'peek');
                 else b.removeAttribute('data-sheet');
             });
+            updateSegActive(name);
         }
+        function updateSegActive(name) {
+            const seg = (name === 'absence') ? 'absence' : 'month';
+            document.querySelectorAll('.cal-seg button').forEach(function(b){
+                b.classList.toggle('active', b.getAttribute('data-seg') === seg);
+            });
+        }
+        // Segment-växel Kalender <-> Frånvaro (alltid helvy – ingen mini)
+        window.calSeg = function(which) {
+            openSheet(which, { full: true });
+        };
+        // Klick på segment-knapparna: i fokusläge = Visa alla / Tillbaka
+        window.calSegTap = function(which) {
+            if (document.body.classList.contains('focus-mode-active')) {
+                if (which === 'month')   { if (typeof window.closeFocusMode === 'function') window.closeFocusMode(true); return; }
+                if (which === 'absence') { if (typeof window.absFocusBack === 'function') window.absFocusBack(); return; }
+            }
+            window.calSeg(which);
+        };
         window.updateNavSheetState = updateNavSheetState;
 
         window.closeActiveSheet = function() {
@@ -790,19 +827,30 @@
             updateNavSheetState();
         }
 
-        // ---------- Bottenmeny: varje flik = egen helskärmsvy ----------
+        // ---------- Bottenmeny ----------
         window.navTo = function(target) {
             if (typeof window.closeLonSettings === 'function') window.closeLonSettings();
-            const map = { month: sheetMonth, absence: sheetAbsence, lon: sheetLon };
-            if (map[target]) {
+            // Kalender & Frånvaro: ingen mini – öppna direkt i helvy, toggla öppna/stäng
+            if (target === 'month' || target === 'absence') {
+                const sheet = (target === 'month') ? sheetMonth : sheetAbsence;
                 if (notesOpen() && _closeNotes) _closeNotes();
-                openSheet(target, { full: true });   // alltid helskärm
+                if (activeSheet() === sheet) { closeSheet(); }
+                else { openSheet(target, { full: true }); }
+                return;
+            }
+            // Lön: behåller mini → hel → toggle
+            if (target === 'lon') {
+                if (notesOpen() && _closeNotes) _closeNotes();
+                if (activeSheet() === sheetLon) { isFull() ? collapseSheet() : expandSheet(); }
+                else { openSheet('lon', { forcePeek: true }); }
                 return;
             }
             if (notesOpen() && _closeNotes) _closeNotes();
-            if (target === 'notes') { closeSheet(); if (_openNotes) _openNotes(); setActiveNav('notes'); return; }
+            if (target === 'notes') { closeSheet(); if (_openNotes) _openNotes(); setActiveNav('notes'); pushHist(); return; }
             if (target === 'dash')  { closeSheet(); if (typeof toggleDashMode === 'function') toggleDashMode(); }
         };
+        // Öppna kalendern i helvy + fokusläge (för sammanfattningens fokusåtgärder)
+        window.openMonthFocus = function() { openSheet('month', { full: true }); };
 
         // ---------- Header-pilar i sheet ----------
         window.sheetNav = function(dir) {
@@ -826,8 +874,12 @@
         // ---------- Bakåtknapp (Android) ----------
         let histDepth = 0;
         function pushHist() { try { history.pushState({ sf: ++histDepth }, ''); } catch (e) {} }
+        window.sfPushHist = pushHist;
         window.addEventListener('popstate', function() {
             if (typeof window.lonSettingsOpen === 'function' && window.lonSettingsOpen()) { window.closeLonSettings(); return; }
+            const sn = document.getElementById('saved-notes-modal');
+            if (sn && !sn.classList.contains('hidden')) { if (typeof window.closeSavedNotesModal === 'function') window.closeSavedNotesModal(); return; }
+            if (document.body.classList.contains('focus-mode-active')) { if (typeof window.closeFocusMode === 'function') window.closeFocusMode(true); return; }
             if (notesOpen()) { window.closeNotesModal(); return; }
             if (activeSheet()) { isFull() ? collapseSheet() : closeSheet(); }
         });
@@ -841,6 +893,7 @@
 
         // ---------- Gest: drag i strecket / titelytan ----------
         function attachGesture(sheetEl) {
+            const noMini = (sheetEl === sheetMonth || sheetEl === sheetAbsence); // Kalender/Frånvaro: ingen mini
             const grips = [ sheetEl.querySelector('.sheet-handle'), sheetEl.querySelector('.sheet-title-area') ];
             let startY = 0, startX = 0, dy = 0, dx = 0, dragging = false, moved = false;
             function start(e) {
@@ -865,10 +918,10 @@
                 dragging = false;
                 sheetEl.style.transition = '';
                 sheetEl.style.transform = '';
-                if (!moved) { isFull() ? collapseSheet() : expandSheet(); return; }   // tap = toggla
+                if (!moved) { if (noMini) closeSheet(); else { isFull() ? collapseSheet() : expandSheet(); } return; }   // tap = toggla / stäng
                 if (Math.abs(dy) <= Math.abs(dx)) return;                              // horisontellt = ignorera
-                if (dy < -40) { if (!isFull()) expandSheet(); }
-                else if (dy > 60) { isFull() ? collapseSheet() : closeSheet(); }
+                if (dy < -40) { if (!isFull() && !noMini) expandSheet(); }
+                else if (dy > 60) { if (noMini) closeSheet(); else { isFull() ? collapseSheet() : closeSheet(); } }
             }
             grips.forEach(function(g) {
                 if (!g) return;

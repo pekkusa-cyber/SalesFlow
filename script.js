@@ -11,6 +11,8 @@ currentWeekStart.setDate(currentWeekStart.getDate() - startDayOffset + 1);
 currentWeekStart.setHours(0,0,0,0);
 let multiSelectKeys = new Set();
 let currentFocusReason = null;
+let focusKeySet = null;
+let summaryFocus = null;
 let pendingAbsenceType = null;
 let pendingAbsenceSource = null;
 
@@ -444,7 +446,7 @@ async function loadAllData() {
         const response = await fetch("https://raw.githubusercontent.com/pekkusa-cyber/SalesFlow/main/schema.ics?t=" + Date.now()); 
         if(!response.ok) throw new Error("Kunde inte hämta ICS"); const text = await response.text();
         
-        db.q = {}; const lines = text.split(/\r?\n/); let inEvent = false; let event = {}; let fullDesc = "";
+        db.q = {}; invalidateScheduleCache(); const lines = text.split(/\r?\n/); let inEvent = false; let event = {}; let fullDesc = "";
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
             if (line === "BEGIN:VEVENT") { inEvent = true; event = {}; fullDesc = ""; } 
@@ -521,7 +523,9 @@ function setMode(mode) {
     if(numpadTarget) closeNumpad();
     
     viewMode = mode; 
-    document.body.className = `mode-${mode} ${currentFocusReason ? 'focus-mode-active' : ''}`;
+    document.body.classList.remove('mode-dash', 'mode-month', 'mode-absence');
+    document.body.classList.add(`mode-${mode}`);
+    document.body.classList.toggle('focus-mode-active', !!currentFocusReason);
 
     ['dash', 'month', 'absence'].forEach(m => {
         const b = document.getElementById(`tab-${m}`);
@@ -531,7 +535,7 @@ function setMode(mode) {
         }
     });
 
-    if (mode === 'dash' && !activeK) { activeK = getK(realToday); }
+    // Dagens dag visas som ring (ej förvald) – väljs först vid tryck
     
     calculateTimeline(); 
     updateDash();
@@ -549,7 +553,9 @@ function setMode(mode) {
 }
 
 function toggleDashMode() {
-    activeK = getK(realToday); 
+    const todayK = getK(realToday);
+    const alreadyToday = (viewMode === 'dash' && activeK === todayK);
+    activeK = alreadyToday ? null : todayK;   // toggle: markera/avmarkera idag
     currentWeekStart = new Date(realToday);
     const sdo = currentWeekStart.getDay() || 7; 
     currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); 
@@ -642,14 +648,12 @@ function goToDayFromMonth(k) {
 function syncTodayBlue() {
     const todayK = getK(realToday);
     document.querySelectorAll('.vp-cell').forEach(c => {
-        if (c.dataset.key === todayK) {
-            if (!activeK || activeK === todayK) c.classList.add('status-today');
-            else c.classList.remove('status-today');
-        }
+        if (c.dataset.key === todayK) c.classList.add('status-today'); // ringen finns alltid
     });
 }
 function selectDay(k, el, e) {
     e.stopPropagation();
+    if (document.body.classList.contains('focus-mode-active')) { focusShowDay(k, el); return; }
     if (viewMode === 'month') {
         if (multiSelectKeys.has(k)) { multiSelectKeys.delete(k); el.classList.remove('active-focus'); } else { multiSelectKeys.add(k); el.classList.add('active-focus'); }
         updateCalToolbar();
@@ -972,7 +976,7 @@ function createSliderCell(cd, k) {
     else if (qData.start) { cls += ' type-planned'; }
 
     if (isPast) { cls += ' vp-past'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; } 
-    else if (isToday && (!activeK || activeK === k)) { cls += ' status-today'; }
+    else if (isToday) { cls += ' status-today'; }   // dagens dag har alltid sin ring
 
     if (activeK === k) cls += ' active-focus';
     if (currentFocusReason && o.abs && o.abs.includes(currentFocusReason)) cls += ' focus-highlight';
@@ -981,15 +985,15 @@ function createSliderCell(cd, k) {
     const dayName = dayNames[cd.getDay()];
     
     let valStr = '';
-    let now = new Date();
-    let startH = qData.start ? parseInt(qData.start.split(':')[0]) : 10;
-    let startM = qData.start ? parseInt(qData.start.split(':')[1]) : 0;
-    let endH = qData.end ? parseInt(qData.end.split(':')[0]) : 19;
-    let endM = qData.end ? parseInt(qData.end.split(':')[1]) : 0;
-    let shiftStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM);
-    let shiftEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
-    
-    let isShiftActive = (isToday && qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester' && now >= shiftStart && now < shiftEnd);
+    let isShiftActive = false;
+    if (isToday && qData.start) {
+        const now = new Date();
+        const startH = parseInt(qData.start.split(':')[0]), startM = parseInt(qData.start.split(':')[1]);
+        const endH = qData.end ? parseInt(qData.end.split(':')[0]) : 19, endM = qData.end ? parseInt(qData.end.split(':')[1]) : 0;
+        const shiftStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM);
+        const shiftEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
+        isShiftActive = (state !== 'absent' && state !== 'ledig' && state !== 'semester' && now >= shiftStart && now < shiftEnd);
+    }
     let liveDot = isShiftActive ? '<span class="live-dot"></span>' : '';
 
     // Försäljning visas ALLTID om den finns, oavsett frånvaro
@@ -1057,14 +1061,15 @@ function createDayCell(cd, k) {
     const isPast = cd < realToday, isToday = cd.getTime() === realToday.getTime(), state = getCellState(k);
     const dayOfWeek = cd.getDay(); 
     
-    let now = new Date();
-    let startH = qData.start ? parseInt(qData.start.split(':')[0]) : 10;
-    let startM = qData.start ? parseInt(qData.start.split(':')[1]) : 0;
-    let endH = qData.end ? parseInt(qData.end.split(':')[0]) : 19;
-    let endM = qData.end ? parseInt(qData.end.split(':')[1]) : 0;
-    let shiftStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM);
-    let shiftEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
-    let isShiftActive = (isToday && qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester' && now >= shiftStart && now < shiftEnd);
+    let isShiftActive = false;
+    if (isToday && qData.start) {
+        const now = new Date();
+        const startH = parseInt(qData.start.split(':')[0]), startM = parseInt(qData.start.split(':')[1]);
+        const endH = qData.end ? parseInt(qData.end.split(':')[0]) : 19, endM = qData.end ? parseInt(qData.end.split(':')[1]) : 0;
+        const shiftStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM);
+        const shiftEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
+        isShiftActive = (state !== 'absent' && state !== 'ledig' && state !== 'semester' && now >= shiftStart && now < shiftEnd);
+    }
     
     if (dayOfWeek === 1 && viewMode === 'month') wt = `<div class="week-tag">${getWeekNumber(cd)}</div>`;
     
@@ -1077,18 +1082,8 @@ function createDayCell(cd, k) {
         if (isClosing) {
             b += `<div class="u-badge badge-key">🔑</div>`;
         } else {
-            let endCounts = {};
-            for (let k2 in db.q) {
-                const qd2 = db.q[k2];
-                if (!qd2.end) continue;
-                const d2 = new Date(k2.split('-')[0], k2.split('-')[1]-1, k2.split('-')[2]);
-                if (d2.getDay() !== dayOfWeek) continue;
-                const e = qd2.end.substring(0,5);
-                if (e === '19:30' || e === '16:30') continue;
-                endCounts[e] = (endCounts[e] || 0) + 1;
-            }
-            let normalEnd = null, maxCount = 0;
-            for (let t2 in endCounts) { if (endCounts[t2] > maxCount) { maxCount = endCounts[t2]; normalEnd = t2; } }
+            if (!_normalEndCache) _normalEndCache = computeNormalEndByWeekday();
+            const normalEnd = _normalEndCache[dayOfWeek];
             if (normalEnd && qData.end.substring(0,5) !== normalEnd) {
                 b += `<div class="u-badge badge-key">🔀</div>`;
             }
@@ -1102,24 +1097,48 @@ function createDayCell(cd, k) {
     
     if (isToday) cls += ' status-today';
     if (viewMode === 'month' && multiSelectKeys.has(k)) { cls += ' active-focus'; } else if (viewMode !== 'month' && activeK === k) { cls += ' active-focus'; }
-    if (currentFocusReason && o.abs && o.abs.includes(currentFocusReason)) { cls += ' focus-highlight'; }
+    if (currentFocusReason && currentFocusReason !== '__day__' && o.abs && o.abs.includes(currentFocusReason) && cd.getMonth() === viewDate.getMonth() && cd.getFullYear() === viewDate.getFullYear()) { cls += ' focus-highlight'; }
+    if (focusKeySet && focusKeySet.has(k)) { cls += ' focus-highlight'; }
     
     const cell = document.createElement('div'); cell.className = cls; cell.dataset.key = k; cell.onclick = (e) => selectDay(k, cell, e);
     cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[6px] text-center tracking-tighter">${b}${content}</div>`; return cell;
 }
 
+// Cachar "normalt sluttid per veckodag" så avvikelse-badgen inte räknar om allt per cell
+let _normalEndCache = null;
+function computeNormalEndByWeekday() {
+    const counts = {};
+    for (let k2 in db.q) {
+        const qd2 = db.q[k2]; if (!qd2.end) continue;
+        const p = k2.split('-'); const wd = new Date(p[0], p[1]-1, p[2]).getDay();
+        const e = qd2.end.substring(0,5);
+        if (e === '19:30' || e === '16:30') continue;
+        (counts[wd] = counts[wd] || {}); counts[wd][e] = (counts[wd][e] || 0) + 1;
+    }
+    const best = {};
+    for (let wd in counts) { let ne = null, mc = 0; for (let t2 in counts[wd]) { if (counts[wd][t2] > mc) { mc = counts[wd][t2]; ne = t2; } } best[wd] = ne; }
+    return best;
+}
+function invalidateScheduleCache() { _normalEndCache = null; }
+
 function renderCal(y, m) { 
-    const g = document.getElementById('d-cal'); if(!g) return; g.innerHTML = ''; 
+    const g = document.getElementById('d-cal'); if(!g) return;
+    _normalEndCache = computeNormalEndByWeekday();
+    const frag = document.createDocumentFragment();
     const lastDate = new Date(y, m, 0).getDate(); const firstDay = new Date(y, m-1, 1).getDay() || 7; const prevMonthLastDate = new Date(y, m-1, 0).getDate();
-    for(let i = 1; i < firstDay; i++) { const d = prevMonthLastDate - (firstDay - 1) + i; const cell = document.createElement('div'); cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none'; cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`; g.appendChild(cell); } 
-    for(let d=1; d<=lastDate; d++) g.appendChild(createDayCell(new Date(y, m-1, d), `${y}-${m}-${d}`)); 
+    for(let i = 1; i < firstDay; i++) { const d = prevMonthLastDate - (firstDay - 1) + i; const cell = document.createElement('div'); cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none'; cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`; frag.appendChild(cell); } 
+    for(let d=1; d<=lastDate; d++) frag.appendChild(createDayCell(new Date(y, m-1, d), `${y}-${m}-${d}`)); 
     const totalCellsSoFar = (firstDay - 1) + lastDate; const remainingCells = 42 - totalCellsSoFar;
-    for(let d=1; d<=remainingCells; d++) { const cell = document.createElement('div'); cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none'; cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`; g.appendChild(cell); }
+    for(let d=1; d<=remainingCells; d++) { const cell = document.createElement('div'); cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none'; cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`; frag.appendChild(cell); }
+    g.replaceChildren(frag);
 }
 
 function populateSlide(cId, sD) { 
-    const c = document.getElementById(cId); if(!c) return; c.innerHTML = ''; 
-    for(let i=0; i<7; i++) { const cd = new Date(sD); cd.setDate(cd.getDate() + i); c.appendChild(createSliderCell(cd, getK(cd))); } 
+    const c = document.getElementById(cId); if(!c) return;
+    if (!_normalEndCache) _normalEndCache = computeNormalEndByWeekday();
+    const frag = document.createDocumentFragment();
+    for(let i=0; i<7; i++) { const cd = new Date(sD); cd.setDate(cd.getDate() + i); frag.appendChild(createSliderCell(cd, getK(cd))); } 
+    c.replaceChildren(frag);
 }
 
 function renderWeekSlides() { populateSlide('slide-curr', currentWeekStart); }
@@ -1132,20 +1151,11 @@ function absFilter(type) {
 }
 function absFilterClear() { absFilterSet.clear(); applyAbsFilter(); updateAbsFilterButtons(); }
 function applyAbsFilter() {
-    document.querySelectorAll('#pane-absence .abs-card[data-abs]').forEach(c => {
+    document.querySelectorAll('#pane-absence .abs-type[data-abs]').forEach(c => {
         const t = c.getAttribute('data-abs');
-        if (absFilterSet.size === 0 || absFilterSet.has(t)) c.classList.remove('abs-dim');
-        else c.classList.add('abs-dim');
-    });
-    let anyVisible = false;
-    document.querySelectorAll('#pane-absence .abs-sum-row[data-abs]').forEach(r => {
-        const t = r.getAttribute('data-abs');
         const show = absFilterSet.size === 0 || absFilterSet.has(t);
-        r.style.display = show ? '' : 'none';
-        if (show) anyVisible = true;
+        c.style.display = show ? '' : 'none';
     });
-    const card = document.getElementById('abs-summary-card');
-    if (card) card.style.display = anyVisible ? '' : 'none';
 }
 function updateAbsFilterButtons() {
     document.querySelectorAll('.abs-fil-btn').forEach(b => {
@@ -1155,36 +1165,171 @@ function updateAbsFilterButtons() {
 
 function renderAbsence() {
     const pane = document.getElementById('pane-absence'); if(!pane) return;
-    const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate(); let absCounts = {}; let absListHTML = ''; let totalAbs = 0; const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lörsdag'];
-    const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; const col = { 'Sjuk': 'text-rose-600', 'VAB': 'text-amber-600', 'VAB Belma': 'text-amber-600', 'VAB Wilma': 'text-amber-600', 'Föräldraledig': 'text-purple-600', 'Föräldraledig Belma': 'text-purple-600', 'Föräldraledig Wilma': 'text-purple-600', 'Semester': 'text-teal-600', 'Tjänstledig': 'text-slate-600', 'Åtgärd krävs': 'text-rose-600' }; const bgClass = { 'Sjuk': 'bg-rose-50', 'VAB': 'bg-amber-50', 'VAB Belma': 'bg-amber-50', 'VAB Wilma': 'bg-amber-50', 'Föräldraledig': 'bg-purple-50', 'Föräldraledig Belma': 'bg-purple-50', 'Föräldraledig Wilma': 'bg-purple-50', 'Semester': 'bg-teal-50', 'Tjänstledig': 'bg-slate-50', 'Åtgärd krävs': 'bg-rose-50' };
-
+    const cm = viewDate.getMonth() + 1; const cy = viewDate.getFullYear(); const daysM = new Date(cy, cm, 0).getDate();
+    const daysShort = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+    const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' };
+    const col = { 'Sjuk': 'text-rose-600', 'VAB': 'text-amber-600', 'VAB Belma': 'text-amber-600', 'VAB Wilma': 'text-amber-600', 'Föräldraledig': 'text-purple-600', 'Föräldraledig Belma': 'text-purple-600', 'Föräldraledig Wilma': 'text-purple-600', 'Semester': 'text-teal-600', 'Tjänstledig': 'text-slate-600', 'Åtgärd krävs': 'text-rose-600' };
+    const types = ['Sjuk','VAB','VAB Belma','VAB Wilma','Föräldraledig','Föräldraledig Belma','Föräldraledig Wilma','Semester','Tjänstledig','Åtgärd krävs'];
+    let groups = {}; let order = []; let totalAbs = 0;
     for (let d = 1; d <= daysM; d++) {
         const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {}; const qData = db.q[k] || {};
-        if (o.abs && ['Sjuk', 'VAB', 'VAB Belma', 'VAB Wilma', 'Föräldraledig', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig', 'Åtgärd krävs'].some(a => o.abs.includes(a))) {
-            let reason = o.abs; absCounts[reason] = (absCounts[reason] || 0) + 1; totalAbs++; const dObj = new Date(cy, cm-1, d); const dayStr = `${daysLong[dObj.getDay()]} ${d}`; let bKey = reason.split(' ')[0]; const icon = em[reason] || em[bKey] || '•'; const tCol = col[reason] || col[bKey] || 'text-slate-500'; const bCol = bgClass[reason] || bgClass[bKey] || 'bg-slate-50';
-            let totalH = 0, actualP = 0, hStr = "0";
-            if (o.fk_perc !== undefined && o.abs_hours && reason !== 'Åtgärd krävs') { 
-                totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours; 
-                actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100; 
+        if (o.abs && types.some(a => o.abs.includes(a))) {
+            const reason = o.abs; totalAbs++;
+            if (!groups[reason]) { groups[reason] = []; order.push(reason); }
+            const dObj = new Date(cy, cm-1, d); const dayStr = `${daysShort[dObj.getDay()]} ${d}`;
+            let hStr = null, actualP = null, fk = null;
+            if (o.fk_perc !== undefined && o.abs_hours && reason !== 'Åtgärd krävs') {
+                const totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours;
+                actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100;
                 hStr = o.abs_hours.toFixed(2).replace('.00','');
+                fk = o.fk_perc;
             }
-            let periodsStr = (qData.ledigPeriods && qData.ledigPeriods.length > 0) 
-                ? qData.ledigPeriods.map(p => `${p.start}–${p.end}`).join('<br>') 
-                : '';
-            const hasToggle = periodsStr !== '';
-            let statsHtml = ""; 
-            if (o.fk_perc !== undefined && o.abs_hours && reason !== 'Åtgärd krävs') { 
-                statsHtml = `<div class="flex items-center gap-2 mt-3"><div ${hasToggle ? `onclick="event.stopPropagation(); const el=this.querySelector('.tb-total'); const el2=this.querySelector('.tb-periods'); el.classList.toggle('hidden'); el2.classList.toggle('hidden');" style="cursor:pointer;"` : ''} class="bg-white border border-slate-100 rounded-xl px-2 py-2 flex flex-col items-center justify-center flex-1 shadow-sm" style="min-height:46px; max-height:46px; overflow:hidden;"><span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Tid Borta</span><span class="tb-total text-[12px] font-black text-slate-700 leading-tight">${hStr} tim</span><span class="tb-periods hidden text-[9px] font-black text-slate-700 leading-tight text-center">${periodsStr}</span></div><div class="bg-white border border-slate-100 rounded-xl px-2 py-2 flex flex-col items-center justify-center flex-1 shadow-sm" style="min-height:46px; max-height:46px; overflow:hidden;"><span class="text-[7.5px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Frånvaro (FK)</span><span class="text-[12px] font-black text-[#0ea5e9]">${actualP}% <span class="text-slate-400 text-[9.5px]">(${o.fk_perc}%)</span></span></div></div>`; 
-            }
-            absListHTML += `<div data-abs="${bKey}" class="abs-card flex flex-col p-3 mb-2 border border-slate-100/60 rounded-[20px] bg-white shadow-sm hover:shadow-md transition-shadow"><div class="flex justify-between items-center"><span class="text-[9.5px] font-black uppercase text-slate-500 tracking-wider flex items-center">${dayStr}</span><span class="text-[10px] font-black ${tCol} ${bCol} border border-slate-100/50 uppercase tracking-widest px-2.5 py-1.5 rounded-lg">${icon} ${reason}</span></div>${statsHtml}</div>`;
+            groups[reason].push({ k, dayStr, hStr, actualP, fk });
         }
     }
     if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
 
-    let summaryHTML = `<div id="abs-summary-card" class="mb-2 bg-white rounded-[20px] border border-slate-200 p-3 shadow-md flex-shrink-0"><h4 class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 border-b border-slate-100 pb-1.5">SAMMANFATTNING</h4>`;
-    for (let reason in absCounts) { let bKey = reason.split(' ')[0]; const icon = em[reason] || em[bKey] || '•'; const tCol = col[reason] || col[bKey] || 'text-slate-500'; summaryHTML += `<div data-abs="${bKey}" onclick="absFilter('${bKey}')" class="abs-sum-row flex justify-between items-center mb-1 last:mb-0 cursor-pointer active:scale-95 transition-transform hover:bg-slate-50 p-1.5 -mx-1.5 rounded-lg"><span class="text-[10px] font-black ${tCol} uppercase tracking-wider">${icon} ${reason}</span><span class="text-[11px] font-black text-slate-800">${absCounts[reason]} dagar</span></div>`; }
-    summaryHTML += `</div>`; pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden">${summaryHTML}<div class="overflow-y-auto hide-scrollbar flex-1 pb-2">${absListHTML}</div></div>`;
+    let html = `<div class="abs-sum-wrap"><h4 class="abs-sum-title">SAMMANFATTNING</h4>`;
+    order.forEach(reason => {
+        const bKey = reason.split(' ')[0]; const icon = em[reason] || em[bKey] || '•'; const tCol = col[reason] || col[bKey] || 'text-slate-500';
+        const days = groups[reason];
+        const rows = days.map(it => {
+            const meta = it.hStr ? `${it.hStr} tim · andel ${it.actualP}%${it.fk ? ` · FK ${it.fk}%` : ''}` : 'heldag';
+            return `<button onclick="absFocusDay('${it.k}','${reason.replace(/'/g,"\\'")}')" class="abs-day-row"><span class="abs-day-when">${it.dayStr}</span><span class="abs-day-meta">${meta}</span><span class="material-symbols-rounded abs-day-arrow">my_location</span></button>`;
+        }).join('');
+        html += `<div class="abs-type" data-abs="${bKey}" data-reason="${reason.replace(/"/g,'&quot;')}">
+            <button class="abs-type-head" onclick="absToggleType(this)">
+                <span class="abs-type-name ${tCol}">${icon} ${reason}</span>
+                <span class="abs-type-right"><span class="abs-type-count">${days.length} ${days.length === 1 ? 'dag' : 'dagar'}</span><span class="material-symbols-rounded abs-type-chev">expand_more</span></span>
+            </button>
+            <div class="abs-type-list">${rows}</div>
+        </div>`;
+    });
+    html += `<button onclick="absAddType()" class="abs-register-btn"><span class="material-symbols-rounded">add</span> Registrera frånvaro</button></div>`;
+    pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden"><div class="overflow-y-auto hide-scrollbar flex-1">${html}</div></div>`;
     applyAbsFilter(); updateAbsFilterButtons();
+}
+function absToggleType(btn) {
+    const t = btn.closest('.abs-type'); if (!t) return;
+    const reason = t.getAttribute('data-reason');
+    if (t.classList.contains('open')) { absFocusType(reason); return; } // redan öppen → fokusera alla dagar
+    t.parentElement.querySelectorAll('.abs-type.open').forEach(x => x.classList.remove('open'));
+    t.classList.add('open');
+}
+let focusReturn = null;
+const FOCUS_EM = { 'Sjuk':'🤒','VAB':'👶','Föräldraledig':'🍼','Semester':'✈️','Tjänstledig':'🏢','Ledig':'🏠','Åtgärd krävs':'⚠️' };
+function focusEmoji(reason){ if(!reason) return '•'; for(const key in FOCUS_EM){ if(reason.includes(key)) return FOCUS_EM[key]; } return '•'; }
+function setFocusInfo(html){ const el=document.getElementById('focus-info'); if(el) el.innerHTML = html || ''; }
+// Fokusera ALLA dagar för en frånvarotyp
+function absFocusType(reason){
+    focusReturn = { reason };
+    currentFocusReason = reason;
+    document.body.classList.add('focus-mode-active');
+    const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1;
+    let n = 0; Object.keys(db.d).forEach(k => { const p = k.split('-'); if (+p[0]===cy && +p[1]===cm) { const o = db.d[k]; if (o && o.abs && o.abs.includes(reason)) n++; } });
+    setFocusInfo(`<span class="fi-emoji">${focusEmoji(reason)}</span><span class="fi-main">${reason}</span><span class="fi-meta">${n} ${n===1?'dag':'dagar'} denna månad</span>`);
+    if (typeof window.calSeg === 'function') window.calSeg('month');
+}
+// Fokusåtgärder från Sammanfattning → markera dagar i kalendern
+function focusFromSummary(type, arg) {
+    const F = summaryFocus || {};
+    let keys = [], emoji = '•', label = '';
+    if (type === 'work') { keys = F.work || []; emoji = '💼'; label = 'Pass / Jobb'; }
+    else if (type === 'abs') { keys = F.abs || []; emoji = '🚫'; label = 'Frånvaro'; }
+    else if (type === 'best') { keys = F.best || []; emoji = '🚀'; label = 'Bästa dag'; }
+    else if (type === 'worst') { keys = F.worst || []; emoji = '📉'; label = 'Sämsta dag'; }
+    else if (type === 'green') { keys = F.green || []; emoji = '🔥'; label = 'Gröna dagar'; }
+    else if (type === 'week') { keys = F.week || []; emoji = '🏆'; label = 'Bästa veckan'; }
+    else if (type === 'reason') { keys = (F.reasons && F.reasons[arg]) || []; emoji = focusEmoji(arg); label = arg; }
+    if (!keys.length) { showToast('ℹ️', 'Inga dagar att visa', 1800); return; }
+    const meta = `${keys.length} ${keys.length === 1 ? 'dag' : 'dagar'} denna månad`;
+    focusKeySet = new Set(keys);
+    currentFocusReason = '__keys__';
+    focusReturn = { summary: true };
+    document.body.classList.add('focus-mode-active');
+    setFocusInfo(`<span class="fi-emoji">${emoji}</span><span class="fi-main">${label}</span><span class="fi-meta">${meta}</span>`);
+    if (typeof closeSummaryModal === 'function') closeSummaryModal();
+    if (typeof window.openMonthFocus === 'function') window.openMonthFocus();
+}
+window.focusFromSummary = focusFromSummary;
+// I fokusläge: tryck på en markerad dag → visa just den dagens detaljer i info-rutan
+function focusShowDay(k, el){
+    const o = db.d[k] || {}; const qData = db.q[k] || {};
+    const parts = k.split('-'); const dObj = new Date(+parts[0], +parts[1]-1, +parts[2]);
+    const dShort = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'][dObj.getDay()];
+    let emoji, main, metaTxt;
+    if (o.abs) {
+        emoji = focusEmoji(o.abs); main = o.abs;
+        if (o.fk_perc !== undefined && o.abs_hours) { const hStr = o.abs_hours.toFixed(2).replace('.00',''); metaTxt = `${dShort} ${parts[2]} · ${hStr} tim · FK ${o.fk_perc}%`; }
+        else metaTxt = `${dShort} ${parts[2]} · heldag`;
+    } else if (o.s > 0) {
+        const tgt = (timeline[k] && timeline[k].target) || 0;
+        emoji = (tgt > 0 && o.s >= tgt) ? '🔥' : '💰'; main = `${(o.s/1000).toFixed(1)}k`;
+        metaTxt = tgt > 0 ? `${dShort} ${parts[2]} · mål ${(tgt/1000).toFixed(1)}k` : `${dShort} ${parts[2]}`;
+    } else {
+        emoji = '📅'; main = `${dShort} ${parts[2]}`; metaTxt = '';
+    }
+    setFocusInfo(`<span class="fi-emoji">${emoji}</span><span class="fi-main">${main}</span><span class="fi-meta">${metaTxt}</span>`);
+    document.querySelectorAll('#d-cal .day-cell').forEach(c => c.classList.remove('active-focus'));
+    if (el) el.classList.add('active-focus');
+}
+
+// I fokusläge: tryck på en enskild dag → fokusera just den dagen i kalendern
+// I fokusläge: tryck på en enskild dag → fokusera just den dagen i kalendern
+function absFocusDay(k, reason) {
+    focusReturn = { reason: reason || null };
+    currentFocusReason = '__day__';
+    document.body.classList.add('focus-mode-active');
+    const o = db.d[k] || {}; const qData = db.q[k] || {};
+    const parts = k.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]);
+    const r = o.abs || reason || '';
+    let metaTxt;
+    if (o.fk_perc !== undefined && o.abs_hours) {
+        const hStr = o.abs_hours.toFixed(2).replace('.00','');
+        metaTxt = `${hStr} tim · ${o.fk_perc}%`;
+    } else {
+        metaTxt = `heldag`;
+    }
+    setFocusInfo(`<span class="fi-emoji">${focusEmoji(r)}</span><span class="fi-main">${r}</span><span class="fi-meta">${metaTxt}</span>`);
+    if (typeof window.calSeg === 'function') window.calSeg('month');
+    setTimeout(() => {
+        document.querySelectorAll('#d-cal .day-cell').forEach(c => {
+            if (c.dataset.key === k) c.classList.add('focus-highlight'); else c.classList.remove('focus-highlight');
+        });
+        const cell = document.querySelector(`#d-cal .day-cell[data-key="${k}"]`);
+        if (cell) cell.classList.add('active-focus');
+    }, 60);
+}
+
+// "Tillbaka" i fokusläge → tillbaka till Frånvaro med rätt typ expanderad
+function absFocusBack() {
+    const r = focusReturn; closeFocusMode(true);
+    if (r && r.summary) { if (typeof window.closeActiveSheet === 'function') window.closeActiveSheet(); if (typeof openSummaryModal === 'function') openSummaryModal('month'); return; }
+    if (typeof window.calSeg === 'function') window.calSeg('absence');
+    setTimeout(() => {
+        if (r && r.reason) {
+            const t = document.querySelector(`#pane-absence .abs-type[data-reason="${r.reason.replace(/"/g,'&quot;')}"]`);
+            if (t) { t.parentElement.querySelectorAll('.abs-type.open').forEach(x => x.classList.remove('open')); t.classList.add('open'); }
+        }
+    }, 90);
+}
+// "+ Registrera frånvaro" → hoppa till kalendern, markera dag(ar) och tryck en frånvarosymbol
+function absAddType(){
+    if (currentFocusReason) closeFocusMode(true);
+    if (typeof window.calSeg === 'function') window.calSeg('month');
+    if (typeof showToast === 'function') showToast('🗓️','Markera dag(ar) i kalendern och tryck en frånvaro-symbol',4200);
+}
+// Tryck på frånvarotyp i sammanfattningen → hoppa till kalendern och markera dagarna
+function absToCalendar(reason){
+    currentFocusReason = reason;
+    document.body.classList.add('focus-mode-active');
+    if (typeof window.calSeg === 'function') window.calSeg('month');
+    setTimeout(()=>{
+        document.querySelectorAll('#d-cal .day-cell').forEach(c => {
+            const k=c.dataset.key; const o=db.d[k];
+            if (o && o.abs && o.abs.includes(reason)) c.classList.add('focus-highlight'); else c.classList.remove('focus-highlight');
+        });
+    }, 60);
 }
 
 // ==========================================
@@ -1357,7 +1502,50 @@ let lonViewDate = null;
 let lonCfg = null;
 let lonMonthly = {};
 let lonAvdrag = 0;
+
 function lonSetAvdrag(v){ lonAvdrag = v; const seg=document.getElementById('lon-avdrag-seg'); if(seg) seg.querySelectorAll('button').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.av)===v)); lonRecalc(); }
+
+// Arbetsmånad = innevarande månad. Utbetalas månaden efter.
+function lonWorkDate(){ return new Date(realToday.getFullYear(), realToday.getMonth(), 1); }
+function lonPayoutDate(){ const w=lonWorkDate(); return new Date(w.getFullYear(), w.getMonth()+1, 1); }
+// Bilagor gäller senast avslutade månad (föregående)
+function lonUploadTarget(){ return new Date(realToday.getFullYear(), realToday.getMonth()-1, 1); }
+function lonUploadTargetKey(){ const d=lonUploadTarget(); return `${d.getFullYear()}-${d.getMonth()+1}`; }
+function lonUploadsObj(){ if(!lonMonthly._uploads) lonMonthly._uploads={}; return lonMonthly._uploads; }
+function lonHasFacit(key, slot){ const m=lonMonthly[key]; return !!(m && m['cal_'+slot]); }
+function lonHasFile(key, slot){ const m=lonMonthly[key]; return !!(m && m['file_'+slot]); }
+function lonHasProg(key, slot){ const m=lonMonthly[key]; return !!(m && m['prog_'+slot]); }
+function lonMonthClosed(key){ return lonHasFacit(key,'tidrapport') && lonHasFacit(key,'lonespec'); }
+function lonUploadDone(slot){ return lonHasFacit(lonUploadTargetKey(), slot); }
+function lonUploadOpen(){ return true; } // bilagor alltid öppna – appen sorterar själv
+
+// ---- Klassificering av en bilaga utifrån månaden i dokumentet ----
+const LON_MONTHS=['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+function lonMonthIdx(y,m){ return y*12 + (m-1); }
+function lonMonthLabel(key){ const p=key.split('-').map(Number); return `${LON_MONTHS[p[1]-1]} ${p[0]}`; }
+function lonCurKey(){ return `${realToday.getFullYear()}-${realToday.getMonth()+1}`; }
+function lonDetectedKey(data){
+    if (data && data.manad_nr>=1 && data.manad_nr<=12){
+        const y = (data.ar && data.ar>2020 && data.ar<2100) ? data.ar : realToday.getFullYear();
+        return `${y}-${data.manad_nr}`;
+    }
+    return null;
+}
+function lonClassify(detKey){
+    if(!detKey) return 'unknown';
+    const p=detKey.split('-').map(Number);
+    const diff = lonMonthIdx(realToday.getFullYear(), realToday.getMonth()+1) - lonMonthIdx(p[0], p[1]);
+    if (diff <= 0) return 'prognos';
+    if (diff === 1) return 'facit';
+    if (diff === 2) return 'sent';
+    return 'old';
+}
+function lonRecentMonthKeys(n){ n=n||4; const out=[]; for(let i=0;i<n;i++){ const d=new Date(realToday.getFullYear(), realToday.getMonth()-i+1, 1); out.push(`${d.getFullYear()}-${d.getMonth()+1}`); } return out; }
+function lonApplyPrognos(data, key, slot){
+    const m=lonMonthly[key]||{}; m['prog_'+slot]={ ob50:data.ob50, ob100:data.ob100, franvaro_tim:data.franvaro_tim }; lonMonthly[key]=m; lonSaveMonthly(); lonFillFields(); lonRecalc();
+}
+function lonUndoPrognos(key, slot){ const m=lonMonthly[key]; if(m){ delete m['prog_'+slot]; lonSaveMonthly(); lonFillFields(); lonRecalc(); } }
+function lonClearFileKey(key, slot){ const m=lonMonthly[key]; if(m){ delete m['file_'+slot]; lonSaveMonthly(); } }
 
 const LON_CFG_DEF = {
     manadslon: 29554, tillagg: 515, timpris: 181.14, timdivisor: 163.17,
@@ -1368,6 +1556,7 @@ const LON_CFG_DEF = {
         red:     [ {from:'00:00', to:'24:00', bucket:100} ]
     },
     obCorr: { ob50: 1, ob100: 1 },
+    franvCorr: 1,
     taxAnchors: [
         [10000,1196],[11000,1403],[11768,1568],[12000,1609],[13000,1815],[14000,2020],[15000,2219],[16000,2419],[17000,2662],[18000,2905],[19000,3148],
         [20000,3391],[21000,3634],[22000,3877],[23000,4120],[24000,4371],[25000,4622],[26000,4873],[26458,5024],[27000,5124],[28000,5376],[29000,5627],
@@ -1388,6 +1577,7 @@ function lonNormalizeCfg(c){
     if (typeof c.timpris !== 'number') c.timpris = D.timpris;
     if (!c.obWindows) c.obWindows = JSON.parse(JSON.stringify(D.obWindows));
     if (!c.obCorr || typeof c.obCorr.ob50 !== 'number' || typeof c.obCorr.ob100 !== 'number') c.obCorr = { ob50:1, ob100:1 };
+    if (typeof c.franvCorr !== 'number' || !c.franvCorr) c.franvCorr = 1;
     if (!Array.isArray(c.taxAnchors) || c.taxAnchors.length < 30) c.taxAnchors = JSON.parse(JSON.stringify(D.taxAnchors));
     if (!Array.isArray(c.bonusTiers) || !c.bonusTiers.length) c.bonusTiers = JSON.parse(JSON.stringify(D.bonusTiers));
     return c;
@@ -1429,44 +1619,81 @@ function lonHolidays(y){
 function lonMinutes(t){ const p=String(t).split(':'); return (parseInt(p[0])||0)*60+(parseInt(p[1])||0); }
 function lonOverlap(s1,e1,s2,e2){ return Math.max(0, Math.min(e1,e2)-Math.max(s1,s2)); }
 
-// ---- Skatta OB-timmar ur passen i appen ----
-function lonEstimateOB(y, m){
+// ---- Skatta OB-timmar ur passen i appen (rå, utan korrektion) ----
+function lonEstimateOBraw(y, m){
     const dim = new Date(y, m, 0).getDate();
     const hol = lonHolidays(y);
     const W = (lonCfg.obWindows || LON_CFG_DEF.obWindows);
     let ob50=0, ob100=0;
     for (let d=1; d<=dim; d++){
         const k=`${y}-${m}-${d}`; const q=db.q[k]; if(!q || !q.start || !q.end) continue;
-        const o=db.d[k]||{}; if(o.abs && o.abs!=='Åtgärd krävs') continue; // frånvarodag → ingen OB
+        const o=db.d[k]||{}; if(o.abs && o.abs!=='Åtgärd krävs') continue;
         const ds=lonMinutes(q.start), de=lonMinutes(q.end); if(de<=ds) continue;
         const dow=new Date(y,m-1,d).getDay();
         const isRed = hol.has(k);
         let wins = isRed ? W.red : (dow===0 ? W.sun : (dow===6 ? W.sat : W.weekday));
         wins.forEach(w=>{ const h=lonOverlap(ds,de,lonMinutes(w.from), w.to==='24:00'?1440:lonMinutes(w.to))/60; if(h>0){ if(w.bucket===100) ob100+=h; else ob50+=h; } });
     }
-    const c=lonCfg.obCorr||{ob50:1,ob100:1};
-    return { ob50: Math.round(ob50*(c.ob50||1)*100)/100, ob100: Math.round(ob100*(c.ob100||1)*100)/100 };
+    return { ob50: Math.round(ob50*100)/100, ob100: Math.round(ob100*100)/100 };
+}
+function lonEstimateOB(y, m){
+    const r=lonEstimateOBraw(y,m); const c=lonCfg.obCorr||{ob50:1,ob100:1};
+    return { ob50: Math.round(r.ob50*(c.ob50||1)*100)/100, ob100: Math.round(r.ob100*(c.ob100||1)*100)/100 };
 }
 
-// ---- Inlärning från bilaga (faktiska värden) ----
-function lonApplyCalibration(d){
-    const k = lonKey(); const m = lonMonthly[k] || {};
-    const y=lonViewDate.getFullYear(), mo=lonViewDate.getMonth()+1;
-    let touched=false;
-    if (d.ob50!=null || d.ob100!=null){
-        const est = lonEstimateOB(y, mo);
-        if (d.ob50!=null){ m.actualOb50 = +d.ob50; if(est.ob50>0){ lonCfg.obCorr.ob50 = Math.round(((lonCfg.obCorr.ob50||1)*0.5 + (d.ob50/ (est.ob50/(lonCfg.obCorr.ob50||1)))*0.5)*1000)/1000; } touched=true; }
-        if (d.ob100!=null){ m.actualOb100 = +d.ob100; if(est.ob100>0){ lonCfg.obCorr.ob100 = Math.round(((lonCfg.obCorr.ob100||1)*0.5 + (d.ob100/ (est.ob100/(lonCfg.obCorr.ob100||1)))*0.5)*1000)/1000; } touched=true; }
-    }
-    if (d.franvaro_tim!=null){ m.franv = +d.franvaro_tim; touched=true; }
-    if (d.bonus!=null){ m.bonusActual = +d.bonus; touched=true; }
-    if (d.brutto!=null && d.skatt!=null){ // lär skatten exakt vid observerad punkt
-        const g=Math.round(+d.brutto); const tax=Math.round(+d.skatt);
-        const a=lonCfg.taxAnchors; const idx=a.findIndex(p=>Math.abs(p[0]-g)<=50);
-        if(idx>=0) a[idx]=[g,tax]; else a.push([g,tax]);
-        a.sort((x,y)=>x[0]-y[0]); touched=true;
-    }
-    if (touched){ lonMonthly[k]=m; lonSaveMonthly(); lonSaveCfg(); lonFillFields(); lonRecalc(); }
+// ---- Inlärning (FAIL-SAFE): spara råvärden per månad+typ; senaste gäller; räkna om allt från grunden ----
+function lonApplyCalibration(d, monthKey, slot){
+    const k = monthKey || lonUploadTargetKey();
+    const m = lonMonthly[k] || {};
+    m['cal_'+(slot||'lonespec')] = d;   // skriv över – senaste bilagan gäller, inget snitt
+    lonMonthly[k] = m;
+    lonRecomputeLearning();
+    lonSaveMonthly(); lonSaveCfg();
+    lonFillFields(); lonRecalc();
+}
+function lonClearCalibration(monthKey, slot){
+    const m = lonMonthly[monthKey]; if(!m) return;
+    delete m['cal_'+slot];
+    lonRecomputeLearning();
+    lonSaveMonthly(); lonSaveCfg();
+}
+// Räknar om obCorr/franvCorr/skattepunkter/grundlön ENBART utifrån de bilagor som finns just nu
+function lonRecomputeLearning(){
+    lonCfg.taxAnchors = JSON.parse(JSON.stringify(LON_CFG_DEF.taxAnchors));
+    lonCfg.obCorr = { ob50:1, ob100:1 };
+    lonCfg.franvCorr = 1;
+    const r50=[], r100=[], rfranv=[]; let latestBase=null, latestIdx=-1;
+    const sane=(ratio)=> (ratio>=0.4 && ratio<=2.5);   // utanför detta = troligen fel månad → ignorera
+    Object.keys(lonMonthly).forEach(mk=>{
+        if (mk==='_uploads' || !/^\d{4}-\d{1,2}$/.test(mk)) return;
+        const rec = lonMonthly[mk]; if(!rec || typeof rec!=='object') return;
+        const tid = rec.cal_tidrapport || {}, spec = rec.cal_lonespec || {};
+        const parts = mk.split('-'); const y=+parts[0], mo=+parts[1];
+        const pick=(a,b)=> (a!=null? a : (b!=null? b : null));
+        const ob50a = pick(spec.ob50, tid.ob50), ob100a = pick(spec.ob100, tid.ob100);
+        const est = lonEstimateOBraw(y, mo);
+        if (ob50a!=null && est.ob50>0 && sane(ob50a/est.ob50)) r50.push(ob50a/est.ob50);
+        if (ob100a!=null && est.ob100>0 && sane(ob100a/est.ob100)) r100.push(ob100a/est.ob100);
+        const ftim = pick(spec.franvaro_tim, pick(tid.franvaro_tim, getMonthlyFranvaroHours(y,mo)));
+        const fkr = spec.franvaro_avdrag_kr;
+        const base = (ftim||0) * (lonCfg.manadslon / (lonCfg.timdivisor||163.17));
+        if (fkr!=null && base>0 && sane(Math.abs(fkr)/base)) rfranv.push(Math.abs(fkr)/base);
+        if (spec.brutto!=null && spec.skatt!=null && +spec.brutto>5000){
+            const g=Math.round(+spec.brutto), tax=Math.round(Math.abs(+spec.skatt));
+            const a=lonCfg.taxAnchors; const idx=a.findIndex(p=>Math.abs(p[0]-g)<=50);
+            if(idx>=0) a[idx]=[g,tax]; else a.push([g,tax]);
+        }
+        if (spec.manadslon!=null && +spec.manadslon>10000){ const ix=y*12+mo; if(ix>latestIdx){ latestIdx=ix; latestBase=+spec.manadslon; } }
+        rec.actualOb50 = ob50a; rec.actualOb100 = ob100a;
+        if (ftim!=null) rec.franv = ftim;
+    });
+    const avg=(arr)=> arr.length ? arr.reduce((s,x)=>s+x,0)/arr.length : 1;
+    const clamp=(v)=> Math.min(2, Math.max(0.5, v));
+    lonCfg.obCorr.ob50 = Math.round(clamp(avg(r50))*1000)/1000;
+    lonCfg.obCorr.ob100 = Math.round(clamp(avg(r100))*1000)/1000;
+    lonCfg.franvCorr = Math.round(clamp(avg(rfranv))*1000)/1000;
+    if (latestBase) lonCfg.manadslon = latestBase;
+    lonCfg.taxAnchors.sort((x,y)=>x[0]-y[0]);
 }
 function lonNum(id){ const el = document.getElementById(id); if(!el) return 0; const v = parseFloat(String(el.value).replace(/\s/g,'').replace(',','.')); return isNaN(v) ? 0 : v; }
 function lonKr(n){ return Math.round(n).toLocaleString('sv-SE') + ' kr'; }
@@ -1488,11 +1715,14 @@ function lonBonusAuto(sales){
 
 function lonGetOB(){
     const m = lonMonthly[lonKey()] || {};
-    if (m.actualOb50!=null || m.actualOb100!=null){
-        const est = lonEstimateOB(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
-        return { ob50: (m.actualOb50!=null? m.actualOb50: est.ob50), ob100: (m.actualOb100!=null? m.actualOb100: est.ob100), src:'faktisk' };
-    }
     const est = lonEstimateOB(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
+    if (m.actualOb50!=null || m.actualOb100!=null){
+        return { ob50: (m.actualOb50!=null? m.actualOb50: est.ob50), ob100: (m.actualOb100!=null? m.actualOb100: est.ob100), src:'facit' };
+    }
+    const p = m.prog_tidrapport;
+    if (p && (p.ob50!=null || p.ob100!=null)){
+        return { ob50: (p.ob50!=null? p.ob50: est.ob50), ob100: (p.ob100!=null? p.ob100: est.ob100), src:'prognos' };
+    }
     return { ...est, src:'auto' };
 }
 function lonRecalc(){
@@ -1506,18 +1736,17 @@ function lonRecalc(){
     const ob50 = OB.ob50 * H * 0.5;
     const ob100 = OB.ob100 * H;
     const franvTim = lonNum('lon-franv');
-    const franvKr = franvTim * H;
+    const franvKr = franvTim * H * (lonCfg.franvCorr || 1);
     const extraAdd = lonNum('lon-extra-add');
     const extraDed = lonNum('lon-extra-ded');
 
     const obEl=document.getElementById('lon-ob50'); if(obEl) obEl.value=OB.ob50; const ob1El=document.getElementById('lon-ob100'); if(ob1El) ob1El.value=OB.ob100;
     const obHint=document.getElementById('lon-ob-hint'); if(obHint) obHint.innerText = OB.src==='faktisk' ? 'Från bilaga (faktisk)' : 'Auto från dina pass';
 
-    const manualEl = document.getElementById('lon-bonus-manual');
-    const manualRaw = manualEl ? manualEl.value.trim() : '';
-    let bonusBrutto, bonus;
-    if (manualRaw !== '') { bonusBrutto = lonNum('lon-bonus-manual'); bonus = bonusBrutto; }
-    else { bonusBrutto = lonBonusAuto(sales); bonus = bonusBrutto * (1 - (lonAvdrag||0)/100); }
+    // BONUS: auto ur försäljning × tier, minus procentavdrag (10/20/30)
+    const pct = lonBonusPct(sales);
+    const bonusBrutto = lonBonusAuto(sales);
+    const bonus = bonusBrutto * (1 - (lonAvdrag||0)/100);
 
     const obTot = ob50 + ob100;
     const franvTot = franvKr + extraDed;
@@ -1532,14 +1761,14 @@ function lonRecalc(){
     document.getElementById('lon-ob-out').innerText = lonKr(obTot);
     document.getElementById('lon-franvaro-out').innerText = '−' + lonKr(franvTot);
     const avEl = document.getElementById('lon-bonus-sub');
-    if (avEl){ if (manualRaw==='' && (lonAvdrag||0)>0) avEl.innerText = `${Math.round(lonBonusPct(sales))}% av ${lonKr(sales)} − ${lonAvdrag}% avdrag`; else if (manualRaw==='') avEl.innerText = `${Math.round(lonBonusPct(sales))}% av ${lonKr(sales)}`; else avEl.innerText = 'manuell'; }
+    if (avEl){ let t = sales>0 ? ` ${pct}% av ${lonKr(sales)}` : ''; if((lonAvdrag||0)>0) t += ` − ${lonAvdrag}%`; avEl.innerText = t; }
 
     lonCfg.manadslon = manadslon || lonCfg.manadslon;
     lonCfg.tillagg = tillagg || lonCfg.tillagg;
     lonCfg.timpris = H;
     lonSaveCfg();
     const k = lonKey(); const prev = lonMonthly[k] || {};
-    lonMonthly[k] = { ...prev, franv:lonNum('lon-franv'), extraAdd, extraDed, bonusManual: manualRaw, avdrag: lonAvdrag||0 };
+    lonMonthly[k] = { ...prev, avdrag: lonAvdrag||0 };
     lonSaveMonthly();
 }
 function lonBonusPct(sales){ for (const t of lonCfg.bonusTiers){ const max=(t.max==null?Infinity:t.max); if (sales>=t.min && sales<max) return t.pct||0; } return 0; }
@@ -1579,43 +1808,93 @@ function lonFillFields(){
     const setV=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=(v===undefined||v===null||v==='')?'':v; };
     setV('lon-sales', getMonthlySales(y, mo) || '');
     const OB = lonGetOB(); setV('lon-ob50', OB.ob50); setV('lon-ob100', OB.ob100);
-    const obHint=document.getElementById('lon-ob-hint'); if(obHint) obHint.innerText = OB.src==='faktisk' ? 'Från bilaga (faktisk)' : 'Auto från dina pass';
     const appFranv = getMonthlyFranvaroHours(y, mo);
     setV('lon-franv', (m.franv!==undefined && m.franv!=='') ? m.franv : (appFranv || ''));
-    const fHint = document.getElementById('lon-franv-hint'); if (fHint) fHint.innerText = appFranv ? `Appens frånvaro: ${appFranv} tim` : 'Ingen frånvaro registrerad';
     setV('lon-extra-add', m.extraAdd); setV('lon-extra-ded', m.extraDed);
-    setV('lon-bonus-manual', m.bonusManual||'');
     lonAvdrag = m.avdrag || 0;
     const seg=document.getElementById('lon-avdrag-seg'); if(seg) seg.querySelectorAll('button').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.av)===lonAvdrag));
     setV('lon-cfg-manadslon', lonCfg.manadslon); setV('lon-cfg-tillagg', lonCfg.tillagg);
     setV('lon-cfg-timpris', lonTimpris());
-    lonRenderFile('tidrapport'); lonRenderFile('lonespec');
-    const months=['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
-    const lbl=document.getElementById('lon-month-lbl'); if(lbl) lbl.innerText = `${months[lonViewDate.getMonth()]} ${lonViewDate.getFullYear()}`;
+    const months=['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+    const pm=lonPayoutDate();
+    const payLbl=document.getElementById('lon-payout-lbl'); if(payLbl) payLbl.innerText = `utbetalas i ${months[pm.getMonth()]} ${pm.getFullYear()}`;
+    const sub=document.getElementById('lon-period-sub'); if(sub) sub.innerText = `Avser arbete i ${months[lonViewDate.getMonth()]} ${y}`;
+    lonRenderUploads(); lonRenderReminder();
 }
 
-function lonNavMonth(dir){ lonViewDate = new Date(lonViewDate.getFullYear(), lonViewDate.getMonth()+dir, 1); lonFillFields(); lonRecalc(); }
-
-function lonOpen(){ const m=document.getElementById('lon-modal'); return m && !m.classList.contains('hidden'); }
-function lonShowSettings(on){
-    const main=document.getElementById('lon-view-main'), set=document.getElementById('lon-view-settings');
-    if(main) main.classList.toggle('hidden', on);
-    if(set) set.classList.toggle('hidden', !on);
-    const body=document.querySelector('#lon-modal .notes-fullscreen'); if(body) body.scrollTop=0;
-}
-function openLonModal(){
+// Lön-sheet fylls (anropas av navigationscontrollern via openSheet('lon'))
+function renderLonSheet(){
     if (!lonCfg) lonLoad();
-    lonViewDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
-    lonShowSettings(false);
-    lonRenderTiers(); lonRenderAnchors(); lonFillFields(); lonRecalc();
-    const m=document.getElementById('lon-modal');
-    if(m){ m.classList.remove('hidden'); setTimeout(()=>m.classList.replace('opacity-0','opacity-100'),10); }
+    lonViewDate = lonWorkDate();
+    lonFillFields(); lonRecalc();
     lonSyncRemote();
 }
-function closeLonModal(){
-    const m=document.getElementById('lon-modal'); if(!m || m.classList.contains('hidden')) return;
+window.renderLonSheet = renderLonSheet;
+
+function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
+function openLonSettings(){
+    if (!lonCfg) lonLoad();
+    lonRenderTiers(); lonRenderUploads();
+    const m=document.getElementById('lon-settings-modal');
+    if(m){ m.classList.remove('hidden'); setTimeout(()=>m.classList.replace('opacity-0','opacity-100'),10); if(window.sfPushHist) window.sfPushHist(); }
+}
+function closeLonSettings(){
+    const m=document.getElementById('lon-settings-modal'); if(!m || m.classList.contains('hidden')) return;
     m.classList.replace('opacity-100','opacity-0');
     setTimeout(()=>m.classList.add('hidden'),300);
+}
+window.openLonSettings = openLonSettings; window.closeLonSettings = closeLonSettings; window.lonSettingsOpen = lonSettingsOpen;
+
+// ---- Bilagor: alltid öppna, appen klassificerar själv ----
+function lonClickUpload(slot){ document.getElementById('lon-file-input-'+slot).click(); }
+function lonRenderUploads(){
+    const cur=realToday; const prev=new Date(cur.getFullYear(), cur.getMonth()-1, 1);
+    const prevKey=`${prev.getFullYear()}-${prev.getMonth()+1}`;
+    [['tidrapport','Tidrapport (löneart)'],['lonespec','Lönespec']].forEach(([slot,name])=>{
+        const btn=document.getElementById('lon-btn-'+slot); const txt=btn&&btn.querySelector('.lon-upbtn-txt');
+        if(txt) txt.innerText = name;
+        if(btn) btn.classList.remove('lon-locked');
+        lonRenderFile(slot);
+    });
+    const help=document.getElementById('lon-upload-help');
+    if(help) help.innerHTML = `Ladda upp <b>när du vill</b> – appen läser månaden ur bilden och avgör själv om det är <b>prognos</b> (pågående månad), <b>facit</b> (avslutad → kalibrerar) eller för gammal. Senaste filen per månad gäller alltid.`;
+    const ls=document.getElementById('lon-learn-status');
+    if(ls){ const c=lonCfg; ls.innerHTML = `Inlärt: OB-faktor ${(c.obCorr.ob50||1).toFixed(2)}/${(c.obCorr.ob100||1).toFixed(2)}, frånvaro ${(c.franvCorr||1).toFixed(2)}, ${c.taxAnchors.length} skattepunkter.`; }
+    lonRenderHistory();
+}
+function lonRenderReminder(){
+    const el=document.getElementById('lon-reminder'); if(!el) return;
+    const prev=new Date(realToday.getFullYear(), realToday.getMonth()-1, 1);
+    const prevKey=`${prev.getFullYear()}-${prev.getMonth()+1}`; const prevLbl=lonMonthLabel(prevKey);
+    const day=realToday.getDate();
+    let msg='', urgent=false;
+    if (!lonMonthClosed(prevKey)){
+        if (!lonHasFacit(prevKey,'tidrapport')){
+            urgent = day>10;
+            msg = urgent
+                ? `⚠️ <b>${prevLbl}</b> är inte stängd – du har inte skickat in tidrapporten (löneart) än. Tryck här.`
+                : `📋 Dags att skicka in <b>tidrapporten</b> för ${prevLbl}. Tryck här.`;
+        } else if (!lonHasFacit(prevKey,'lonespec')){
+            msg = `🧾 Skicka in <b>lönespecen</b> för ${prevLbl} (utbetald nu) så stängs månaden. Tryck här.`;
+        }
+    }
+    if (msg){ el.innerHTML = msg; el.classList.toggle('lon-reminder-urgent', urgent); el.classList.remove('hidden'); } else { el.classList.add('hidden'); }
+}
+function lonRenderHistory(){
+    const el=document.getElementById('lon-history'); if(!el) return;
+    const keys=lonRecentMonthKeys(3); // innevarande + 2 bakåt
+    el.innerHTML = keys.map(key=>{
+        const m=lonMonthly[key]||{};
+        const isCur = key===lonCurKey();
+        const tid = lonHasFacit(key,'tidrapport')?'✓':(lonHasProg(key,'tidrapport')?'~':'—');
+        const spec = lonHasFacit(key,'lonespec')?'✓':'—';
+        let badge, cls;
+        if (lonMonthClosed(key)){ badge='Stängd'; cls='lh-green'; }
+        else if (isCur && (lonHasProg(key,'tidrapport')||lonHasFacit(key,'tidrapport'))){ badge='Prognos'; cls='lh-blue'; }
+        else if (lonHasFacit(key,'tidrapport')||lonHasFacit(key,'lonespec')){ badge='Öppen'; cls='lh-amber'; }
+        else { badge=isCur?'Pågår':'Väntar'; cls='lh-grey'; }
+        return `<div class="lon-hist-row ${cls}"><span class="lh-month">${lonMonthLabel(key)}</span><span class="lh-marks">tidr ${tid} · spec ${spec}</span><span class="lh-badge">${badge}</span></div>`;
+    }).join('');
 }
 
 async function lonSyncRemote(){
@@ -1639,38 +1918,97 @@ function lonPushRemote(id, data){ if (typeof sb === 'undefined' || !sb) return; 
 
 async function lonHandleUpload(input, slot){
     const file = input.files[0]; if(!file) return;
-    const k = lonKey();
     const reader = new FileReader();
     reader.onload = async (e) => {
-        const rec = { ...(lonMonthly[k]||{}) };
-        rec['file_'+slot] = { name: file.name, data: e.target.result };
-        lonMonthly[k] = rec;
-        try { lonSaveMonthly(); } catch(err){ delete lonMonthly[k]['file_'+slot].data; try{ lonSaveMonthly(); }catch(e2){} }
-        lonRenderFile(slot);
-        showToast('📎','Bilaga infogad',1800);
-        // Lär appen: läs av lönearter via edge-funktion (om utbyggd)
-        if (typeof sb !== 'undefined' && sb){
-            try {
-                showToast('🧠','Läser av & lär...',3000);
-                const { data, error } = await sb.functions.invoke('scan-payslip', { body: { image_base64: e.target.result, kind: slot } });
-                if (!error && data && (data.ob50!=null || data.ob100!=null || data.brutto!=null || data.franvaro_tim!=null || data.bonus!=null)){
-                    lonApplyCalibration(data);
-                    showToast('✅','Lönen uppdaterad & kalibrerad',2500);
-                } else if (error) { /* funktion ej utbyggd → tyst */ }
-            } catch(err){ /* offline / ej utbyggd */ }
+        const dataUrl = e.target.result;
+        if (typeof sb === 'undefined' || !sb){
+            // ingen avläsning → lägg under föregående månad (facit) som reserv
+            const k=lonUploadTargetKey(); const m=lonMonthly[k]||{}; m['file_'+slot]={name:file.name,data:dataUrl}; lonMonthly[k]=m; lonSaveMonthly(); lonRenderUploads();
+            showToast('📎','Bilaga sparad (avläsning ej aktiv)',2600); return;
         }
+        showToast('🧠','Läser av dokumentet...',2500);
+        let data=null, err=null;
+        try { const r=await sb.functions.invoke('scan-payslip',{body:{image_base64:dataUrl,kind:slot}}); data=r.data; err=r.error; } catch(ex){ err=ex; }
+        if (err){ let msg=err.message||'fel'; try{const j=await err.context.json(); if(j&&j.error)msg=j.error;}catch(_){}; showToast('⚠️','Avläsning misslyckades: '+msg,4500); return; }
+        const empty = !data || (data.ob50==null&&data.ob100==null&&data.brutto==null&&data.franvaro_tim==null&&data.bonus==null&&data.manad_nr==null);
+        if (empty){ showToast('🔍','Inget kunde läsas av bilden',3500); return; }
+        const detKey = lonDetectedKey(data);
+        if (!detKey){
+            lonConfirm({ title:'Vilken månad avser bilagan?', msg:'Kunde inte läsa månaden automatiskt. Välj månad:', okLabel:'Spara', months:lonRecentMonthKeys(4),
+                onOk:(key)=> lonRouteUpload(data, key, slot, file.name, dataUrl) });
+            return;
+        }
+        lonRouteUpload(data, detKey, slot, file.name, dataUrl);
     };
     reader.readAsDataURL(file);
     input.value='';
 }
+function lonRouteUpload(data, detKey, slot, fileName, dataUrl){
+    let cls = lonClassify(detKey);
+    if (slot==='lonespec' && cls==='prognos') cls='facit'; // en spec är alltid ett facit
+    const lbl = lonMonthLabel(detKey);
+    const storeFile = ()=>{ const m=lonMonthly[detKey]||{}; m['file_'+slot]={name:fileName,data:dataUrl}; lonMonthly[detKey]=m; lonSaveMonthly(); };
+    if (cls==='old'){
+        storeFile(); lonRenderUploads();
+        const expected = lonMonthLabel(lonUploadTargetKey());
+        lonConfirm({ title:`Fel månad – ${lbl}`, tone:'warn',
+            msg:`Det här verkar avse <b>${lbl}</b>, men jag väntar på <b>${expected}</b>. Den är för gammal för att kalibrera och påverkar ingenting. Vill du kalibrera den ändå?`,
+            okLabel:'Kalibrera ändå', cancelLabel:'Lämna',
+            onOk:()=>{ lonApplyCalibration(data, detKey, slot); lonRenderUploads(); showToast('✅',`${lbl} kalibrerad`,2500); } });
+        return;
+    }
+    if (cls==='prognos'){
+        storeFile(); lonApplyPrognos(data, detKey, slot); lonRenderUploads();
+        lonToastUndo(`📊 ${lbl} – prognos uppdaterad`, ()=>{ lonUndoPrognos(detKey,slot); lonClearFileKey(detKey,slot); lonRenderUploads(); showToast('↩️','Ångrat – prognosen återställd',1800); });
+        return;
+    }
+    // facit / sent → bekräftelsedialog
+    const sent = cls==='sent';
+    lonConfirm({
+        title: sent ? `${lbl} (lite sent)` : lbl,
+        msg: `Stämmer det att den här <b>${slot==='tidrapport'?'tidrapporten':'lönespecen'}</b> avser <b>${lbl}</b>?${sent?' Det är ett par månader sedan, men det går bra att kalibrera.':''} Då kalibreras och månaden stängs.`,
+        okLabel:'Ja, kalibrera', cancelLabel:'Avbryt',
+        onOk:()=>{ storeFile(); lonApplyCalibration(data, detKey, slot); lonRenderUploads(); showToast('✅',`${lbl} kalibrerad ${lonMonthClosed(detKey)?'· månad stängd':''}`,3000); }
+    });
+}
+// Enkel bekräftelsedialog (med valfri månadsväljare)
+function lonConfirm(opts){
+    const modal=document.getElementById('lon-confirm-modal'); if(!modal) { if(opts.onOk) opts.onOk(opts.months?opts.months[0]:undefined); return; }
+    document.getElementById('lon-confirm-title').innerText = opts.title||'Bekräfta';
+    document.getElementById('lon-confirm-msg').innerHTML = opts.msg||'';
+    const sel=document.getElementById('lon-confirm-select');
+    if (opts.months){ sel.classList.remove('hidden'); sel.innerHTML = opts.months.map(k=>`<option value="${k}">${lonMonthLabel(k)}</option>`).join(''); }
+    else sel.classList.add('hidden');
+    const ok=document.getElementById('lon-confirm-ok'), cancel=document.getElementById('lon-confirm-cancel');
+    ok.innerText = opts.okLabel||'OK'; cancel.innerText = opts.cancelLabel||'Avbryt';
+    ok.classList.toggle('md-btn-tonal-red', opts.tone==='warn');
+    const close=()=>{ modal.classList.replace('opacity-100','opacity-0'); setTimeout(()=>modal.classList.add('hidden'),250); };
+    ok.onclick=()=>{ const key=opts.months? sel.value : undefined; close(); if(opts.onOk) opts.onOk(key); };
+    cancel.onclick=()=>{ close(); showToast('✖️','Avbrutet – inget ändrades',1800); };
+    modal.classList.remove('hidden'); setTimeout(()=>modal.classList.replace('opacity-0','opacity-100'),10);
+}
+function lonConfirmOpen(){ const m=document.getElementById('lon-confirm-modal'); return m && !m.classList.contains('hidden'); }
+window.lonConfirmOpen=lonConfirmOpen;
+// Toast med Ångra-knapp (6 sek)
+function lonToastUndo(text, onUndo){
+    const t=document.getElementById('lon-undo-toast'); if(!t){ showToast('📊',text,3000); return; }
+    t.querySelector('.lon-undo-txt').innerText=text;
+    const btn=t.querySelector('.lon-undo-btn');
+    t.classList.remove('hidden'); requestAnimationFrame(()=>t.classList.add('show'));
+    let done=false; const hide=()=>{ if(done)return; done=true; t.classList.remove('show'); setTimeout(()=>t.classList.add('hidden'),300); };
+    btn.onclick=()=>{ hide(); if(onUndo) onUndo(); };
+    clearTimeout(t._timer); t._timer=setTimeout(hide,6000);
+}
 function lonRenderFile(slot){
-    const m = lonMonthly[lonKey()] || {};
-    const f = m['file_'+slot];
+    // visa filen för den månad som senast har en bilaga av denna typ (innevarande → bakåt)
+    let k=null; for(const key of lonRecentMonthKeys(4)){ if(lonHasFile(key,slot)){ k=key; break; } }
     const el = document.getElementById('lon-file-'+slot); if(!el) return;
-    if (f && f.name){ el.classList.remove('hidden'); el.innerHTML = '📎 ' + f.name + (f.data?' <span class="lon-file-open">öppna</span>':'') + ' <span class="lon-file-del">ta bort</span>'; }
-    else { el.classList.add('hidden'); el.innerHTML=''; }
+    if (!k){ el.classList.add('hidden'); el.innerHTML=''; return; }
+    const f = lonMonthly[k]['file_'+slot];
+    el.classList.remove('hidden');
+    el.innerHTML = `📎 ${lonMonthLabel(k)}: ${f.name}` + (f.data?' <span class="lon-file-open">öppna</span>':'') + ' <span class="lon-file-del">ta bort</span>';
     const o = el.querySelector('.lon-file-open'); if(o) o.onclick = ()=>{ const w=window.open(); if(w) w.document.write('<iframe src="'+f.data+'" style="border:0;width:100%;height:100%"></iframe>'); };
-    const d = el.querySelector('.lon-file-del'); if(d) d.onclick = ()=>{ delete lonMonthly[lonKey()]['file_'+slot]; lonSaveMonthly(); lonRenderFile(slot); };
+    const d = el.querySelector('.lon-file-del'); if(d) d.onclick = ()=>{ delete lonMonthly[k]['file_'+slot]; lonClearCalibration(k, slot); delete (lonMonthly[k]||{})['prog_'+slot]; lonSaveMonthly(); lonRenderUploads(); lonRenderReminder(); lonRecalc(); showToast('🗑️',`${lonMonthLabel(k)} ${slot} borttagen – omräknad`,2800); };
 }
 
 async function init() {
@@ -1801,8 +2139,11 @@ function numpadSave() {
 
 function closeFocusMode(force) { 
     currentFocusReason = null; 
+    focusKeySet = null;
     document.body.classList.remove('focus-mode-active'); 
-    document.querySelectorAll('.day-cell, .vp-cell').forEach(c => c.classList.remove('focus-highlight'));
+    document.querySelectorAll('.day-cell, .vp-cell').forEach(c => c.classList.remove('focus-highlight', 'active-focus'));
+    const fl=document.getElementById('focus-info'); if(fl) fl.innerHTML='';
+    if (viewMode === 'month') { renderCal(viewDate.getFullYear(), viewDate.getMonth() + 1); updateCalToolbar(); }
     updateDashboardView(); updateTopInfoBar(); 
 }
 
@@ -1827,6 +2168,29 @@ function calAmountEdit() {
     if (!multiSelectKeys.size) { showToast('☝️', 'Markera dag(ar) i kalendern först'); return; }
     openNumpad('month', 0, 'VÄLJ BELOPP');
 }
+
+// "Försäljning"-knappen: hoppa till vald dag i dagsvyn (slider) där belopp m.m. kan ändras
+function calToSales() {
+    let k = null;
+    if (multiSelectKeys && multiSelectKeys.size === 1) k = Array.from(multiSelectKeys)[0];
+    else if (multiSelectKeys && multiSelectKeys.size > 1) { showToast('☝️', 'Välj en enstaka dag för att öppna dagsvyn', 2200); return; }
+    else if (activeK) k = activeK;
+    else k = getK(realToday);
+    goToDayDash(k);
+}
+function goToDayDash(k) {
+    if (multiSelectKeys) multiSelectKeys.clear();
+    activeK = k;
+    const p = k.split('-'); const d = new Date(+p[0], +p[1]-1, +p[2]);
+    currentWeekStart = new Date(d); const sdo = currentWeekStart.getDay() || 7; currentWeekStart.setDate(currentWeekStart.getDate() - sdo + 1); currentWeekStart.setHours(0,0,0,0);
+    viewDate = new Date(d); db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
+    if (document.body.classList.contains('focus-mode-active') && typeof window.closeFocusMode === 'function') window.closeFocusMode(true);
+    if (typeof window.closeActiveSheet === 'function') window.closeActiveSheet();
+    setMode('dash');
+    calculateTimeline(); renderWeekSlides(); updateDashboardView(); updateTopTitle(); updateTopInfoBar();
+    setTimeout(() => { document.querySelectorAll('.vp-cell').forEach(c => c.classList.toggle('active-focus', c.dataset.key === k)); syncTodayBlue && syncTodayBlue(); }, 60);
+}
+window.calToSales = calToSales; window.goToDayDash = goToDayDash;
 
 function closeMonthEdit() {
     multiSelectKeys.clear();
@@ -1891,17 +2255,18 @@ async function saveEvalModal() {
 }
 
 function openSavedNotesModal() {
-    renderNotes(); 
     const m = document.getElementById('saved-notes-modal');
-    if(m) {
-        m.classList.remove('hidden');
-        closeNotesModal(); 
-        setTimeout(() => {
-            m.classList.remove('opacity-0');
-            if(m.children[0]) m.children[0].classList.remove('scale-95');
-        }, 10);
-    }
+    if (!m) return;
+    try { renderNotes(); } catch (e) { console.warn('renderNotes', e); }
+    if (typeof window.closeNotesModal === 'function') window.closeNotesModal();
+    m.classList.remove('hidden');
+    requestAnimationFrame(() => {
+        m.classList.remove('opacity-0'); m.classList.add('opacity-100');
+        if (m.children[0]) m.children[0].classList.remove('scale-95');
+    });
+    if (window.sfPushHist) window.sfPushHist();
 }
+window.openSavedNotesModal = openSavedNotesModal;
 
 function closeSavedNotesModal() {
     const m = document.getElementById('saved-notes-modal');
@@ -1918,25 +2283,20 @@ let currentEditId = null;
 
 function openNotesModal() {
     const m = document.getElementById('notes-modal');
-    if(m) {
-        m.classList.remove('hidden');
-        setTimeout(() => m.classList.replace('opacity-0', 'opacity-100'), 10);
-    }
+    if(m) { m.classList.remove('hidden'); m.classList.replace('opacity-0', 'opacity-100'); }
 }
 
 function closeNotesModal() {
     const modal = document.getElementById('notes-modal');
     if (modal) {
         modal.classList.replace('opacity-100', 'opacity-0');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            currentEditId = null;
-            const submitBtn = document.getElementById('note-submit-btn');
-            if(submitBtn) submitBtn.innerText = "SPARA ANTECKNING";
-            ['note-name', 'note-phone', 'note-order', 'note-text', 'note-due', 'note-prio'].forEach(id => {
-                if(document.getElementById(id)) document.getElementById(id).value = '';
-            });
-        }, 300);
+        modal.classList.add('hidden');
+        currentEditId = null;
+        const submitBtn = document.getElementById('note-submit-btn');
+        if(submitBtn) submitBtn.innerText = "SPARA ANTECKNING";
+        ['note-name', 'note-phone', 'note-order', 'note-text', 'note-due', 'note-prio'].forEach(id => {
+            if(document.getElementById(id)) document.getElementById(id).value = '';
+        });
     }
 }
 
@@ -2100,6 +2460,7 @@ function calculateSummaryStats() {
     const cy = viewDate.getFullYear(); const cm = viewDate.getMonth() + 1; const daysM = new Date(cy, cm, 0).getDate();
     let wDays = 0, aDays = 0, bestS = 0, bestD = "--", worstS = Infinity, worstD = "--";
     let streak = 0, maxStreak = 0; let absCounts = {};
+    let f_work = [], f_abs = [], f_green = [], f_reasons = {}, f_bestKey = null, f_worstKey = null, weekKeyMap = {};
     let totalEvals = 0;
     let goodScores = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 }; let goodCount = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
     let badScores = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 }; let badCount = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
@@ -2107,15 +2468,16 @@ function calculateSummaryStats() {
     for (let d=1; d<=daysM; d++) {
         const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const tgt = timeline[k]?.target || 0; const qData = db.q[k] || {};
         
-        if ((o.s > 0) || (qData.start && !o.abs && o.st !== 'Ledig' && o.st !== 'Semester')) wDays++;
+        if ((o.s > 0) || (qData.start && !o.abs && o.st !== 'Ledig' && o.st !== 'Semester')) { wDays++; f_work.push(k); }
         if (o.abs && !o.abs.includes('Semester') && o.abs !== 'Åtgärd krävs') { aDays++; let baseAbs = o.abs.split(' ')[0]; absCounts[baseAbs] = (absCounts[baseAbs] || 0) + 1; }
+        if (o.abs && o.abs !== 'Åtgärd krävs') { f_abs.push(k); const full = o.abs; (f_reasons[full] = f_reasons[full] || []).push(k); }
         
         if (o.s > 0) {
-            if (o.s > bestS) { bestS = o.s; bestD = `${d}/${cm}`; }
-            if (o.s < worstS) { worstS = o.s; worstD = `${d}/${cm}`; }
+            if (o.s > bestS) { bestS = o.s; bestD = `${d}/${cm}`; f_bestKey = k; }
+            if (o.s < worstS) { worstS = o.s; worstD = `${d}/${cm}`; f_worstKey = k; }
         }
         
-        if (tgt > 0 && o.s >= tgt) { streak++; if (streak > maxStreak) maxStreak = streak; } else if (tgt > 0 && o.s < tgt && !o.abs) { streak = 0; }
+        if (tgt > 0 && o.s >= tgt) { streak++; if (streak > maxStreak) maxStreak = streak; f_green.push(k); } else if (tgt > 0 && o.s < tgt && !o.abs) { streak = 0; }
 
         if (o.eval) {
             totalEvals++; let ev = typeof o.eval === 'string' ? JSON.parse(o.eval) : o.eval;
@@ -2152,22 +2514,34 @@ function calculateSummaryStats() {
 
             if (!weeklySalesMap[weekKey]) weeklySalesMap[weekKey] = 0;
             weeklySalesMap[weekKey] += sales;
+            (weekKeyMap[weekKey] = weekKeyMap[weekKey] || []).push(k);
         }
     }
 
-    let bestWk = 0; let bestWkLbl = "--";
+    let bestWk = 0; let bestWkLbl = "--"; let bestWkKey = null;
     for (const [wKey, wSum] of Object.entries(weeklySalesMap)) {
         if (wSum > bestWk) {
             bestWk = wSum;
             bestWkLbl = "V." + wKey.split('-W')[1];
+            bestWkKey = wKey;
         }
     }
     document.getElementById('sum-bestweek-val').innerText = (bestWk/1000).toFixed(1) + "k"; document.getElementById('sum-bestweek-lbl').innerText = bestWkLbl;
+
+    // Spara nyckelmängder för sammanfattningens fokusåtgärder
+    summaryFocus = {
+        work: f_work, abs: f_abs, green: f_green, reasons: f_reasons,
+        best: f_bestKey ? [f_bestKey] : [], worst: f_worstKey ? [f_worstKey] : [],
+        week: bestWkKey ? (weekKeyMap[bestWkKey] || []) : []
+    };
     
     const absDetails = document.getElementById('sum-abs-details'); const absList = document.getElementById('sum-abs-list');
-    if (Object.keys(absCounts).length > 0) {
-        absDetails.classList.remove('hidden'); let h = ""; const em = { 'Sjuk': '🤒', 'VAB': '👶', 'Föräldraledig': '🍼' };
-        for(let a in absCounts) { h += `<div class="flex justify-between items-center bg-slate-50 p-1.5 rounded-lg border border-slate-100"><span class="text-[9px] font-black uppercase tracking-wider text-slate-600">${em[a] || '⚠️'} ${a}</span><span class="text-[10px] font-black text-slate-800">${absCounts[a]} st</span></div>`; }
+    if (Object.keys(f_reasons).length > 0) {
+        absDetails.classList.remove('hidden'); let h = "";
+        for (let a in f_reasons) {
+            const cnt = f_reasons[a].length;
+            h += `<button onclick="focusFromSummary('reason','${a.replace(/'/g,"\\'")}')" class="sum-reason-row"><span class="sum-reason-name">${focusEmoji(a)} ${a}</span><span class="sum-reason-cnt">${cnt} st <span class="material-symbols-rounded">chevron_right</span></span></button>`;
+        }
         absList.innerHTML = h;
     } else { absDetails.classList.add('hidden'); }
 

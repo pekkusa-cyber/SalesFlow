@@ -46,7 +46,7 @@
     </div>
 
     <!-- ANTECKNINGAR -->
-    <div id="notes-modal" class="md-scrim fixed inset-0 z-[8000] hidden flex items-stretch justify-center opacity-0 transition-opacity duration-300">
+    <div id="notes-modal" class="md-scrim fixed inset-0 z-[8000] hidden flex items-stretch justify-center opacity-0">
         <div class="md-dialog notes-fullscreen w-full max-w-[480px]">
             <div class="notes-head">
                 <h2 class="notes-title">Anteckningar</h2>
@@ -583,7 +583,7 @@
                     <div id="focus-info" class="focus-info"></div>
 
                     <div class="sheet-content">
-                        <div id="pane-month" class="dash-view-pane h-full flex flex-col overflow-hidden p-1.5">
+                        <div id="pane-month" class="dash-view-pane h-full flex flex-col overflow-hidden p-1.5" style="touch-action: pan-y;">
                             <div class="grid grid-cols-7 gap-1 px-1 mb-0.5 flex-shrink-0">
                                 <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
                                 <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
@@ -635,11 +635,13 @@
                 <!-- ===== LÖN-SHEET (peek = blå ruta, expanderat = allt) ===== -->
                 <div id="sheet-lon" class="sf-sheet" data-testid="sheet-lon">
                     <div class="sheet-handle"><span></span></div>
-                    <div class="sheet-header">
+                    <div class="sheet-header lon-sheet-header">
+                        <button id="lon-nav-prev" onclick="lonNavMonth(-1)" class="lon-nav-arrow" aria-label="Föregående månad"><span class="material-symbols-rounded">chevron_left</span></button>
                         <div class="sheet-title-area">
-                            <h2 class="sheet-title">Kommande lön</h2>
+                            <h2 id="lon-title" class="sheet-title">Kommande lön</h2>
                             <span id="lon-payout-lbl" class="sheet-subtitle">UTBETALAS I —</span>
                         </div>
+                        <button id="lon-nav-next" onclick="lonNavMonth(1)" class="lon-nav-arrow" aria-label="Nästa månad"><span class="material-symbols-rounded">chevron_right</span></button>
                     </div>
                     <div class="sheet-content lon-sheet-content">
                         <div id="lon-reminder" class="lon-reminder hidden" onclick="openLonSettings()"></div>
@@ -763,17 +765,38 @@
             const map = { month: sheetMonth, absence: sheetAbsence, lon: sheetLon };
             const target = map[which] || sheetMonth;
             Object.keys(map).forEach(function(key){ if (map[key] !== target){ map[key].classList.remove('is-open','is-full'); map[key].style.transform=''; } });
-            if (which === 'lon') { if (typeof window.renderLonSheet === 'function') window.renderLonSheet(); }
-            else { _setMode(which); }                // renders calendar / absence
+
+            // Kalender & Frånvaro: rendera FÖRST, visa sedan direkt (ingen animering, ingen blank frame)
+            if (which === 'month' || which === 'absence') {
+                body.classList.add('sheet-instant');
+                _setMode(which);
+                body.classList.add('sheet-open', 'sheet-full');
+                target.classList.add('is-full', 'is-open');
+                target.style.transform = '';
+                updateTitles();
+                setActiveNav(which);
+                updateNavSheetState();
+                pushHist();
+                return;
+            }
+
+            // Lön: behåller slide-animation, render i nästa frame för mjuk start
+            body.classList.remove('sheet-instant');
             body.classList.add('sheet-open');
             if (goFull) { body.classList.add('sheet-full'); target.classList.add('is-full'); }
             else { body.classList.remove('sheet-full'); target.classList.remove('is-full'); }
             target.classList.add('is-open');
             target.style.transform = '';
-            if (which !== 'lon') updateTitles();
             setActiveNav(which);
             updateNavSheetState();
             pushHist();
+            requestAnimationFrame(function(){
+                if (typeof window.renderLonSheet === 'function') window.renderLonSheet();
+                body.classList.add('sheet-open');
+                if (goFull) { body.classList.add('sheet-full'); target.classList.add('is-full'); }
+                target.classList.add('is-open');
+                updateNavSheetState();
+            });
         }
         function updateNavSheetState() {
             const s = activeSheet();
@@ -965,15 +988,8 @@
                     else if (txt.includes('🍼')) dashInner.classList.add('is-absent-fledig');
                 }
             });
-            mo.observe(badgeEl, { attributes: true, attributeFilter: ['class'], childList: true, characterData: true, subtree: true });
+            mo.observe(badgeEl, { attributes: true, attributeFilter: ['class'], childList: true });
         }
-
-        // ---------- Haptik ----------
-        function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms || 12); } catch (e) {} }
-        document.addEventListener('click', function(e) {
-            const t = e.target; if (!t) return;
-            if (t.closest('button, .day-cell, .vp-cell, .bn-item, .sheet-handle, .cal-sym-btn, [onclick], [data-testid]')) haptic(10);
-        }, { capture: true, passive: true });
 
         // ---------- Numpad: stäng vid tap utanför (inline) ----------
         document.addEventListener('click', function(e) {

@@ -446,7 +446,7 @@ async function loadAllData() {
         const response = await fetch("https://raw.githubusercontent.com/pekkusa-cyber/SalesFlow/main/schema.ics?t=" + Date.now()); 
         if(!response.ok) throw new Error("Kunde inte hämta ICS"); const text = await response.text();
         
-        db.q = {}; const lines = text.split(/\r?\n/); let inEvent = false; let event = {}; let fullDesc = "";
+        db.q = {}; invalidateScheduleCache(); const lines = text.split(/\r?\n/); let inEvent = false; let event = {}; let fullDesc = "";
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
             if (line === "BEGIN:VEVENT") { inEvent = true; event = {}; fullDesc = ""; } 
@@ -523,7 +523,9 @@ function setMode(mode) {
     if(numpadTarget) closeNumpad();
     
     viewMode = mode; 
-    document.body.className = `mode-${mode} ${currentFocusReason ? 'focus-mode-active' : ''}`;
+    document.body.classList.remove('mode-dash', 'mode-month', 'mode-absence');
+    document.body.classList.add(`mode-${mode}`);
+    document.body.classList.toggle('focus-mode-active', !!currentFocusReason);
 
     ['dash', 'month', 'absence'].forEach(m => {
         const b = document.getElementById(`tab-${m}`);
@@ -983,15 +985,15 @@ function createSliderCell(cd, k) {
     const dayName = dayNames[cd.getDay()];
     
     let valStr = '';
-    let now = new Date();
-    let startH = qData.start ? parseInt(qData.start.split(':')[0]) : 10;
-    let startM = qData.start ? parseInt(qData.start.split(':')[1]) : 0;
-    let endH = qData.end ? parseInt(qData.end.split(':')[0]) : 19;
-    let endM = qData.end ? parseInt(qData.end.split(':')[1]) : 0;
-    let shiftStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM);
-    let shiftEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
-    
-    let isShiftActive = (isToday && qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester' && now >= shiftStart && now < shiftEnd);
+    let isShiftActive = false;
+    if (isToday && qData.start) {
+        const now = new Date();
+        const startH = parseInt(qData.start.split(':')[0]), startM = parseInt(qData.start.split(':')[1]);
+        const endH = qData.end ? parseInt(qData.end.split(':')[0]) : 19, endM = qData.end ? parseInt(qData.end.split(':')[1]) : 0;
+        const shiftStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM);
+        const shiftEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
+        isShiftActive = (state !== 'absent' && state !== 'ledig' && state !== 'semester' && now >= shiftStart && now < shiftEnd);
+    }
     let liveDot = isShiftActive ? '<span class="live-dot"></span>' : '';
 
     // Försäljning visas ALLTID om den finns, oavsett frånvaro
@@ -1054,75 +1056,109 @@ function createSliderCell(cd, k) {
 
 function createDayCell(cd, k) {
     const o = db.d[k] || {s:0}, t = timeline[k] || {target:0}, qData = db.q[k] || {}; 
-    let cls = 'day-cell', b = '', content = '', wt = ''; 
     const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; 
     const isPast = cd < realToday, isToday = cd.getTime() === realToday.getTime(), state = getCellState(k);
-    const dayOfWeek = cd.getDay(); 
-    
-    let now = new Date();
-    let startH = qData.start ? parseInt(qData.start.split(':')[0]) : 10;
-    let startM = qData.start ? parseInt(qData.start.split(':')[1]) : 0;
-    let endH = qData.end ? parseInt(qData.end.split(':')[0]) : 19;
-    let endM = qData.end ? parseInt(qData.end.split(':')[1]) : 0;
-    let shiftStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM);
-    let shiftEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
-    let isShiftActive = (isToday && qData.start && state !== 'absent' && state !== 'ledig' && state !== 'semester' && now >= shiftStart && now < shiftEnd);
-    
-    if (dayOfWeek === 1 && viewMode === 'month') wt = `<div class="week-tag">${getWeekNumber(cd)}</div>`;
-    
-    if (o.abs && o.s > 0) { let bKey = o.abs.split(' ')[0]; if (o.abs === 'Åtgärd krävs') { b += `<div class="u-badge badge-abs badge-action" style="background:#ef4444; color:white; border:none;">${em[o.abs] || '•'}</div>`; } else { b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; } }
-    
+    const dayOfWeek = cd.getDay();
+    const dayNames = ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör'];
+    const dayName = dayNames[dayOfWeek];
+
+    let cls = 'day-cell';
+    // Frånvaro-färgformatering – behålls från kalendern
+    if (o.abs) {
+        let baseAbs = o.abs.split(' ')[0];
+        if (qData.start && baseAbs !== 'Åtgärd krävs') {
+            if (baseAbs === 'Sjuk') cls += ' bg-split-sjuk';
+            else if (baseAbs === 'VAB') cls += ' bg-split-vab';
+            else if (baseAbs === 'Föräldraledig') cls += ' bg-split-fledig';
+            else if (baseAbs === 'Semester') cls += ' bg-split-sem';
+            else cls += ' type-absent';
+        } else {
+            if (baseAbs === 'Semester') cls += ' type-semester';
+            else cls += ' type-absent';
+        }
+    } else if (state === 'ledig' || state === 'unplanned') { cls += ' type-unplanned'; }
+    else if (isPast) { cls += ' history-cell'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; }
+    else if (qData.start) { cls += ' type-planned'; }
+
+    if (isToday) cls += ' status-today';
+    if (viewMode === 'month' && multiSelectKeys.has(k)) cls += ' active-focus';
+    else if (viewMode !== 'month' && activeK === k) cls += ' active-focus';
+    if (currentFocusReason && currentFocusReason !== '__day__' && o.abs && o.abs.includes(currentFocusReason) && cd.getMonth() === viewDate.getMonth() && cd.getFullYear() === viewDate.getFullYear()) cls += ' focus-highlight';
+    if (focusKeySet && focusKeySet.has(k)) cls += ' focus-highlight';
+
+    let isShiftActive = false;
+    if (isToday && qData.start) {
+        const now = new Date();
+        const startH = parseInt(qData.start.split(':')[0]), startM = parseInt(qData.start.split(':')[1]);
+        const endH = qData.end ? parseInt(qData.end.split(':')[0]) : 19, endM = qData.end ? parseInt(qData.end.split(':')[1]) : 0;
+        const shiftStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), startH, startM);
+        const shiftEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
+        isShiftActive = (state !== 'absent' && state !== 'ledig' && state !== 'semester' && now >= shiftStart && now < shiftEnd);
+    }
+    if (isShiftActive) cls += ' active-shift-pulse';
+    const liveDot = isShiftActive ? '<span class="live-dot"></span>' : '';
+
+    // Värderad – som slidercellen
+    let valStr = '';
+    if (o.s > 0) { valStr = `${(o.s/1000).toFixed(1)}k`; }
+    else if (o.abs) { let bKey = o.abs.split(' ')[0]; valStr = `${em[o.abs] || em[bKey] || '•'}`; }
+    else if (qData.start) { valStr = `${liveDot}${qData.start.substring(0,5)}`; }
+    else { valStr = 'Ledig'; }
+
+    // Badges
+    let b = '';
+    if (dayOfWeek === 1) b += `<div class="week-tag">${getWeekNumber(cd)}</div>`;
+    if (o.abs && o.s > 0) { let bKey = o.abs.split(' ')[0]; b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; }
     if (!o.abs && qData.start && qData.end) {
         let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-        const isClosing = (!isWeekend && qData.end.substring(0,5) === '19:30') ||
-                          (isWeekend && qData.end.substring(0,5) === '16:30');
-        if (isClosing) {
-            b += `<div class="u-badge badge-key">🔑</div>`;
-        } else {
-            let endCounts = {};
-            for (let k2 in db.q) {
-                const qd2 = db.q[k2];
-                if (!qd2.end) continue;
-                const d2 = new Date(k2.split('-')[0], k2.split('-')[1]-1, k2.split('-')[2]);
-                if (d2.getDay() !== dayOfWeek) continue;
-                const e = qd2.end.substring(0,5);
-                if (e === '19:30' || e === '16:30') continue;
-                endCounts[e] = (endCounts[e] || 0) + 1;
-            }
-            let normalEnd = null, maxCount = 0;
-            for (let t2 in endCounts) { if (endCounts[t2] > maxCount) { maxCount = endCounts[t2]; normalEnd = t2; } }
-            if (normalEnd && qData.end.substring(0,5) !== normalEnd) {
-                b += `<div class="u-badge badge-key">🔀</div>`;
-            }
-        }
+        const isClosing = (!isWeekend && qData.end.substring(0,5) === '19:30') || (isWeekend && qData.end.substring(0,5) === '16:30');
+        if (isClosing) { b += `<div class="u-badge badge-key">🔑</div>`; }
+        else { if (!_normalEndCache) _normalEndCache = computeNormalEndByWeekday(); const ne = _normalEndCache[dayOfWeek]; if (ne && qData.end.substring(0,5) !== ne) b += `<div class="u-badge badge-key">🔀</div>`; }
     }
 
-    if (o.s > 0) { content = `<span class="cell-main-val mt-1">${(o.s/1000).toFixed(1)} k</span>`; } else if (o.abs) { let bKey = o.abs.split(' ')[0]; content = `<span class="cell-abs-emoji">${em[o.abs] || em[bKey] || '•'}</span>`; } else if (qData.start && !o.abs) { content = `<div class="flex flex-col items-center justify-center leading-[1.1] mt-[4px] text-[7.5px] font-bold"><span>${qData.start.substring(0,5)}</span><span>${qData.end.substring(0,5)}</span></div>`; } else if (state === 'unplanned' || (state === 'ledig' && o.s === 0)) { content = `<span class="text-[7.5px] font-black text-slate-800 mt-1 uppercase tracking-widest opacity-50">LEDIG</span>`; }
-
-    if (o.abs) { let baseAbs = o.abs.split(' ')[0]; if (qData.start && baseAbs !== 'Åtgärd krävs') { if (baseAbs === 'Sjuk') cls += ' bg-split-sjuk'; else if (baseAbs === 'VAB') cls += ' bg-split-vab'; else if (baseAbs === 'Föräldraledig') cls += ' bg-split-fledig'; else if (baseAbs === 'Semester') cls += ' bg-split-sem'; else cls += ' type-absent'; } else { if (baseAbs === 'Sjuk' || baseAbs === 'Åtgärd krävs') cls += ' type-absent'; else if (baseAbs === 'Semester') cls += ' type-semester'; else cls += ' type-absent'; } } else if (state === 'ledig' || state === 'unplanned') { cls += ' type-unplanned'; } else if (isPast) { cls += ' history-cell'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; } else { if (isToday) cls += ' status-today'; else if (qData.start) cls += ' type-planned'; }
-    if (isShiftActive) cls += ' active-shift-pulse'; 
-    
-    if (isToday) cls += ' status-today';
-    if (viewMode === 'month' && multiSelectKeys.has(k)) { cls += ' active-focus'; } else if (viewMode !== 'month' && activeK === k) { cls += ' active-focus'; }
-    if (currentFocusReason && currentFocusReason !== '__day__' && o.abs && o.abs.includes(currentFocusReason) && cd.getMonth() === viewDate.getMonth() && cd.getFullYear() === viewDate.getFullYear()) { cls += ' focus-highlight'; }
-    if (focusKeySet && focusKeySet.has(k)) { cls += ' focus-highlight'; }
-    
-    const cell = document.createElement('div'); cell.className = cls; cell.dataset.key = k; cell.onclick = (e) => selectDay(k, cell, e);
-    cell.innerHTML = `${wt}<span class="date-num">${cd.getDate()}</span><div class="flex flex-col items-center justify-center h-full w-full pt-[6px] text-center tracking-tighter">${b}${content}</div>`; return cell;
+    const cell = document.createElement('div');
+    cell.className = cls;
+    cell.dataset.key = k;
+    cell.onclick = (e) => selectDay(k, cell, e);
+    cell.innerHTML = `${b}<span class="vp-name">${dayName}</span><span class="vp-date">${cd.getDate()}</span><span class="vp-val flex items-center justify-center">${valStr}</span>`;
+    return cell;
 }
 
+// Cachar "normalt sluttid per veckodag" så avvikelse-badgen inte räknar om allt per cell
+let _normalEndCache = null;
+function computeNormalEndByWeekday() {
+    const counts = {};
+    for (let k2 in db.q) {
+        const qd2 = db.q[k2]; if (!qd2.end) continue;
+        const p = k2.split('-'); const wd = new Date(p[0], p[1]-1, p[2]).getDay();
+        const e = qd2.end.substring(0,5);
+        if (e === '19:30' || e === '16:30') continue;
+        (counts[wd] = counts[wd] || {}); counts[wd][e] = (counts[wd][e] || 0) + 1;
+    }
+    const best = {};
+    for (let wd in counts) { let ne = null, mc = 0; for (let t2 in counts[wd]) { if (counts[wd][t2] > mc) { mc = counts[wd][t2]; ne = t2; } } best[wd] = ne; }
+    return best;
+}
+function invalidateScheduleCache() { _normalEndCache = null; }
+
 function renderCal(y, m) { 
-    const g = document.getElementById('d-cal'); if(!g) return; g.innerHTML = ''; 
+    const g = document.getElementById('d-cal'); if(!g) return;
+    _normalEndCache = computeNormalEndByWeekday();
+    const frag = document.createDocumentFragment();
     const lastDate = new Date(y, m, 0).getDate(); const firstDay = new Date(y, m-1, 1).getDay() || 7; const prevMonthLastDate = new Date(y, m-1, 0).getDate();
-    for(let i = 1; i < firstDay; i++) { const d = prevMonthLastDate - (firstDay - 1) + i; const cell = document.createElement('div'); cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none'; cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`; g.appendChild(cell); } 
-    for(let d=1; d<=lastDate; d++) g.appendChild(createDayCell(new Date(y, m-1, d), `${y}-${m}-${d}`)); 
+    for(let i = 1; i < firstDay; i++) { const d = prevMonthLastDate - (firstDay - 1) + i; const cell = document.createElement('div'); cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none'; cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`; frag.appendChild(cell); } 
+    for(let d=1; d<=lastDate; d++) frag.appendChild(createDayCell(new Date(y, m-1, d), `${y}-${m}-${d}`)); 
     const totalCellsSoFar = (firstDay - 1) + lastDate; const remainingCells = 42 - totalCellsSoFar;
-    for(let d=1; d<=remainingCells; d++) { const cell = document.createElement('div'); cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none'; cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`; g.appendChild(cell); }
+    for(let d=1; d<=remainingCells; d++) { const cell = document.createElement('div'); cell.className = 'day-cell opacity-40 pointer-events-none bg-transparent border-transparent shadow-none'; cell.innerHTML = `<span class="date-num opacity-50">${d}</span>`; frag.appendChild(cell); }
+    g.replaceChildren(frag);
 }
 
 function populateSlide(cId, sD) { 
-    const c = document.getElementById(cId); if(!c) return; c.innerHTML = ''; 
-    for(let i=0; i<7; i++) { const cd = new Date(sD); cd.setDate(cd.getDate() + i); c.appendChild(createSliderCell(cd, getK(cd))); } 
+    const c = document.getElementById(cId); if(!c) return;
+    if (!_normalEndCache) _normalEndCache = computeNormalEndByWeekday();
+    const frag = document.createDocumentFragment();
+    for(let i=0; i<7; i++) { const cd = new Date(sD); cd.setDate(cd.getDate() + i); frag.appendChild(createSliderCell(cd, getK(cd))); } 
+    c.replaceChildren(frag);
 }
 
 function renderWeekSlides() { populateSlide('slide-curr', currentWeekStart); }
@@ -1491,11 +1527,29 @@ function lonSetAvdrag(v){ lonAvdrag = v; const seg=document.getElementById('lon-
 
 // Arbetsmånad = innevarande månad. Utbetalas månaden efter.
 function lonWorkDate(){ return new Date(realToday.getFullYear(), realToday.getMonth(), 1); }
-function lonPayoutDate(){ const w=lonWorkDate(); return new Date(w.getFullYear(), w.getMonth()+1, 1); }
+// Standardvy: arbetsmånaden vars lön betalas ut INNEVARANDE månad (= föregående arbetsmånad).
+// Det är den lön som just nu behandlas och som förra månadens lönearter hör till.
+// Prognosen för innevarande arbetsmånad (utbetalas nästa månad) nås genom att navigera framåt.
+function lonDefaultWorkDate(){
+    const now = realToday;
+    return new Date(now.getFullYear(), now.getMonth()-1, 1);
+}
+function lonPayoutDate(){ return new Date(lonViewDate.getFullYear(), lonViewDate.getMonth()+1, 1); }
 // Bilagor gäller senast avslutade månad (föregående)
 function lonUploadTarget(){ return new Date(realToday.getFullYear(), realToday.getMonth()-1, 1); }
 function lonUploadTargetKey(){ const d=lonUploadTarget(); return `${d.getFullYear()}-${d.getMonth()+1}`; }
 function lonUploadsObj(){ if(!lonMonthly._uploads) lonMonthly._uploads={}; return lonMonthly._uploads; }
+// Månadsnavigering i lönevyn (bakåt till tidigare, framåt till innevarande prognos)
+function lonNavMonth(dir){
+    if (!lonViewDate) lonViewDate = lonDefaultWorkDate();
+    const d = new Date(lonViewDate.getFullYear(), lonViewDate.getMonth()+dir, 1);
+    const maxD = new Date(realToday.getFullYear(), realToday.getMonth(), 1);      // innevarande = längsta prognos
+    const minD = new Date(realToday.getFullYear(), realToday.getMonth()-11, 1);   // 12 mån bakåt
+    if (d > maxD || d < minD) return;
+    lonViewDate = d;
+    lonFillFields(); lonRecalc();
+}
+window.lonNavMonth = lonNavMonth;
 function lonHasFacit(key, slot){ const m=lonMonthly[key]; return !!(m && m['cal_'+slot]); }
 function lonHasFile(key, slot){ const m=lonMonthly[key]; return !!(m && m['file_'+slot]); }
 function lonHasProg(key, slot){ const m=lonMonthly[key]; return !!(m && m['prog_'+slot]); }
@@ -1801,15 +1855,21 @@ function lonFillFields(){
     setV('lon-cfg-timpris', lonTimpris());
     const months=['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
     const pm=lonPayoutDate();
-    const payLbl=document.getElementById('lon-payout-lbl'); if(payLbl) payLbl.innerText = `utbetalas i ${months[pm.getMonth()]} ${pm.getFullYear()}`;
+    const now=realToday, payday=25;
+    const paid = (pm.getFullYear() < now.getFullYear()) || (pm.getFullYear()===now.getFullYear() && (pm.getMonth() < now.getMonth() || (pm.getMonth()===now.getMonth() && now.getDate()>=payday)));
+    const payLbl=document.getElementById('lon-payout-lbl'); if(payLbl) payLbl.innerText = `${paid?'UTBETALD':'UTBETALAS'} I ${months[pm.getMonth()].toUpperCase()} ${pm.getFullYear()}`;
+    const titleEl=document.getElementById('lon-title'); if(titleEl) titleEl.innerText = paid ? 'Utbetald lön' : 'Kommande lön';
     const sub=document.getElementById('lon-period-sub'); if(sub) sub.innerText = `Avser arbete i ${months[lonViewDate.getMonth()]} ${y}`;
+    // Inaktivera framåtpil vid innevarande månad (längsta prognos)
+    const atMax = (lonViewDate.getFullYear()===now.getFullYear() && lonViewDate.getMonth()===now.getMonth());
+    const nextBtn=document.getElementById('lon-nav-next'); if(nextBtn) nextBtn.classList.toggle('lon-nav-disabled', atMax);
     lonRenderUploads(); lonRenderReminder();
 }
 
 // Lön-sheet fylls (anropas av navigationscontrollern via openSheet('lon'))
 function renderLonSheet(){
     if (!lonCfg) lonLoad();
-    lonViewDate = lonWorkDate();
+    lonViewDate = lonDefaultWorkDate();
     lonFillFields(); lonRecalc();
     lonSyncRemote();
 }
@@ -2267,25 +2327,20 @@ let currentEditId = null;
 
 function openNotesModal() {
     const m = document.getElementById('notes-modal');
-    if(m) {
-        m.classList.remove('hidden');
-        setTimeout(() => m.classList.replace('opacity-0', 'opacity-100'), 10);
-    }
+    if(m) { m.classList.remove('hidden'); m.classList.replace('opacity-0', 'opacity-100'); }
 }
 
 function closeNotesModal() {
     const modal = document.getElementById('notes-modal');
     if (modal) {
         modal.classList.replace('opacity-100', 'opacity-0');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-            currentEditId = null;
-            const submitBtn = document.getElementById('note-submit-btn');
-            if(submitBtn) submitBtn.innerText = "SPARA ANTECKNING";
-            ['note-name', 'note-phone', 'note-order', 'note-text', 'note-due', 'note-prio'].forEach(id => {
-                if(document.getElementById(id)) document.getElementById(id).value = '';
-            });
-        }, 300);
+        modal.classList.add('hidden');
+        currentEditId = null;
+        const submitBtn = document.getElementById('note-submit-btn');
+        if(submitBtn) submitBtn.innerText = "SPARA ANTECKNING";
+        ['note-name', 'note-phone', 'note-order', 'note-text', 'note-due', 'note-prio'].forEach(id => {
+            if(document.getElementById(id)) document.getElementById(id).value = '';
+        });
     }
 }
 
@@ -2620,14 +2675,25 @@ function handleSwipeEnd(e, targetView) {
     } 
 }
 
-const pdInner = document.getElementById('dash-inner-card'); 
-if(pdInner) { pdInner.addEventListener('touchstart', handleSwipeStart, {passive: true}); pdInner.addEventListener('touchend', (e) => handleSwipeEnd(e, 'day'), {passive: true}); }
-const sCurr = document.getElementById('slide-curr'); 
-if(sCurr) { sCurr.addEventListener('touchstart', handleSwipeStart, {passive: true}); sCurr.addEventListener('touchend', (e) => handleSwipeEnd(e, 'week'), {passive: true}); }
-
-const pm = document.getElementById('pane-month'); if(pm) { pm.addEventListener('touchstart', handleSwipeStart, {passive: true}); pm.addEventListener('touchend', (e) => handleSwipeEnd(e, 'month'), {passive: true}); }
-const pa = document.getElementById('pane-absence'); if(pa) { pa.addEventListener('touchstart', handleSwipeStart, {passive: true}); pa.addEventListener('touchend', (e) => handleSwipeEnd(e, 'absence'), {passive: true}); }
-const pc = document.getElementById('pane-coach'); if(pc) { pc.addEventListener('touchstart', handleSwipeStart, {passive: true}); pc.addEventListener('touchend', (e) => handleSwipeEnd(e, 'coach'), {passive: true}); }
+// Robust svep: en dokument-lyssnare som avgör kontext via vilket element som rördes
+document.addEventListener('touchstart', function(e){ touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });
+document.addEventListener('touchend', function(e){
+    const dx = e.changedTouches[0].screenX - touchStartX;
+    const dy = e.changedTouches[0].screenY - touchStartY;
+    if (Math.abs(dx) <= Math.abs(dy) || Math.abs(dx) < 40) return;   // endast tydliga horisontella svep
+    const dir = dx > 0 ? -1 : 1;
+    const t = e.target;
+    if (document.body.classList.contains('focus-mode-active')) return; // inga månadsbyten i fokusläge
+    // Lön: svep var som helst på lönevyn → byt månad
+    const lonSheet = document.getElementById('sheet-lon');
+    if (lonSheet && lonSheet.classList.contains('is-open') && t.closest('#sheet-lon')) { if (typeof lonNavMonth === 'function') lonNavMonth(dir); return; }
+    if (viewMode === 'month' && t.closest('#sheet-month')) { navCal(dir); return; }
+    if (viewMode === 'absence' && t.closest('#sheet-absence')) { navCal(dir); return; }
+    if (viewMode === 'dash') {
+        if (t.closest('#slide-curr')) { navCal(dir); return; }        // slider → byt vecka
+        if (t.closest('#dash-inner-card')) { navDay(dir); return; }    // dagskort → byt dag
+    }
+}, { passive: true });
 
 const infoBar = document.getElementById('top-info-bar');
 if (infoBar) {

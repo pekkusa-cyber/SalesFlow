@@ -138,7 +138,7 @@ body {
   display: flex; align-items: center; justify-content: center;
   background: rgba(255,255,255,0.10);
   color: #ffffff;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
   transition: all .2s var(--ease-emp);
   z-index: 50;
 }
@@ -505,6 +505,10 @@ body #dash-abs-badge:not(.hidden) {
 
 /* Badges */
 .u-badge { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 35; border: 2px solid var(--surface); pointer-events: none; box-shadow: var(--elev-1); }
+/* Vald dag i kalendern (fylld blå) → vit text som i slidern */
+.day-cell.active-focus .vp-name { color: rgba(255,255,255,0.7) !important; }
+.day-cell.active-focus .vp-date { color: #ffffff !important; }
+.day-cell.active-focus .vp-val { color: rgba(255,255,255,0.95) !important; }
 .badge-abs { top: -5px; right: -5px; width: 18px; height: 18px; font-size: 10px; background: var(--surface); border-color: var(--g-yellow); }
 .badge-key { top: -5px; right: -5px; width: 18px; height: 18px; font-size: 10px; background: var(--g-yellow); color: #5d4900; border-color: var(--surface); }
 .badge-abs-left { top: -5px; left: -5px; width: 18px; height: 18px; font-size: 10px; background: var(--surface); border-color: var(--g-yellow); }
@@ -512,7 +516,7 @@ body #dash-abs-badge:not(.hidden) {
 .week-tag { position: absolute; top: -5px; left: -8px; background: var(--g-blue); color: #ffffff !important; font-size: 7px; padding: 2px 4px; border-radius: 6px; font-weight: 700; z-index: 10; pointer-events: none; box-shadow: var(--elev-1); letter-spacing: 0.04em; }
 
 /* Calendar grid */
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 5px; padding: 4px 6px 8px; height: 100%; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 5px; padding: 4px 6px 8px; height: 100%; touch-action: pan-y; }
 
 /* ============================================================
    MATERIAL BUTTONS & FORM
@@ -624,7 +628,7 @@ body #dash-abs-badge:not(.hidden) {
 /* ============================================================
    MATERIAL DIALOG
    ============================================================ */
-.md-scrim { background: rgba(32,33,36,0.55); backdrop-filter: blur(8px); }
+.md-scrim { background: rgba(32,33,36,0.55); backdrop-filter: blur(4px); }
 .md-dialog {
   background: var(--surface);
   border-radius: 28px;
@@ -669,6 +673,12 @@ body #dash-abs-badge:not(.hidden) {
 
 .md-divider { height: 1px; background: var(--outline-variant); width: 100%; }
 .md-section-lbl { font-family: 'Google Sans', sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.10em; color: var(--on-surface-variant); }
+/* Lön: månadsnavigering */
+.lon-sheet-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lon-nav-arrow { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: var(--surface-1); border: 1px solid var(--outline-variant); color: var(--g-blue); flex-shrink: 0; transition: transform .12s var(--ease-emp); }
+.lon-nav-arrow:active { transform: scale(.9); }
+.lon-nav-arrow .material-symbols-rounded { font-size: 22px; }
+.lon-nav-arrow.lon-nav-disabled { opacity: .3; pointer-events: none; }
 /* Klickbara sammanfattningskort → fokusåtgärd */
 .sum-clickable { cursor: pointer; transition: transform .12s var(--ease-emp), box-shadow .2s; position: relative; }
 .sum-clickable:active { transform: scale(.96); }
@@ -778,6 +788,11 @@ body #dash-abs-badge:not(.hidden) {
 .sf-sheet.is-open {
   transform: translateY(0);
   pointer-events: auto;
+}
+/* Kalender & Frånvaro: ingen animering – hoppa direkt (ligg off-screen när stängd så de ej täcker dashen) */
+#sheet-month, #sheet-absence,
+#sheet-month.is-open, #sheet-absence.is-open {
+  transition: none !important;
 }
 .sheet-handle {
   display: flex; justify-content: center; align-items: center;
@@ -978,8 +993,8 @@ body:not(.sheet-full) .cal-week-badge, body:not(.sheet-full) .wk-badge { transfo
 .eval-scale-btn { transition: all .2s var(--ease-emp); border-radius: 50%; }
 .eval-scale-btn.active { background: var(--g-blue) !important; color: #ffffff !important; border-color: var(--g-blue) !important; transform: scale(1.12); box-shadow: var(--elev-2); }
 
-body.focus-mode-active .weekday-label, body.focus-mode-active .vp-name { opacity: 0.4; transition: all .4s ease; }
-body.focus-mode-active .day-cell, body.focus-mode-active .vp-cell { transition: all .4s var(--ease-emp); }
+body.focus-mode-active .weekday-label, body.focus-mode-active .vp-name { opacity: 0.4; transition: opacity .4s ease; }
+body.focus-mode-active .day-cell, body.focus-mode-active .vp-cell { transition: opacity .4s var(--ease-emp), filter .4s var(--ease-emp), transform .4s var(--ease-emp); }
 body.focus-mode-active .day-cell:not(.focus-highlight), body.focus-mode-active .vp-cell:not(.focus-highlight) { opacity: 0.25 !important; filter: grayscale(60%) !important; pointer-events: none; }
 body.focus-mode-active .day-cell.focus-highlight, body.focus-mode-active .vp-cell.focus-highlight { z-index: 50; transform: scale(1.05) !important; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15), inset 0 0 0 2px var(--g-blue) !important; filter: none !important; opacity: 1 !important; }
 
@@ -1063,16 +1078,16 @@ button.bg-rose-500, button.bg-rose-600 { background: var(--g-red) !important; co
 
 /* --- Scrim: less harsh, allows glass to shine --- */
 .md-scrim {
-  background: rgba(20, 25, 40, 0.42) !important;
-  backdrop-filter: blur(6px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(6px) saturate(120%) !important;
+  background: rgba(20, 25, 40, 0.5) !important;
+  backdrop-filter: blur(3px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(3px) saturate(120%) !important;
 }
 
 /* --- Glass dialog surface --- */
 .md-dialog {
-  background: rgba(255, 255, 255, 0.78) !important;
-  backdrop-filter: blur(28px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(14px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
   border: 1px solid rgba(255, 255, 255, 0.55) !important;
   border-radius: 32px !important;
   padding: 22px !important;
@@ -1094,14 +1109,14 @@ button.bg-rose-500, button.bg-rose-600 { background: var(--g-red) !important; co
 /* Header bar in glass dialogs */
 .md-dialog .md-dialog-header-bar {
   background: rgba(248, 250, 253, 0.55) !important;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
   border-bottom: 1px solid rgba(218, 220, 224, 0.40) !important;
   padding: 16px 18px !important;
 }
 .md-dialog .md-dialog-footer {
   background: rgba(255,255,255,0.40) !important;
   border-top: 1px solid rgba(218, 220, 224, 0.40) !important;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
 }
 
 /* Title typography upgrade */
@@ -1118,7 +1133,7 @@ button.bg-rose-500, button.bg-rose-600 { background: var(--g-red) !important; co
   border: 1px solid rgba(218, 220, 224, 0.55) !important;
   border-radius: 24px !important;
   padding: 16px !important;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
 }
 
@@ -1126,7 +1141,7 @@ button.bg-rose-500, button.bg-rose-600 { background: var(--g-red) !important; co
 .md-icon-btn {
   background: rgba(255, 255, 255, 0.55) !important;
   border: 1px solid rgba(218, 220, 224, 0.45);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
   transition: transform .2s var(--ease-emp), background-color .2s !important;
 }
 .md-icon-btn:hover { background: rgba(255, 255, 255, 0.85) !important; transform: scale(1.04); }
@@ -1146,7 +1161,7 @@ button.bg-rose-500, button.bg-rose-600 { background: var(--g-red) !important; co
   color: #202124 !important;
   outline: none;
   transition: all .22s var(--ease-emp);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
 }
 .md-input::placeholder {
@@ -1242,7 +1257,7 @@ textarea.md-input { line-height: 1.5; }
 .md-btn-tonal,
 .md-btn-outlined {
   background: rgba(241, 243, 244, 0.78) !important;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
   border: 1px solid rgba(218, 220, 224, 0.55) !important;
   border-radius: 100px !important;
   padding: 12px 20px !important;
@@ -1287,7 +1302,7 @@ textarea.md-input { line-height: 1.5; }
 .md-stat-card {
   border-radius: 20px !important;
   padding: 14px 10px !important;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
   box-shadow:
     0 2px 8px -2px rgba(0,0,0,0.06),
     inset 0 1px 0 rgba(255,255,255,0.6) !important;
@@ -1316,7 +1331,7 @@ textarea.md-input { line-height: 1.5; }
 .md-row-card {
   border-radius: 20px !important;
   padding: 14px 16px !important;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.55) !important;
 }
 
@@ -1363,7 +1378,7 @@ textarea.md-input { line-height: 1.5; }
    ============================================================ */
 .sheet-header {
   background: rgba(255,255,255,0.60);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(3px);
   border-bottom: 1px solid rgba(218,220,224,0.45);
 }
 
@@ -1372,7 +1387,7 @@ textarea.md-input { line-height: 1.5; }
    ============================================================ */
 .md-toast {
   background: rgba(32,33,36,0.85) !important;
-  backdrop-filter: blur(16px) saturate(160%) !important;
+  backdrop-filter: blur(4px) saturate(160%) !important;
   border: 1px solid rgba(255,255,255,0.10) !important;
   border-radius: 32px !important;
   box-shadow: 0 12px 28px -6px rgba(0,0,0,0.40) !important;
@@ -1381,7 +1396,7 @@ textarea.md-input { line-height: 1.5; }
 /* Confirm box: glassy */
 .md-confirm-box {
   background: rgba(255,255,255,0.85) !important;
-  backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(3px) saturate(180%);
   border: 1px solid rgba(255,255,255,0.55) !important;
   border-radius: 28px !important;
   box-shadow:
@@ -1524,8 +1539,8 @@ body.variant-b .md-scrim {
 }
 body.variant-b .md-dialog {
   background: rgba(255, 255, 255, 0.94) !important;
-  backdrop-filter: blur(12px) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
+  backdrop-filter: blur(7px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(7px) saturate(140%) !important;
   border: 1px solid rgba(255,255,255,0.85) !important;
   border-radius: 28px !important;
   padding: 22px !important;
@@ -1591,9 +1606,9 @@ body.variant-c .md-budget-btn { background: #fafbfd !important; border: 1px soli
   display: flex; align-items: stretch; justify-content: space-around;
   gap: 2px;
   padding: 6px 6px;
-  background: color-mix(in srgb, var(--surface) 72%, transparent);
-  -webkit-backdrop-filter: blur(22px) saturate(1.6);
-  backdrop-filter: blur(22px) saturate(1.6);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  -webkit-backdrop-filter: blur(3px) saturate(1.4);
+  backdrop-filter: blur(3px) saturate(1.4);
   border: 1px solid color-mix(in srgb, var(--outline-variant) 60%, transparent);
   border-radius: 26px;
   box-shadow: 0 8px 30px -6px rgba(60,64,67,0.30), 0 2px 8px rgba(60,64,67,0.12);
@@ -1608,7 +1623,7 @@ body.variant-c .md-budget-btn { background: #fafbfd !important; border: 1px soli
   color: var(--on-surface-variant);
   transition: color .2s var(--ease-emp), transform .15s var(--ease-emp);
 }
-.bn-item .bn-ic { font-size: 25px; line-height: 1; transition: all .22s var(--ease-emp); padding: 5px 16px; border-radius: 16px; }
+.bn-item .bn-ic { font-size: 25px; line-height: 1; transition: transform .22s var(--ease-emp), background-color .22s var(--ease-emp), color .22s, box-shadow .22s; padding: 5px 16px; border-radius: 16px; }
 .bn-item .bn-lbl { font-size: 9.5px; font-weight: 700; letter-spacing: -.01em; line-height: 1; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .bn-item:active { transform: scale(.9); }
 .bn-item.is-active { color: var(--g-blue); }
@@ -1682,7 +1697,7 @@ body.sheet-full .top-section {
 /* Segment-växel Kalender / Frånvaro */
 .cal-seg-bar { flex-shrink:0; padding: 2px 12px 8px; }
 .cal-seg { display:flex; gap:4px; background:var(--surface-1); border-radius:14px; padding:4px; }
-.cal-seg button { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; height:38px; border-radius:11px; font-size:13px; font-weight:700; color:var(--on-surface-variant); transition:all .22s var(--ease-emp); }
+.cal-seg button { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; height:38px; border-radius:11px; font-size:13px; font-weight:700; color:var(--on-surface-variant); transition:background-color .22s var(--ease-emp), color .22s, box-shadow .22s; }
 .cal-seg button .material-symbols-rounded { font-size:18px; }
 .cal-seg button.active { background:var(--surface); color:var(--g-blue); box-shadow:var(--elev-1); }
 /* Topp-info i fokusläge (visas där symbolraden annars ligger) */
@@ -1908,3 +1923,6 @@ body:not(.sheet-full) .sf-sheet .cal-symbol-bar { display: none !important; }
 
 /* Mjuk animation när blå översikten fälls ihop till helvy */
 .top-section { transition: height .34s var(--ease-spring), margin .34s var(--ease-spring), opacity .24s ease, box-shadow .24s ease; }
+/* Instant-läge (Kalender/Frånvaro): ingen animering på topp-sektionen */
+body.sheet-instant .top-section { transition: none !important; }
+body.sheet-instant .bottom-section { transition: none !important; }

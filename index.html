@@ -583,7 +583,7 @@
                     <div id="focus-info" class="focus-info"></div>
 
                     <div class="sheet-content">
-                        <div id="pane-month" class="dash-view-pane h-full flex flex-col overflow-hidden p-1.5">
+                        <div id="pane-month" class="dash-view-pane h-full flex flex-col overflow-hidden p-1.5" style="touch-action: pan-y;">
                             <div class="grid grid-cols-7 gap-1 px-1 mb-0.5 flex-shrink-0">
                                 <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
                                 <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
@@ -635,11 +635,13 @@
                 <!-- ===== LÖN-SHEET (peek = blå ruta, expanderat = allt) ===== -->
                 <div id="sheet-lon" class="sf-sheet" data-testid="sheet-lon">
                     <div class="sheet-handle"><span></span></div>
-                    <div class="sheet-header">
+                    <div class="sheet-header lon-sheet-header">
+                        <button id="lon-nav-prev" onclick="lonNavMonth(-1)" class="lon-nav-arrow" aria-label="Föregående månad"><span class="material-symbols-rounded">chevron_left</span></button>
                         <div class="sheet-title-area">
-                            <h2 class="sheet-title">Kommande lön</h2>
+                            <h2 id="lon-title" class="sheet-title">Kommande lön</h2>
                             <span id="lon-payout-lbl" class="sheet-subtitle">UTBETALAS I —</span>
                         </div>
+                        <button id="lon-nav-next" onclick="lonNavMonth(1)" class="lon-nav-arrow" aria-label="Nästa månad"><span class="material-symbols-rounded">chevron_right</span></button>
                     </div>
                     <div class="sheet-content lon-sheet-content">
                         <div id="lon-reminder" class="lon-reminder hidden" onclick="openLonSettings()"></div>

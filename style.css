@@ -505,6 +505,10 @@ body #dash-abs-badge:not(.hidden) {
 
 /* Badges */
 .u-badge { position: absolute; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 35; border: 2px solid var(--surface); pointer-events: none; box-shadow: var(--elev-1); }
+/* Vald dag i kalendern (fylld blå) → vit text som i slidern */
+.day-cell.active-focus .vp-name { color: rgba(255,255,255,0.7) !important; }
+.day-cell.active-focus .vp-date { color: #ffffff !important; }
+.day-cell.active-focus .vp-val { color: rgba(255,255,255,0.95) !important; }
 .badge-abs { top: -5px; right: -5px; width: 18px; height: 18px; font-size: 10px; background: var(--surface); border-color: var(--g-yellow); }
 .badge-key { top: -5px; right: -5px; width: 18px; height: 18px; font-size: 10px; background: var(--g-yellow); color: #5d4900; border-color: var(--surface); }
 .badge-abs-left { top: -5px; left: -5px; width: 18px; height: 18px; font-size: 10px; background: var(--surface); border-color: var(--g-yellow); }
@@ -512,7 +516,7 @@ body #dash-abs-badge:not(.hidden) {
 .week-tag { position: absolute; top: -5px; left: -8px; background: var(--g-blue); color: #ffffff !important; font-size: 7px; padding: 2px 4px; border-radius: 6px; font-weight: 700; z-index: 10; pointer-events: none; box-shadow: var(--elev-1); letter-spacing: 0.04em; }
 
 /* Calendar grid */
-.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 5px; padding: 4px 6px 8px; height: 100%; contain: layout style; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 1fr; gap: 5px; padding: 4px 6px 8px; height: 100%; touch-action: pan-y; }
 
 /* ============================================================
    MATERIAL BUTTONS & FORM
@@ -669,10 +673,16 @@ body #dash-abs-badge:not(.hidden) {
 
 .md-divider { height: 1px; background: var(--outline-variant); width: 100%; }
 .md-section-lbl { font-family: 'Google Sans', sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.10em; color: var(--on-surface-variant); }
+/* Lön: månadsnavigering */
+.lon-sheet-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.lon-nav-arrow { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: var(--surface-1); border: 1px solid var(--outline-variant); color: var(--g-blue); flex-shrink: 0; transition: transform .12s var(--ease-emp); }
+.lon-nav-arrow:active { transform: scale(.9); }
+.lon-nav-arrow .material-symbols-rounded { font-size: 22px; }
+.lon-nav-arrow.lon-nav-disabled { opacity: .3; pointer-events: none; }
 /* Klickbara sammanfattningskort → fokusåtgärd */
 .sum-clickable { cursor: pointer; transition: transform .12s var(--ease-emp), box-shadow .2s; position: relative; }
 .sum-clickable:active { transform: scale(.96); }
-.sum-clickable::after { content: 'chevron_right'; font-family: 'Material Symbols Rounded'; position: absolute; top: 6px; right: 6px; font-size: 15px; opacity: .35; }
+.sum-clickable::after { content: none; }
 .md-row-card.sum-clickable::after { top: 50%; transform: translateY(-50%); right: 10px; }
 .sum-reason-row { display: flex; justify-content: space-between; align-items: center; background: var(--surface-1); padding: 9px 11px; border-radius: 12px; border: 1px solid var(--outline-variant); width: 100%; transition: transform .12s var(--ease-emp); }
 .sum-reason-row:active { transform: scale(.97); }
@@ -774,21 +784,14 @@ body #dash-abs-badge:not(.hidden) {
   box-shadow: 0 -8px 28px -10px rgba(60,64,67,0.25);
   pointer-events: none;
   will-change: transform;
-  contain: layout paint;
 }
 .sf-sheet.is-open {
   transform: translateY(0);
   pointer-events: auto;
 }
-/* Kalender & Frånvaro: ingen animering alls – klick visar hela vyn direkt */
-#sheet-month, #sheet-absence {
-  transform: none !important;
-  opacity: 0;
-  transition: none !important;
-}
+/* Kalender & Frånvaro: ingen animering – hoppa direkt (ligg off-screen när stängd så de ej täcker dashen) */
+#sheet-month, #sheet-absence,
 #sheet-month.is-open, #sheet-absence.is-open {
-  transform: none !important;
-  opacity: 1;
   transition: none !important;
 }
 .sheet-handle {

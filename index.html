@@ -1,1427 +1,1024 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
-<meta name="theme-color" content="#eaf2fb" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<link rel="manifest" href="manifest.webmanifest" />
-<title>Väderråd – väder & klädval</title>
-<style>
-:root{
-  --bg1:#f3f8fe; --bg2:#e7f0fb; --bg3:#fbfdff;
-  --ink:#132132; --ink2:#5a6b80; --ink3:#8a99ab;
-  --line:rgba(19,33,50,.08);
-  --card:rgba(255,255,255,.72);
-  --card2:rgba(255,255,255,.55);
-  --glass:rgba(255,255,255,.62);
-  --warm:#ff9a3d; --warm-ink:#a1521a;
-  --cool:#3e8ef0; --cool-ink:#1e5fb0;
-  --rain:#4aa8e0; --uv:#ff8a5c; --hum:#48b0c7; --cloud:#7e8da0;
-  --good:#37b26b; --bad:#e05656; --warn:#e8a13a;
-  --r:22px; --shadow:0 10px 34px rgba(30,60,110,.12);
-  --safe-b: env(safe-area-inset-bottom, 0px);
-  --safe-t: env(safe-area-inset-top, 0px);
-}
-*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-html,body{height:100%; margin:0; overflow:hidden; overscroll-behavior:none;}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
-  color:var(--ink);
-  background:
-    radial-gradient(120% 80% at 80% -10%, rgba(255,180,90,.18), transparent 55%),
-    radial-gradient(120% 90% at 0% 110%, rgba(80,150,235,.20), transparent 55%),
-    linear-gradient(160deg, var(--bg1), var(--bg2) 60%, var(--bg3));
-  background-attachment:fixed;
-  -webkit-font-smoothing:antialiased;
-  user-select:none;
-}
-#app{position:fixed; inset:0; display:flex; flex-direction:column;}
-button{font-family:inherit; border:0; background:none; color:inherit; cursor:pointer;}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a73e8">
+    <title>SalesFlow</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 
-/* Top bar */
-.top{
-  padding:calc(var(--safe-t) + 12px) 18px 6px; display:flex; align-items:center; gap:10px;
-  flex:0 0 auto;
-}
-.loc{display:flex; align-items:center; gap:8px; min-width:0;}
-.loc .pin{font-size:16px}
-.loc .name{font-weight:700; font-size:17px; letter-spacing:.2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-.loc .sub{font-size:11px; color:var(--ink3); font-weight:600;}
-.top .spacer{flex:1}
-.iconbtn{
-  width:38px; height:38px; border-radius:50%; display:grid; place-items:center;
-  background:var(--card); box-shadow:var(--shadow); font-size:16px; backdrop-filter:blur(12px);
-}
-.iconbtn:active{transform:scale(.94)}
-
-/* View area */
-.views{position:relative; flex:1 1 auto; min-height:0;}
-.view{position:absolute; inset:0; padding:6px 18px 96px; display:none; flex-direction:column; overflow:hidden;}
-.view.active{display:flex;}
-
-/* NOW */
-.now-hero{display:flex; align-items:flex-start; gap:14px; padding-top:6px;}
-.now-temp{font-size:clamp(58px,20vw,86px); font-weight:800; line-height:.9; letter-spacing:-2px; font-variant-numeric:tabular-nums;}
-.now-temp sup{font-size:.34em; font-weight:700; top:-1.1em; color:var(--ink2)}
-.now-ico{font-size:clamp(46px,15vw,70px); line-height:1;}
-.now-meta{margin-left:auto; text-align:right; padding-top:6px}
-.now-desc{font-weight:700; font-size:15px}
-.now-feels{font-size:13px; color:var(--ink2); font-weight:600; margin-top:2px}
-.now-range{font-size:13px; color:var(--ink3); font-weight:600; margin-top:2px}
-.consensus{margin-top:2px; font-size:11px; color:var(--ink3); font-weight:600}
-
-.metrics{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:10px;}
-.metric{background:var(--card); border-radius:15px; padding:9px 6px 8px; box-shadow:var(--shadow); backdrop-filter:blur(12px); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; text-align:center}
-.metric .mi{font-size:16px; line-height:1.1}
-.metric .mv{font-weight:800; font-size:15px; font-variant-numeric:tabular-nums; line-height:1.15}
-.metric .ml{font-size:9px; color:var(--ink2); font-weight:700; text-transform:uppercase; letter-spacing:.4px}
-.metric .src{font-size:8px; color:var(--ink3); margin-top:2px; font-weight:700}
-
-.now-cloth{margin-top:14px; background:var(--card); border-radius:var(--r); padding:14px 16px; box-shadow:var(--shadow); backdrop-filter:blur(12px); flex:1 1 auto; min-height:0; display:flex; flex-direction:column;}
-.cloth-head{display:flex; align-items:center; gap:8px; margin-bottom:8px}
-.cloth-head b{font-size:14px}
-.aud-toggle{margin-left:auto; display:flex; background:rgba(19,33,50,.06); border-radius:999px; padding:3px;}
-.aud-toggle button{font-size:12px; font-weight:700; padding:5px 11px; border-radius:999px; color:var(--ink2)}
-.aud-toggle button.on{background:#fff; color:var(--ink); box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.chips{display:flex; flex-wrap:wrap; gap:7px;}
-.chip{display:inline-flex; align-items:center; gap:6px; background:rgba(62,142,240,.10); color:var(--cool-ink); font-weight:700; font-size:13px; padding:7px 11px; border-radius:12px;}
-.chip.warm{background:rgba(255,154,61,.14); color:var(--warm-ink)}
-.chip.acc{background:rgba(55,178,107,.14); color:#1c7a45}
-.cloth-note{margin-top:10px; font-size:12.5px; color:var(--ink2); line-height:1.45; overflow:auto}
-
-/* HOURLY */
-.vhead{display:flex; align-items:center; gap:8px; padding:4px 0 6px}
-.vhead h2{font-size:15px; font-weight:800; margin:0}
-.vhead .hint{font-size:11px; color:var(--ink3); font-weight:600; margin-left:auto}
-.hstrip{display:flex; gap:10px; overflow-x:auto; overflow-y:hidden; padding:4px 2px 8px; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
-.hstrip::-webkit-scrollbar{display:none}
-.hcard{flex:0 0 auto; width:78px; background:var(--card); border-radius:18px; padding:12px 8px; text-align:center; box-shadow:var(--shadow); backdrop-filter:blur(10px); display:flex; flex-direction:column; align-items:center; gap:4px}
-.hcard .ht{font-size:12px; font-weight:700; color:var(--ink2)}
-.hcard .hi{font-size:26px; line-height:1}
-.hcard .htemp{font-size:19px; font-weight:800; font-variant-numeric:tabular-nums}
-.hcard .hfeel{font-size:10px; color:var(--ink3); font-weight:600}
-.hcard .hrow{display:flex; gap:6px; font-size:10px; color:var(--ink2); font-weight:700; margin-top:2px}
-.hcard .hcloth{font-size:20px; margin-top:4px; line-height:1}
-.hcard .hclabel{font-size:9.5px; color:var(--ink2); font-weight:700; line-height:1.15; min-height:22px}
-.hourly-scrollwrap{flex:1 1 auto; min-height:0; display:flex; flex-direction:column; justify-content:center}
-.legend{display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--ink2); font-weight:600; padding-top:6px}
-.legend span{display:inline-flex; align-items:center; gap:4px}
-
-/* 7 DAY */
-.days{display:flex; flex-direction:column; gap:8px; flex:1 1 auto; min-height:0; justify-content:center}
-.drow{display:grid; grid-template-columns:52px 34px 1fr auto; align-items:center; gap:10px; background:var(--card); border-radius:16px; padding:11px 14px; box-shadow:var(--shadow); backdrop-filter:blur(10px)}
-.drow .dn{font-weight:800; font-size:14px}
-.drow .dn small{display:block; font-weight:600; font-size:10px; color:var(--ink3)}
-.drow .di{font-size:24px; text-align:center}
-.drow .dbar{display:flex; align-items:center; gap:8px}
-.trackwrap{flex:1; height:7px; border-radius:6px; background:linear-gradient(90deg,#8ec5ff,#ffd08a,#ff9a6a); position:relative; opacity:.5}
-.dtemps{display:flex; gap:8px; font-variant-numeric:tabular-nums}
-.dtemps .lo{color:var(--ink3); font-weight:700; font-size:14px}
-.dtemps .hi{color:var(--ink); font-weight:800; font-size:14px}
-.drow .dmeta{display:flex; gap:9px; font-size:11px; color:var(--ink2); font-weight:700; justify-self:end}
-
-/* AI */
-.ai-scope{display:flex; gap:8px; margin:2px 0 10px}
-.seg{flex:1; display:flex; background:rgba(19,33,50,.06); border-radius:12px; padding:3px}
-.seg button{flex:1; font-size:12.5px; font-weight:700; padding:8px 4px; border-radius:9px; color:var(--ink2)}
-.seg button.on{background:#fff; color:var(--ink); box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.ai-card{background:var(--card); border-radius:var(--r); padding:13px 15px; box-shadow:var(--shadow); backdrop-filter:blur(12px); flex:1 1 auto; min-height:0; display:flex; flex-direction:column; overflow:hidden}
-.ai-top{display:flex; align-items:center; gap:11px; margin-bottom:9px}
-.ai-emoji{font-size:34px}
-.ai-head b{font-size:16px; display:block}
-.ai-head span{font-size:12px; color:var(--ink2); font-weight:600}
-.ai-body{overflow:auto; min-height:0; flex:1}
-.ai-sec{margin-bottom:12px}
-.ai-sec h4{margin:0 0 7px; font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink3)}
-.layer{display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--line)}
-.layer:last-child{border-bottom:0}
-.layer .le{font-size:20px; width:26px; text-align:center}
-.layer .lt b{font-size:13.5px}
-.layer .lt span{font-size:11.5px; color:var(--ink2); display:block}
-.ai-reason{font-size:13px; line-height:1.5; color:var(--ink2); background:rgba(62,142,240,.07); border-radius:12px; padding:11px 13px}
-
-/* STATUS */
-.status-list{display:flex; flex-direction:column; gap:12px; margin-top:4px}
-.prov{background:var(--card); border-radius:var(--r); padding:14px 16px; box-shadow:var(--shadow); backdrop-filter:blur(12px)}
-.prov-head{display:flex; align-items:center; gap:10px}
-.dot{width:11px; height:11px; border-radius:50%; background:var(--ink3); flex:0 0 auto; box-shadow:0 0 0 4px rgba(0,0,0,.04)}
-.dot.up{background:var(--good); box-shadow:0 0 0 4px rgba(55,178,107,.18)}
-.dot.down{background:var(--bad); box-shadow:0 0 0 4px rgba(224,86,86,.18)}
-.dot.wait{background:var(--warn); animation:pulse 1s infinite}
-@keyframes pulse{50%{opacity:.4}}
-.prov-head b{font-size:15px}
-.prov-head .st{margin-left:auto; font-size:12px; font-weight:800}
-.prov-head .st.up{color:var(--good)} .prov-head .st.down{color:var(--bad)} .prov-head .st.wait{color:var(--warn)}
-.prov-sub{font-size:12px; color:var(--ink2); margin:8px 0 2px; font-weight:600}
-.params{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
-.ptag{font-size:11px; font-weight:700; padding:4px 9px; border-radius:8px; background:rgba(55,178,107,.13); color:#1c7a45}
-.ptag.miss{background:rgba(224,86,86,.12); color:#a63333}
-.status-note{margin-top:14px; font-size:12.5px; color:var(--ink2); line-height:1.5; background:var(--card2); border-radius:14px; padding:12px 14px; backdrop-filter:blur(8px)}
-.status-note b{color:var(--ink)}
-
-/* Bottom nav */
-.nav{
-  position:absolute; left:50%; transform:translateX(-50%);
-  bottom:calc(var(--safe-b) + 12px); width:min(430px, calc(100% - 24px));
-  display:flex; justify-content:space-around; align-items:center;
-  background:var(--glass); backdrop-filter:blur(22px) saturate(180%); -webkit-backdrop-filter:blur(22px) saturate(180%);
-  border:1px solid rgba(255,255,255,.6); border-radius:26px; padding:9px 6px;
-  box-shadow:0 14px 40px rgba(30,60,110,.20);
-}
-.nav button{display:flex; flex-direction:column; align-items:center; gap:3px; padding:5px 10px; border-radius:16px; color:var(--ink3); flex:1; transition:color .15s}
-.nav button .ni{font-size:20px; line-height:1}
-.nav button .nl{font-size:10px; font-weight:700}
-.nav button.on{color:var(--cool-ink)}
-.nav button.on .ni{transform:translateY(-1px)}
-.nav button:active{transform:scale(.92)}
-
-/* Sheet */
-.scrim{position:fixed; inset:0; background:rgba(15,30,55,.34); backdrop-filter:blur(3px); opacity:0; pointer-events:none; transition:opacity .22s; z-index:40}
-.scrim.show{opacity:1; pointer-events:auto}
-.sheet{
-  position:fixed; left:0; right:0; bottom:0; z-index:50;
-  background:linear-gradient(180deg,#fff,#f6faff); border-radius:26px 26px 0 0;
-  padding:14px 18px calc(var(--safe-b) + 20px); box-shadow:0 -12px 40px rgba(20,40,80,.2);
-  transform:translateY(110%); transition:transform .28s cubic-bezier(.2,.8,.2,1); max-height:82vh; overflow:auto;
-}
-.sheet.show{transform:translateY(0)}
-.grab{width:40px; height:5px; background:var(--line); border-radius:3px; margin:2px auto 12px}
-.sheet h3{margin:0 0 12px; font-size:17px}
-.gps-btn{width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg,#4a97f2,#3e8ef0); color:#fff; font-weight:800; font-size:14px; padding:13px; border-radius:14px; box-shadow:0 8px 20px rgba(62,142,240,.35)}
-.gps-btn:active{transform:scale(.98)}
-.searchrow{display:flex; gap:8px; margin:12px 0}
-.searchrow input{flex:1; border:1px solid var(--line); background:#fff; border-radius:12px; padding:12px 14px; font-size:15px; color:var(--ink); outline:none}
-.searchrow input:focus{border-color:var(--cool)}
-.results{display:flex; flex-direction:column; gap:6px; margin-top:4px}
-.res{display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:12px; background:#fff; border:1px solid var(--line)}
-.res:active{background:#eef5ff}
-.res .rn{font-weight:700; font-size:14px}
-.res .rs{font-size:11px; color:var(--ink3); font-weight:600}
-.res .add{margin-left:auto; font-size:18px; color:var(--cool)}
-.fav-label{font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink3); font-weight:700; margin:16px 0 8px}
-.fav{display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:12px; background:#fff; border:1px solid var(--line); margin-bottom:6px}
-.fav:active{background:#eef5ff}
-.fav .fn{font-weight:700; font-size:14px}
-.fav .del{margin-left:auto; font-size:16px; color:var(--bad); padding:4px 8px}
-.empty{font-size:13px; color:var(--ink3); padding:6px 2px}
-
-.toast{position:fixed; left:50%; bottom:calc(var(--safe-b) + 92px); transform:translateX(-50%) translateY(20px); background:rgba(19,33,50,.92); color:#fff; font-size:13px; font-weight:600; padding:10px 16px; border-radius:12px; z-index:60; opacity:0; transition:.25s; pointer-events:none}
-.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
-
-.loading{position:absolute; inset:0; display:grid; place-items:center; z-index:5; pointer-events:none; opacity:0; transition:.2s}
-.loading.show{opacity:1}
-.spin{width:34px; height:34px; border:3px solid rgba(62,142,240,.25); border-top-color:var(--cool); border-radius:50%; animation:sp .8s linear infinite}
-@keyframes sp{to{transform:rotate(360deg)}}
-
-.err{margin:auto; text-align:center; color:var(--ink2); font-size:13px; padding:20px; line-height:1.5}
-.err b{display:block; color:var(--ink); font-size:15px; margin-bottom:6px}
-
-/* ===== 12h-KLOCKA ===== */
-.clock-toggle{display:flex; background:rgba(19,33,50,.06); border-radius:999px; padding:3px}
-.clock-toggle button{font-size:11px; font-weight:800; padding:5px 12px; border-radius:999px; color:var(--ink2)}
-.clock-toggle button.on{background:#fff; color:var(--cool-ink); box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.clock-wrap{flex:1 1 auto; min-height:0; display:flex; align-items:center; justify-content:center; padding:6px 0}
-.clock{position:relative; width:min(86vw,44vh,360px); aspect-ratio:1; flex:0 0 auto}
-.clock-bg{position:absolute; inset:0; border-radius:50%; background:url('clock-bg.webp') center/cover no-repeat;
-  box-shadow:inset 0 0 0 6px rgba(255,255,255,.35), inset 0 0 0 1px rgba(255,255,255,.7), 0 14px 38px rgba(60,110,170,.22); z-index:0}
-.clock-bg::after{content:""; position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle at 50% 46%, rgba(255,255,255,.5), rgba(255,255,255,.05) 52%, transparent 70%)}
-.clock-dial{position:absolute; inset:0; z-index:1}
-.clock svg{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;}
-.clock .center{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:47%; text-align:center;
-  background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.62)); border:1px solid rgba(255,255,255,.85); border-radius:50%; aspect-ratio:1;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; box-shadow:0 6px 20px rgba(30,60,110,.16); cursor:pointer; backdrop-filter:blur(3px)}
-.clock .center:active{transform:translate(-50%,-50%) scale(.96)}
-.clock .center .ctime{font-size:9px; font-weight:800; color:var(--cool-ink); letter-spacing:1px; margin-bottom:1px}
-.clock .center .ci{font-size:clamp(22px,7vw,30px); line-height:1}
-.clock .center .ct{font-size:clamp(28px,9vw,40px); font-weight:800; line-height:.9; font-variant-numeric:tabular-nums; letter-spacing:-1.5px; color:var(--ink)}
-.clock .center .cs{font-size:10.5px; color:var(--ink2); font-weight:800; margin-top:2px; line-height:1.1}
-.clock .center .cr{font-size:9.5px; color:var(--ink3); font-weight:700; margin-top:4px; display:flex; gap:7px; justify-content:center; font-variant-numeric:tabular-nums}
-.clock .center .cmore{font-size:9px; color:#fff; font-weight:800; margin-top:5px; letter-spacing:.3px; background:var(--cool); padding:3px 9px; border-radius:999px; box-shadow:0 2px 8px rgba(62,142,240,.35)}
-.clock .mk{position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; width:40px; padding:3px 1px;
-  background:rgba(255,255,255,.5); border:1px solid rgba(255,255,255,.65); border-radius:13px; box-shadow:0 2px 8px rgba(30,60,110,.10); backdrop-filter:blur(2px)}
-.clock .mk .me{font-size:14px; line-height:1}
-.clock .mk .mt{font-size:10.5px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1; margin-top:1px}
-.clock .mk .mc{font-size:11px; line-height:1; margin-top:1px}
-.clock .mk.sel{background:#fff; border-color:rgba(62,142,240,.5); box-shadow:0 4px 14px rgba(62,142,240,.35); transform:translate(-50%,-50%) scale(1.08)}
-.clock .mk.isnow{border-color:rgba(62,142,240,.75)}
-.clock .mk:active{transform:translate(-50%,-50%) scale(1.18)}
-.clock .lab{position:absolute; transform:translate(-50%,-50%); font-size:9px; font-weight:800; color:var(--ink3); letter-spacing:.2px; text-shadow:0 1px 2px rgba(255,255,255,.7)}
-.clock .lab.card{font-size:12.5px; font-weight:900; color:var(--ink2)}
-.clock-bottom{flex:0 0 auto; display:flex; align-items:center; gap:10px; padding-top:6px}
-.range-band{display:flex; gap:6px; flex-wrap:wrap; flex:1; min-width:0}
-.range-pill{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:800; padding:6px 10px; border-radius:999px; box-shadow:var(--shadow); white-space:nowrap}
-.range-pill.warm{background:rgba(255,154,61,.15); color:var(--warm-ink)}
-.range-pill.cold{background:rgba(62,142,240,.13); color:var(--cool-ink)}
-.story-btn{flex:0 0 auto; display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:800; color:var(--cool-ink);
-  background:var(--glass); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,.6); padding:9px 14px; border-radius:999px; box-shadow:0 6px 18px rgba(30,60,110,.14)}
-.story-btn:active{transform:scale(.96)}
-.narrative-pop{font-size:14px; line-height:1.6; color:var(--ink)}
-.narrative-pop b{color:var(--cool-ink)}
-
-/* ===== STAPEL-STRIP (Hem) ===== */
-.strip-legend{display:flex; gap:14px; align-items:center; font-size:10.5px; color:var(--ink3); font-weight:700; padding:2px 2px 4px}
-.strip-legend .hint{margin-left:auto; color:var(--ink3)}
-.barstrip{flex:1 1 auto; min-height:0; display:flex; gap:8px; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:4px 2px 8px; align-items:stretch}
-.barstrip::-webkit-scrollbar{display:none}
-.bcol{flex:0 0 auto; width:60px; display:flex; flex-direction:column; align-items:center; gap:4px;
-  background:linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.55)); border:1px solid rgba(255,255,255,.7);
-  border-radius:19px; padding:10px 5px 9px; box-shadow:0 6px 16px rgba(30,60,110,.10); backdrop-filter:blur(8px)}
-.bcol:active{transform:scale(.96)}
-.bcol.first{border-color:rgba(62,142,240,.45); box-shadow:0 8px 20px rgba(62,142,240,.20)}
-.bcol .bt{font-size:11.5px; font-weight:800; color:var(--ink2); font-variant-numeric:tabular-nums}
-.bcol .bi{font-size:22px; line-height:1}
-.bcol .btemp{font-size:14.5px; font-weight:800; font-variant-numeric:tabular-nums}
-.bcol .chart{position:relative; width:100%; flex:1 1 auto; min-height:64px; margin:1px 0}
-.bcol .base{position:absolute; left:8px; right:8px; height:2px; background:rgba(19,33,50,.09); border-radius:2px}
-.bcol .up{position:absolute; left:50%; transform:translateX(-50%); width:18px; border-radius:8px 8px 4px 4px; box-shadow:0 3px 8px rgba(210,140,40,.22)}
-.bcol .up::after{content:""; position:absolute; inset:0 0 auto 0; height:38%; border-radius:8px 8px 0 0; background:linear-gradient(180deg,rgba(255,255,255,.55),transparent)}
-.bcol .down{position:absolute; left:50%; transform:translateX(-50%); width:18px; border-radius:4px 4px 8px 8px; box-shadow:0 3px 8px rgba(50,120,200,.18)}
-.bcol .bpop{font-size:10px; font-weight:800; color:var(--cool-ink); font-variant-numeric:tabular-nums}
-.bcol .bpop.dry{color:var(--ink3)}
-.bcol .bcl{font-size:19px; line-height:1; margin-top:1px}
-
-/* ===== DAGENS PROGNOS – två 50/50-rutor ===== */
-.split{flex:1 1 auto; min-height:0; display:flex; flex-direction:column; gap:10px; padding-top:2px}
-.split-box{flex:1 1 0; min-height:0; background:var(--card); border-radius:var(--r); padding:12px 14px; box-shadow:var(--shadow); backdrop-filter:blur(12px); display:flex; flex-direction:column; overflow:hidden}
-.box-label{font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink3); font-weight:800; margin-bottom:8px; flex:0 0 auto}
-.split-box .periods{flex:1 1 auto; min-height:0; gap:7px}
-.split-box .narrative{flex:1 1 auto; min-height:0; overflow:auto; font-size:13.5px; line-height:1.55; color:var(--ink); -webkit-overflow-scrolling:touch}
-.split-box .narrative b{color:var(--cool-ink)}
-
-/* ===== DETALJ-POPUP (tim/dag) ===== */
-.pop-scrim{position:fixed; inset:0; background:rgba(15,30,55,.4); backdrop-filter:blur(4px); opacity:0; pointer-events:none; transition:.2s; z-index:70}
-.pop-scrim.show{opacity:1; pointer-events:auto}
-.popcard{position:fixed; left:50%; top:50%; transform:translate(-50%,-46%) scale(.96); width:min(92vw,390px); max-height:90vh; overflow:hidden;
-  background:linear-gradient(180deg,#fff,#f6faff); border-radius:24px; padding:16px 16px 18px; box-shadow:0 24px 60px rgba(20,40,80,.3); z-index:80; opacity:0; pointer-events:none; transition:.24s cubic-bezier(.2,.8,.2,1)}
-.popcard.show{opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1)}
-.pop-head{display:flex; align-items:center; gap:10px; margin-bottom:10px}
-.pop-head .pt{font-size:16px; font-weight:800}
-.pop-head .pt small{display:block; font-size:11px; color:var(--ink3); font-weight:600}
-.pop-close{margin-left:auto; width:30px; height:30px; border-radius:50%; background:rgba(19,33,50,.06); font-size:15px; color:var(--ink2); flex:0 0 auto}
-.pop-hero{display:flex; align-items:center; gap:13px; margin-bottom:11px}
-.pop-hero .pe{font-size:40px}
-.pop-hero .ptemp{font-size:34px; font-weight:800; line-height:1; font-variant-numeric:tabular-nums}
-.pop-hero .pd{font-size:13px; color:var(--ink2); font-weight:700}
-.pop-hero .pf{font-size:12px; color:var(--ink3); font-weight:600}
-.pop-note{font-size:12px; line-height:1.4; color:var(--ink2); background:rgba(62,142,240,.07); border-radius:12px; padding:9px 11px; margin-bottom:10px;
-  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden}
-.pop-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-bottom:11px}
-.pop-grid .pg{background:rgba(62,142,240,.07); border-radius:12px; padding:8px 5px; text-align:center}
-.pop-grid .pg .pv{font-weight:800; font-size:14px; font-variant-numeric:tabular-nums}
-.pop-grid .pg .pl{font-size:9.5px; color:var(--ink2); font-weight:700; margin-top:2px}
-.pop-cloth h5{margin:0; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink3)}
-.pop-cloth .band{display:flex; align-items:center; gap:8px; font-weight:800; font-size:14px; margin:8px 0}
-.pop-cloth .pchips{display:flex; flex-wrap:wrap; gap:6px}
-.pop-cloth .pchip{display:inline-flex; align-items:center; gap:5px; background:rgba(255,154,61,.13); color:var(--warm-ink); font-weight:700; font-size:12px; padding:6px 9px; border-radius:10px}
-.pop-cloth .preason{margin-top:9px; font-size:12px; color:var(--ink2); line-height:1.4;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
-.pc-head{display:flex; align-items:center; gap:8px; margin-bottom:2px}
-.pop-cloth .aud-toggle{margin-left:auto}
-.pop-cloth .aud-toggle button{font-size:11px; padding:5px 9px}
-.pc-head{display:flex; align-items:center; gap:8px; margin-bottom:9px}
-.pc-head h5{margin:0}
-.pop-cloth .aud-toggle{margin-left:auto}
-.pop-cloth .aud-toggle button{font-size:11px; padding:5px 9px}
-.pop-cloth .layers-grid{margin-top:2px}
-.pop-cloth .ai-reason{margin-top:10px; background:rgba(62,142,240,.07); border-radius:12px}
-.pop-note{font-size:12.5px; line-height:1.5; color:var(--ink2); background:rgba(62,142,240,.07); border-radius:12px; padding:10px 12px; margin-bottom:12px}
-.clock .mk.isnow{outline:2px solid rgba(62,142,240,.55); outline-offset:1px; border-radius:12px}
-.ver{text-align:center; font-size:11px; color:var(--ink3); font-weight:700; margin-top:16px}
-
-/* ===== DYGNETS PERIODER (Idag) ===== */
-.sec-label{font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink3); font-weight:800; margin:12px 2px 7px}
-.periods{display:flex; flex-direction:column; gap:8px; flex:1 1 auto; min-height:0}
-.prow{display:grid; grid-template-columns:30px minmax(0,1fr) auto auto 30px; align-items:center; gap:10px;
-  background:var(--card); border-radius:17px; padding:0 14px; box-shadow:var(--shadow); backdrop-filter:blur(10px);
-  flex:1 1 0; min-height:0; text-align:left; width:100%}
-.prow:active{transform:scale(.985)}
-.prow .pi{font-size:23px; text-align:center}
-.prow .pn b{font-size:14px; display:block; line-height:1.15}
-.prow .pn small{font-size:10.5px; color:var(--ink3); font-weight:700}
-.prow .pn .pdsc{font-size:11.5px; color:var(--ink2); font-weight:700; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px}
-.prow .ppop{font-size:11px; font-weight:800; color:var(--cool-ink); background:rgba(62,142,240,.10); padding:5px 8px; border-radius:9px; font-variant-numeric:tabular-nums; white-space:nowrap}
-.prow .ptemps{text-align:right; line-height:1.05; font-variant-numeric:tabular-nums}
-.prow .ptemps b{font-size:17px; font-weight:800}
-.prow .ptemps small{display:block; font-size:11px; color:var(--ink3); font-weight:700}
-.prow .pcl{font-size:19px; text-align:center}
-
-/* ===== DAGENS PROGNOS (24h) ===== */
-.narrative{background:var(--card); border-radius:var(--r); padding:13px 16px; box-shadow:var(--shadow); backdrop-filter:blur(12px); flex:1 1 auto; min-height:0; overflow:auto; margin-top:4px}
-.narrative h4{margin:0 0 6px; font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink3)}
-.narrative p{margin:0; font-size:13.5px; line-height:1.55; color:var(--ink)}
-.narrative p b{color:var(--cool-ink)}
-
-/* ===== 7-DYGN (rikare) ===== */
-.days{display:flex; flex-direction:column; gap:8px; flex:1 1 auto; min-height:0}
-.drow{display:grid; grid-template-columns:76px 34px 1fr auto; align-items:center; gap:10px; background:var(--card); border-radius:16px; padding:0 14px; box-shadow:var(--shadow); backdrop-filter:blur(10px); flex:1 1 0; min-height:0; text-align:left; width:100%}
-.drow:active{transform:scale(.99)}
-.drow .dn{font-weight:800; font-size:13.5px; line-height:1.1}
-.drow .dn small{display:block; font-weight:600; font-size:10px; color:var(--ink3); margin-top:1px}
-.drow .di{font-size:25px; text-align:center}
-.drow .dmid{min-width:0}
-.drow .dmid .ddesc{font-size:12.5px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block}
-.drow .dmid .dparams{display:flex; gap:10px; font-size:10.5px; color:var(--ink2); font-weight:700; margin-top:3px; font-variant-numeric:tabular-nums; flex-wrap:wrap}
-.drow .dtemps{display:flex; flex-direction:column; align-items:flex-end; justify-self:end; line-height:1.05}
-.drow .dtemps b{font-size:18px; font-weight:800; font-variant-numeric:tabular-nums}
-.drow .dtemps small{font-size:12px; color:var(--ink3); font-weight:700}
-
-/* ===== KLÄDVAL kompakt (utan scroll) ===== */
-.ai-body{overflow:hidden}
-.ai-sec{margin-bottom:10px}
-.layers-grid{display:grid; grid-template-columns:1fr 1fr; gap:5px 14px}
-.layer{display:flex; align-items:center; gap:9px; padding:4px 0; border-bottom:0}
-.layer .le{font-size:18px; width:22px; text-align:center}
-.layer .lt b{font-size:12.5px; line-height:1.15}
-.layer .lt span{font-size:10.5px; color:var(--ink2); display:block; line-height:1.1}
-.ai-reason{font-size:12px; line-height:1.45; padding:9px 11px}
-</style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<div id="app">
-  <div class="top">
-    <div class="loc" id="locBtn">
-      <span class="pin">📍</span>
-      <div style="min-width:0">
-        <div class="name" id="locName">Hämtar plats…</div>
-        <div class="sub" id="locSub">Tryck för att byta ort</div>
-      </div>
+<body class="mode-dash">
+
+    <!-- TOAST -->
+    <div id="sf-toast" data-testid="sf-toast" class="md-toast fixed top-4 left-1/2 -translate-x-1/2 z-[60000] flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none -translate-y-8">
+        <span id="sf-toast-icon" class="text-[18px]">🔔</span>
+        <span id="sf-toast-msg" class="leading-tight">Meddelande här</span>
     </div>
-    <div class="spacer"></div>
-    <button class="iconbtn" id="gpsQuick" title="Min plats">🎯</button>
-    <button class="iconbtn" id="refreshBtn" title="Uppdatera">↻</button>
-  </div>
 
-  <div class="views">
-    <div class="loading" id="loading"><div class="spin"></div></div>
-
-    <!-- NU -->
-    <section class="view active" id="view-now">
-      <div class="now-hero">
-        <div class="now-ico" id="nowIco">⛅</div>
-        <div class="now-temp" id="nowTemp">–<sup>°</sup></div>
-        <div class="now-meta">
-          <div class="now-desc" id="nowDesc">–</div>
-          <div class="now-feels" id="nowFeels">Känns som –°</div>
-          <div class="now-range" id="nowRange">↑–° ↓–°</div>
-          <div class="consensus" id="nowConsensus"></div>
+    <div id="confirm-box" class="md-confirm-box" style="display:none;">
+        <p class="md-confirm-title">Skriva över data?</p>
+        <div class="flex gap-2">
+            <button id="conf-yes" class="md-btn-filled flex-1">JA</button>
+            <button onclick="hideConfirm()" class="md-btn-tonal flex-1">NEJ</button>
         </div>
-      </div>
-      <div class="metrics" id="nowMetrics"></div>
-      <div class="sec-label">Kommande timmar · tryck en stapel för detaljer</div>
-      <div class="barstrip" id="barStrip"></div>
-    </section>
+    </div>
 
-    <!-- DAGENS PROGNOS -->
-    <section class="view" id="view-hourly">
-      <div class="vhead"><h2>Dagens prognos</h2></div>
-      <div class="split">
-        <div class="split-box">
-          <div class="box-label">Dagen i perioder · tryck för detaljer</div>
-          <div class="periods" id="periodList"></div>
+    <!-- UTVÄRDERA PASS -->
+    <div id="eval-modal" class="md-scrim fixed inset-0 z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[340px]" id="eval-modal-content">
+            <div class="md-dialog-header">
+                <h2 class="md-dialog-title">Utvärdera pass</h2>
+                <button onclick="closeEvalModal()" class="md-icon-btn" data-testid="close-eval"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="flex flex-col gap-3 px-1" id="eval-metrics-container"></div>
+            <div class="md-dialog-actions">
+                <button onclick="saveEvalModal()" class="md-btn-filled w-full" data-testid="save-eval">Spara utvärdering</button>
+            </div>
         </div>
-        <div class="split-box">
-          <div class="box-label">📖 Sammanfattning</div>
-          <div class="narrative" id="dayStory"></div>
+    </div>
+
+    <!-- ANTECKNINGAR -->
+    <div id="notes-modal" class="md-scrim fixed inset-0 z-[8000] hidden flex items-stretch justify-center opacity-0">
+        <div class="md-dialog notes-fullscreen w-full max-w-[480px]">
+            <div class="notes-head">
+                <h2 class="notes-title">Anteckningar</h2>
+                <span class="notes-sub">Kundinfo &amp; uppgifter</span>
+            </div>
+
+            <div class="notes-body">
+                <div class="notes-imgrow">
+                    <button onclick="document.getElementById('camera-input').click()" class="notes-imgbtn" data-testid="btn-camera">
+                        <span class="material-symbols-rounded">photo_camera</span> Kamera
+                    </button>
+                    <button onclick="document.getElementById('gallery-input').click()" class="notes-imgbtn" data-testid="btn-gallery">
+                        <span class="material-symbols-rounded">image</span> Galleri
+                    </button>
+                    <div id="image-load-spinner" class="md-spinner hidden shrink-0"></div>
+                </div>
+                <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleNoteImageSelect(this)">
+                <input type="file" id="gallery-input" accept="image/*" class="hidden" onchange="handleNoteImageSelect(this)">
+
+                <input type="text" id="note-name" class="md-input" placeholder="Namn / Ämne">
+                <div class="flex gap-2">
+                    <input type="tel" id="note-phone" class="md-input w-1/2" placeholder="Telefon">
+                    <input type="text" id="note-order" class="md-input w-1/2" placeholder="Ordernr">
+                </div>
+                <div class="flex gap-2">
+                    <input type="date" id="note-due" class="md-input w-1/2">
+                    <select id="note-prio" class="md-input w-1/2">
+                        <option value="">Ingen prio</option>
+                        <option value="1">🔴 Prio 1 (Hög)</option>
+                        <option value="2">🟡 Prio 2 (Medel)</option>
+                        <option value="3">🔵 Prio 3 (Låg)</option>
+                    </select>
+                </div>
+                <textarea id="note-text" class="md-input notes-textarea" placeholder="Skriv din anteckning här..."></textarea>
+
+                <button id="note-submit-btn" onclick="addNote()" class="md-btn-filled w-full" data-testid="save-note">Spara anteckning</button>
+                <button onclick="openSavedNotesModal()" class="md-btn-tonal w-full md-btn-icon-text" data-testid="open-saved-notes">
+                    <span class="material-symbols-rounded">folder_open</span> Visa sparade anteckningar
+                </button>
+            </div>
         </div>
-      </div>
-    </section>
+    </div>
 
-    <!-- 7 DAGAR -->
-    <section class="view" id="view-week">
-      <div class="vhead"><h2>7 dagar</h2><span class="hint">min / max</span></div>
-      <div class="days" id="weekList"></div>
-    </section>
-
-    <!-- AI KLÄDVAL -->
-    <section class="view" id="view-ai">
-      <div class="ai-scope">
-        <div class="seg" id="aiScope" style="flex:1.55">
-          <button data-s="now" class="on">Nu</button>
-          <button data-s="today">Idag</button>
-          <button data-s="tomorrow">Imorgon</button>
+    <!-- ===== LÖN ===== -->
+    <!-- Bekräftelsedialog för bilagor -->
+    <div id="lon-confirm-modal" class="md-scrim fixed inset-0 z-[36500] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog md-dialog-std" style="max-width:340px">
+            <div class="md-dialog-body" style="padding:20px 18px 16px">
+                <h2 id="lon-confirm-title" class="md-dialog-title" style="margin-bottom:8px">Bekräfta</h2>
+                <p id="lon-confirm-msg" class="lon-hint" style="line-height:1.5;font-size:13px"></p>
+                <select id="lon-confirm-select" class="md-input hidden" style="margin-top:10px"></select>
+                <div class="flex gap-2" style="margin-top:16px">
+                    <button id="lon-confirm-cancel" class="md-btn-tonal flex-1">Avbryt</button>
+                    <button id="lon-confirm-ok" class="md-btn-filled flex-1">OK</button>
+                </div>
+            </div>
         </div>
-        <div class="seg" id="aiAud">
-          <button data-a="adult" class="on">👤 Vuxen</button>
-          <button data-a="child">🧒 Barn</button>
+    </div>
+
+    <!-- Ångra-toast (prognos) -->
+    <div id="lon-undo-toast" class="lon-undo-toast hidden">
+        <span class="lon-undo-txt"></span>
+        <button class="lon-undo-btn">Ångra</button>
+    </div>
+
+    <div id="lon-settings-modal" class="md-scrim fixed inset-0 z-[35500] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300" onclick="if(event.target===this)closeLonSettings()">
+        <div class="md-dialog md-dialog-std">
+            <div class="md-dialog-header md-dialog-header-bar">
+                <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded text-google-blue">settings</span>Inställningar</h2>
+                <button onclick="closeLonSettings()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="md-dialog-body">
+                <!-- BILAGOR & INLÄRNING -->
+                <details class="lon-details" open>
+                    <summary>Bilagor &amp; inlärning</summary>
+                    <p id="lon-upload-help" class="lon-hint" style="margin-top:2px"></p>
+                    <input type="file" id="lon-file-input-tidrapport" accept="image/*,application/pdf" class="hidden" onchange="lonHandleUpload(this,'tidrapport')">
+                    <button id="lon-btn-tidrapport" onclick="lonClickUpload('tidrapport')" class="md-btn-outlined w-full md-btn-icon-text lon-upload-btn"><span class="material-symbols-rounded">schedule</span> <span class="lon-upbtn-txt">Tidrapport</span></button>
+                    <div id="lon-file-tidrapport" class="lon-file-name hidden"></div>
+                    <input type="file" id="lon-file-input-lonespec" accept="image/*,application/pdf" class="hidden" onchange="lonHandleUpload(this,'lonespec')">
+                    <button id="lon-btn-lonespec" onclick="lonClickUpload('lonespec')" class="md-btn-outlined w-full md-btn-icon-text mt-1 lon-upload-btn"><span class="material-symbols-rounded">receipt_long</span> <span class="lon-upbtn-txt">Lönespec</span></button>
+                    <div id="lon-file-lonespec" class="lon-file-name hidden"></div>
+                    <p id="lon-learn-status" class="lon-hint" style="margin-top:6px"></p>
+                    <span class="lon-section-lbl" style="margin-top:10px">Historik &amp; månadsstatus</span>
+                    <div id="lon-history" class="lon-history"></div>
+                    <details class="lon-info">
+                        <summary>Hur fungerar det?</summary>
+                        <p class="lon-hint" style="margin-top:6px;line-height:1.5">
+                        <b>Tidrapport</b> = lönearter från Quinyx. Skicka in den för en avslutad månad (t.ex. juni i juli) så <b>kalibreras</b> OB och frånvaro mot facit. Skickar du in pågående månad blir det en <b>prognos</b> som bara uppdaterar estimatet.<br><br>
+                        <b>Lönespec</b> = specen du fått utbetald. Den ger exakt skatt, frånvaroavdrag och bonus.<br><br>
+                        En månad är <b>stängd</b> (grön) när både tidrapport och lönespec finns. Appen läser månaden ur bilden och sorterar själv — du kan ladda upp när som helst. Senaste filen per månad gäller alltid; tar du bort en räknas allt om automatiskt.</p>
+                    </details>
+                </details>
+                <!-- BONUSSPANN -->
+                <details class="lon-details">
+                    <summary>Bonusspann</summary>
+                    <div id="lon-bonus-tiers"></div>
+                    <button onclick="lonAddTier()" class="md-btn-outlined w-full md-btn-icon-text mt-1"><span class="material-symbols-rounded">add</span> Lägg till spann</button>
+                </details>
+            </div>
         </div>
-      </div>
-      <div class="ai-card">
-        <div class="ai-top">
-          <div class="ai-emoji" id="aiEmoji">🧥</div>
-          <div class="ai-head"><b id="aiTitle">Klädval</b><span id="aiSub">–</span></div>
+    </div>
+
+    <!-- SPARADE ANTECKNINGAR -->
+    <div id="saved-notes-modal" class="md-scrim fixed inset-0 z-[36000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[360px] max-h-[85vh] !p-0 overflow-hidden flex flex-col">
+            <div class="md-dialog-header md-dialog-header-bar">
+                <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded text-google-blue">folder</span>Sparade</h2>
+                <button onclick="closeSavedNotesModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-3 p-4" id="notes-list-container"></div>
         </div>
-        <div class="ai-body">
-          <div class="ai-sec">
-            <h4>Lager för lager</h4>
-            <div id="aiLayers" class="layers-grid"></div>
-          </div>
-          <div class="ai-sec">
-            <h4>Varför</h4>
-            <div class="ai-reason" id="aiReason">–</div>
-          </div>
+    </div>
+
+    <!-- SAMMANFATTNING -->
+    <div id="summary-modal" class="md-scrim fixed inset-0 z-[30000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[340px]" id="summary-modal-content">
+            <div class="md-dialog-header">
+                <h2 id="summary-modal-title" class="md-dialog-title">Sammanfattning</h2>
+                <div class="flex gap-1 items-center">
+                    <button id="btn-sum-toggle" onclick="toggleSummaryView()" class="md-icon-btn" title="Insikter"><span class="material-symbols-rounded">lightbulb</span></button>
+                    <button onclick="closeSummaryModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
+                </div>
+            </div>
+
+            <div id="summary-stats-view" class="flex flex-col gap-3">
+                <div class="grid grid-cols-2 gap-2">
+                    <div onclick="focusFromSummary('work')" class="md-stat-card md-stat-blue sum-clickable">
+                        <span class="md-stat-lbl">Pass / Jobb</span>
+                        <span id="sum-workdays" class="md-stat-val">0</span>
+                    </div>
+                    <div onclick="focusFromSummary('abs')" class="md-stat-card md-stat-yellow sum-clickable">
+                        <span class="md-stat-lbl">Frånvaro</span>
+                        <span id="sum-absdays" class="md-stat-val">0</span>
+                    </div>
+                    <div onclick="focusFromSummary('best')" class="md-stat-card md-stat-green sum-clickable">
+                        <span class="md-stat-lbl">Bästa dag</span>
+                        <span id="sum-bestday-val" class="md-stat-val">0k</span>
+                        <span id="sum-bestday-lbl" class="md-stat-sub">--</span>
+                    </div>
+                    <div onclick="focusFromSummary('worst')" class="md-stat-card md-stat-red sum-clickable">
+                        <span class="md-stat-lbl">Sämsta dag</span>
+                        <span id="sum-worstday-val" class="md-stat-val">0k</span>
+                        <span id="sum-worstday-lbl" class="md-stat-sub">--</span>
+                    </div>
+                </div>
+
+                <div onclick="focusFromSummary('green')" class="md-row-card md-row-blue sum-clickable">
+                    <div class="flex flex-col">
+                        <span class="md-row-title">Grön streak (mål nått)</span>
+                        <span class="md-row-sub">Markera alla gröna dagar</span>
+                    </div>
+                    <span id="sum-streak" class="md-row-val">0 🔥</span>
+                </div>
+
+                <div id="sum-bestweek-container" onclick="focusFromSummary('week')" class="md-row-card md-row-indigo sum-clickable">
+                    <div class="flex flex-col">
+                        <span class="md-row-title">Bästa veckan</span>
+                        <span class="md-row-sub">Markera hela veckan</span>
+                    </div>
+                    <div class="text-right">
+                        <span id="sum-bestweek-val" class="md-row-val block">0k</span>
+                        <span id="sum-bestweek-lbl" class="md-row-sub">--</span>
+                    </div>
+                </div>
+
+                <div id="sum-abs-details" class="flex flex-col gap-1 hidden">
+                    <h3 class="md-section-lbl">Frånvaro orsaker</h3>
+                    <div id="sum-abs-list" class="flex flex-col gap-1"></div>
+                </div>
+            </div>
+
+            <div id="summary-insights-view" class="hidden flex flex-col gap-3">
+                <div id="insight-container" class="flex flex-col gap-2"></div>
+            </div>
+
+            <button onclick="closeSummaryModal()" class="md-btn-filled w-full mt-2">Stäng</button>
         </div>
-      </div>
-    </section>
+    </div>
 
-    <!-- STATUS -->
-    <section class="view" id="view-status">
-      <div class="vhead"><h2>Leverantörsstatus</h2><span class="hint" id="statTime"></span></div>
-      <div class="status-list" id="statusList"></div>
-      <div class="status-note">
-        <b>Så kombineras data:</b> Appen hämtar från SMHI (snow1gv1) och MET Norway parallellt och visar
-        <b>snittet</b> av det båda ger. Saknar en leverantör ett värde – t.ex. UV‑index – lånas det automatiskt
-        i bakgrunden från den andra, eller uppskattas från solhöjd och molntäcke så att inget fält blir tomt.
-        <span style="display:block;margin-top:8px;color:var(--ink3);font-weight:700">Version v9</span>
-      </div>
-    </section>
-  </div>
+    <!-- NOTE CONFIRM -->
+    <div id="note-confirm-modal" class="md-scrim fixed inset-0 z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-[300px]" id="note-modal-content">
+            <p class="md-dialog-title text-center mb-2">Vill du stänga ärendet?</p>
+            <div class="flex gap-2">
+                <button id="btn-note-yes" class="md-btn-tonal-blue flex-1">JA</button>
+                <button onclick="closeNoteConfirmModal()" class="md-btn-tonal flex-1">NEJ</button>
+            </div>
+        </div>
+    </div>
 
-  <nav class="nav" id="nav">
-    <button data-v="now" class="on"><span class="ni">🌤️</span><span class="nl">Idag</span></button>
-    <button data-v="hourly"><span class="ni">📋</span><span class="nl">Prognos</span></button>
-    <button data-v="week"><span class="ni">📅</span><span class="nl">7 dagar</span></button>
-    <button data-v="ai"><span class="ni">👕</span><span class="nl">Klädval</span></button>
-    <button data-v="status"><span class="ni">📡</span><span class="nl">Status</span></button>
-  </nav>
-</div>
+    <!-- BARN VAL -->
+    <div id="child-select-modal" class="md-scrim fixed inset-0 z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-[300px]" id="child-modal-content">
+            <p id="child-modal-title" class="md-section-lbl text-center mb-2">VEM GÄLLER DET?</p>
+            <div class="flex gap-2">
+                <button onclick="selectChild('Belma')" class="md-child-btn md-child-blue">
+                    <span class="text-3xl">👶</span><span class="md-child-name">Belma</span>
+                </button>
+                <button onclick="selectChild('Wilma')" class="md-child-btn md-child-red">
+                    <span class="text-3xl">👧</span><span class="md-child-name">Wilma</span>
+                </button>
+            </div>
+            <button onclick="closeChildModal()" class="md-btn-text mt-2">Avbryt</button>
+        </div>
+    </div>
 
-<!-- Ort-sheet -->
-<div class="scrim" id="scrim"></div>
-<div class="sheet" id="sheet">
-  <div class="grab"></div>
-  <h3>Välj ort</h3>
-  <button class="gps-btn" id="gpsBtn">🎯 Använd min plats (GPS)</button>
-  <div class="searchrow">
-    <input id="searchInput" type="search" placeholder="Sök ort, t.ex. Göteborg…" autocomplete="off" />
-  </div>
-  <div class="results" id="searchResults"></div>
-  <div class="fav-label">Favoriter (max 5)</div>
-  <div id="favList"></div>
-  <div class="ver">Väderråd · v9</div>
-</div>
+    <!-- INSTÄLLNINGAR -->
+    <div id="budget-modal" class="md-scrim fixed inset-0 z-[15000] hidden flex items-center justify-center p-4">
+        <div class="md-dialog w-[320px]">
+            <p class="md-section-lbl text-center">Inställningar</p>
+            <button id="sync-btn" onclick="syncData()" class="md-btn-filled w-full md-btn-icon-text" data-testid="sync-data">
+                <span class="material-symbols-rounded">sync</span> Synkronisera data
+            </button>
+            <div class="md-divider"></div>
+            <p class="md-section-lbl text-center">Månadsmål</p>
+            <div class="flex flex-col gap-2">
+                <button onclick="setGlobalBudget(180000)" class="md-budget-btn">180 000 kr</button>
+                <button onclick="setGlobalBudget(240000)" class="md-budget-btn">240 000 kr</button>
+                <button onclick="setGlobalBudget(350000)" class="md-budget-btn">350 000 kr</button>
+            </div>
+            <button onclick="closeBudgetModal()" class="md-btn-text mt-1">Stäng</button>
+        </div>
+    </div>
 
-<div class="toast" id="toast"></div>
+    <!-- COACH MAIN -->
+    <div id="coach-main-modal" class="md-scrim fixed inset-0 z-[36000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[380px] !p-0 overflow-hidden max-h-[90vh]">
+            <div class="md-dialog-header md-dialog-header-bar">
+                <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded text-google-blue">smart_toy</span>Säljcoach</h2>
+                <button onclick="closeCoachModalMain()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="p-4 flex flex-col gap-3 overflow-y-auto hide-scrollbar">
+                <div class="md-form-card !p-4">
+                    <h3 class="md-section-lbl flex items-center gap-1.5 !text-left"><span class="material-symbols-rounded text-[16px] text-google-blue">edit_note</span>Nytt samtal</h3>
+                    <select id="call-input-type" class="md-input">
+                        <option value="bra">✅ Lyckat avslut (starkt)</option>
+                        <option value="utv">🎯 Missat / Utvecklingspotential</option>
+                    </select>
+                    <input type="text" id="call-input-title" placeholder="Kund / Företag..." class="md-input">
+                    <textarea id="call-input-text" placeholder="Klistra in transkribering här..." class="md-input h-24 resize-none"></textarea>
+                    <button id="btn-analyze-call" onclick="submitNewCall()" class="md-btn-filled w-full md-btn-icon-text" data-testid="analyze-call">
+                        <span class="material-symbols-rounded">auto_awesome</span> Analysera & spara
+                    </button>
+                    <p id="coach-status-text" class="md-status-text hidden">Hjärnan jobbar...</p>
+                </div>
+                <button onclick="openCoachHistoryModal()" class="md-btn-outlined w-full md-btn-icon-text">
+                    <span class="material-symbols-rounded">history</span> Öppna historik
+                </button>
+            </div>
+        </div>
+    </div>
 
-<!-- Detalj-popup (tim/dag) -->
-<div class="pop-scrim" id="popScrim"></div>
-<div class="popcard" id="popCard"><div id="popBody"></div></div>
+    <!-- COACH HISTORY -->
+    <div id="coach-history-modal" class="md-scrim fixed inset-0 z-[37000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[380px] !p-0 overflow-hidden max-h-[90vh]">
+            <div class="md-dialog-header md-dialog-header-bar">
+                <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded">history</span>Historik</h2>
+                <button onclick="closeCoachHistoryModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 hide-scrollbar">
+                <div id="coach-history-list" class="flex flex-col gap-3 pb-4"></div>
+            </div>
+        </div>
+    </div>
 
-<script>
-/* =========================================================
-   Väderråd – väder + klädval. Vanilla JS, ett enda anrop-lager.
-   Källor: SMHI snow1gv1 + MET Norway locationforecast/2.0/complete
-========================================================= */
-const $ = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
-const LS = {
-  get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k)) ?? d}catch{return d}},
-  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))
-};
+    <!-- COACH READ -->
+    <div id="coach-read-modal" class="md-scrim fixed inset-0 z-[40000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[380px] !p-0 overflow-hidden max-h-[85vh]">
+            <div class="md-dialog-header md-dialog-header-bar">
+                <div class="flex flex-col">
+                    <h2 id="crm-title" class="md-dialog-title truncate pr-2">Samtal</h2>
+                    <span id="crm-date" class="md-row-sub">--</span>
+                </div>
+                <button onclick="closeCoachCall()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div id="crm-read-view" class="overflow-y-auto p-5 flex-1 hide-scrollbar md-prose"></div>
+            <div id="crm-edit-view" class="hidden flex-1 flex flex-col p-4 bg-surface-2">
+                <input type="text" id="crm-edit-title" class="md-input mb-2">
+                <textarea id="crm-edit-text" class="md-input flex-1 min-h-[150px] resize-none"></textarea>
+            </div>
+            <div id="crm-read-buttons" class="md-dialog-footer flex gap-2">
+                <button onclick="toggleCoachEdit()" class="md-btn-tonal flex-1 md-btn-icon-text"><span class="material-symbols-rounded">edit</span> Redigera</button>
+                <button onclick="deleteCoachCall()" class="md-btn-tonal-red flex-1 md-btn-icon-text"><span class="material-symbols-rounded">delete</span> Ta bort</button>
+            </div>
+            <div id="crm-edit-buttons" class="hidden md-dialog-footer flex gap-2">
+                <button onclick="toggleCoachEdit()" class="md-btn-text flex-1">Avbryt</button>
+                <button onclick="saveCoachCall()" class="md-btn-filled flex-[2] md-btn-icon-text"><span class="material-symbols-rounded">check</span> Spara</button>
+            </div>
+        </div>
+    </div>
 
-const state = {
-  loc: LS.get('loc', null),          // {name, sub, lat, lon}
-  favs: LS.get('favs', []),
-  aud: 'adult',
-  aiScope: 'now',
-  aiAud: 'adult',
-  clockOffset: 0,     // 0 = kommande 12h, 12 = timme 13–24
-  clockSel: 0,        // vald timme (absolut index i data)
-  popup: null,        // {h,title,sub,note} för öppen detalj-popup
-  periods: [],        // dygnets perioder (Idag-fliken)
-  forecast: [],       // kommande timmar (24h-fliken)
-  data: null,                        // combined hourly [{t, temp, feels, hum, cloud, precip, uv, wind, symbol, src:{}}]
-  daily: null,
-  status: { smhi:{state:'wait'}, yr:{state:'wait'} }
-};
+    <!-- RED THREAD -->
+    <div id="red-thread-modal" class="md-scrim fixed inset-0 z-[41000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+         <div class="md-dialog w-full max-w-[360px] max-h-[80vh]">
+            <div class="md-dialog-header">
+                <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded text-google-blue">psychology</span>Röd tråd</h2>
+                <button onclick="closeRedThreadModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div id="rt-content" class="md-prose overflow-y-auto hide-scrollbar flex-1 whitespace-pre-wrap"></div>
+            <button onclick="closeRedThreadModal()" class="md-btn-filled w-full">Stäng</button>
+        </div>
+    </div>
 
-/* ---------- Toast ---------- */
-let toastT;
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
+    <!-- ==================== APP SHELL ==================== -->
+    <div id="app-shell">
+        <div class="content-locker">
 
-/* ---------- Väder-emoji ---------- */
-function smhiEmoji(c){
-  const m={1:'☀️',2:'🌤️',3:'⛅',4:'⛅',5:'☁️',6:'☁️',7:'🌫️',8:'🌦️',9:'🌦️',10:'🌧️',11:'⛈️',
-    12:'🌨️',13:'🌨️',14:'🌨️',15:'❄️',16:'❄️',17:'❄️',18:'🌧️',19:'🌧️',20:'🌧️',21:'⛈️',
-    22:'🌨️',23:'🌨️',24:'🌨️',25:'❄️',26:'❄️',27:'❄️'};
-  return m[c]||'⛅';
-}
-function smhiDesc(c){
-  const m={1:'Klart',2:'Mest klart',3:'Växlande moln',4:'Halvklart',5:'Molnigt',6:'Mulet',7:'Dimma',
-    8:'Lätta regnskurar',9:'Regnskurar',10:'Kraftiga skurar',11:'Åska',12:'Lätt snöblandat',13:'Snöblandat',
-    14:'Kraftigt snöblandat',15:'Lätt snöby',16:'Snöby',17:'Kraftig snöby',18:'Lätt regn',19:'Regn',
-    20:'Kraftigt regn',21:'Åska',22:'Lätt snöblandat',23:'Snöblandat',24:'Kraftigt snöblandat',
-    25:'Lätt snöfall',26:'Snöfall',27:'Kraftigt snöfall'};
-  return m[c]||'Växlande moln';
-}
-function yrEmoji(code){
-  if(!code) return null;
-  const b=code.replace(/_(day|night|polartwilight)$/,'');
-  if(b==='clearsky') return code.includes('night')?'🌙':'☀️';
-  if(b==='fair') return '🌤️';
-  if(b==='partlycloudy') return '⛅';
-  if(b==='cloudy') return '☁️';
-  if(b==='fog') return '🌫️';
-  if(/thunder/.test(b)) return '⛈️';
-  if(/snow/.test(b)) return '❄️';
-  if(/sleet/.test(b)) return '🌨️';
-  if(/rainshowers|lightrainshowers/.test(b)) return '🌦️';
-  if(/rain/.test(b)) return '🌧️';
-  return '⛅';
-}
-function yrDesc(code){
-  if(!code) return null;
-  const b=code.replace(/_(day|night|polartwilight)$/,'');
-  const m={clearsky:'Klart',fair:'Mest klart',partlycloudy:'Växlande moln',cloudy:'Mulet',fog:'Dimma',
-    lightrain:'Lätt regn',rain:'Regn',heavyrain:'Kraftigt regn',
-    lightrainshowers:'Lätta regnskurar',rainshowers:'Regnskurar',heavyrainshowers:'Kraftiga skurar',
-    lightsleet:'Lätt snöblandat',sleet:'Snöblandat',heavysleet:'Kraftigt snöblandat',
-    lightsleetshowers:'Lätt snöblandat',sleetshowers:'Snöblandade skurar',heavysleetshowers:'Kraftigt snöblandat',
-    lightsnow:'Lätt snöfall',snow:'Snöfall',heavysnow:'Kraftigt snöfall',
-    lightsnowshowers:'Lätta snöbyar',snowshowers:'Snöbyar',heavysnowshowers:'Kraftiga snöbyar',
-    lightrainandthunder:'Åska och regn',rainandthunder:'Åska',heavyrainandthunder:'Kraftig åska',
-    snowandthunder:'Åska och snö',sleetandthunder:'Åska och snöblandat'};
-  return m[b] || 'Växlande moln';
-}
-function windDir(deg){
-  if(deg==null) return '';
-  return ['N','NO','O','SO','S','SV','V','NV'][Math.round(deg/45)%8];
-}
+            <!-- TOP HEADER -->
+            <div class="app-card top-section premium-slate-banner relative">
+                <button onclick="openBudgetModal()" class="md-header-icon md-header-icon-left" data-testid="open-settings">
+                    <span class="material-symbols-rounded">tune</span>
+                </button>
+                <button onclick="openCoachModalMain()" class="md-header-icon md-header-icon-right" id="btn-coach-top" data-testid="open-coach" title="Säljcoach">
+                    <span class="material-symbols-rounded">smart_toy</span>
+                </button>
 
-/* ---------- SMHI snow1gv1 ---------- */
-async function fetchSMHI(lat, lon){
-  const url = `https://opendata-download-metfcst.smhi.se/api/category/snow1g/version/1/geotype/point/lon/${lon.toFixed(6)}/lat/${lat.toFixed(6)}/data.json`;
-  const r = await fetch(url, {cache:'no-store'});
-  if(!r.ok) throw new Error('SMHI '+r.status);
-  const j = await r.json();
-  const series = j.timeSeries || j.timeseries || [];
-  const pick=(d,...names)=>{ for(const n of names){ if(d[n]!=null && d[n]!==9999) return d[n]; } return null; };
-  const findKey=(d,sub)=>{ for(const k in d){ if(k.toLowerCase().includes(sub) && d[k]!==9999) return d[k]; } return null; };
-  return series.map(e=>{
-    const d = e.data || {};
-    let cloud = pick(d,'total_cloud_cover_mean','mean_value_of_total_cloud_cover','total_cloud_cover') ?? findKey(d,'cloud');
-    if(cloud!=null && cloud<=8) cloud = cloud*12.5;         // okta -> %
-    return {
-      t: new Date(e.time || e.validTime),
-      temp: pick(d,'air_temperature','t'),
-      hum:  pick(d,'relative_humidity','r'),
-      cloud: cloud,
-      precip: pick(d,'precipitation_amount_mean','precipitation_amount_median','pmean') ?? findKey(d,'precipitation_amount'),
-      pop: findKey(d,'probability_of_precipitation'),
-      wind: pick(d,'wind_speed','ws'),
-      wdir: pick(d,'wind_from_direction','wd'),
-      symbol: pick(d,'symbol_code','Wsymb2'),
-      emoji: (v=>v!=null?smhiEmoji(v):null)(pick(d,'symbol_code','Wsymb2')),
-      desc: (v=>v!=null?smhiDesc(v):null)(pick(d,'symbol_code','Wsymb2')),
-      uv: null
-    };
-  }).filter(x=>x.temp!=null);
-}
+                <div id="top-monthly-ui" class="flex flex-col w-full h-full justify-center px-4 py-2 transition-opacity duration-300">
+                    <div class="budget-header" onclick="openSummaryModal('month')">
+                        <p class="budget-label">
+                            <span id="top-month-lbl">MÅNAD</span>
+                            <span class="material-symbols-rounded text-[14px] opacity-80">insights</span>
+                        </p>
+                        <p id="d-budget-val" class="budget-val">240 000 kr</p>
+                    </div>
 
-/* ---------- MET Norway ---------- */
-async function fetchYr(lat, lon){
-  const url = `https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=${lat.toFixed(4)}&lon=${lon.toFixed(4)}`;
-  const r = await fetch(url, {cache:'no-store'});
-  if(!r.ok) throw new Error('Yr '+r.status);
-  const j = await r.json();
-  const ts = j.properties?.timeseries || [];
-  return ts.map(e=>{
-    const ins = e.data?.instant?.details || {};
-    const nx = e.data?.next_1_hours || e.data?.next_6_hours || {};
-    const code = nx.summary?.symbol_code || null;
-    return {
-      t: new Date(e.time),
-      temp: ins.air_temperature ?? null,
-      hum: ins.relative_humidity ?? null,
-      cloud: ins.cloud_area_fraction ?? null,
-      precip: nx.details?.precipitation_amount ?? null,
-      pop: nx.details?.probability_of_precipitation ?? e.data?.next_6_hours?.details?.probability_of_precipitation ?? null,
-      wind: ins.wind_speed ?? null,
-      wdir: ins.wind_from_direction ?? null,
-      uv: ins.ultraviolet_index_clear_sky ?? null,
-      symbol: code,
-      emoji: yrEmoji(code),
-      desc: yrDesc(code)
-    };
-  }).filter(x=>x.temp!=null);
-}
+                    <div class="gauge-layout">
+                        <div class="side-col">
+                            <p class="micro-lbl">Dagens krav</p>
+                            <p id="d-today-target" class="val-display pop-highlight">0 k</p>
+                            <div class="status-pill pill-blue"><span id="d-work-left">0 pass kvar</span></div>
+                        </div>
+                        <div class="gauge-container">
+                            <span class="g-label-0">0</span>
+                            <svg viewBox="0 0 130 130">
+                                <circle class="g-bg" cx="65" cy="65" r="52" stroke-dasharray="245 326.7" transform="rotate(135 65 65)"></circle>
+                                <circle class="g-marks" cx="65" cy="65" r="44" stroke-dasharray="1 18" transform="rotate(135 65 65)"></circle>
+                                <circle id="h-circle-prog" class="g-prog" cx="65" cy="65" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"></circle>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center pt-0.5">
+                                <span id="h-main-val" class="text-[20px] font-black tracking-tighter text-white">0 k</span>
+                                <span id="h-perc-val" class="text-[10px] font-bold text-white/90">0%</span>
+                            </div>
+                            <span id="g-max-lbl" class="g-label-240">240</span>
+                        </div>
+                        <div class="side-col">
+                            <p class="micro-lbl">Kvar till mål</p>
+                            <p id="d-kvar" class="val-display pop-highlight">0 k</p>
+                            <div class="status-pill pill-blue"><span id="d-work-total">0 totalt</span></div>
+                        </div>
+                    </div>
 
-/* ---------- UV-uppskattning (fallback) ---------- */
-function estimateUV(date, lat, lon, cloud){
-  const rad=Math.PI/180;
-  const start=Date.UTC(date.getUTCFullYear(),0,0);
-  const doy=(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate())-start)/864e5;
-  const decl=23.45*Math.sin(rad*(360/365)*(doy-81));
-  const hourUTC=date.getUTCHours()+date.getUTCMinutes()/60;
-  const solarTime=hourUTC + lon/15;
-  const H=15*(solarTime-12);
-  const elev=Math.asin(Math.sin(lat*rad)*Math.sin(decl*rad)+Math.cos(lat*rad)*Math.cos(decl*rad)*Math.cos(H*rad))/rad;
-  if(elev<=0) return 0;
-  let uv=Math.round((elev/90)*11 * Math.pow(Math.sin(elev*rad),0.6));
-  if(cloud!=null) uv=Math.round(uv*(1-0.65*(cloud/100)));
-  return Math.max(0,Math.min(11,uv));
-}
+                    <div class="meta-row">
+                        <div class="meta-cell"><p class="meta-lbl">Snitt / Pass</p><p id="d-avg-val" class="meta-val text-google-blue">0 k</p></div>
+                        <div class="meta-cell border-left"><p class="meta-lbl">Prognos</p><p id="d-prog" class="meta-val text-white">0</p></div>
+                        <div class="meta-cell border-left"><p class="meta-lbl">Status</p><p id="d-status" class="meta-val text-white text-[12px]">LADDAR</p></div>
+                    </div>
 
-/* ---------- Kombinera ---------- */
-function avg(a,b){ if(a==null&&b==null) return null; if(a==null) return b; if(b==null) return a; return (a+b)/2; }
-function estimatePop(precip, cloud){
-  if(precip>=1) return 85;
-  if(precip>=0.4) return 70;
-  if(precip>=0.1) return 50;
-  if(cloud!=null){ if(cloud>=95) return 25; if(cloud>=80) return 15; if(cloud>=55) return 8; }
-  return 3;
-}
-function combine(smhi, yr, lat, lon){
-  const map = new Map();
-  const key = d => d.getUTCFullYear()+'-'+d.getUTCMonth()+'-'+d.getUTCDate()+'-'+d.getUTCHours();
-  const add=(arr,who)=>arr.forEach(x=>{ const k=key(x.t); if(!map.has(k)) map.set(k,{t:x.t,smhi:null,yr:null}); map.get(k)[who]=x; });
-  add(smhi,'smhi'); add(yr,'yr');
-  const out=[...map.values()].sort((a,b)=>a.t-b.t).map(row=>{
-    const s=row.smhi, y=row.yr;
-    const src={};
-    const merge=(p)=>{ const sv=s?.[p], yv=y?.[p]; src[p]= (sv!=null&&yv!=null)?'båda':(sv!=null?'SMHI':(yv!=null?'Yr':'—')); return avg(sv,yv); };
-    const temp=merge('temp'), hum=merge('hum'), cloud=merge('cloud'), precip=merge('precip'), wind=merge('wind');
-    let pop = avg(s?.pop, y?.pop);
-    if(pop==null) pop = estimatePop(precip??0, cloud);
-    let uv = y?.uv;                                   // UV finns bara hos Yr
-    if(uv==null){ uv=estimateUV(row.t,lat,lon,cloud); src.uv='uppskattad'; }
-    else src.uv='Yr';
-    const base = (s && s.emoji) ? s : (y||s);
-    return {
-      t: row.t, temp, hum, cloud, precip:precip??0, wind:wind??0, uv,
-      pop: Math.round(Math.max(0,Math.min(100,pop))),
-      wdir: (s?.wdir ?? y?.wdir ?? null),
-      emoji: (s?.emoji)||(y?.emoji)||'⛅',
-      desc: (s?.desc)||(y?.desc)||'—',
-      feels: feelsLike(temp, wind, hum),
-      src
-    };
-  });
-  return out;
-}
+                    <div id="top-info-bar" class="md-info-bar">
+                         <span id="top-info-text" class="md-info-text">LADDAR INFO...</span>
+                    </div>
+                </div>
+            </div>
 
-/* ---------- Känns-som ---------- */
-function feelsLike(t, wind, hum){
-  if(t==null) return null;
-  const v=(wind||0)*3.6;
-  if(t<=10 && v>=4.8){
-    const wc=13.12+0.6215*t-11.37*Math.pow(v,0.16)+0.3965*t*Math.pow(v,0.16);
-    return Math.round(wc);
-  }
-  if(t>=27 && hum!=null){
-    const hi=t + 0.05*(hum-40)*Math.max(0,(t-27)/5);
-    return Math.round(hi);
-  }
-  return Math.round(t - Math.min(3,(wind||0)*0.25));
-}
+            <!-- BOTTOM CONTENT -->
+            <div class="app-card bottom-section">
+                <div id="bottom-standard-views" class="flex flex-col w-full h-full transition-opacity duration-300 relative">
 
-/* ---------- Dygnsdata (7 dagar) ---------- */
-function skyDesc(cloud, precip){
-  if(precip>=0.5) return 'Regnigt';
-  if(cloud==null) return 'Växlande moln';
-  if(cloud<20) return 'Klart';
-  if(cloud<45) return 'Mest klart';
-  if(cloud<70) return 'Halvklart';
-  if(cloud<88) return 'Molnigt';
-  return 'Mulet';
-}
-function toDaily(hours){
-  const days=new Map();
-  hours.forEach(h=>{
-    const d=new Date(h.t); const k=d.toLocaleDateString('sv-SE');
-    if(!days.has(k)) days.set(k,{date:d, temps:[], precip:0, uv:0, pop:0, clouds:[], winds:[], hums:[], mids:[], all:[]});
-    const o=days.get(k);
-    o.temps.push(h.temp); o.precip+=h.precip||0; o.uv=Math.max(o.uv,h.uv||0); o.pop=Math.max(o.pop,h.pop||0); o.clouds.push(h.cloud||0);
-    o.winds.push(h.wind||0); o.hums.push(h.hum||0); o.all.push(h);
-    if(d.getHours()>=11 && d.getHours()<=15) o.mids.push(h);
-  });
-  const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
-  return [...days.values()].slice(0,7).map(o=>{
-    const mid=o.mids[Math.floor(o.mids.length/2)] || o.all[Math.floor(o.all.length/2)] || null;
-    const cloudAvg=Math.round(mean(o.clouds));
-    return {
-      date:o.date,
-      hi:Math.round(Math.max(...o.temps)), lo:Math.round(Math.min(...o.temps)),
-      precip:Math.round(o.precip*10)/10, uv:o.uv, pop:o.pop,
-      cloud:cloudAvg,
-      wind:Math.round(mean(o.winds)*10)/10, windMax:Math.round(Math.max(...o.winds)*10)/10,
-      hum:Math.round(mean(o.hums)),
-      emoji: (mid&&mid.emoji)||'⛅',
-      desc: (mid&&mid.desc&&mid.desc!=='—') ? mid.desc : skyDesc(cloudAvg, o.precip/Math.max(1,o.all.length))
-    };
-  });
-}
+                    <div id="container-dash-views">
 
-/* =========================================================
-   KLÄDMOTOR – detaljerad, band baserade på känns-som-temp.
-   Bygger på hur plagg faktiskt används i nordiskt klimat.
-========================================================= */
-function outfit(feels, precip, uv, wind, aud){
-  const child = aud==='child';
-  const f = feels;                          // titel/väderband oberoende av vem som klär sig
-  let band;
+                        <!-- DASH PANE -->
+                        <div id="pane-dash" class="dash-view-pane h-full justify-start pt-1.5 flex flex-col overflow-hidden" style="touch-action: pan-y;">
+                            <div id="slide-curr" class="w-full flex-shrink-0 mb-1 py-1 flex gap-1 px-3 items-center justify-between"></div>
 
-  if(f>=27) band={key:'het', emoji:'🥵', title:'Värmebölja',
-      base:[['👕','Linne eller tunn t‑shirt','luftig bomull'],['🩳','Shorts','ljust tyg'],['🩴','Sandaler']]};
-  else if(f>=22) band={key:'varmt', emoji:'😎', title:'Varmt & skönt',
-      base:[['👕','T‑shirt i bomull'],['🩳','Shorts eller tunna byxor'],['👟','Lätta skor']]};
-  else if(f>=18) band={key:'behag', emoji:'🙂', title:'Behagligt',
-      base:[['👕','T‑shirt'],['👖','Långbyxor'],['🧥','Tunn tröja att ta på/av'],['👟','Sneakers']]};
-  else if(f>=14) band={key:'svalt', emoji:'🌥️', title:'Svalt',
-      base:[['👕','Långärmad tröja'],['👖','Långbyxor'],['🧥','Lätt jacka eller cardigan'],['👟','Skor']]};
-  else if(f>=9) band={key:'kyligt', emoji:'🍂', title:'Kyligt',
-      base:[['👕','Långärmad + tröja'],['👖','Långbyxor'],['🧥','Jacka'],['👟','Täckta skor']]};
-  else if(f>=4) band={key:'kallt', emoji:'🧥', title:'Kallt',
-      base:[['🧦','Tröja eller fleece'],['👖','Byxor, gärna fodrade'],['🧥','Höst‑/vinterjacka'],['🧢','Tunn mössa'],['🥾','Kängor']]};
-  else if(f>=-3) band={key:'kylslaget', emoji:'❄️', title:'Kylslaget',
-      base:[['🩲','Underställ upptill'],['🧶','Tjocktröja'],['🧥','Vinterjacka'],['👖','Fodrade byxor'],['🧢','Mössa'],['🧤','Vantar'],['🥾','Varma kängor']]};
-  else if(f>=-10) band={key:'vinter', emoji:'🥶', title:'Vinterkyla',
-      base:[['🩲','Underställ upp & ner'],['🧶','Tjocktröja / fleece'],['🧥','Varm vinterjacka'],['👖','Vinterbyxor'],['🧢','Mössa'],['🧣','Halsduk'],['🧤','Vantar'],['🥾','Vinterkängor']]};
-  else band={key:'sträng', emoji:'🧊', title:'Sträng kyla',
-      base:[['🩲','Dubbelt underställ (ull närmast hud)'],['🧶','Mellanlager fleece + tjocktröja'],['🧥','Kraftig vinterjacka'],['👖','Vinteroverall / vinterbyxor'],['🧢','Mössa som täcker öron'],['🧣','Halsduk över näsan'],['🧤','Tumvantar'],['🥾','Rejäla pjäxor + ullstrumpor']]};
+                            <div class="mx-3 mt-1 mb-2 relative flex flex-col flex-shrink-0 z-20 flex-1 min-h-0" id="dash-main-container">                                <div id="dash-inner-card" class="md-day-card relative w-full h-full flex flex-col">
+                                    <div id="cyber-scanner-layer" class="cyber-scanner-overlay"></div>
 
-  const extras=[];
-  // Barn kyls fortare → lägg på ETT extra lager (men samma vädertitel som för vuxen)
-  if(child && f<16) extras.push(['🧅','Ett extra mellanlager','barn kyls fortare än vuxna']);
-  // Nederbörd
-  if(precip>=0.5){
-    if(f<=1) extras.push(['🌨️','Vattentätt yttersta lager','snön blöter ner']);
-    else { extras.push(['🧥','Regnjacka / vattentät jacka']); extras.push(['☂️','Paraply']); extras.push(['🥾','Vattentäta skor / stövlar']); }
-    if(child) extras.push(['🦺','Regnställ eller galonbyxor','barn hittar varenda pöl']);
-  } else if(precip>=0.1){
-    extras.push(['🧥','Ha en tunn regnjacka redo','lätt duggregn möjligt']);
-  }
-  // UV
-  if(uv>=6) extras.push(['🧴','Solkräm SPF 30+, solglasögon & keps','stark sol']);
-  else if(uv>=3) extras.push(['🕶️','Solglasögon, ev. solkräm']);
-  if(uv>=3 && child) extras.push(['🧢','Solhatt till barnet','känslig hud']);
-  // Vind
-  if(wind>=8 && f<12) extras.push(['💨','Vindtät ytterjacka','byig vind kyler']);
-  // Barn-specifika smågrejer
-  if(child){
-    if(f<4) extras.push(['🧤','Vantar på snöre','tappas annars bort']);
-    extras.push(['🎒','Extra ombyte med','barn blir blöta/leriga']);
-  }
+                                    <div id="dash-standard-content" class="absolute inset-0 flex flex-col p-3 transition-all duration-300 transform origin-top opacity-100 scale-100 pointer-events-auto z-30">
+                                        <div class="flex justify-between items-end pb-2 border-b border-outline-variant flex-shrink-0">
+                                            <div class="flex flex-col">
+                                                <span id="dash-title" class="md-day-title">LADDAR...</span>
+                                                <span id="dash-subtitle" class="md-day-subtitle">0 pass</span>
+                                            </div>
+                                            <div class="flex items-center gap-1.5">
+                                                <button id="btn-trigger-eval" onclick="openEvalModal()" class="md-eval-trigger hidden" title="Utvärdera pass">
+                                                    <span class="material-symbols-rounded text-[16px]">rate_review</span>
+                                                </button>
+                                                <div class="flex flex-col text-right justify-end">
+                                                    <p id="dash-status-meta" class="md-day-meta min-h-[12px]"></p>
+                                                    <p id="dash-status-text" class="md-day-status">VÄLJ DAG...</p>
+                                                </div>
+                                            </div>
+                                        </div>
 
-  return { band, extras };
-}
+                                        <div id="dash-gauge-container" class="flex items-center justify-between w-full flex-1 my-2 relative">
+                                            <div id="dash-abs-badge" class="md-abs-badge hidden"></div>
+                                            <div class="flex flex-col justify-center text-left flex-1 pl-1">
+                                                <span id="dash-lbl-target" class="md-gauge-lbl">MÅL</span>
+                                                <p id="dash-val-target" class="md-gauge-val">0 k</p>
+                                            </div>
+                                            <div id="dash-gauge-wrapper" class="relative flex flex-col justify-center items-center flex-[1.5] max-w-[110px] aspect-square mx-1 transition-all duration-300">
+                                                <div class="absolute inset-0 cursor-pointer z-30" onclick="openInlineNumpad()" data-testid="open-numpad"></div>
+                                                <svg class="w-full h-full z-10 relative" viewBox="0 0 120 120">
+                                                    <circle class="focus-gauge-bg" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="212 283" transform="rotate(135 60 60)"></circle>
+                                                    <circle id="dash-gauge-prog" class="fg-sales" cx="60" cy="60" r="45" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" transform="rotate(135 60 60)"></circle>
+                                                </svg>
+                                                <div class="absolute inset-0 flex flex-col items-center justify-center pt-1.5 pointer-events-none z-20">
+                                                    <span id="dash-val-sales" class="md-gauge-main">0 k</span>
+                                                    <span id="dash-val-perc" class="md-gauge-perc">0%</span>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col justify-center text-right flex-1 pr-1">
+                                                <span class="md-gauge-lbl">DIFF</span>
+                                                <p id="dash-val-diff" class="md-gauge-val">0 k</p>
+                                            </div>
+                                        </div>
 
-/* ---------- Enkel klädsymbol per timme ---------- */
-function clothSym(feels, precip){
-  if(precip>=0.5) return '☂️';           // regn
-  if(feels>=18) return '👕';             // t-shirt
-  if(feels>=8)  return '🧥';             // jacka/tröja
-  if(feels>=0)  return '🧣';             // halsduk, kallt
-  return '🧤';                           // vantar, minusgrader
-}
+                                        <div id="dash-actions" class="w-full flex-col transition-opacity duration-300 opacity-0 pointer-events-none flex-shrink-0 h-[42px] flex justify-end">
+                                            <div class="relative w-full h-full overflow-hidden rounded-[14px] md-action-bar" id="dash-actions-grid"></div>
+                                        </div>
+                                    </div>
 
-/* ---------- Varmaste/kallaste sammanhängande intervall ---------- */
-function longestRun(arr, pred){
-  let best=null, s=-1;
-  for(let i=0;i<=arr.length;i++){
-    const ok=i<arr.length && pred(arr[i]);
-    if(ok && s<0) s=i;
-    if(!ok && s>=0){ const len=i-s; if(!best||len>best.len) best={a:s,b:i-1,len}; s=-1; }
-  }
-  return best ? {from:arr[best.a].t, to:arr[best.b].t, len:best.len} : null;
-}
-function tempRanges(hours){
-  const arr=hours.slice(0,24);
-  if(arr.length<3) return {warm:null,cold:null};
-  const temps=arr.map(h=>h.temp);
-  const max=Math.max(...temps), min=Math.min(...temps);
-  const warm=longestRun(arr, h=>h.temp>=max-2);
-  const cold=longestRun(arr, h=>h.temp<=min+2);
-  return {warm, cold, max:Math.round(max), min:Math.round(min)};
-}
-const hh = d => String(d.getHours()).padStart(2,'0');
+                                    <!-- INLINE NUMPAD -->
+                                    <div id="dash-inline-numpad" class="absolute inset-0 md-numpad-surface z-40 flex flex-col p-2.5 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4">
+                                        <div class="flex items-center justify-between mb-2 flex-shrink-0">
+                                            <button onclick="closeInlineNumpad()" class="md-numpad-cancel">✕ Avbryt</button>
+                                            <div class="text-center flex-1">
+                                                <p id="inline-numpad-display" class="md-numpad-display">0 kr</p>
+                                            </div>
+                                            <button onclick="saveInlineNumpad()" class="md-numpad-save" data-testid="save-inline">✓ Spara</button>
+                                        </div>
+                                        <div class="flex-1 flex gap-2 min-h-0">
+                                            <div class="flex-[3] grid grid-cols-3 gap-1">
+                                                <button onclick="inlinePress('1')" class="md-numkey">1</button>
+                                                <button onclick="inlinePress('2')" class="md-numkey">2</button>
+                                                <button onclick="inlinePress('3')" class="md-numkey">3</button>
+                                                <button onclick="inlinePress('4')" class="md-numkey">4</button>
+                                                <button onclick="inlinePress('5')" class="md-numkey">5</button>
+                                                <button onclick="inlinePress('6')" class="md-numkey">6</button>
+                                                <button onclick="inlinePress('7')" class="md-numkey">7</button>
+                                                <button onclick="inlinePress('8')" class="md-numkey">8</button>
+                                                <button onclick="inlinePress('9')" class="md-numkey">9</button>
+                                                <button onclick="inlinePress('clear')" class="md-numkey md-numkey-clear">C</button>
+                                                <button onclick="inlinePress('0')" class="md-numkey">0</button>
+                                                <button onclick="inlinePress('back')" class="md-numkey md-numkey-back">⌫</button>
+                                            </div>
+                                            <div class="flex-[1] flex flex-col gap-1">
+                                                <input type="file" id="gm-camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleGMImageSelect(this)">
+                                                <button onclick="document.getElementById('gm-camera-input').click()" class="md-numside md-numside-teal flex-[1.5]">
+                                                    <span class="material-symbols-rounded text-[18px]">photo_camera</span>
+                                                    <span>GM Scan</span>
+                                                </button>
+                                                <button onclick="inlineAdd(5000)" class="md-numside md-numside-blue flex-1">+5k</button>
+                                                <button onclick="inlineAdd(10000)" class="md-numside md-numside-blue flex-1">+10k</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-/* =========================================================
-   RENDER
-========================================================= */
-function fmt(v,dec=0){ return v==null?'–':(Math.round(v*Math.pow(10,dec))/Math.pow(10,dec)); }
+                        <!-- MONTH and ABSENCE panes moved into bottom-sheets (see below) -->
+                    </div>
+                </div>
 
-function renderNow(){
-  const now = state.data[0];
-  if(!now) return;
-  $('#nowIco').textContent = now.emoji;
-  $('#nowTemp').innerHTML = `${fmt(now.temp)}<sup>°</sup>`;
-  $('#nowDesc').textContent = now.desc;
-  $('#nowFeels').textContent = `Känns som ${fmt(now.feels)}°`;
-  const d0 = state.daily[0];
-  $('#nowRange').textContent = d0 ? `↑${d0.hi}° ↓${d0.lo}°` : '';
-  const up=[];
-  if(state.status.smhi?.state==='up') up.push('SMHI');
-  if(state.status.yr?.state==='up') up.push('MET Norway');
-  $('#nowConsensus').textContent = up.length ? (up.length>1?'Snitt av '+up.join(' + '):'Källa: '+up[0]) : '';
+                <!-- BOTTOM NUMPAD -->
+                <div id="bottom-numpad-view" class="absolute inset-0 flex flex-col transition-opacity duration-300 opacity-0 pointer-events-none md-numpad-surface z-50 rounded-[28px]">
+                    <div class="flex-1 flex flex-col justify-end px-4 pt-4 min-h-0">
+                        <div class="np-display-wrap">
+                            <span class="np-display-lbl">Belopp</span>
+                            <span id="numpad-display" class="np-display-val">0 kr</span>
+                        </div>
+                    </div>
+                    <div class="np-pad flex flex-col p-3">
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                            <button onclick="numpadPress('1')" class="md-numkey">1</button>
+                            <button onclick="numpadPress('2')" class="md-numkey">2</button>
+                            <button onclick="numpadPress('3')" class="md-numkey">3</button>
+                            <button onclick="numpadPress('4')" class="md-numkey">4</button>
+                            <button onclick="numpadPress('5')" class="md-numkey">5</button>
+                            <button onclick="numpadPress('6')" class="md-numkey">6</button>
+                            <button onclick="numpadPress('7')" class="md-numkey">7</button>
+                            <button onclick="numpadPress('8')" class="md-numkey">8</button>
+                            <button onclick="numpadPress('9')" class="md-numkey">9</button>
+                            <button onclick="numpadPress('clear')" class="md-numkey md-numkey-clear">C</button>
+                            <button onclick="numpadPress('0')" class="md-numkey">0</button>
+                            <button onclick="numpadPress('back')" class="md-numkey md-numkey-back">⌫</button>
+                        </div>
+                        <div class="flex gap-2 h-[48px] flex-shrink-0">
+                            <button onclick="closeNumpad()" class="md-btn-tonal flex-1">Avbryt</button>
+                            <button onclick="numpadSave()" class="md-btn-filled flex-[2]" data-testid="save-numpad">Spara</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- ===== BOTTOM SHEETS — Kalender & Frånvaro ===== -->
+                <div id="sheet-month" class="sf-sheet" data-testid="sheet-month">
+                    <div class="sheet-handle" data-testid="sheet-month-handle"><span></span></div>
+                    <div class="sheet-header">
+                        <button onclick="sheetNav(-1)" class="sheet-nav-btn" data-testid="sheet-month-prev">
+                            <span class="material-symbols-rounded">chevron_left</span>
+                        </button>
+                        <div class="sheet-title-area">
+                            <h2 class="sheet-title">Kalender</h2>
+                            <span id="sheet-month-sub" class="sheet-subtitle">JUNI 2026</span>
+                        </div>
+                        <button onclick="sheetNav(1)" class="sheet-nav-btn" data-testid="sheet-month-next">
+                            <span class="material-symbols-rounded">chevron_right</span>
+                        </button>
+                    </div>
 
-  const wd = windDir(now.wdir);
-  const M=[
-    ['🌧️','Regnchans', fmt(now.pop)+'%'],
-    ['💧','Nederb.', fmt(now.precip,1)+' mm'],
-    ['💨','Vind', fmt(now.wind,1)+(wd?' '+wd:'')],
-    ['☀️','UV', fmt(now.uv)],
-    ['☁️','Moln', fmt(now.cloud)+'%'],
-    ['💦','Fukt', fmt(now.hum)+'%'],
-  ];
-  $('#nowMetrics').innerHTML = M.map(m=>`
-    <div class="metric"><div class="mi">${m[0]}</div><div class="mv">${m[2]}</div><div class="ml">${m[1]}</div></div>`).join('');
-}
+                    <div class="cal-seg-bar">
+                        <div class="cal-seg">
+                            <button data-seg="month" class="active" onclick="calSegTap('month')"><span class="seg-normal"><span class="material-symbols-rounded">calendar_month</span> Kalender</span><span class="seg-focus"><span class="material-symbols-rounded">grid_view</span> Visa alla</span></button>
+                            <button data-seg="absence" onclick="calSegTap('absence')"><span class="seg-normal"><span class="material-symbols-rounded">event_busy</span> Frånvaro</span><span class="seg-focus"><span class="material-symbols-rounded">arrow_back</span> Tillbaka</span></button>
+                        </div>
+                    </div>
 
-/* ---------- Dygnets perioder ---------- */
-const PERIODS=[
-  {key:'natt', label:'Natt', a:0, b:6, ico:'🌙'},
-  {key:'morgon', label:'Morgon', a:6, b:9, ico:'🌅'},
-  {key:'formiddag', label:'Förmiddag', a:9, b:12, ico:'🌤️'},
-  {key:'eftermiddag', label:'Eftermiddag', a:12, b:18, ico:'☀️'},
-  {key:'kvall', label:'Kväll', a:18, b:24, ico:'🌇'},
-];
-function buildPeriods(){
-  const nowT = state.data[0].t;
-  const wins=[];
-  for(let day=0; day<2; day++){
-    for(const p of PERIODS){
-      const base=new Date(nowT); base.setHours(0,0,0,0); base.setDate(base.getDate()+day);
-      const start=new Date(base); start.setHours(p.a);
-      const end=new Date(base); end.setHours(p.b);
-      if(end<=nowT) continue;
-      const hrs=state.data.filter(h=>h.t>=start && h.t<end);
-      if(!hrs.length) continue;
-      const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
-      const mid=hrs[Math.floor(hrs.length/2)];
-      wins.push({
-        ...p, start, end, tomorrow:day===1,
-        hi:Math.round(Math.max(...hrs.map(h=>h.temp))), lo:Math.round(Math.min(...hrs.map(h=>h.temp))),
-        temp:mean(hrs.map(h=>h.temp)), feels:Math.round(mean(hrs.map(h=>h.feels))),
-        precip:Math.round(hrs.reduce((s,h)=>s+h.precip,0)*10)/10,
-        pop:Math.max(...hrs.map(h=>h.pop||0)),
-        cloud:Math.round(mean(hrs.map(h=>h.cloud||0))),
-        hum:Math.round(mean(hrs.map(h=>h.hum||0))),
-        wind:Math.round(mean(hrs.map(h=>h.wind||0))*10)/10,
-        uv:Math.max(...hrs.map(h=>h.uv||0)),
-        wdir:mid.wdir, emoji:mid.emoji,
-        desc:(mid.desc&&mid.desc!=='—')?mid.desc:skyDesc(mean(hrs.map(h=>h.cloud||0)), hrs.reduce((s,h)=>s+h.precip,0)/hrs.length)
-      });
-      if(wins.length>=5) return wins;
-    }
-  }
-  return wins;
-}
-function renderPeriods(){
-  const wins=buildPeriods();
-  state.periods=wins;
-  $('#periodList').innerHTML = wins.map((w,i)=>`
-    <button class="prow" data-i="${i}">
-      <span class="pi">${w.emoji}</span>
-      <span class="pn"><b>${w.label}${w.tomorrow?' <small style="color:var(--ink3)">imorgon</small>':''}</b>
-        <small>${String(w.a).padStart(2,'0')}–${String(w.b).padStart(2,'0')}</small>
-        <span class="pdsc">${w.desc}</span></span>
-      <span class="ppop">🌧 ${w.pop}%</span>
-      <span class="ptemps"><b style="color:${tempColor(w.hi)}">${w.hi}°</b><small>${w.lo}°</small></span>
-      <span class="pcl">${clothSym(w.feels, w.precip)}</span>
-    </button>`).join('');
-}
+                    <!-- SYMBOL-VERKTYGSRAD (markera dag/dagar → registrera) -->
+                    <div id="cal-symbol-bar" class="cal-symbol-bar">
+                        <button onclick="calToSales()" id="cal-sales-btn" class="cal-sales-btn" title="Öppna dagsvyn">
+                            <span class="material-symbols-rounded">point_of_sale</span>
+                            <span>Försäljning</span>
+                        </button>
+                        <div class="cal-symbol-group">
+                            <button onclick="calApply('Ledig')" class="cal-sym-btn" title="Ledig">🏠</button>
+                            <button onclick="calApply('Semester')" class="cal-sym-btn" title="Semester">✈️</button>
+                            <button onclick="calApply('Sjuk')" class="cal-sym-btn" title="Sjuk">🤒</button>
+                            <button onclick="calApply('VAB')" class="cal-sym-btn" title="VAB">👶</button>
+                            <button onclick="calApply('Föräldraledig')" class="cal-sym-btn" title="Föräldraledig">🍼</button>
+                            <button onclick="calApply('delete')" class="cal-sym-btn cal-sym-del" title="Radera">🗑️</button>
+                        </div>
+                    </div>
+                    <!-- FOKUS-INFO (visas i fokusläge där symbolraden annars är) -->
+                    <div id="focus-info" class="focus-info"></div>
 
-/* ---------- Temperaturfärg ---------- */
-function tempColor(t){
-  if(t==null) return '#8a99ab';
-  const stops=[[-20,'#3856b8'],[-8,'#4a86d6'],[0,'#3fa5cc'],[7,'#3fb59a'],[13,'#5cb35a'],
-    [17,'#c9a63a'],[21,'#ef9038'],[26,'#e5673a'],[31,'#cf3b3b']];
-  let c=stops[0][1];
-  for(const [th,col] of stops){ if(t>=th) c=col; }
-  return c;
-}
+                    <div class="sheet-content">
+                        <div id="pane-month" class="dash-view-pane h-full flex flex-col overflow-hidden p-1.5" style="touch-action: pan-y;">
+                            <div class="grid grid-cols-7 gap-1 px-1 mb-0.5 flex-shrink-0">
+                                <div class="weekday-label">M</div><div class="weekday-label">T</div><div class="weekday-label">O</div>
+                                <div class="weekday-label">T</div><div class="weekday-label">F</div><div class="weekday-label">L</div><div class="weekday-label">S</div>
+                            </div>
+                            <div id="d-cal" class="cal-grid w-full flex-1 relative"></div>
+                        </div>
+                    </div>
+                </div>
 
-/* ---------- 12-timmarsklocka (riktiga klockpositioner) ---------- */
-function renderClock(){
-  const off = state.clockOffset;
-  const hrs = state.data.slice(off, off+12);
-  if(!hrs.length) return;
-  if(state.clockSel < off || state.clockSel >= off+12) state.clockSel = off;
-  const R=36, cx=50, cy=50;
-  const nowH = state.data[0] ? state.data[0].t.getHours() : new Date().getHours();
-  let marks='', labels='', ticks='';
-  hrs.forEach((h,i)=>{
-    const abs=off+i;
-    const p = h.t.getHours() % 12;                 // 0=kl 12/24 upptill, medurs
-    const ang=(-90 + p*30)*Math.PI/180;
-    const card = (p%3===0);                          // 12,3,6,9 större
-    const x=cx+R*Math.cos(ang), y=cy+R*Math.sin(ang);
-    const isNow = h.t.getHours()===nowH && abs===0;
-    marks += `<button class="mk${abs===state.clockSel?' sel':''}${isNow?' isnow':''}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%" data-i="${abs}">
-      <span class="me">${h.emoji}</span>
-      <span class="mt" style="color:${tempColor(h.temp)}">${fmt(h.temp)}°</span>
-      <span class="mc">${clothSym(h.feels,h.precip)}</span></button>`;
-    const lr=47, lx=cx+lr*Math.cos(ang), ly=cy+lr*Math.sin(ang);
-    labels += `<div class="lab${card?' card':''}" style="left:${lx.toFixed(2)}%;top:${ly.toFixed(2)}%">${hh(h.t)}</div>`;
-    const r1=42, r2=card?45.5:44.5, a=ang;
-    ticks += `<line x1="${(50+r1*Math.cos(a)).toFixed(2)}" y1="${(50+r1*Math.sin(a)).toFixed(2)}" x2="${(50+r2*Math.cos(a)).toFixed(2)}" y2="${(50+r2*Math.sin(a)).toFixed(2)}" stroke="rgba(19,33,50,${card?'.28':'.12'})" stroke-width="${card?0.7:0.4}"/>`;
-  });
-  const pNow = nowH%12, angNow=(-90+pNow*30)*Math.PI/180;
-  const hand = `<line x1="${(50+24*Math.cos(angNow)).toFixed(2)}" y1="${(50+24*Math.sin(angNow)).toFixed(2)}" x2="${(50+31*Math.cos(angNow)).toFixed(2)}" y2="${(50+31*Math.sin(angNow)).toFixed(2)}" stroke="#3e8ef0" stroke-width="1.4" stroke-linecap="round" opacity="0.9"/>`;
-  const svg=`<svg viewBox="0 0 100 100">${ticks}${hand}<circle cx="50" cy="50" r="1.6" fill="#3e8ef0"/></svg>`;
-  const sel=state.data[state.clockSel]; const wd=windDir(sel.wdir);
-  const isNowSel = state.clockSel===0;
-  const center=`<div class="center" id="clockCenter">
-    <div class="ctime">${isNowSel?'NU':hh(sel.t)+':00'}</div>
-    <div class="ci">${sel.emoji}</div>
-    <div class="ct">${fmt(sel.temp)}°</div>
-    <div class="cs">${sel.desc}</div>
-    <div class="cr"><span>🤔 ${fmt(sel.feels)}°</span><span>🌧 ${fmt(sel.pop)}%</span><span>💨 ${fmt(sel.wind,1)}</span></div>
-    <div class="cmore">Detaljer ›</div>
-  </div>`;
-  $('#clockDial').innerHTML = svg + center + labels + marks;
-  renderRangeBand();
-  sizeClock();
-}
-function sizeClock(){
-  const clock=$('#clock'); if(!clock) return;
-  const wrap=clock.parentElement;                 // .clock-wrap (endast klockan nu)
-  const wrapH=wrap.clientHeight, wrapW=wrap.clientWidth;
-  if(wrapH<60||wrapW<60) return;                  // fliken inte synlig än
-  const size=Math.max(200, Math.min(wrapW, wrapH));
-  clock.style.width=size+'px';
-  clock.style.height=size+'px';
-}
-function selectClockHour(abs){ state.clockSel=abs; renderClock(); }
-function renderRangeBand(){
-  const {warm, cold, max, min}=tempRanges(state.data);
-  const parts=[];
-  if(warm && warm.len>=2) parts.push(`<span class="range-pill warm">🔥 Varmast ${hh(warm.from)}–${hh(warm.to)} · ${max}°</span>`);
-  if(cold && cold.len>=2) parts.push(`<span class="range-pill cold">❄️ Kallast ${hh(cold.from)}–${hh(cold.to)} · ${min}°</span>`);
-  $('#rangeBand').innerHTML = parts.join('');
-}
+                <div id="sheet-absence" class="sf-sheet" data-testid="sheet-absence">
+                    <div class="sheet-handle" data-testid="sheet-absence-handle"><span></span></div>
+                    <div class="sheet-header">
+                        <button onclick="sheetNav(-1)" class="sheet-nav-btn" data-testid="sheet-absence-prev">
+                            <span class="material-symbols-rounded">chevron_left</span>
+                        </button>
+                        <div class="sheet-title-area">
+                            <h2 class="sheet-title">Frånvaro</h2>
+                            <span id="sheet-absence-sub" class="sheet-subtitle">JUNI 2026</span>
+                        </div>
+                        <button onclick="sheetNav(1)" class="sheet-nav-btn" data-testid="sheet-absence-next">
+                            <span class="material-symbols-rounded">chevron_right</span>
+                        </button>
+                    </div>
 
-/* ---------- Detalj-popup (delas av klocka, 24h, 7-dygn) ---------- */
-function paramGrid(h){
-  const wd=windDir(h.wdir);
-  const P=[
-    ['🌧️','Regnchans', fmt(h.pop)+'%'],
-    ['☀️','UV', fmt(h.uv)],
-    ['💧','Nederbörd', fmt(h.precip,1)+' mm'],
-    ['☁️','Molntäcke', fmt(h.cloud)+'%'],
-    ['💦','Fuktighet', fmt(h.hum)+'%'],
-    ['💨','Vind', fmt(h.wind,1)+' m/s'+(wd?' '+wd:'')],
-  ];
-  return P.map(p=>`<div class="pg"><div style="font-size:14px">${p[0]}</div><div class="pv">${p[2]}</div><div class="pl">${p[1]}</div></div>`).join('');
-}
-function audToggleHTML(){
-  const a=state.aiAud;
-  return `<div class="aud-toggle popaud">
-    <button data-a="adult" class="${a==='adult'?'on':''}">👤 Vuxen</button>
-    <button data-a="child" class="${a==='child'?'on':''}">🧒 Barn</button></div>`;
-}
-function setAudience(a){
-  state.aiAud=a;
-  $$('#aiAud button').forEach(x=>x.classList.toggle('on',x.dataset.a===a));
-  if(state.popup && $('#popCard').classList.contains('show')) renderPopup();
-  if($('#view-ai').classList.contains('active')) renderAI();
-}
-function clothLayersHTML(band, extras){
-  return [...band.base, ...extras].slice(0,8).map(c=>`
-    <div class="layer"><div class="le">${c[0]}</div>
-    <div class="lt"><b>${c[1]}</b>${c[2]?`<span>${c[2]}</span>`:''}</div></div>`).join('');
-}
-function openDetail(h, title, sub, note){
-  state.popup={h,title,sub,note};
-  renderPopup();
-  $('#popScrim').classList.add('show'); $('#popCard').classList.add('show');
-}
-function renderPopup(){
-  const {h,title,sub,note}=state.popup;
-  const {band, extras}=outfit(h.feels, h.precip, h.uv, h.wind, state.aiAud);
-  const chips=[...band.base, ...extras].slice(0,6).map(c=>`<span class="pchip">${c[0]} ${c[1]}</span>`).join('');
-  $('#popBody').innerHTML=`
-    <div class="pop-head"><div class="pt">${title}<small>${sub||''}</small></div><button class="pop-close" id="popClose">✕</button></div>
-    <div class="pop-hero"><div class="pe">${h.emoji}</div>
-      <div><div class="ptemp">${fmt(h.temp)}°</div><div class="pd">${h.desc}</div><div class="pf">Känns som ${fmt(h.feels)}°</div></div></div>
-    ${note?`<div class="pop-note">${note}</div>`:''}
-    <div class="pop-grid">${paramGrid(h)}</div>
-    <div class="pop-cloth">
-      <div class="pc-head"><h5>Klädråd</h5>${audToggleHTML()}</div>
-      <div class="band">${band.emoji} ${band.title}</div>
-      <div class="pchips">${chips}</div>
-      <div class="preason">${buildReason(h, state.aiAud)}</div>
-    </div>`;
-  $('#popClose').onclick=closeDetail;
-}
-function closeDetail(){ $('#popScrim').classList.remove('show'); $('#popCard').classList.remove('show'); }
+                    <div class="cal-seg-bar">
+                        <div class="cal-seg">
+                            <button data-seg="month" onclick="calSeg('month')"><span class="material-symbols-rounded">calendar_month</span> Kalender</button>
+                            <button data-seg="absence" class="active" onclick="calSeg('absence')"><span class="material-symbols-rounded">event_busy</span> Frånvaro</button>
+                        </div>
+                    </div>
 
-function forecastHours(){
-  const now=new Date();
-  const nb=new Date(now); nb.setSeconds(0,0);
-  if(nb.getMinutes()>0){ nb.setMinutes(0); nb.setHours(nb.getHours()+1); } else { nb.setMinutes(0); }
-  const fc=state.data.filter(h=>h.t>=nb);
-  return fc.length?fc:state.data;
-}
-function lighten(hex,a){ return hex + a; }   // hex + alpha-hex suffix
-function renderBars(){
-  const fc=forecastHours().slice(0,24);
-  state.forecast=fc;
-  if(!fc.length){ $('#barStrip').innerHTML=''; return; }
-  const temps=fc.map(h=>h.temp);
-  const tmin=Math.min(...temps), tmax=Math.max(...temps), tr=Math.max(1,tmax-tmin);
-  const maxP=Math.max(0.4, ...fc.map(h=>h.precip||0));
-  $('#barStrip').innerHTML = fc.map((h,i)=>{
-    const tn=(h.temp-tmin)/tr;
-    const upH=(14 + tn*48).toFixed(1);
-    const rn=(h.precip||0)/maxP;
-    const dnH=h.precip>0 ? (12 + rn*24).toFixed(1) : 0;
-    const c=tempColor(h.temp);
-    const upBg=`linear-gradient(180deg, ${lighten(c,'ff')}, ${lighten(c,'aa')})`;
-    const bA=(0.5+0.45*rn).toFixed(2), bA2=(0.75+0.25*rn).toFixed(2);
-    const dnBg=`linear-gradient(180deg, rgba(74,160,224,${bA}), rgba(40,110,190,${bA2}))`;
-    const dry=h.pop<20;
-    return `<button class="bcol${i===0?' first':''}" data-i="${i}">
-      <div class="bt">${i===0?hh(h.t):hh(h.t)}</div>
-      <div class="bi">${h.emoji}</div>
-      <div class="btemp" style="color:${c}">${fmt(h.temp)}°</div>
-      <div class="chart">
-        <div class="up" style="bottom:38%; height:${upH}%; background:${upBg}"></div>
-        <div class="base" style="top:62%"></div>
-        ${h.precip>0?`<div class="down" style="top:62%; height:${dnH}%; background:${dnBg}"></div>`:''}
-      </div>
-      <div class="bpop ${dry?'dry':''}">💧${h.pop}%</div>
-      <div class="bcl">${clothSym(h.feels,h.precip)}</div>
-    </button>`;
-  }).join('');
-  const sb=$('#barStrip'); if(sb) sb.scrollLeft=0;
-}
-function renderStory(){
-  const el=$('#dayStory'); if(el) el.innerHTML = dayNarrative();
-}
+                    <!-- SYMBOL-FILTER (tona ner övriga) -->
+                    <div id="abs-filter-bar" class="cal-symbol-bar abs-filter-bar">
+                        <div class="cal-symbol-group abs-filter-group">
+                            <button onclick="absFilter('Semester')" data-abs="Semester" class="cal-sym-btn abs-fil-btn" title="Semester">✈️</button>
+                            <button onclick="absFilter('Sjuk')" data-abs="Sjuk" class="cal-sym-btn abs-fil-btn" title="Sjuk">🤒</button>
+                            <button onclick="absFilter('VAB')" data-abs="VAB" class="cal-sym-btn abs-fil-btn" title="VAB">👶</button>
+                            <button onclick="absFilter('Föräldraledig')" data-abs="Föräldraledig" class="cal-sym-btn abs-fil-btn" title="Föräldraledig">🍼</button>
+                            <button onclick="absFilter('Tjänstledig')" data-abs="Tjänstledig" class="cal-sym-btn abs-fil-btn" title="Tjänstledig">🏢</button>
+                            <button onclick="absFilterClear()" class="cal-sym-btn abs-fil-clear" title="Visa alla">↺</button>
+                        </div>
+                    </div>
 
-/* ---------- Berättande prognos ---------- */
-function fmtRange(a,b){ return `${hh(a)}–${hh(b)}`; }
-function dayNarrative(){
-  const hrs=(state.forecast&&state.forecast.length?state.forecast:state.data).slice(0,24);
-  if(hrs.length<4) return '';
-  const temps=hrs.map(h=>h.temp);
-  const maxT=Math.max(...temps), minT=Math.min(...temps);
-  const maxH=hrs[temps.indexOf(maxT)], minH=hrs[temps.indexOf(minT)];
-  const totP=hrs.reduce((s,h)=>s+h.precip,0);
-  const popMax=Math.max(...hrs.map(h=>h.pop||0));
-  const windMax=Math.max(...hrs.map(h=>h.wind||0));
-  const windH=hrs.find(h=>h.wind===windMax);
-  const uvMax=Math.max(...hrs.map(h=>h.uv||0));
-  const cloudFirst=hrs.slice(0,8).reduce((s,h)=>s+(h.cloud||0),0)/8;
-  const cloudLast=hrs.slice(-8).reduce((s,h)=>s+(h.cloud||0),0)/8;
-  const rain=longestRun(hrs,h=>h.precip>=0.1);
-  const p=[];
-  p.push(`Närmaste dygnet blir <b>${skyDesc((cloudFirst+cloudLast)/2, totP/24).toLowerCase()}</b> med temperaturer mellan <b>${Math.round(minT)}°</b> och <b>${Math.round(maxT)}°</b> – varmast kring kl ${hh(maxH.t)}, kallast kring kl ${hh(minH.t)}.`);
-  if(totP<0.2 && popMax<30){
-    p.push(`Det ser <b>torrt</b> ut: som mest ${popMax}% risk för nederbörd.`);
-  } else if(rain){
-    p.push(`Nederbörd väntas främst <b>${fmtRange(rain.from,rain.to)}</b> (upp till ${popMax}% sannolikhet, totalt ca ${Math.round(totP*10)/10} mm).`);
-  } else {
-    p.push(`Spridda skurar möjliga under dygnet (upp till ${popMax}% sannolikhet, ca ${Math.round(totP*10)/10} mm totalt).`);
-  }
-  const diff=cloudLast-cloudFirst;
-  if(Math.abs(diff)>=20) p.push(diff>0?`Molnigheten <b>ökar</b> efterhand.`:`Det <b>klarnar upp</b> efterhand.`);
-  if(windMax>=10) p.push(`Blåsigt, med vind upp mot <b>${Math.round(windMax)} m/s</b>${windH?` kring kl ${hh(windH.t)}`:''} – vinden gör att det känns kallare än termometern visar.`);
-  else if(windMax>=6) p.push(`Måttlig vind, som mest ca ${Math.round(windMax)} m/s.`);
-  if(uvMax>=6) p.push(`UV-index når <b>${Math.round(uvMax)}</b> mitt på dagen – solskydd rekommenderas.`);
-  else if(uvMax>=3) p.push(`UV-index når ${Math.round(uvMax)} – tänk på solglasögon mitt på dagen.`);
-  const w=buildPeriods()[0];
-  if(w) p.push(`Just nu (${w.label.toLowerCase()}): ${w.emoji} ${w.desc.toLowerCase()}, klädtips ${clothSym(w.feels,w.precip)}.`);
-  return p.join(' ');
-}
-function periodNarrative(w){
-  const p=[];
-  p.push(`${w.label}${w.tomorrow?' imorgon':''} (kl ${String(w.a).padStart(2,'0')}–${String(w.b).padStart(2,'0')}) blir ${w.desc.toLowerCase()} med ${w.lo}–${w.hi}° (känns som ca ${w.feels}°).`);
-  if(w.pop>=50) p.push(`Hög risk för nederbörd (${w.pop}%${w.precip>0?`, ca ${w.precip} mm`:''}).`);
-  else if(w.pop>=25) p.push(`Viss risk för nederbörd (${w.pop}%).`);
-  else p.push(`Låg regnrisk (${w.pop}%).`);
-  if(w.wind>=8) p.push(`Blåsigt, kring ${w.wind} m/s.`);
-  if(w.uv>=3) p.push(`UV-index upp till ${Math.round(w.uv)}.`);
-  return p.join(' ');
-}
+                    <div class="sheet-content">
+                        <div id="pane-absence" class="dash-view-pane h-full overflow-y-auto hide-scrollbar p-3 flex flex-col gap-2"></div>
+                    </div>
+                </div>
 
-function renderWeek(){
-  const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
-  $('#weekList').innerHTML = state.daily.map((d,i)=>{
-    const name = i===0 ? 'Idag' : cap(d.date.toLocaleDateString('sv-SE',{weekday:'long'}));
-    const date = d.date.toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
-    return `<button class="drow" data-i="${i}">
-      <span class="dn">${name}<small>${date}</small></span>
-      <span class="di">${d.emoji}</span>
-      <span class="dmid">
-        <span class="ddesc">${d.desc}</span>
-        <span class="dparams"><span>🌧 ${d.pop}%</span><span>💧 ${d.precip} mm</span><span>☀️ UV ${d.uv}</span><span>💨 ${fmt(d.wind,1)}</span></span>
-      </span>
-      <span class="dtemps"><b>${d.hi}°</b><small>${d.lo}°</small></span>
-    </button>`;
-  }).join('');
-}
+                <!-- ===== LÖN-SHEET (peek = blå ruta, expanderat = allt) ===== -->
+                <div id="sheet-lon" class="sf-sheet" data-testid="sheet-lon">
+                    <div class="sheet-handle"><span></span></div>
+                    <div class="sheet-header lon-sheet-header">
+                        <button id="lon-nav-prev" onclick="lonNavMonth(-1)" class="lon-nav-arrow" aria-label="Föregående månad"><span class="material-symbols-rounded">chevron_left</span></button>
+                        <div class="sheet-title-area">
+                            <h2 id="lon-title" class="sheet-title">Kommande lön</h2>
+                            <span id="lon-payout-lbl" class="sheet-subtitle">UTBETALAS I —</span>
+                        </div>
+                        <button id="lon-nav-next" onclick="lonNavMonth(1)" class="lon-nav-arrow" aria-label="Nästa månad"><span class="material-symbols-rounded">chevron_right</span></button>
+                    </div>
+                    <div class="sheet-content lon-sheet-content">
+                        <div id="lon-reminder" class="lon-reminder hidden" onclick="openLonSettings()"></div>
+                        <div class="lon-result-card">
+                            <span class="lon-net-lbl">Beräknad lön efter skatt</span>
+                            <span id="lon-net" class="lon-net-val">0 kr</span>
+                            <span id="lon-period-sub" class="lon-period-sub"></span>
+                            <div class="lon-result-rows">
+                                <div class="lon-rrow"><span>🟡 Skatt</span><span id="lon-tax">0 kr</span></div>
+                                <div class="lon-rrow"><span>Lön före skatt (brutto)</span><span id="lon-gross">0 kr</span></div>
+                                <div class="lon-rrow lon-rrow-bonus"><span>↳ varav bonus<small id="lon-bonus-sub"></small></span><span id="lon-bonus-out">0 kr</span></div>
+                                <div class="lon-rrow"><span>↳ varav OB-tillägg</span><span id="lon-ob-out">0 kr</span></div>
+                                <div class="lon-rrow lon-rrow-neg"><span>↳ frånvaroavdrag</span><span id="lon-franvaro-out">0 kr</span></div>
+                            </div>
+                        </div>
+                        <div class="lon-full-only">
+                            <div class="md-form-card lon-compact-card">
+                                <span class="lon-section-lbl">Bonusavdrag</span>
+                                <div id="lon-avdrag-seg" class="lon-seg">
+                                    <button data-av="0" class="active" onclick="lonSetAvdrag(0)">Inget</button>
+                                    <button data-av="10" onclick="lonSetAvdrag(10)">10 %</button>
+                                    <button data-av="20" onclick="lonSetAvdrag(20)">20 %</button>
+                                    <button data-av="30" onclick="lonSetAvdrag(30)">30 %</button>
+                                </div>
+                            </div>
+                            <button onclick="openLonSettings()" class="md-btn-outlined w-full md-btn-icon-text" style="margin-top:20px"><span class="material-symbols-rounded">settings</span> Bilagor &amp; bonusspann</button>
+                        </div>
+                        <!-- Dolda auto-fält -->
+                        <div class="hidden">
+                            <input id="lon-sales" type="hidden"><input id="lon-ob50" type="hidden"><input id="lon-ob100" type="hidden">
+                            <input id="lon-franv" type="hidden"><input id="lon-extra-add" type="hidden"><input id="lon-extra-ded" type="hidden">
+                            <input id="lon-cfg-manadslon" type="hidden"><input id="lon-cfg-tillagg" type="hidden"><input id="lon-cfg-timpris" type="hidden">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-function renderAI(){
-  if(!state.data || !state.data.length) return;
-  let ref;
-  if(state.aiScope==='now') ref=state.data[0];
-  else if(state.aiScope==='today'){ const mid=state.data.find(h=>h.t.getHours()>=13)||state.data[0]; ref=aggScope(0,mid); }
-  else { const tm=new Date(); tm.setDate(tm.getDate()+1); ref=aggDay(tm); }
-  if(!ref) return;
-  const {band, extras}=outfit(ref.feels, ref.precip, ref.uv, ref.wind, state.aiAud);
-  $('#aiEmoji').textContent = band.emoji;
-  const scopeTxt={now:'Just nu',today:'Idag (dagtid)',tomorrow:'Imorgon'}[state.aiScope];
-  $('#aiTitle').textContent = band.title;
-  $('#aiSub').textContent = `${scopeTxt} · ${fmt(ref.temp)}° (känns ${fmt(ref.feels)}°) · ${state.aiAud==='child'?'barn':'vuxen'}`;
-  const all=[...band.base, ...extras].slice(0,8);
-  $('#aiLayers').innerHTML = all.map(c=>`
-    <div class="layer"><div class="le">${c[0]}</div>
-    <div class="lt"><b>${c[1]}</b>${c[2]?`<span>${c[2]}</span>`:''}</div></div>`).join('');
-  $('#aiReason').textContent = buildReason(ref, state.aiAud, scopeTxt);
-}
-function aggScope(startIdx, mid){
-  // representativt värde för idag: använd mid-dag men max nederbörd/uv över dagen
-  const today=new Date().toLocaleDateString('sv-SE');
-  const hrs=state.data.filter(h=>h.t.toLocaleDateString('sv-SE')===today);
-  const precip=Math.max(...hrs.map(h=>h.precip));
-  const uv=Math.max(...hrs.map(h=>h.uv));
-  return {...mid, precip, uv};
-}
-function aggDay(dateObj){
-  const key=dateObj.toLocaleDateString('sv-SE');
-  const hrs=state.data.filter(h=>h.t.toLocaleDateString('sv-SE')===key);
-  if(!hrs.length) return state.data[0];
-  const mid=hrs.find(h=>h.t.getHours()>=13)||hrs[Math.floor(hrs.length/2)];
-  return {...mid, precip:Math.max(...hrs.map(h=>h.precip)), uv:Math.max(...hrs.map(h=>h.uv))};
-}
+        </div>
+    </div>
 
-function buildReason(h, aud, scope){
-  const child = aud==='child';
-  const p=[];
-  const when = scope ? scope.toLowerCase() : 'nu';
-  const diff = Math.round((h.feels - h.temp));
-  if(Math.abs(diff)>=2){
-    p.push(`Det är ${fmt(h.temp)}° men känns som ${fmt(h.feels)}° ${diff<0?`eftersom vinden (${fmt(h.wind,1)} m/s) kyler`:`på grund av sol och stillhet`}.`);
-  } else {
-    p.push(`Ungefär ${fmt(h.temp)}° och känns lika mycket.`);
-  }
-  if(h.precip>=0.5) p.push(`Räkna med nederbörd (${fmt(h.precip,1)} mm) – ta med regnskydd.`);
-  else if(h.precip>=0.1) p.push(`Lätt risk för duggregn.`);
-  if(h.uv>=6) p.push(`UV‑index ${fmt(h.uv)} är högt – solskydd behövs.`);
-  else if(h.uv>=3) p.push(`UV‑index ${fmt(h.uv)} – tänk på solglasögon.`);
-  if(child) p.push(h.feels<8 ? `Barn blir kalla fortare än vuxna, så lägg på ett extra lager och lätt att ta av.` : `Klä barnet i lager som är lätta att ta av när det leker och blir varmt.`);
-  return p.join(' ');
-}
+    <!-- ===== BOTTEN-NAVIGERING (på body-nivå → ligger alltid ovanför helskärmsvyerna) ===== -->
+    <nav id="app-bottom-nav" class="app-bottom-nav" data-testid="bottom-nav">
+        <button onclick="navTo('absence')" data-nav="absence" class="bn-item" data-testid="nav-absence">
+            <span class="material-symbols-rounded bn-ic">event_busy</span>
+            <span class="bn-lbl">Frånvaro</span>
+        </button>
+        <button onclick="navTo('month')" data-nav="month" class="bn-item" data-testid="nav-calendar">
+            <span class="material-symbols-rounded bn-ic">calendar_month</span>
+            <span class="bn-lbl">Kalender</span>
+        </button>
+        <button onclick="navTo('dash')" data-nav="dash" class="bn-item bn-home is-active" data-testid="nav-home">
+            <span class="material-symbols-rounded bn-ic">home</span>
+            <span class="bn-lbl">Hem</span>
+        </button>
+        <button onclick="navTo('lon')" data-nav="lon" class="bn-item" data-testid="nav-lon">
+            <span class="material-symbols-rounded bn-ic">payments</span>
+            <span class="bn-lbl">Lön</span>
+        </button>
+        <button onclick="navTo('notes')" data-nav="notes" class="bn-item" data-testid="nav-notes">
+            <span class="material-symbols-rounded bn-ic">sticky_note_2</span>
+            <span class="bn-lbl">Anteckningar</span>
+        </button>
+    </nav>
 
-function renderAll(){
-  renderNow(); renderBars(); renderPeriods(); renderStory(); renderWeek(); renderAI();
-}
+    <script src="script.js"></script>
+    <script>
+    // ============================================================
+    // SALESFLOW — Navigationscontroller
+    // Bottenmeny + bottom-sheets (peek / helvy), drag i strecket,
+    // svep upp/ner, svep vänster/höger för månad. Ingen datalogik.
+    // ============================================================
+    (function() {
+        const sheetMonth   = document.getElementById('sheet-month');
+        const sheetAbsence = document.getElementById('sheet-absence');
+        const sheetLon     = document.getElementById('sheet-lon');
+        const subMonth     = document.getElementById('sheet-month-sub');
+        const subAbs       = document.getElementById('sheet-absence-sub');
+        const notesModal   = document.getElementById('notes-modal');
+        const body = document.body;
 
-/* =========================================================
-   STATUS-fliken
-========================================================= */
-function renderStatus(){
-  const provs=[
-    {id:'smhi', name:'SMHI', sub:'snow1gv1 · Sveriges meteorologiska institut'},
-    {id:'yr', name:'MET Norway (Yr)', sub:'locationforecast 2.0 · met.no'}
-  ];
-  const paramNames={temp:'Temp',hum:'Fukt',cloud:'Moln',precip:'Nederbörd',wind:'Vind',uv:'UV'};
-  $('#statusList').innerHTML = provs.map(pv=>{
-    const s=state.status[pv.id];
-    const cls = s.state; // up/down/wait
-    const label = cls==='up'?'IGÅNG':cls==='down'?'NERE':'TESTAR…';
-    let paramsHtml='';
-    if(pv.id==='smhi'){
-      const has={temp:1,hum:1,cloud:1,precip:1,wind:1,uv:0};
-      paramsHtml=Object.keys(paramNames).map(k=>`<span class="ptag ${has[k]?'':'miss'}">${paramNames[k]}${has[k]?'':' –'}</span>`).join('');
-    } else {
-      const has={temp:1,hum:1,cloud:1,precip:1,wind:1,uv:1};
-      paramsHtml=Object.keys(paramNames).map(k=>`<span class="ptag">${paramNames[k]}</span>`).join('');
-    }
-    return `<div class="prov">
-      <div class="prov-head"><span class="dot ${cls}"></span><b>${pv.name}</b><span class="st ${cls}">${label}</span></div>
-      <div class="prov-sub">${pv.sub}${s.ms?` · svar ${s.ms} ms`:''}</div>
-      <div class="params">${paramsHtml}</div>
-      ${pv.id==='smhi'?'<div class="prov-sub" style="margin-top:8px">SMHI saknar UV‑index → lånas från MET Norway eller uppskattas.</div>':''}
-    </div>`;
-  }).join('');
-  $('#statTime').textContent = state.status.time ? 'Testat '+state.status.time : '';
-}
+        const _setMode    = window.setMode;
+        const _navCal     = window.navCal;
+        const _navArrow   = window.navArrow;
+        const _openNotes  = window.openNotesModal;
+        const _closeNotes = window.closeNotesModal;
 
-/* =========================================================
-   DATA-LADDNING
-========================================================= */
-async function loadWeather(){
-  if(!state.loc) return;
-  const {lat, lon}=state.loc;
-  $('#loading').classList.add('show');
-  state.status={smhi:{state:'wait'},yr:{state:'wait'},time:''};
-  renderStatus();
+        function activeSheet() {
+            if (sheetMonth.classList.contains('is-open'))   return sheetMonth;
+            if (sheetAbsence.classList.contains('is-open')) return sheetAbsence;
+            if (sheetLon.classList.contains('is-open'))     return sheetLon;
+            return null;
+        }
+        function isFull() { return body.classList.contains('sheet-full'); }
+        function notesOpen() { return notesModal && !notesModal.classList.contains('hidden'); }
 
-  const t0=performance.now();
-  const smhiP = fetchSMHI(lat,lon).then(d=>{ state.status.smhi={state:'up',ms:Math.round(performance.now()-t0)}; return d; })
-                                  .catch(e=>{ state.status.smhi={state:'down'}; console.warn('SMHI',e); return []; });
-  const t1=performance.now();
-  const yrP = fetchYr(lat,lon).then(d=>{ state.status.yr={state:'up',ms:Math.round(performance.now()-t1)}; return d; })
-                              .catch(e=>{ state.status.yr={state:'down'}; console.warn('Yr',e); return []; });
+        function setActiveNav(name) {
+            document.querySelectorAll('#app-bottom-nav .bn-item').forEach(function(b) {
+                b.classList.toggle('is-active', b.getAttribute('data-nav') === name);
+            });
+        }
+        function refreshNavActive() {
+            if (notesOpen()) { setActiveNav('notes'); return; }
+            const s = activeSheet();
+            if (s === sheetMonth)        setActiveNav('month');
+            else if (s === sheetAbsence) setActiveNav('absence');
+            else if (s === sheetLon)     setActiveNav('lon');
+            else                         setActiveNav('dash');
+        }
+        function updateTitles() {
+            try {
+                const lbl = document.getElementById('top-month-lbl');
+                const t = lbl ? (lbl.innerText || lbl.textContent || '').trim() : '';
+                if (t) { if (subMonth) subMonth.innerText = t; if (subAbs) subAbs.innerText = t; }
+            } catch (e) {}
+        }
 
-  const [smhi, yr] = await Promise.all([smhiP, yrP]);
-  state.status.time = new Date().toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
-  renderStatus();
+        // ---------- Open / Close / Expand ----------
+        function openSheet(which, opts) {
+            opts = opts || {};
+            const goFull = opts.full !== undefined ? opts.full : (opts.forcePeek ? false : body.classList.contains('sheet-full'));
+            const map = { month: sheetMonth, absence: sheetAbsence, lon: sheetLon };
+            const target = map[which] || sheetMonth;
+            Object.keys(map).forEach(function(key){ if (map[key] !== target){ map[key].classList.remove('is-open','is-full'); map[key].style.transform=''; } });
 
-  if(!smhi.length && !yr.length){
-    $('#loading').classList.remove('show');
-    $('#view-now').innerHTML='<div class="err"><b>Kunde inte hämta väderdata</b>Kontrollera nätet och försök igen. Tjänsterna kan även vara tillfälligt nere – se fliken Status.</div>';
-    return;
-  }
-  state.data = combine(smhi, yr, lat, lon).filter(h=>h.t >= new Date(Date.now()-3600e3)).slice(0,72);
-  state.daily = toDaily(state.data);
-  updateTheme(state.data[0]);
-  renderAll();
-  $('#loading').classList.remove('show');
-}
+            // Kalender & Frånvaro: rendera FÖRST, visa sedan direkt (ingen animering, ingen blank frame)
+            if (which === 'month' || which === 'absence') {
+                body.classList.add('sheet-instant');
+                _setMode(which);
+                body.classList.add('sheet-open', 'sheet-full');
+                target.classList.add('is-full', 'is-open');
+                target.style.transform = '';
+                updateTitles();
+                setActiveNav(which);
+                updateNavSheetState();
+                pushHist();
+                return;
+            }
 
-function updateTheme(now){
-  if(!now) return;
-  const t=now.temp;
-  let warm=0, cool=0;
-  if(t>=20) warm=0.28; else if(t>=12) warm=0.14; else if(t<=2) cool=0.28; else if(t<=8) cool=0.16;
-  document.body.style.background=
-    `radial-gradient(120% 80% at 80% -10%, rgba(255,180,90,${0.10+warm}), transparent 55%),`+
-    `radial-gradient(120% 90% at 0% 110%, rgba(80,150,235,${0.12+cool}), transparent 55%),`+
-    `linear-gradient(160deg, var(--bg1), var(--bg2) 60%, var(--bg3))`;
-}
+            // Lön: behåller slide-animation, render i nästa frame för mjuk start
+            body.classList.remove('sheet-instant');
+            body.classList.add('sheet-open');
+            if (goFull) { body.classList.add('sheet-full'); target.classList.add('is-full'); }
+            else { body.classList.remove('sheet-full'); target.classList.remove('is-full'); }
+            target.classList.add('is-open');
+            target.style.transform = '';
+            setActiveNav(which);
+            updateNavSheetState();
+            pushHist();
+            requestAnimationFrame(function(){
+                if (typeof window.renderLonSheet === 'function') window.renderLonSheet();
+                body.classList.add('sheet-open');
+                if (goFull) { body.classList.add('sheet-full'); target.classList.add('is-full'); }
+                target.classList.add('is-open');
+                updateNavSheetState();
+            });
+        }
+        function updateNavSheetState() {
+            const s = activeSheet();
+            const name = s === sheetMonth ? 'month' : s === sheetAbsence ? 'absence' : s === sheetLon ? 'lon' : null;
+            document.querySelectorAll('#app-bottom-nav .bn-item').forEach(function(b){
+                if (b.getAttribute('data-nav') === name) b.setAttribute('data-sheet', isFull() ? 'full' : 'peek');
+                else b.removeAttribute('data-sheet');
+            });
+            updateSegActive(name);
+        }
+        function updateSegActive(name) {
+            const seg = (name === 'absence') ? 'absence' : 'month';
+            document.querySelectorAll('.cal-seg button').forEach(function(b){
+                b.classList.toggle('active', b.getAttribute('data-seg') === seg);
+            });
+        }
+        // Segment-växel Kalender <-> Frånvaro (alltid helvy – ingen mini)
+        window.calSeg = function(which) {
+            openSheet(which, { full: true });
+        };
+        // Klick på segment-knapparna: i fokusläge = Visa alla / Tillbaka
+        window.calSegTap = function(which) {
+            if (document.body.classList.contains('focus-mode-active')) {
+                if (which === 'month')   { if (typeof window.closeFocusMode === 'function') window.closeFocusMode(true); return; }
+                if (which === 'absence') { if (typeof window.absFocusBack === 'function') window.absFocusBack(); return; }
+            }
+            window.calSeg(which);
+        };
+        window.updateNavSheetState = updateNavSheetState;
 
-/* =========================================================
-   PLATS: GPS, sök, favoriter
-========================================================= */
-async function reverseGeo(lat, lon){
-  try{
-    const r=await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=sv`);
-    const j=await r.json();
-    const name=j.city||j.locality||j.principalSubdivision||'Min plats';
-    return {name, sub:(j.principalSubdivision||j.countryName||'')};
-  }catch{ return {name:'Min plats', sub:''}; }
-}
-function useGPS(){
-  if(!navigator.geolocation){ toast('GPS stöds ej'); return; }
-  toast('Hämtar din plats…');
-  navigator.geolocation.getCurrentPosition(async pos=>{
-    const {latitude:lat, longitude:lon}=pos.coords;
-    const g=await reverseGeo(lat,lon);
-    setLocation({name:g.name, sub:g.sub||'Din plats (GPS)', lat, lon});
-    closeSheet();
-  }, err=>{ toast('Kunde inte hämta plats'); }, {enableHighAccuracy:true, timeout:8000});
-}
-async function searchPlaces(q){
-  if(q.trim().length<2){ $('#searchResults').innerHTML=''; return; }
-  try{
-    const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=sv&format=json`);
-    const j=await r.json();
-    const res=j.results||[];
-    if(!res.length){ $('#searchResults').innerHTML='<div class="empty">Inga träffar</div>'; return; }
-    $('#searchResults').innerHTML=res.map(p=>{
-      const sub=[p.admin1,p.country].filter(Boolean).join(', ');
-      return `<div class="res" data-lat="${p.latitude}" data-lon="${p.longitude}" data-name="${p.name}" data-sub="${sub}">
-        <div><div class="rn">${p.name}</div><div class="rs">${sub}</div></div>
-        <div class="add">＋</div></div>`;
-    }).join('');
-  }catch{ $('#searchResults').innerHTML='<div class="empty">Sökning misslyckades</div>'; }
-}
-function setLocation(loc, addFav){
-  state.loc=loc; LS.set('loc',loc);
-  $('#locName').textContent=loc.name;
-  $('#locSub').textContent=loc.sub||'Tryck för att byta ort';
-  if(addFav) addFavorite(loc);
-  loadWeather();
-}
-function addFavorite(loc){
-  if(state.favs.find(f=>f.name===loc.name && Math.abs(f.lat-loc.lat)<0.01)) return;
-  if(state.favs.length>=5){ toast('Max 5 favoriter – ta bort en först'); renderFavs(); return; }
-  state.favs.push({name:loc.name, sub:loc.sub, lat:loc.lat, lon:loc.lon});
-  LS.set('favs',state.favs); renderFavs(); toast('Sparad som favorit');
-}
-function removeFavorite(i){ state.favs.splice(i,1); LS.set('favs',state.favs); renderFavs(); }
-function renderFavs(){
-  if(!state.favs.length){ $('#favList').innerHTML='<div class="empty">Inga favoriter sparade än. Sök en ort och tryck ＋.</div>'; return; }
-  $('#favList').innerHTML=state.favs.map((f,i)=>`
-    <div class="fav" data-i="${i}">
-      <span>⭐</span><div><div class="fn">${f.name}</div><div class="rs" style="font-size:11px;color:var(--ink3)">${f.sub||''}</div></div>
-      <button class="del" data-del="${i}">✕</button>
-    </div>`).join('');
-}
+        window.closeActiveSheet = function() {
+            sheetMonth.classList.remove('is-open', 'is-full');
+            sheetAbsence.classList.remove('is-open', 'is-full');
+            sheetLon.classList.remove('is-open', 'is-full');
+            sheetMonth.style.transform = ''; sheetAbsence.style.transform = ''; sheetLon.style.transform = '';
+            body.classList.remove('sheet-open', 'sheet-full');
+            _setMode('dash');                      // renders dash + resets body class
+            setActiveNav('dash');
+            if (typeof updateNavSheetState === 'function') updateNavSheetState();
+        };
+        function closeSheet() { window.closeActiveSheet(); }
 
-/* ---------- Sheet öppna/stäng ---------- */
-function openSheet(){ $('#scrim').classList.add('show'); $('#sheet').classList.add('show'); renderFavs(); }
-function closeSheet(){ $('#scrim').classList.remove('show'); $('#sheet').classList.remove('show'); $('#searchInput').value=''; $('#searchResults').innerHTML=''; }
+        function expandSheet() {
+            const s = activeSheet(); if (!s) return;
+            body.classList.add('sheet-full'); s.classList.add('is-full'); s.style.transform = '';
+            updateNavSheetState();
+        }
+        function collapseSheet() {
+            const s = activeSheet(); if (!s) return;
+            body.classList.remove('sheet-full'); s.classList.remove('is-full'); s.style.transform = '';
+            updateNavSheetState();
+        }
 
-/* =========================================================
-   NAV + EVENTS
-========================================================= */
-function switchView(v){
-  $$('.view').forEach(x=>x.classList.remove('active'));
-  $('#view-'+v).classList.add('active');
-  $$('.nav button').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
-  if(v==='ai') renderAI();
-  if(v==='status') renderStatus();
-}
-$('#nav').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) switchView(b.dataset.v); });
-$('#locBtn').addEventListener('click', openSheet);
-$('#scrim').addEventListener('click', closeSheet);
-$('#gpsBtn').addEventListener('click', useGPS);
-$('#gpsQuick').addEventListener('click', useGPS);
-$('#refreshBtn').addEventListener('click', ()=>{ toast('Uppdaterar…'); loadWeather(); });
+        // ---------- Bottenmeny ----------
+        window.navTo = function(target) {
+            if (typeof window.closeLonSettings === 'function') window.closeLonSettings();
+            // Kalender & Frånvaro: ingen mini – öppna direkt i helvy, toggla öppna/stäng
+            if (target === 'month' || target === 'absence') {
+                const sheet = (target === 'month') ? sheetMonth : sheetAbsence;
+                if (notesOpen() && _closeNotes) _closeNotes();
+                if (activeSheet() === sheet) { closeSheet(); }
+                else { openSheet(target, { full: true }); }
+                return;
+            }
+            // Lön: behåller mini → hel → toggle
+            if (target === 'lon') {
+                if (notesOpen() && _closeNotes) _closeNotes();
+                if (activeSheet() === sheetLon) { isFull() ? collapseSheet() : expandSheet(); }
+                else { openSheet('lon', { forcePeek: true }); }
+                return;
+            }
+            if (notesOpen() && _closeNotes) _closeNotes();
+            if (target === 'notes') { closeSheet(); if (_openNotes) _openNotes(); setActiveNav('notes'); pushHist(); return; }
+            if (target === 'dash')  { closeSheet(); if (typeof toggleDashMode === 'function') toggleDashMode(); }
+        };
+        // Öppna kalendern i helvy + fokusläge (för sammanfattningens fokusåtgärder)
+        window.openMonthFocus = function() { openSheet('month', { full: true }); };
 
-let searchT;
-$('#searchInput').addEventListener('input', e=>{ clearTimeout(searchT); searchT=setTimeout(()=>searchPlaces(e.target.value),320); });
-$('#searchResults').addEventListener('click', e=>{
-  const r=e.target.closest('.res'); if(!r) return;
-  const loc={name:r.dataset.name, sub:r.dataset.sub, lat:+r.dataset.lat, lon:+r.dataset.lon};
-  setLocation(loc, true); closeSheet();
-});
-$('#favList').addEventListener('click', e=>{
-  const del=e.target.closest('[data-del]');
-  if(del){ e.stopPropagation(); removeFavorite(+del.dataset.del); return; }
-  const f=e.target.closest('.fav'); if(!f) return;
-  const fav=state.favs[+f.dataset.i]; setLocation(fav); closeSheet();
-});
-const capF = s => s.charAt(0).toUpperCase()+s.slice(1);
-$('#barStrip').addEventListener('click', e=>{ const b=e.target.closest('.bcol'); if(!b) return;
-  const i=+b.dataset.i, h=(state.forecast||[])[i]; if(!h) return;
-  openDetail(h, hh(h.t)+':00', capF(h.t.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'short'}))); });
-window.addEventListener('resize', ()=>{});
-$('#periodList').addEventListener('click', e=>{ const b=e.target.closest('.prow'); if(!b) return;
-  const w=state.periods[+b.dataset.i]; if(!w) return;
-  const obj={ t:w.start, temp:w.hi, feels:w.feels, precip:w.precip, pop:w.pop, uv:w.uv, cloud:w.cloud, hum:w.hum, wind:w.wind, wdir:w.wdir, emoji:w.emoji, desc:w.desc };
-  const sub=`${w.tomorrow?'Imorgon':'Idag'} kl ${String(w.a).padStart(2,'0')}–${String(w.b).padStart(2,'0')}`;
-  openDetail(obj, w.label, sub, periodNarrative(w)); });
-window.addEventListener('resize', ()=>{ if(state.data && state.data.length) renderBars(); });
-$('#weekList').addEventListener('click', e=>{ const b=e.target.closest('.drow'); if(!b) return;
-  const i=+b.dataset.i, d=state.daily[i];
-  const obj={ t:d.date, temp:d.hi, feels:feelsLike(d.hi,d.wind,d.hum), precip:d.precip, pop:d.pop, uv:d.uv, cloud:d.cloud, hum:d.hum, wind:d.wind, wdir:null, emoji:d.emoji, desc:d.desc };
-  const name=i===0?'Idag':capF(d.date.toLocaleDateString('sv-SE',{weekday:'long'}));
-  openDetail(obj, name, d.date.toLocaleDateString('sv-SE',{day:'numeric',month:'long'})+' · dagtid'); });
-$('#popScrim').addEventListener('click', closeDetail);
-$('#aiScope').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return;
-  state.aiScope=b.dataset.s; $$('#aiScope button').forEach(x=>x.classList.toggle('on',x===b)); renderAI(); });
-$('#aiAud').addEventListener('click', e=>{ const b=e.target.closest('button'); if(!b) return;
-  setAudience(b.dataset.a); });
-$('#popBody').addEventListener('click', e=>{ const b=e.target.closest('.aud-toggle button'); if(!b) return;
-  setAudience(b.dataset.a); });
+        // ---------- Header-pilar i sheet ----------
+        window.sheetNav = function(dir) {
+            if (typeof _navCal === 'function') _navCal(dir);
+            updateTitles();
+        };
 
-/* ---------- Start ---------- */
-(async function init(){
-  if(state.loc){
-    $('#locName').textContent=state.loc.name;
-    $('#locSub').textContent=state.loc.sub||'Tryck för att byta ort';
-    loadWeather();
-  } else if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(async pos=>{
-      const g=await reverseGeo(pos.coords.latitude,pos.coords.longitude);
-      setLocation({name:g.name, sub:g.sub||'Din plats (GPS)', lat:pos.coords.latitude, lon:pos.coords.longitude});
-    }, ()=>{ setLocation({name:'Stockholm', sub:'Standardort', lat:59.3293, lon:18.0686}); },
-    {timeout:6000});
-  } else {
-    setLocation({name:'Stockholm', sub:'Standardort', lat:59.3293, lon:18.0686});
-  }
-})();
+        // ---------- Wrappa setMode så interna anrop routas rätt ----------
+        window.setMode = function(mode) {
+            if (mode === 'month')        openSheet('month');
+            else if (mode === 'absence') openSheet('absence');
+            else                         closeSheet();
+        };
+        window.navArrow = function(dir) { if (typeof _navArrow === 'function') _navArrow(dir); updateTitles(); };
+        window.navCal   = function(dir) { if (typeof _navCal === 'function')   _navCal(dir);   updateTitles(); };
 
-/* Service worker (PWA, valfritt – tyst om det saknas) */
-if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
-</script>
+        if (_closeNotes) {
+            window.closeNotesModal = function() { _closeNotes(); refreshNavActive(); };
+        }
+
+        // ---------- Bakåtknapp (Android) ----------
+        let histDepth = 0;
+        function pushHist() { try { history.pushState({ sf: ++histDepth }, ''); } catch (e) {} }
+        window.sfPushHist = pushHist;
+        window.addEventListener('popstate', function() {
+            if (typeof window.lonSettingsOpen === 'function' && window.lonSettingsOpen()) { window.closeLonSettings(); return; }
+            const sn = document.getElementById('saved-notes-modal');
+            if (sn && !sn.classList.contains('hidden')) { if (typeof window.closeSavedNotesModal === 'function') window.closeSavedNotesModal(); return; }
+            if (document.body.classList.contains('focus-mode-active')) { if (typeof window.closeFocusMode === 'function') window.closeFocusMode(true); return; }
+            if (notesOpen()) { window.closeNotesModal(); return; }
+            if (activeSheet()) { isFull() ? collapseSheet() : closeSheet(); }
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (typeof window.lonSettingsOpen === 'function' && window.lonSettingsOpen()) { window.closeLonSettings(); return; }
+                if (notesOpen()) { window.closeNotesModal(); return; }
+                if (activeSheet()) { isFull() ? collapseSheet() : closeSheet(); }
+            }
+        });
+
+        // ---------- Gest: drag i strecket / titelytan ----------
+        function attachGesture(sheetEl) {
+            const noMini = (sheetEl === sheetMonth || sheetEl === sheetAbsence); // Kalender/Frånvaro: ingen mini
+            const grips = [ sheetEl.querySelector('.sheet-handle'), sheetEl.querySelector('.sheet-title-area') ];
+            let startY = 0, startX = 0, dy = 0, dx = 0, dragging = false, moved = false;
+            function start(e) {
+                if (e.target.closest('button')) { dragging = false; return; }
+                dragging = true; moved = false;
+                const p = e.touches ? e.touches[0] : e;
+                startY = p.clientY; startX = p.clientX; dy = 0; dx = 0;
+                sheetEl.style.transition = 'none';
+            }
+            function move(e) {
+                if (!dragging) return;
+                const p = e.touches ? e.touches[0] : e;
+                dy = p.clientY - startY; dx = p.clientX - startX;
+                if (Math.abs(dy) > 6 || Math.abs(dx) > 6) moved = true;
+                if (Math.abs(dy) > Math.abs(dx)) {
+                    if (dy > 0) sheetEl.style.transform = 'translateY(' + dy + 'px)';
+                    else if (!isFull()) sheetEl.style.transform = 'translateY(' + (dy * 0.35) + 'px)';
+                }
+            }
+            function end() {
+                if (!dragging) return;
+                dragging = false;
+                sheetEl.style.transition = '';
+                sheetEl.style.transform = '';
+                if (!moved) { if (noMini) closeSheet(); else { isFull() ? collapseSheet() : expandSheet(); } return; }   // tap = toggla / stäng
+                if (Math.abs(dy) <= Math.abs(dx)) return;                              // horisontellt = ignorera
+                if (dy < -40) { if (!isFull() && !noMini) expandSheet(); }
+                else if (dy > 60) { if (noMini) closeSheet(); else { isFull() ? collapseSheet() : closeSheet(); } }
+            }
+            grips.forEach(function(g) {
+                if (!g) return;
+                g.addEventListener('touchstart', start, { passive: true });
+                g.addEventListener('touchmove',  move,  { passive: true });
+                g.addEventListener('touchend',   end);
+                g.addEventListener('touchcancel',end);
+                g.addEventListener('mousedown',  start);
+            });
+            document.addEventListener('mousemove', function(e) { if (dragging) move(e); });
+            document.addEventListener('mouseup',   function()  { if (dragging) end(); });
+        }
+        attachGesture(sheetMonth);
+        attachGesture(sheetAbsence);
+        attachGesture(sheetLon);
+
+        // ---------- Tvinga ljust tema ----------
+        try { document.documentElement.removeAttribute('data-theme'); } catch (e) {}
+        try { localStorage.setItem('sf_theme', 'light'); } catch (e) {}
+        window.setTheme = function() {
+            document.documentElement.removeAttribute('data-theme');
+            try { localStorage.setItem('sf_theme', 'light'); } catch (e) {}
+        };
+
+        // ---------- Titel-synk ----------
+        setTimeout(updateTitles, 500);
+        const tmLbl = document.getElementById('top-month-lbl');
+        if (tmLbl) new MutationObserver(updateTitles).observe(tmLbl, { childList: true, characterData: true, subtree: true });
+
+        // ---------- Dagskortets frånvaro-visual ----------
+        const dashInner = document.getElementById('dash-inner-card');
+        const badgeEl = document.getElementById('dash-abs-badge');
+        if (badgeEl && dashInner) {
+            const mo = new MutationObserver(function() {
+                dashInner.classList.remove('is-absent', 'is-absent-sjuk', 'is-absent-semester', 'is-absent-fledig');
+                if (!badgeEl.classList.contains('hidden')) {
+                    const txt = badgeEl.innerText || '';
+                    dashInner.classList.add('is-absent');
+                    if (txt.includes('🤒')) dashInner.classList.add('is-absent-sjuk');
+                    else if (txt.includes('✈️')) dashInner.classList.add('is-absent-semester');
+                    else if (txt.includes('🍼')) dashInner.classList.add('is-absent-fledig');
+                }
+            });
+            mo.observe(badgeEl, { attributes: true, attributeFilter: ['class'], childList: true });
+        }
+
+        // ---------- Numpad: stäng vid tap utanför (inline) ----------
+        document.addEventListener('click', function(e) {
+            const inlineNumpad = document.getElementById('dash-inline-numpad');
+            if (inlineNumpad && !inlineNumpad.classList.contains('pointer-events-none')) {
+                if (!inlineNumpad.contains(e.target) && !e.target.closest('[data-testid="open-numpad"]')) {
+                    if (typeof closeInlineNumpad === 'function') closeInlineNumpad();
+                }
+            }
+        }, { capture: true });
+
+        // ---------- Tap utanför stänger modaler ----------
+        const modalCloseMap = {
+            'budget-modal': 'closeBudgetModal', 'notes-modal': 'closeNotesModal',
+            'saved-notes-modal': 'closeSavedNotesModal', 'eval-modal': 'closeEvalModal',
+            'summary-modal': 'closeSummaryModal', 'coach-main-modal': 'closeCoachModalMain',
+            'coach-history-modal': 'closeCoachHistoryModal', 'coach-read-modal': 'closeCoachCall',
+            'red-thread-modal': 'closeRedThreadModal', 'child-select-modal': 'closeChildModal',
+            'note-confirm-modal': 'closeNoteConfirmModal'
+        };
+        Object.keys(modalCloseMap).forEach(function(id) {
+            const el = document.getElementById(id); if (!el) return;
+            el.addEventListener('click', function(e) {
+                if (e.target === el) { const fn = window[modalCloseMap[id]]; if (typeof fn === 'function') fn(); }
+            });
+        });
+
+        refreshNavActive();
+    })();
+    </script>
 </body>
 </html>

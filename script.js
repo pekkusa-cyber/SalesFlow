@@ -1603,7 +1603,9 @@ const LON_CFG_DEF = {
         [50000,11702],[51000,12032],[52000,12362],[53000,12692],[54000,13022],[55000,13352],[56000,13875],[57000,14405],[58000,14935],[59000,15465],
         [60000,15995],[62000,17055],[64000,18115],[66000,19175],[68000,20235],[70000,21295],[75000,23945],[80000,26595]
     ],
-    bonusTiers: [{min:180000,max:240000,pct:10},{min:240000,max:350000,pct:12},{min:350000,max:null,pct:15}]
+    bonusTiers: [{min:180000,max:240000,pct:10},{min:240000,max:350000,pct:12},{min:350000,max:null,pct:15}],
+    semLonDag: 2844,      // semesterlön per betald semesterdag (heltid) – lärs in från specar, kan överskridas manuellt
+    semAvdragDag: 1323    // semesteravdrag per dag (≈4,6 % av månadslön) – lärs också in
 };
 
 function lonNormalizeCfg(c){
@@ -1616,6 +1618,9 @@ function lonNormalizeCfg(c){
     if (!c.obWindows) c.obWindows = JSON.parse(JSON.stringify(D.obWindows));
     if (!c.obCorr || typeof c.obCorr.ob50 !== 'number' || typeof c.obCorr.ob100 !== 'number') c.obCorr = { ob50:1, ob100:1 };
     if (typeof c.franvCorr !== 'number' || !c.franvCorr) c.franvCorr = 1;
+    if (typeof c.semesterRate !== 'number') c.semesterRate = 0.8;
+    if (typeof c.semLonDag !== 'number' || !c.semLonDag) c.semLonDag = D.semLonDag;
+    if (typeof c.semAvdragDag !== 'number' || !c.semAvdragDag) c.semAvdragDag = D.semAvdragDag;
     if (!Array.isArray(c.taxAnchors) || c.taxAnchors.length < 30) c.taxAnchors = JSON.parse(JSON.stringify(D.taxAnchors));
     if (!Array.isArray(c.bonusTiers) || !c.bonusTiers.length) c.bonusTiers = JSON.parse(JSON.stringify(D.bonusTiers));
     return c;
@@ -1637,8 +1642,14 @@ function getMonthlySales(y, m){
 }
 function getMonthlyFranvaroHours(y, m){
     let h = 0; const dim = new Date(y, m, 0).getDate();
-    for (let d=1; d<=dim; d++){ const o = db.d[`${y}-${m}-${d}`]; if (o && o.abs_hours && o.abs !== 'Åtgärd krävs') h += o.abs_hours; }
+    for (let d=1; d<=dim; d++){ const o = db.d[`${y}-${m}-${d}`]; if (o && o.abs_hours && o.abs !== 'Åtgärd krävs' && !(o.abs||'').includes('Semester')) h += o.abs_hours; }
     return Math.round(h*100)/100;
+}
+// Antal betalda semesterdagar (vardagar mån–fre) i månaden – för semestertillägg
+function getMonthlySemesterDays(y, m){
+    let n = 0; const dim = new Date(y, m, 0).getDate();
+    for (let d=1; d<=dim; d++){ const o = db.d[`${y}-${m}-${d}`]; const wd = new Date(y, m-1, d).getDay(); if (o && (o.abs||'').includes('Semester') && wd!==0 && wd!==6) n++; }
+    return n;
 }
 function lonTimpris(){ const mn = lonNum('lon-cfg-manadslon') || (lonCfg && lonCfg.manadslon) || LON_CFG_DEF.manadslon; const div = (lonCfg && lonCfg.timdivisor) || 163.17; return Math.round(mn/div*100)/100; }
 
@@ -1701,6 +1712,7 @@ function lonRecomputeLearning(){
     lonCfg.obCorr = { ob50:1, ob100:1 };
     lonCfg.franvCorr = 1;
     const r50=[], r100=[], rfranv=[]; let latestBase=null, latestIdx=-1;
+    let latestSemLon=null, latestSemAvdrag=null, latestSemIdx=-1;
     const sane=(ratio)=> (ratio>=0.4 && ratio<=2.5);   // utanför detta = troligen fel månad → ignorera
     Object.keys(lonMonthly).forEach(mk=>{
         if (mk==='_uploads' || !/^\d{4}-\d{1,2}$/.test(mk)) return;
@@ -1721,7 +1733,9 @@ function lonRecomputeLearning(){
             const a=lonCfg.taxAnchors; const idx=a.findIndex(p=>Math.abs(p[0]-g)<=50);
             if(idx>=0) a[idx]=[g,tax]; else a.push([g,tax]);
         }
-        if (spec.manadslon!=null && +spec.manadslon>10000){ const ix=y*12+mo; if(ix>latestIdx){ latestIdx=ix; latestBase=+spec.manadslon; } }
+        if (spec.manadslon!=null && +spec.manadslon>10000 && +spec.manadslon<60000){ const ix=y*12+mo; if(ix>latestIdx){ latestIdx=ix; latestBase=+spec.manadslon; } }
+        // Lär in semesterlön/dag + avdrag/dag (senaste semestermånad gäller)
+        if (spec.sem_lon_dag!=null && +spec.sem_lon_dag>500 && +spec.sem_lon_dag<8000){ const ix=y*12+mo; if(ix>latestSemIdx){ latestSemIdx=ix; latestSemLon=+spec.sem_lon_dag; if(spec.sem_avdrag_dag!=null && +spec.sem_avdrag_dag>300) latestSemAvdrag=Math.abs(+spec.sem_avdrag_dag); } }
         rec.actualOb50 = ob50a; rec.actualOb100 = ob100a;
         if (ftim!=null) rec.franv = ftim;
     });
@@ -1731,6 +1745,9 @@ function lonRecomputeLearning(){
     lonCfg.obCorr.ob100 = Math.round(clamp(avg(r100))*1000)/1000;
     lonCfg.franvCorr = Math.round(clamp(avg(rfranv))*1000)/1000;
     if (latestBase) lonCfg.manadslon = latestBase;
+    // Applicera inlärd semesterlön/dag om ingen manuell override är satt
+    if (latestSemLon && !lonCfg.semLonManual) lonCfg.semLonDag = Math.round(latestSemLon);
+    if (latestSemAvdrag && !lonCfg.semLonManual) lonCfg.semAvdragDag = Math.round(latestSemAvdrag);
     lonCfg.taxAnchors.sort((x,y)=>x[0]-y[0]);
 }
 function lonNum(id){ const el = document.getElementById(id); if(!el) return 0; const v = parseFloat(String(el.value).replace(/\s/g,'').replace(',','.')); return isNaN(v) ? 0 : v; }
@@ -1788,16 +1805,41 @@ function lonRecalc(){
 
     const obTot = ob50 + ob100;
     const franvTot = franvKr + extraDed;
-    const brutto = manadslon + tillagg + obTot + bonus + extraAdd - franvTot;
-    const skatt = lonTax(brutto);
-    const netto = brutto - skatt;
+    // Semestertillägg: betalda semesterdagar × sats × månadslön (Handels standard ~0,8%/dag). Månadslönen ligger kvar under semester.
+    // Semestereffekt: månadslönen ligger kvar; för varje semesterdag byts ordinarie daglön (avdrag) mot semesterlön/dag.
+    // Netto per dag = semesterlön/dag − semesteravdrag/dag. Båda lärs in från specar (Semesterlön heltid / Avdrag semester heltid).
+    const semDays = getMonthlySemesterDays(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
+    const semLonDag = lonCfg.semLonDag || 2844;
+    const semAvdragDag = lonCfg.semAvdragDag || Math.round(0.046 * manadslon);
+    const semTillagg = Math.round(semDays * (semLonDag - semAvdragDag));
+    let brutto = manadslon + tillagg + obTot + bonus + extraAdd + semTillagg - franvTot;
+    let skatt = lonTax(brutto);
+    let netto = brutto - skatt;
+    let obOut = obTot, franvOut = franvTot, bonusOut = bonus, semOut = semTillagg, fromFacit = false;
+
+    // FACIT: om månaden har en uppladdad lönespec → visa specens faktiska siffror rakt av (ingen härledning, ingen kompoundering)
+    const facit = (lonMonthly[lonKey()] || {}).cal_lonespec;
+    if (facit && facit.brutto != null && facit.skatt != null && +facit.brutto > 5000
+        && +facit.brutto > brutto * 0.5 && +facit.brutto < brutto * 2) {   // rimlighetskoll → skydd mot felläst års-/fel belopp
+        const Hf = ((facit.manadslon && +facit.manadslon > 10000 && +facit.manadslon < 60000) ? +facit.manadslon : manadslon) / (lonCfg.timdivisor || 163.17);
+        brutto = Math.round(+facit.brutto);
+        skatt = Math.round(Math.abs(+facit.skatt));
+        netto = (facit.netto != null && +facit.netto > 0) ? Math.round(+facit.netto) : (brutto - skatt);
+        if (facit.bonus != null) bonusOut = Math.round(+facit.bonus);
+        if (facit.ob50 != null || facit.ob100 != null) obOut = Math.round((+(facit.ob50 || 0)) * Hf * 0.5 + (+(facit.ob100 || 0)) * Hf);
+        if (facit.franvaro_avdrag_kr != null) franvOut = Math.round(Math.abs(+facit.franvaro_avdrag_kr));
+        fromFacit = true;
+    }
 
     document.getElementById('lon-net').innerText = lonKr(netto);
     document.getElementById('lon-tax').innerText = '−' + lonKr(skatt);
     document.getElementById('lon-gross').innerText = lonKr(brutto);
-    document.getElementById('lon-bonus-out').innerText = lonKr(bonus);
-    document.getElementById('lon-ob-out').innerText = lonKr(obTot);
-    document.getElementById('lon-franvaro-out').innerText = '−' + lonKr(franvTot);
+    document.getElementById('lon-bonus-out').innerText = lonKr(bonusOut);
+    document.getElementById('lon-ob-out').innerText = lonKr(obOut);
+    const semRow = document.getElementById('lon-sem-row'), semOutEl = document.getElementById('lon-sem-out');
+    if (semRow && semOutEl){ if (semOut > 0){ semRow.classList.remove('hidden'); semOutEl.innerText = lonKr(semOut); } else { semRow.classList.add('hidden'); } }
+    document.getElementById('lon-franvaro-out').innerText = '−' + lonKr(franvOut);
+    const obHintEl = document.getElementById('lon-ob-hint'); if (obHintEl) obHintEl.innerText = fromFacit ? 'Från lönespec (facit)' : 'Auto från dina pass';
     const avEl = document.getElementById('lon-bonus-sub');
     if (avEl){ let t = sales>0 ? ` ${pct}% av ${lonKr(sales)}` : ''; if((lonAvdrag||0)>0) t += ` − ${lonAvdrag}%`; avEl.innerText = t; }
 
@@ -1878,10 +1920,23 @@ window.renderLonSheet = renderLonSheet;
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
 function openLonSettings(){
     if (!lonCfg) lonLoad();
-    lonRenderTiers(); lonRenderUploads();
+    lonRenderTiers(); lonRenderUploads(); lonFillSemField();
     const m=document.getElementById('lon-settings-modal');
     if(m){ m.classList.remove('hidden'); setTimeout(()=>m.classList.replace('opacity-0','opacity-100'),10); if(window.sfPushHist) window.sfPushHist(); }
 }
+function lonFillSemField(){
+    const el=document.getElementById('lon-cfg-semlon'); if(el) el.value = lonCfg.semLonDag || '';
+    const h=document.getElementById('lon-semlon-hint');
+    if(h) h.innerText = lonCfg.semLonManual ? `Manuellt satt. Avdrag ~${lonKr(lonCfg.semAvdragDag||0)}/dag. Töm fältet för auto.` : `Lärs in från specar (senaste: ${lonKr(lonCfg.semLonDag||0)}/dag). Skriv för att överskrida.`;
+}
+// Manuell override av semesterlön/dag (tomt fält = återgå till auto-inlärning)
+function lonSetSemLon(v){
+    const n = parseFloat(String(v).replace(/\s/g,'').replace(',','.'));
+    if (!v || isNaN(n) || n<=0){ lonCfg.semLonManual = false; }
+    else { lonCfg.semLonDag = Math.round(n); lonCfg.semLonManual = true; }
+    lonSaveCfg(); lonRecomputeLearning(); lonSaveCfg(); lonFillSemField(); lonRecalc();
+}
+window.lonSetSemLon = lonSetSemLon;
 function closeLonSettings(){
     const m=document.getElementById('lon-settings-modal'); if(!m || m.classList.contains('hidden')) return;
     m.classList.replace('opacity-100','opacity-0');

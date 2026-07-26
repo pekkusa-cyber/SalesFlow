@@ -130,6 +130,11 @@
                     <button id="lon-btn-lonespec" onclick="lonClickUpload('lonespec')" class="md-btn-outlined w-full md-btn-icon-text mt-1 lon-upload-btn"><span class="material-symbols-rounded">receipt_long</span> <span class="lon-upbtn-txt">Lönespec</span></button>
                     <div id="lon-file-lonespec" class="lon-file-name hidden"></div>
                     <p id="lon-learn-status" class="lon-hint" style="margin-top:6px"></p>
+                    <div class="lon-field" style="margin-top:10px">
+                        <label class="lon-section-lbl" for="lon-cfg-semlon">Semesterlön / dag (heltid)</label>
+                        <input id="lon-cfg-semlon" type="number" inputmode="numeric" class="lon-input" oninput="lonSetSemLon(this.value)" placeholder="2844">
+                        <p class="lon-hint" id="lon-semlon-hint" style="margin-top:3px"></p>
+                    </div>
                     <span class="lon-section-lbl" style="margin-top:10px">Historik &amp; månadsstatus</span>
                     <div id="lon-history" class="lon-history"></div>
                     <details class="lon-info">
@@ -654,6 +659,7 @@
                                 <div class="lon-rrow"><span>Lön före skatt (brutto)</span><span id="lon-gross">0 kr</span></div>
                                 <div class="lon-rrow lon-rrow-bonus"><span>↳ varav bonus<small id="lon-bonus-sub"></small></span><span id="lon-bonus-out">0 kr</span></div>
                                 <div class="lon-rrow"><span>↳ varav OB-tillägg</span><span id="lon-ob-out">0 kr</span></div>
+                                <div class="lon-rrow lon-rrow-sem hidden" id="lon-sem-row"><span>↳ varav semestertillägg</span><span id="lon-sem-out">0 kr</span></div>
                                 <div class="lon-rrow lon-rrow-neg"><span>↳ frånvaroavdrag</span><span id="lon-franvaro-out">0 kr</span></div>
                             </div>
                         </div>

@@ -674,6 +674,7 @@ body #dash-abs-badge:not(.hidden) {
 .md-divider { height: 1px; background: var(--outline-variant); width: 100%; }
 .md-section-lbl { font-family: 'Google Sans', sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.10em; color: var(--on-surface-variant); }
 .lon-field { display: flex; flex-direction: column; gap: 4px; }
+.lon-version { text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .04em; color: var(--on-surface-variant); opacity: .55; margin-top: 14px; }
 .lon-input { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--outline-variant); background: var(--surface); font-size: 15px; font-weight: 800; color: var(--on-surface); box-shadow: var(--elev-1); }
 .lon-input:focus { outline: none; border-color: var(--g-blue); }
 /* Lön: månadsnavigering */

@@ -722,33 +722,57 @@ function pushMatrixSync(k, o) {
 // ==========================================
 //  RENDERING FUNCTIONS
 // ==========================================
+// Växla mellan ordinarie och lättat (semester/föräldraledig) mål på dashboarden
+let dashRelief = false;
+function toggleReliefMode(){ dashRelief = !dashRelief; try{ localStorage.setItem('sf_dash_relief', dashRelief?'1':'0'); }catch(e){} updateDash(); }
+window.toggleReliefMode = toggleReliefMode;
+try { dashRelief = localStorage.getItem('sf_dash_relief') === '1'; } catch(e){}
+
 function updateDash() { 
     db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
     const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); let tS = 0, dP = 0, tP = 0, rW = 0; const daysM = new Date(cy, cm, 0).getDate();
     for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; tS += o.s; if (o.s > 0) dP++; if (qData.start || o.s > 0) { tP++; const dObj = new Date(cy, cm-1, d); if (dObj >= realToday) rW++; } }
     const monthlyPerc = db.b > 0 ? Math.round((tS/db.b)*100) : 0; const avg = dP ? (tS / dP) : 0;
-    
-    const bValEl = document.getElementById('d-budget-val'); if(bValEl) bValEl.innerText = db.b.toLocaleString('sv-SE') + " kr";
-    const maxK = Math.round(db.b / 1000); const maxLbl = document.getElementById('g-max-lbl'); if (maxLbl) maxLbl.innerText = maxK;
-    const tgtEl = document.getElementById('d-today-target'); if(tgtEl) tgtEl.innerText = Math.round((timeline[getK(realToday)]?.target || 0)/1000) + " k";
+
+    // Lättnad (semester/föräldraledig) – växla mellan ordinarie och lättat mål
+    const reliefRatio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(cy, cm) : 0;
+    const useRelief = dashRelief && reliefRatio > 0;
+    const effBudget = useRelief ? Math.round(db.b * (1 - reliefRatio)) : db.b;
+    const rawTarget = timeline[getK(realToday)]?.target || 0;
+    const effTarget = useRelief ? Math.round(rawTarget * (1 - reliefRatio)) : rawTarget;
+    const rPill = document.getElementById('d-relief-toggle');
+    if (rPill) {
+        if (reliefRatio > 0) {
+            rPill.classList.remove('hidden');
+            rPill.classList.toggle('is-on', useRelief);
+            rPill.innerText = useRelief
+                ? `LÄTTAT MÅL −${Math.round(reliefRatio*100)}% · visa ordinarie`
+                : `ORDINARIE MÅL · visa lättat −${Math.round(reliefRatio*100)}%`;
+        } else { rPill.classList.add('hidden'); }
+    }
+
+    const bValEl = document.getElementById('d-budget-val'); if(bValEl) bValEl.innerText = effBudget.toLocaleString('sv-SE') + " kr";
+    const maxK = Math.round(effBudget / 1000); const maxLbl = document.getElementById('g-max-lbl'); if (maxLbl) maxLbl.innerText = maxK;
+    const tgtEl = document.getElementById('d-today-target'); if(tgtEl) tgtEl.innerText = Math.round(effTarget/1000) + " k";
     const avgEl = document.getElementById('d-avg-val'); if(avgEl) avgEl.innerText = Math.round(avg/1000) + " k"; 
     const mainValEl = document.getElementById('h-main-val'); if(mainValEl) mainValEl.innerText = (tS/1000).toFixed(1) + " k";
-    const percEl = document.getElementById('h-perc-val'); if(percEl) percEl.innerText = monthlyPerc + "%"; 
     const leftEl = document.getElementById('d-work-left'); if(leftEl) leftEl.innerText = `${rW} Pass Kvar`;
     const totEl = document.getElementById('d-work-total'); if(totEl) totEl.innerText = `${tP} Totalt`; 
-    const kvarEl = document.getElementById('d-kvar'); if(kvarEl) kvarEl.innerText = Math.max(0, Math.round((db.b - tS)/1000)) + " k";
+    const kvarEl = document.getElementById('d-kvar'); if(kvarEl) kvarEl.innerText = Math.max(0, Math.round((effBudget - tS)/1000)) + " k";
     
     const hCirc = document.getElementById('h-circle-prog'); 
+    const effPerc = effBudget > 0 ? Math.round((tS/effBudget)*100) : 0;
+    const percEl2 = document.getElementById('h-perc-val'); if(percEl2) percEl2.innerText = effPerc + "%";
     if(hCirc) {
-        const isTopReached = tS >= db.b && db.b > 0;
-        hCirc.style.strokeDashoffset = 326.7 - ((Math.min(monthlyPerc, 100) / 100) * (326.7 * 0.75));
+        const isTopReached = tS >= effBudget && effBudget > 0;
+        hCirc.style.strokeDashoffset = 326.7 - ((Math.min(effPerc, 100) / 100) * (326.7 * 0.75));
         hCirc.style.stroke = isTopReached ? 'var(--pos)' : 'var(--neg)';
         hCirc.style.filter = isTopReached ? 'drop-shadow(0 0 8px rgba(16,185,129,0.6))' : 'drop-shadow(0 0 8px rgba(244,63,94,0.6))';
     }
     
     const progStr = Math.round((avg * tP)/1000); 
-    const progEl = document.getElementById('d-prog'); if(progEl) { progEl.innerText = progStr + " k"; progEl.style.color = progStr >= (db.b/1000) ? 'var(--pos)' : 'var(--neg)'; }
-    const statEl = document.getElementById('d-status'); if(statEl) { statEl.innerText = progStr >= (db.b/1000) ? "I FAS" : "EFTER"; statEl.style.color = progStr >= (db.b/1000) ? 'var(--pos)' : 'var(--neg)'; }
+    const progEl = document.getElementById('d-prog'); if(progEl) { progEl.innerText = progStr + " k"; progEl.style.color = progStr >= (effBudget/1000) ? 'var(--pos)' : 'var(--neg)'; }
+    const statEl = document.getElementById('d-status'); if(statEl) { statEl.innerText = progStr >= (effBudget/1000) ? "I FAS" : "EFTER"; statEl.style.color = progStr >= (effBudget/1000) ? 'var(--pos)' : 'var(--neg)'; }
     
     if(viewMode === 'month') renderCal(cy, cm); else if(viewMode === 'dash') { renderWeekSlides(); updateDashboardView(); } else if(viewMode === 'absence') renderAbsence();
     updateTopTitle(); updateTopInfoBar();
@@ -857,7 +881,12 @@ function updateDashboardView() {
         const parts = activeK.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]); const o = db.d[activeK] || {s:0}; const qData = db.q[activeK] || {};
         const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']; const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
         title = `${daysLong[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`; subtitle = qData.start ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
-        dTarget = timeline[activeK]?.target || 0; dSales = o.s || 0; dDiff = dSales - dTarget; absType = o.abs;
+        dTarget = timeline[activeK]?.target || 0;
+        if (dashRelief) {
+            const dRatio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(+parts[0], +parts[1]) : 0;
+            if (dRatio > 0) dTarget = Math.round(dTarget * (1 - dRatio));
+        }
+        dSales = o.s || 0; dDiff = dSales - dTarget; absType = o.abs;
         
         const state = getCellState(activeK);
         if (state === 'absent') statusText = absType.toUpperCase(); else if (state === 'semester') statusText = 'SEMESTER'; else if (state === 'ledig' || state === 'unplanned') statusText = 'LEDIG'; else statusText = 'ARBETSPASS';
@@ -915,7 +944,12 @@ function updateDashboardView() {
     } else {
         let wPass = 0, firstShiftTarget = null; let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6); const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
         for(let i=0; i<7; i++) { const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); const k = getK(cd); const state = getCellState(k); dSales += (db.d[k]?.s || 0); if(state === 'worked' || state === 'planned') { if(firstShiftTarget === null) firstShiftTarget = (timeline[k]?.target || 0); wPass++; } }
-        dTarget = (firstShiftTarget || 0) * wPass; dDiff = dSales - dTarget; title = `VECKA ${getWeekNumber(currentWeekStart)}`; subtitle = `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`; statusText = "VÄLJ DAG..."; showActions = false; absType = null; isReached = dTarget > 0 && dSales >= dTarget; 
+        dTarget = (firstShiftTarget || 0) * wPass;
+        if (dashRelief) {
+            const wRatio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(currentWeekStart.getFullYear(), currentWeekStart.getMonth()+1) : 0;
+            if (wRatio > 0) dTarget = Math.round(dTarget * (1 - wRatio));
+        }
+        dDiff = dSales - dTarget; title = `VECKA ${getWeekNumber(currentWeekStart)}`; subtitle = `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`; statusText = "VÄLJ DAG..."; showActions = false; absType = null; isReached = dTarget > 0 && dSales >= dTarget; 
         const statusMetaEl = document.getElementById('dash-status-meta'); if(statusMetaEl) statusMetaEl.innerText = "";
         const btnEval = document.getElementById('btn-trigger-eval'); if(btnEval) btnEval.classList.add('hidden');
     }
@@ -1215,7 +1249,14 @@ function renderAbsence() {
         const days = groups[reason];
         const rows = days.map(it => {
             const meta = it.hStr ? `${it.hStr} tim · andel ${it.actualP}%${it.fk ? ` · FK ${it.fk}%` : ''}` : 'heldag';
-            return `<button onclick="absFocusDay('${it.k}','${reason.replace(/'/g,"\\'")}')" class="abs-day-row"><span class="abs-day-when">${it.dayStr}</span><span class="abs-day-meta">${meta}</span><span class="material-symbols-rounded abs-day-arrow">my_location</span></button>`;
+            const isReliefType = (bKey === 'Semester' || reason.includes('Föräldraledig'));
+            const isDeldag = !!it.hStr;
+            let reliefChip = '';
+            if (isReliefType && isDeldag) {
+                const on = reliefManualDays[it.k] === true;
+                reliefChip = `<button onclick="event.stopPropagation(); setDayReliefManual('${it.k}', ${on ? 'false' : 'true'})" class="abs-relief-chip${on ? ' is-on' : ''}" title="Räkna denna deldag i bonuslättnaden">${on ? '✓ Lättnad' : '+ Lättnad'}</button>`;
+            }
+            return `<div onclick="absFocusDay('${it.k}','${reason.replace(/'/g,"\\'")}')" class="abs-day-row"><span class="abs-day-when">${it.dayStr}</span><span class="abs-day-meta">${meta}</span>${reliefChip}<span class="material-symbols-rounded abs-day-arrow">my_location</span></div>`;
         }).join('');
         html += `<div class="abs-type" data-abs="${bKey}" data-reason="${reason.replace(/"/g,'&quot;')}">
             <button class="abs-type-head" onclick="absToggleType(this)">
@@ -1604,6 +1645,10 @@ const LON_CFG_DEF = {
         [60000,15995],[62000,17055],[64000,18115],[66000,19175],[68000,20235],[70000,21295],[75000,23945],[80000,26595]
     ],
     bonusTiers: [{min:180000,max:240000,pct:10},{min:240000,max:350000,pct:12},{min:350000,max:null,pct:15}],
+    bonusTiersByMonth: {
+        11: [{min:260000,max:340000,pct:10},{min:340000,max:450000,pct:12},{min:450000,max:null,pct:15}],
+        12: [{min:200000,max:260000,pct:10},{min:260000,max:370000,pct:12},{min:370000,max:null,pct:15}]
+    },
     semLonDag: 2844,      // semesterlön per betald semesterdag (heltid) – lärs in från specar, kan överskridas manuellt
     semAvdragDag: 1323    // semesteravdrag per dag (≈4,6 % av månadslön) – lärs också in
 };
@@ -1623,6 +1668,7 @@ function lonNormalizeCfg(c){
     if (typeof c.semAvdragDag !== 'number' || !c.semAvdragDag) c.semAvdragDag = D.semAvdragDag;
     if (!Array.isArray(c.taxAnchors) || c.taxAnchors.length < 30) c.taxAnchors = JSON.parse(JSON.stringify(D.taxAnchors));
     if (!Array.isArray(c.bonusTiers) || !c.bonusTiers.length) c.bonusTiers = JSON.parse(JSON.stringify(D.bonusTiers));
+    if (!c.bonusTiersByMonth || typeof c.bonusTiersByMonth !== 'object') c.bonusTiersByMonth = JSON.parse(JSON.stringify(D.bonusTiersByMonth));
     return c;
 }
 function lonLoad() {
@@ -1763,8 +1809,50 @@ function lonTax(g){
     for (let i=0;i<a.length-1;i++){ if (g <= a[i+1][0]){ const s=(a[i+1][1]-a[i][1])/(a[i+1][0]-a[i][0]); return a[i][1]+(g-a[i][0])*s; } }
     const n=a.length, s=(a[n-1][1]-a[n-2][1])/(a[n-1][0]-a[n-2][0]); return Math.max(0, a[n-1][1]+(g-a[n-1][0])*s);
 }
+// Vilken trappa gäller för arbetsmånaden (nov/dec kan ha egna, annars default)
+function lonTiersForMonth(mo){
+    const custom = lonCfg.bonusTiersByMonth && lonCfg.bonusTiersByMonth[mo];
+    return (Array.isArray(custom) && custom.length) ? custom : lonCfg.bonusTiers;
+}
+// Andel av månaden borta på semester eller föräldraledig (alla kalenderdagar, inte bara vardagar)
+// – används för att lätta bonuströsklarna proportionerligt.
+// Lättnad räknas: hela dagar (semester/föräldraledig) alltid automatiskt.
+// Deldagar räknas ENDAST om du själv manuellt sagt att de ska räknas – sparas lokalt, separat från huvuddatan.
+let reliefManualDays = {};
+try { reliefManualDays = JSON.parse(localStorage.getItem('sf_relief_manual') || '{}'); } catch(e){ reliefManualDays = {}; }
+function saveReliefManualDays(){ try { localStorage.setItem('sf_relief_manual', JSON.stringify(reliefManualDays)); } catch(e){} }
+
+function getMonthlyBonusReliefRatio(y, m){
+    const dim = new Date(y, m, 0).getDate();
+    let away = 0;
+    for (let d=1; d<=dim; d++){
+        const k = `${y}-${m}-${d}`; const o = db.d[k];
+        if (o && o.abs && (o.abs.includes('Semester') || o.abs.includes('Föräldraledig'))) {
+            if (o.abs_hours) { if (reliefManualDays[k] === true) away += 1; }  // deldag – kräver manuellt ja
+            else { away += 1; }  // heldag – räknas alltid
+        }
+    }
+    return dim > 0 ? away / dim : 0;
+}
+// Sätt/ta bort manuell inkludering av en deldag i lättnaden
+function setDayReliefManual(k, include){
+    if (include) reliefManualDays[k] = true; else delete reliefManualDays[k];
+    saveReliefManualDays(); updateDash();
+    if (typeof renderAbsence === 'function') renderAbsence();
+}
+window.setDayReliefManual = setDayReliefManual;
+// Trösklar justerade för hur många dagar man varit borta (semester+föräldraledig) den månaden
+function lonAdjustedTiers(y, mo){
+    const base = lonTiersForMonth(mo);
+    const ratio = getMonthlyBonusReliefRatio(y, mo);
+    if (ratio <= 0) return { tiers: base, ratio: 0 };
+    const adj = base.map(t => ({ min: Math.round(t.min * (1-ratio)), max: (t.max==null ? null : Math.round(t.max * (1-ratio))), pct: t.pct }));
+    return { tiers: adj, ratio };
+}
 function lonBonusAuto(sales){
-    for (const t of lonCfg.bonusTiers){ const max=(t.max==null?Infinity:t.max); if (sales>=t.min && sales<max) return sales*((t.pct||0)/100); }
+    const y = lonViewDate.getFullYear(), mo = lonViewDate.getMonth()+1;
+    const { tiers } = lonAdjustedTiers(y, mo);
+    for (const t of tiers){ const max=(t.max==null?Infinity:t.max); if (sales>=t.min && sales<max) return sales*((t.pct||0)/100); }
     return 0;
 }
 
@@ -1825,7 +1913,8 @@ function lonRecalc(){
         brutto = Math.round(+facit.brutto);
         skatt = Math.round(Math.abs(+facit.skatt));
         netto = (facit.netto != null && +facit.netto > 0) ? Math.round(+facit.netto) : (brutto - skatt);
-        if (facit.bonus != null) bonusOut = Math.round(+facit.bonus);
+        // Bonus räknas alltid av appen (försäljning × trappa) – den är redan exakt utifrån dina egna siffror.
+        // Facit gäller bara sådant appen annars måste GISSA (brutto/skatt/netto/OB/frånvaro), inte bonus.
         if (facit.ob50 != null || facit.ob100 != null) obOut = Math.round((+(facit.ob50 || 0)) * Hf * 0.5 + (+(facit.ob100 || 0)) * Hf);
         if (facit.franvaro_avdrag_kr != null) franvOut = Math.round(Math.abs(+facit.franvaro_avdrag_kr));
         fromFacit = true;
@@ -1841,7 +1930,9 @@ function lonRecalc(){
     document.getElementById('lon-franvaro-out').innerText = '−' + lonKr(franvOut);
     const obHintEl = document.getElementById('lon-ob-hint'); if (obHintEl) obHintEl.innerText = fromFacit ? 'Från lönespec (facit)' : 'Auto från dina pass';
     const avEl = document.getElementById('lon-bonus-sub');
-    if (avEl){ let t = sales>0 ? ` ${pct}% av ${lonKr(sales)}` : ''; if((lonAvdrag||0)>0) t += ` − ${lonAvdrag}%`; avEl.innerText = t; }
+    const reliefInfo = lonAdjustedTiers(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
+    if (avEl){ let t = sales>0 ? ` ${pct}% av ${lonKr(sales)}` : ''; if((lonAvdrag||0)>0) t += ` − ${lonAvdrag}%`; if (reliefInfo.ratio>0) t += ` · trösklar lättade ${Math.round(reliefInfo.ratio*100)}%`; avEl.innerText = t; }
+    lonRenderTierGoal(sales, reliefInfo);
 
     lonCfg.manadslon = manadslon || lonCfg.manadslon;
     lonCfg.tillagg = tillagg || lonCfg.tillagg;
@@ -1851,19 +1942,69 @@ function lonRecalc(){
     lonMonthly[k] = { ...prev, avdrag: lonAvdrag||0 };
     lonSaveMonthly();
 }
-function lonBonusPct(sales){ for (const t of lonCfg.bonusTiers){ const max=(t.max==null?Infinity:t.max); if (sales>=t.min && sales<max) return t.pct||0; } return 0; }
+function lonBonusPct(sales){
+    const y = lonViewDate.getFullYear(), mo = lonViewDate.getMonth()+1;
+    const { tiers } = lonAdjustedTiers(y, mo);
+    for (const t of tiers){ const max=(t.max==null?Infinity:t.max); if (sales>=t.min && sales<max) return t.pct||0; }
+    return 0;
+}
+
+// Visar nästa bonustrappa och vad som krävs per kvarvarande pass – både ordinarie och lättat
+function lonRenderTierGoal(sales, reliefInfo){
+    const el = document.getElementById('lon-tier-goal'); if(!el) return;
+    const y = lonViewDate.getFullYear(), mo = lonViewDate.getMonth()+1;
+    const baseTiers = lonTiersForMonth(mo);
+    const nextBase = baseTiers.find(t => sales < t.min);
+    if (!nextBase){ el.classList.add('hidden'); return; }
+    const ratio = reliefInfo ? reliefInfo.ratio : 0;
+    const nextRelief = Math.round(nextBase.min * (1-ratio));
+    const dim = new Date(y, mo, 0).getDate(); let left = 0;
+    for (let d=1; d<=dim; d++){
+        const k=`${y}-${mo}-${d}`; const o=db.d[k]||{}; const q=db.q[k]||{};
+        const dObj=new Date(y,mo-1,d);
+        if (dObj >= realToday && (q.start || o.s>0) && !(o.abs && o.abs!=='Åtgärd krävs')) left++;
+    }
+    const needOrd = Math.max(0, nextBase.min - sales);
+    const needRel = Math.max(0, nextRelief - sales);
+    const perOrd = left>0 ? Math.round(needOrd/left) : needOrd;
+    const perRel = left>0 ? Math.round(needRel/left) : needRel;
+    let html = `<div class="ltg-head">Nästa nivå ${nextBase.pct}%</div>`;
+    html += `<div class="ltg-row"><span>Ordinarie ${lonKr(nextBase.min)}</span><span>${left>0?lonKr(perOrd)+' /pass':lonKr(needOrd)+' kvar'}</span></div>`;
+    if (ratio > 0) html += `<div class="ltg-row ltg-relief"><span>Lättat −${Math.round(ratio*100)}% → ${lonKr(nextRelief)}</span><span>${left>0?lonKr(perRel)+' /pass':lonKr(needRel)+' kvar'}</span></div>`;
+    if (left>0) html += `<div class="ltg-foot">${left} pass kvar denna månad</div>`;
+    el.innerHTML = html; el.classList.remove('hidden');
+}
 
 function lonRenderTiers(){
-    const c = document.getElementById('lon-bonus-tiers'); if(!c) return; c.innerHTML='';
-    lonCfg.bonusTiers.forEach((t,i)=>{
+    lonRenderTierList('lon-bonus-tiers', lonCfg.bonusTiers, null);
+    lonRenderMonthTiers();
+}
+function lonRenderTierList(containerId, tiers, month){
+    const c = document.getElementById(containerId); if(!c) return; c.innerHTML='';
+    tiers.forEach((t,i)=>{
         const row = document.createElement('div'); row.className='lon-tier-row';
-        row.innerHTML = `<input type="tel" inputmode="numeric" class="md-input" value="${t.min}" placeholder="från" onchange="lonTierEdit(${i},'min',this.value)">
-            <input type="tel" inputmode="numeric" class="md-input" value="${t.max==null?'':t.max}" placeholder="till (tomt=∞)" onchange="lonTierEdit(${i},'max',this.value)">
-            <input type="tel" inputmode="decimal" class="md-input" value="${t.pct}" placeholder="%" onchange="lonTierEdit(${i},'pct',this.value)">
-            <button class="lon-del-btn" onclick="lonTierDel(${i})">✕</button>`;
+        const editFn = month==null ? `lonTierEdit(${i},'%F%',this.value)` : `lonMonthTierEdit(${month},${i},'%F%',this.value)`;
+        row.innerHTML = `<input type="tel" inputmode="numeric" class="md-input" value="${t.min}" placeholder="från" onchange="${editFn.replace('%F%','min')}">
+            <input type="tel" inputmode="numeric" class="md-input" value="${t.max==null?'':t.max}" placeholder="till (tomt=∞)" onchange="${editFn.replace('%F%','max')}">
+            <input type="tel" inputmode="decimal" class="md-input" value="${t.pct}" placeholder="%" onchange="${editFn.replace('%F%','pct')}">
+            <button class="lon-del-btn" onclick="${month==null ? `lonTierDel(${i})` : `lonMonthTierDel(${month},${i})`}">✕</button>`;
         c.appendChild(row);
     });
 }
+function lonRenderMonthTiers(){
+    lonRenderTierList('lon-bonus-tiers-nov', lonCfg.bonusTiersByMonth[11] || [], 11);
+    lonRenderTierList('lon-bonus-tiers-dec', lonCfg.bonusTiersByMonth[12] || [], 12);
+}
+function lonMonthTierEdit(mo,i,f,v){
+    const n=parseFloat(String(v).replace(',','.'));
+    if(!lonCfg.bonusTiersByMonth[mo]) lonCfg.bonusTiersByMonth[mo]=[];
+    if(f==='max'){ lonCfg.bonusTiersByMonth[mo][i].max = (String(v).trim()===''?null:(isNaN(n)?null:n)); }
+    else { lonCfg.bonusTiersByMonth[mo][i][f] = isNaN(n)?0:n; }
+    lonSaveCfg(); lonRecalc();
+}
+function lonMonthTierDel(mo,i){ lonCfg.bonusTiersByMonth[mo].splice(i,1); lonSaveCfg(); lonRenderMonthTiers(); lonRecalc(); }
+function lonMonthTierAdd(mo){ if(!lonCfg.bonusTiersByMonth[mo]) lonCfg.bonusTiersByMonth[mo]=[]; lonCfg.bonusTiersByMonth[mo].push({min:0,max:null,pct:0}); lonSaveCfg(); lonRenderMonthTiers(); }
+window.lonMonthTierEdit = lonMonthTierEdit; window.lonMonthTierDel = lonMonthTierDel; window.lonMonthTierAdd = lonMonthTierAdd;
 function lonTierEdit(i,f,v){ const n=parseFloat(String(v).replace(',','.')); if(f==='max'){ lonCfg.bonusTiers[i].max = (String(v).trim()===''?null:(isNaN(n)?null:n)); } else { lonCfg.bonusTiers[i][f] = isNaN(n)?0:n; } lonSaveCfg(); lonRecalc(); }
 function lonTierDel(i){ lonCfg.bonusTiers.splice(i,1); lonSaveCfg(); lonRenderTiers(); lonRecalc(); }
 function lonAddTier(){ lonCfg.bonusTiers.push({min:0,max:null,pct:0}); lonSaveCfg(); lonRenderTiers(); }
@@ -1918,7 +2059,7 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v41';
+const APP_VERSION = 'v47';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();

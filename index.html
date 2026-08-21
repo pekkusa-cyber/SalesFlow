@@ -150,7 +150,21 @@
                     <summary>Bonusspann</summary>
                     <div id="lon-bonus-tiers"></div>
                     <button onclick="lonAddTier()" class="md-btn-outlined w-full md-btn-icon-text mt-1"><span class="material-symbols-rounded">add</span> Lägg till spann</button>
+                    <p class="lon-hint" style="margin-top:8px">Gäller alla månader utom november och december, som har egna trösklar nedan.</p>
                 </details>
+                <!-- NOVEMBER-TRÖSKLAR -->
+                <details class="lon-details">
+                    <summary>Bonusspann – november</summary>
+                    <div id="lon-bonus-tiers-nov"></div>
+                    <button onclick="lonMonthTierAdd(11)" class="md-btn-outlined w-full md-btn-icon-text mt-1"><span class="material-symbols-rounded">add</span> Lägg till spann</button>
+                </details>
+                <!-- DECEMBER-TRÖSKLAR -->
+                <details class="lon-details">
+                    <summary>Bonusspann – december</summary>
+                    <div id="lon-bonus-tiers-dec"></div>
+                    <button onclick="lonMonthTierAdd(12)" class="md-btn-outlined w-full md-btn-icon-text mt-1"><span class="material-symbols-rounded">add</span> Lägg till spann</button>
+                </details>
+                <p class="lon-hint" style="margin-top:2px">Semester och föräldraledighet lättar tröskelvärdena automatiskt i förhållande till hur många dagar du var borta den månaden.</p>
                 <p id="app-version" class="lon-version">SalesFlow</p>
             </div>
         </div>
@@ -378,6 +392,7 @@
                         </p>
                         <p id="d-budget-val" class="budget-val">240 000 kr</p>
                     </div>
+                    <button id="d-relief-toggle" class="relief-pill hidden" onclick="toggleReliefMode()"></button>
 
                     <div class="gauge-layout">
                         <div class="side-col">
@@ -659,6 +674,7 @@
                                 <div class="lon-rrow"><span>🟡 Skatt</span><span id="lon-tax">0 kr</span></div>
                                 <div class="lon-rrow"><span>Lön före skatt (brutto)</span><span id="lon-gross">0 kr</span></div>
                                 <div class="lon-rrow lon-rrow-bonus"><span>↳ varav bonus<small id="lon-bonus-sub"></small></span><span id="lon-bonus-out">0 kr</span></div>
+                                <div id="lon-tier-goal" class="lon-tier-goal hidden"></div>
                                 <div class="lon-rrow"><span>↳ varav OB-tillägg</span><span id="lon-ob-out">0 kr</span></div>
                                 <div class="lon-rrow lon-rrow-sem hidden" id="lon-sem-row"><span>↳ varav semestertillägg</span><span id="lon-sem-out">0 kr</span></div>
                                 <div class="lon-rrow lon-rrow-neg"><span>↳ frånvaroavdrag</span><span id="lon-franvaro-out">0 kr</span></div>

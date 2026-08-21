@@ -106,6 +106,8 @@ body {
   border: none;
   box-shadow: none;
 }
+.top-section.has-relief { height: 300px; }
+body.sheet-full .top-section.has-relief { height: 0 !important; }
 .premium-slate-banner { background: var(--header-bg) !important; }
 .premium-slate-banner::before {
   content: '';
@@ -1751,7 +1753,8 @@ body.focus-mode-active .focus-info { display:flex; align-items:center; gap:10px;
 .lon-sheet-content { padding: 10px 14px 90px !important; gap:10px; overflow-y:auto; }
 /* Peek (minimerat): visa ENBART blå rutan, centrerad och fyllande */
 body:not(.sheet-full) #sheet-lon .lon-full-only,
-body:not(.sheet-full) #sheet-lon #lon-reminder { display:none !important; }
+body:not(.sheet-full) #sheet-lon #lon-reminder,
+body:not(.sheet-full) #sheet-lon #lon-tier-goal { display:none !important; }
 body:not(.sheet-full) #sheet-lon .lon-sheet-content { overflow:hidden; justify-content:center; padding:16px 16px 90px !important; }
 body:not(.sheet-full) #sheet-lon .lon-result-card { width:100%; margin:auto 0; padding:24px 22px; }
 body:not(.sheet-full) #sheet-lon .lon-net-val { font-size:46px; }

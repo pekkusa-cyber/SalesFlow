@@ -741,6 +741,7 @@ function updateDash() {
     const rawTarget = timeline[getK(realToday)]?.target || 0;
     const effTarget = useRelief ? Math.round(rawTarget * (1 - reliefRatio)) : rawTarget;
     const rPill = document.getElementById('d-relief-toggle');
+    const topSectionEl = document.querySelector('.top-section');
     if (rPill) {
         if (reliefRatio > 0) {
             rPill.classList.remove('hidden');
@@ -748,7 +749,8 @@ function updateDash() {
             rPill.innerText = useRelief
                 ? `LÄTTAT MÅL −${Math.round(reliefRatio*100)}% · visa ordinarie`
                 : `ORDINARIE MÅL · visa lättat −${Math.round(reliefRatio*100)}%`;
-        } else { rPill.classList.add('hidden'); }
+            if (topSectionEl) topSectionEl.classList.add('has-relief');
+        } else { rPill.classList.add('hidden'); if (topSectionEl) topSectionEl.classList.remove('has-relief'); }
     }
 
     const bValEl = document.getElementById('d-budget-val'); if(bValEl) bValEl.innerText = effBudget.toLocaleString('sv-SE') + " kr";
@@ -2059,7 +2061,7 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v47';
+const APP_VERSION = 'v48';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();

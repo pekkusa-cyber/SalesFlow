@@ -135,6 +135,11 @@
                         <input id="lon-cfg-semlon" type="number" inputmode="numeric" class="lon-input" oninput="lonSetSemLon(this.value)" placeholder="2844">
                         <p class="lon-hint" id="lon-semlon-hint" style="margin-top:3px"></p>
                     </div>
+                    <div class="lon-field" style="margin-top:10px">
+                        <label class="lon-section-lbl" for="lon-cfg-semsaldo">Betalda semesterdagar kvar</label>
+                        <input id="lon-cfg-semsaldo" type="number" inputmode="numeric" class="lon-input" oninput="lonSetSemSaldo(this.value)" placeholder="5">
+                        <p class="lon-hint" id="lon-semsaldo-hint" style="margin-top:3px"></p>
+                    </div>
                     <span class="lon-section-lbl" style="margin-top:10px">Historik &amp; månadsstatus</span>
                     <div id="lon-history" class="lon-history"></div>
                     <details class="lon-info">
@@ -676,7 +681,7 @@
                                 <div class="lon-rrow lon-rrow-bonus"><span>↳ varav bonus<small id="lon-bonus-sub"></small></span><span id="lon-bonus-out">0 kr</span></div>
                                 <div id="lon-tier-goal" class="lon-tier-goal hidden"></div>
                                 <div class="lon-rrow"><span>↳ varav OB-tillägg</span><span id="lon-ob-out">0 kr</span></div>
-                                <div class="lon-rrow lon-rrow-sem hidden" id="lon-sem-row"><span>↳ varav semestertillägg</span><span id="lon-sem-out">0 kr</span></div>
+                                <div class="lon-rrow lon-rrow-sem hidden" id="lon-sem-row"><span>↳ varav semestertillägg<small id="lon-sem-sub"></small></span><span id="lon-sem-out">0 kr</span></div>
                                 <div class="lon-rrow lon-rrow-neg" onclick="lonFranvDetalj()"><span>↳ frånvaroavdrag<small id="lon-franv-sub"></small></span><span id="lon-franvaro-out">0 kr</span></div>
                             </div>
                         </div>

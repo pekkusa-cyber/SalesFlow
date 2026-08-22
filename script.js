@@ -1666,7 +1666,7 @@ const LON_CFG_DEF = {
     semLonDag: 3040,      // semesterlön per betald semesterdag (heltid) – lärs in från specar, kan överskridas manuellt
     semAvdragDag: 1323,   // (äldre fält, behålls för bakåtkompatibilitet)
     franvDagRate: 0.0468,   // heldagsfrånvaro FL/VAB = månadslön × 4,68 % (verifierat mot specar 2025+2026)
-    semAvdragRate: 0.04625  // semesteravdrag/dag = månadslön × 4,625 % (verifierat mot spec)
+    semAvdragRate: 0.0468  // (ej längre använd i beräkningen – semesteravdrag = samma sats som franvDagRate, se lonRecalc)
 };
 
 function lonNormalizeCfg(c){
@@ -1753,9 +1753,25 @@ function getMonthlyFranvaroWholeDays(y, m){ return getMonthAbsenceBreakdown(y, m
 function getMonthlyFranvaroHours(y, m){ return getMonthAbsenceBreakdown(y, m).hours; }
 // Antal betalda semesterdagar (vardagar mån–fre) i månaden – för semestertillägg
 function getMonthlySemesterDays(y, m){
-    let n = 0; const dim = new Date(y, m, 0).getDate();
-    for (let d=1; d<=dim; d++){ const o = db.d[`${y}-${m}-${d}`]; const wd = new Date(y, m-1, d).getDay(); if (o && (o.abs||'').includes('Semester') && wd!==0 && wd!==6) n++; }
-    return n;
+    return getMonthlySemesterInfo(y, m).days;
+}
+// Semesterlön betalas per UTTAGEN semesterdag (vardag), men semesteravdrag görs bara för dagar
+// du faktiskt var SCHEMALAGD. Verifierat mot lönespec juli 2026: 20 dagar semesterlön (3450,53×20)
+// men bara 17 dagars avdrag (1383,17×17) – juli hade 20 skift varav 3 var föräldralediga.
+// Saknas schemadata helt för månaden (schemat ej släppt än) antas alla dagar schemalagda.
+function getMonthlySemesterInfo(y, m){
+    let days = 0, sched = 0, anyQ = false;
+    const dim = new Date(y, m, 0).getDate();
+    for (let d=1; d<=dim; d++){
+        const k = `${y}-${m}-${d}`; const o = db.d[k]; const q = db.q[k];
+        if (q && (q.exists || q.start || q.work_h || q.ledig_h)) anyQ = true;
+        const wd = new Date(y, m-1, d).getDay();
+        if (o && (o.abs||'').includes('Semester') && wd!==0 && wd!==6){
+            days++;
+            if (q && (q.exists || q.start || q.work_h || q.ledig_h)) sched++;
+        }
+    }
+    return { days, sched: anyQ ? sched : days, hasSchedule: anyQ };
 }
 function lonTimpris(){ const mn = lonNum('lon-cfg-manadslon') || (lonCfg && lonCfg.manadslon) || LON_CFG_DEF.manadslon; const div = (lonCfg && lonCfg.timdivisor) || 163.17; return Math.round(mn/div*100)/100; }
 
@@ -1819,6 +1835,7 @@ function lonRecomputeLearning(){
     lonCfg.franvCorr = 1;
     const r50=[], r100=[], rfranv=[]; let latestBase=null, latestIdx=-1;
     let latestSemLon=null, latestSemAvdrag=null, latestSemIdx=-1;
+    let latestSaldo=null, latestSaldoIdx=-1;
     const sane=(ratio)=> (ratio>=0.4 && ratio<=2.5);   // utanför detta = troligen fel månad → ignorera
     Object.keys(lonMonthly).forEach(mk=>{
         if (mk==='_uploads' || !/^\d{4}-\d{1,2}$/.test(mk)) return;
@@ -1850,6 +1867,10 @@ function lonRecomputeLearning(){
         if (spec.manadslon!=null && +spec.manadslon>10000 && +spec.manadslon<60000){ const ix=y*12+mo; if(ix>latestIdx){ latestIdx=ix; latestBase=+spec.manadslon; } }
         // Lär in semesterlön/dag + avdrag/dag (senaste semestermånad gäller)
         if (spec.sem_lon_dag!=null && +spec.sem_lon_dag>500 && +spec.sem_lon_dag<8000){ const ix=y*12+mo; if(ix>latestSemIdx){ latestSemIdx=ix; latestSemLon=+spec.sem_lon_dag; if(spec.sem_avdrag_dag!=null && +spec.sem_avdrag_dag>300) latestSemAvdrag=Math.abs(+spec.sem_avdrag_dag); } }
+        // Saldo "Betald semester" – gäller vid slutet av denna arbetsmånad, senaste specen vinner
+        if (spec.sem_saldo_betald!=null && +spec.sem_saldo_betald>=0 && +spec.sem_saldo_betald<=60){
+            const ix=y*12+mo; if(ix>latestSaldoIdx){ latestSaldoIdx=ix; latestSaldo={ days: Math.round(+spec.sem_saldo_betald), key: `${y}-${mo}` }; }
+        }
         rec.actualOb50 = ob50a; rec.actualOb100 = ob100a;
         if (ftim!=null) rec.franv = ftim;
     });
@@ -1862,6 +1883,10 @@ function lonRecomputeLearning(){
     // Applicera inlärd semesterlön/dag om ingen manuell override är satt
     if (latestSemLon && !lonCfg.semLonManual) lonCfg.semLonDag = Math.round(latestSemLon);
     if (latestSemAvdrag && !lonCfg.semLonManual) lonCfg.semAvdragDag = Math.round(latestSemAvdrag);
+    // Semestersaldo: specens siffra vinner, annars behålls ett manuellt satt saldo
+    if (latestSaldo) lonCfg.semSaldo = latestSaldo;
+    else if (lonCfg.semSaldoManual && lonCfg.semSaldo) { /* behåll manuellt */ }
+    else lonCfg.semSaldo = null;
     lonCfg.taxAnchors.sort((x,y)=>x[0]-y[0]);
 }
 function lonNum(id){ const el = document.getElementById(id); if(!el) return 0; const v = parseFloat(String(el.value).replace(/\s/g,'').replace(',','.')); return isNaN(v) ? 0 : v; }
@@ -1946,6 +1971,24 @@ function lonFranvDetalj(){
     const txt = räknas.map(it => `${it.d}: ${it.whole ? 'heldag' : it.hours.toFixed(2).replace('.00','')+' tim'}`).join(' · ');
     showToast('fact_check', `${brk.wholeDays} heldagar + ${brk.hours} tim → ${txt}`, 7000);
 }
+// Delar upp månadens semesterdagar i betalda/obetalda utifrån saldot "Betald semester".
+// Saldot gäller vid SLUTET av månaden lonCfg.semSaldo.key och räknas ner för varje semesterdag
+// som tagits ut i månaderna däremellan. Utan saldo antas alla dagar betalda (som förut).
+function lonSemDagarSplit(y, m, semDays){
+    const s = lonCfg && lonCfg.semSaldo;
+    if (!s || typeof s.days !== 'number' || !s.key) return { paid: semDays, unpaid: 0, known: false };
+    const p = String(s.key).split('-'); const sy = +p[0], sm = +p[1];
+    const vIdx = y*12 + m, sIdx = sy*12 + sm;
+    if (vIdx <= sIdx) return { paid: semDays, unpaid: 0, known: false };  // historisk månad – specen är facit ändå
+    let used = 0;
+    for (let ix = sIdx+1; ix < vIdx; ix++){
+        const yy = Math.floor((ix-1)/12), mm = ((ix-1)%12)+1;
+        used += getMonthlySemesterDays(yy, mm);
+    }
+    const avail = Math.max(0, s.days - used);
+    const paid = Math.min(semDays, avail);
+    return { paid, unpaid: semDays - paid, known: true };
+}
 function lonRecalc(){
     if (!lonViewDate) return;
     const H = lonTimpris();
@@ -1977,12 +2020,20 @@ function lonRecalc(){
     const franvTot = franvKr + extraDed;
     // Semestertillägg: betalda semesterdagar × sats × månadslön (Handels standard ~0,8%/dag). Månadslönen ligger kvar under semester.
     // Semestereffekt: månadslönen ligger kvar; för varje semesterdag byts ordinarie daglön (avdrag) mot semesterlön/dag.
-    // Netto per dag = semesterlön/dag − semesteravdrag/dag. Båda lärs in från specar (Semesterlön heltid / Avdrag semester heltid).
-    const semDays = getMonthlySemesterDays(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
+    // Netto per dag = semesterlön/dag − semesteravdrag/dag. Semesterlön/dag lärs in från specar (Semesterlön Månlön/heltid).
+    // Semesteravdrag/dag härleds från samma dagssats som frånvaroavdraget (bekräftat identiskt i lönespec 0706-0731).
+    const semInfo = getMonthlySemesterInfo(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
+    const semDays = semInfo.days;
     const semLonDag = lonCfg.semLonDag || 2844;
-    // Semesteravdrag: månadslön × 4,625 % (verifierat mot lönespec). Följer aktuell månadslön automatiskt.
-    const semAvdragDag = Math.round(manadslon * (lonCfg.semAvdragRate || 0.04625) * 100) / 100;
-    const semTillagg = Math.round(semDays * (semLonDag - semAvdragDag));
+    // Semesteravdrag: SAMMA dagssats som frånvaro-heldagsavdraget (bekräftat mot lönespec 0706-0731 –
+    // Elgiganten kör en enda heldagssats för allt: frånvaro, semester, tjänstledighet, 4,68%).
+    // Härleds inte längre separat via semAvdragRate, som drev iväg mot fel värde.
+    const semAvdragDag = franvDagSats;
+    // Bara BETALDA dagar ger semesterlön. Obetald semesterdag = enbart avdrag.
+    // Saldot ("Betald semester") kommer från senaste lönespec och räknas ner för varje uttagen dag efter den.
+    const semSplit = lonSemDagarSplit(lonViewDate.getFullYear(), lonViewDate.getMonth()+1, semDays);
+    // Lön på uttagna (betalda) dagar, avdrag bara på schemalagda dagar.
+    const semTillagg = Math.round(semSplit.paid * semLonDag - semInfo.sched * semAvdragDag);
     let brutto = manadslon + tillagg + obTot + bonus + extraAdd + semTillagg - franvTot;
     let skatt = lonTax(brutto);
     let netto = brutto - skatt;
@@ -2009,7 +2060,16 @@ function lonRecalc(){
     document.getElementById('lon-bonus-out').innerText = lonKr(bonusOut);
     document.getElementById('lon-ob-out').innerText = lonKr(obOut);
     const semRow = document.getElementById('lon-sem-row'), semOutEl = document.getElementById('lon-sem-out');
-    if (semRow && semOutEl){ if (semOut > 0){ semRow.classList.remove('hidden'); semOutEl.innerText = lonKr(semOut); } else { semRow.classList.add('hidden'); } }
+    if (semRow && semOutEl){ if (semDays > 0){ semRow.classList.remove('hidden'); semOutEl.innerText = lonKr(semOut); } else { semRow.classList.add('hidden'); } }
+    const semSubEl = document.getElementById('lon-sem-sub');
+    if (semSubEl){
+        if (semDays > 0){
+            let p = [`${semSplit.paid} betalda`];
+            if (semSplit.unpaid > 0) p.push(`${semSplit.unpaid} obetalda`);
+            if (semInfo.sched !== semDays) p.push(`avdrag ${semInfo.sched} schemalagda`);
+            semSubEl.innerText = ' ' + p.join(' · ');
+        } else semSubEl.innerText = '';
+    }
     document.getElementById('lon-franvaro-out').innerText = '−' + lonKr(franvOut);
     const fsEl = document.getElementById('lon-franv-sub');
     if (fsEl){
@@ -2152,7 +2212,7 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v58';
+const APP_VERSION = 'v60';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();
@@ -2160,10 +2220,34 @@ function openLonSettings(){
     const m=document.getElementById('lon-settings-modal');
     if(m){ m.classList.remove('hidden'); setTimeout(()=>m.classList.replace('opacity-0','opacity-100'),10); if(window.sfPushHist) window.sfPushHist(); }
 }
+// Manuellt semestersaldo (tomt fält = tillbaka till specens saldo)
+function lonSetSemSaldo(v){
+    const n = parseFloat(String(v).replace(/\s/g,'').replace(',','.'));
+    if (!v || isNaN(n) || n < 0){ lonCfg.semSaldoManual = false; lonRecomputeLearning(); }
+    else {
+        const d = lonUploadTarget();
+        lonCfg.semSaldo = { days: Math.round(n), key: `${d.getFullYear()}-${d.getMonth()+1}` };
+        lonCfg.semSaldoManual = true;
+    }
+    lonSaveCfg(); lonFillSemField(); lonRecalc();
+}
+window.lonSetSemSaldo = lonSetSemSaldo;
 function lonFillSemField(){
     const el=document.getElementById('lon-cfg-semlon'); if(el) el.value = lonCfg.semLonDag || '';
     const h=document.getElementById('lon-semlon-hint');
     if(h) h.innerText = lonCfg.semLonManual ? `Manuellt satt. Avdrag ~${lonKr(lonCfg.semAvdragDag||0)}/dag. Töm fältet för auto.` : `Lärs in från specar (senaste: ${lonKr(lonCfg.semLonDag||0)}/dag). Skriv för att överskrida.`;
+    const sEl=document.getElementById('lon-cfg-semsaldo');
+    if(sEl) sEl.value = (lonCfg.semSaldo && typeof lonCfg.semSaldo.days==='number') ? lonCfg.semSaldo.days : '';
+    const sh=document.getElementById('lon-semsaldo-hint');
+    if(sh){
+        const s = lonCfg.semSaldo;
+        if (!s) sh.innerText = 'Saknas. Skriv in saldot från "Betald semester" på senaste lönespecen – annars antas alla semesterdagar vara betalda.';
+        else {
+            const p = String(s.key).split('-');
+            const mn = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'][(+p[1])-1];
+            sh.innerText = `${s.days} betalda dagar kvar efter ${mn} ${p[0]}${lonCfg.semSaldoManual ? ' (manuellt)' : ' (från lönespec)'}. Räknas ner automatiskt.`;
+        }
+    }
 }
 // Manuell override av semesterlön/dag (tomt fält = återgå till auto-inlärning)
 function lonSetSemLon(v){

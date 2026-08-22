@@ -268,7 +268,7 @@ body.sheet-full .top-section.has-relief { height: 0 !important; }
   border-radius: 0; border: none; box-shadow: none;
   position: relative; min-height: 0; overflow: hidden;
   background: var(--surface);
-  padding-bottom: 84px;
+  padding-bottom: 70px;
 }
 
 /* Nav Bar */
@@ -880,7 +880,7 @@ body #dash-abs-badge:not(.hidden) {
   position: relative;
   overflow: hidden;
   display: flex; flex-direction: column;
-  padding-bottom: 84px;
+  padding-bottom: 70px;
 }
 /* Override dash-view-pane behaviour when nested inside sheet */
 .sf-sheet .dash-view-pane {
@@ -1612,14 +1612,14 @@ body.variant-c .md-budget-btn { background: #fafbfd !important; border: 1px soli
 
 /* ---- Bottenmeny ---- */
 .app-bottom-nav {
-  --nav-h: 64px;
+  --nav-h: 52px;
   position: fixed; z-index: 9500;
   left: 50%; transform: translateX(-50%);
-  bottom: calc(env(safe-area-inset-bottom, 8px) + 8px);
+  bottom: calc(env(safe-area-inset-bottom, 6px) + 6px);
   width: min(440px, calc(100% - 24px));
   display: flex; align-items: stretch; justify-content: space-around;
   gap: 2px;
-  padding: 6px 6px;
+  padding: 3px 6px;
   background: color-mix(in srgb, var(--surface) 86%, transparent);
   -webkit-backdrop-filter: blur(3px) saturate(1.4);
   backdrop-filter: blur(3px) saturate(1.4);
@@ -1628,7 +1628,7 @@ body.variant-c .md-budget-btn { background: #fafbfd !important; border: 1px soli
   box-shadow: 0 8px 30px -6px rgba(60,64,67,0.30), 0 2px 8px rgba(60,64,67,0.12);
 }
 /* Skjut in alla vyer (dash + sheets) ovanför den flytande menyn */
-.bottom-section { padding-bottom: 84px; }
+.bottom-section { padding-bottom: 70px; }
 .bn-item {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -1637,8 +1637,8 @@ body.variant-c .md-budget-btn { background: #fafbfd !important; border: 1px soli
   color: var(--on-surface-variant);
   transition: color .2s var(--ease-emp), transform .15s var(--ease-emp);
 }
-.bn-item .bn-ic { font-size: 25px; line-height: 1; transition: transform .22s var(--ease-emp), background-color .22s var(--ease-emp), color .22s, box-shadow .22s; padding: 5px 16px; border-radius: 16px; }
-.bn-item .bn-lbl { font-size: 9.5px; font-weight: 700; letter-spacing: -.01em; line-height: 1; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.bn-item .bn-ic { font-size: 21px; line-height: 1; transition: transform .22s var(--ease-emp), background-color .22s var(--ease-emp), color .22s, box-shadow .22s; padding: 3px 14px; border-radius: 14px; }
+.bn-item .bn-lbl { font-size: 8.5px; font-weight: 700; letter-spacing: -.01em; line-height: 1; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .bn-item:active { transform: scale(.9); }
 .bn-item.is-active { color: var(--g-blue); }
 .bn-item.is-active .bn-ic {
@@ -1654,9 +1654,9 @@ body.variant-c .md-budget-btn { background: #fafbfd !important; border: 1px soli
 /* HEM-knappen i mitten: alltid blå och något större */
 .bn-item.bn-home { color: var(--g-blue); }
 .bn-item.bn-home .bn-ic {
-  font-size: 29px; font-variation-settings: 'FILL' 1;
+  font-size: 24px; font-variation-settings: 'FILL' 1;
   background: var(--g-blue); color: #fff;
-  padding: 7px 18px; border-radius: 18px;
+  padding: 5px 16px; border-radius: 15px;
   box-shadow: 0 6px 18px -4px rgba(26,115,232,.6);
   transform: translateY(-2px) scale(1.06);
 }
@@ -1755,7 +1755,7 @@ body.focus-mode-active .focus-info { display:flex; align-items:center; gap:10px;
 body:not(.sheet-full) #sheet-lon .lon-full-only,
 body:not(.sheet-full) #sheet-lon #lon-reminder,
 body:not(.sheet-full) #sheet-lon #lon-tier-goal { display:none !important; }
-body:not(.sheet-full) #sheet-lon .lon-sheet-content { overflow:hidden; justify-content:center; padding:16px 16px 90px !important; }
+body:not(.sheet-full) #sheet-lon .lon-sheet-content { overflow:hidden; justify-content:center; padding:14px 16px 74px !important; }
 body:not(.sheet-full) #sheet-lon .lon-result-card { width:100%; margin:auto 0; padding:24px 22px; }
 body:not(.sheet-full) #sheet-lon .lon-net-val { font-size:46px; }
 /* Enhetliga popup-dialoger i hela appen */

@@ -739,7 +739,12 @@ function updateDash() {
     const useRelief = dashRelief && reliefRatio > 0;
     const effBudget = useRelief ? Math.round(db.b * (1 - reliefRatio)) : db.b;
     const rawTarget = timeline[getK(realToday)]?.target || 0;
-    const effTarget = useRelief ? Math.round(rawTarget * (1 - reliefRatio)) : rawTarget;
+    // Lättat dagskrav måste räknas mot det LÄTTADE målet minus redan såld summa,
+    // inte som en nedskalning av ordinarie krav (redan intjänad försäljning ska inte skalas).
+    // Detta ger samma tal som "kr /pass" i Lön-vyn → samma röda tråd i hela appen.
+    const effTarget = useRelief
+        ? (rW > 0 ? Math.max(0, Math.round((effBudget - tS) / rW)) : Math.max(0, effBudget - tS))
+        : rawTarget;
     const rPill = document.getElementById('d-relief-toggle');
     const topSectionEl = document.querySelector('.top-section');
     if (rPill) {
@@ -885,8 +890,15 @@ function updateDashboardView() {
         title = `${daysLong[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`; subtitle = qData.start ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
         dTarget = timeline[activeK]?.target || 0;
         if (dashRelief) {
-            const dRatio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(+parts[0], +parts[1]) : 0;
-            if (dRatio > 0) dTarget = Math.round(dTarget * (1 - dRatio));
+            const dy=+parts[0], dm=+parts[1];
+            const dRatio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(dy, dm) : 0;
+            if (dRatio > 0) {
+                // Samma logik som Hem/Lön: (lättat mål − såld summa) / kvarvarande pass
+                const dimM = new Date(dy, dm, 0).getDate(); let sold=0, passLeft=0;
+                for (let dd=1; dd<=dimM; dd++){ const kk=`${dy}-${dm}-${dd}`; const oo=db.d[kk]||{s:0}; const qq=db.q[kk]||{}; sold += (oo.s||0); if ((qq.start||oo.s>0) && new Date(dy,dm-1,dd) >= realToday) passLeft++; }
+                const effB = Math.round(getBudgetForMonth(dy, dm) * (1 - dRatio));
+                dTarget = passLeft>0 ? Math.max(0, Math.round((effB - sold)/passLeft)) : Math.max(0, effB - sold);
+            }
         }
         dSales = o.s || 0; dDiff = dSales - dTarget; absType = o.abs;
         
@@ -1225,24 +1237,24 @@ function renderAbsence() {
     const daysShort = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
     const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' };
     const col = { 'Sjuk': 'text-rose-600', 'VAB': 'text-amber-600', 'VAB Belma': 'text-amber-600', 'VAB Wilma': 'text-amber-600', 'Föräldraledig': 'text-purple-600', 'Föräldraledig Belma': 'text-purple-600', 'Föräldraledig Wilma': 'text-purple-600', 'Semester': 'text-teal-600', 'Tjänstledig': 'text-slate-600', 'Åtgärd krävs': 'text-rose-600' };
-    const types = ['Sjuk','VAB','VAB Belma','VAB Wilma','Föräldraledig','Föräldraledig Belma','Föräldraledig Wilma','Semester','Tjänstledig','Åtgärd krävs'];
+    // Samma källa som lönen använder → identiska siffror garanterat
+    const brk = getMonthAbsenceBreakdown(cy, cm);
     let groups = {}; let order = []; let totalAbs = 0;
-    for (let d = 1; d <= daysM; d++) {
-        const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {}; const qData = db.q[k] || {};
-        if (o.abs && types.some(a => o.abs.includes(a))) {
-            const reason = o.abs; totalAbs++;
-            if (!groups[reason]) { groups[reason] = []; order.push(reason); }
-            const dObj = new Date(cy, cm-1, d); const dayStr = `${daysShort[dObj.getDay()]} ${d}`;
-            let hStr = null, actualP = null, fk = null;
-            if (o.fk_perc !== undefined && o.abs_hours && reason !== 'Åtgärd krävs') {
-                const totalH = qData.work_h ? (qData.work_h + o.abs_hours) : o.abs_hours;
-                actualP = totalH > 0 ? Math.round((o.abs_hours / totalH) * 100) : 100;
-                hStr = o.abs_hours.toFixed(2).replace('.00','');
-                fk = o.fk_perc;
-            }
-            groups[reason].push({ k, dayStr, hStr, actualP, fk });
+    brk.items.forEach(it => {
+        const k = it.k, d = it.d, reason = it.reason;
+        const o = db.d[k] || {}, qData = db.q[k] || {};
+        totalAbs++;
+        if (!groups[reason]) { groups[reason] = []; order.push(reason); }
+        const dObj = new Date(cy, cm-1, d); const dayStr = `${daysShort[dObj.getDay()]} ${d}`;
+        let hStr = null, actualP = null, fk = null;
+        if (!it.whole && it.hours && reason !== 'Åtgärd krävs') {
+            const totalH = qData.work_h ? (qData.work_h + it.hours) : it.hours;
+            actualP = totalH > 0 ? Math.round((it.hours / totalH) * 100) : 100;
+            hStr = it.hours.toFixed(2).replace('.00','');
+            fk = (o.fk_perc !== undefined) ? o.fk_perc : null;
         }
-    }
+        groups[reason].push({ k, dayStr, hStr, actualP, fk });
+    });
     if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
 
     let html = `<div class="abs-sum-wrap"><h4 class="abs-sum-title">SAMMANFATTNING</h4>`;
@@ -1651,8 +1663,10 @@ const LON_CFG_DEF = {
         11: [{min:260000,max:340000,pct:10},{min:340000,max:450000,pct:12},{min:450000,max:null,pct:15}],
         12: [{min:200000,max:260000,pct:10},{min:260000,max:370000,pct:12},{min:370000,max:null,pct:15}]
     },
-    semLonDag: 2844,      // semesterlön per betald semesterdag (heltid) – lärs in från specar, kan överskridas manuellt
-    semAvdragDag: 1323    // semesteravdrag per dag (≈4,6 % av månadslön) – lärs också in
+    semLonDag: 3040,      // semesterlön per betald semesterdag (heltid) – lärs in från specar, kan överskridas manuellt
+    semAvdragDag: 1323,   // (äldre fält, behålls för bakåtkompatibilitet)
+    franvDagRate: 0.0468,   // heldagsfrånvaro FL/VAB = månadslön × 4,68 % (verifierat mot specar 2025+2026)
+    semAvdragRate: 0.04625  // semesteravdrag/dag = månadslön × 4,625 % (verifierat mot spec)
 };
 
 function lonNormalizeCfg(c){
@@ -1668,6 +1682,14 @@ function lonNormalizeCfg(c){
     if (typeof c.semesterRate !== 'number') c.semesterRate = 0.8;
     if (typeof c.semLonDag !== 'number' || !c.semLonDag) c.semLonDag = D.semLonDag;
     if (typeof c.semAvdragDag !== 'number' || !c.semAvdragDag) c.semAvdragDag = D.semAvdragDag;
+    if (typeof c.franvDagRate !== 'number' || !c.franvDagRate) c.franvDagRate = D.franvDagRate;
+    if (typeof c.semAvdragRate !== 'number' || !c.semAvdragRate) c.semAvdragRate = D.semAvdragRate;
+    // Engångsmigrering: frånvaromodellen gjordes om (heldagar räknas nu separat).
+    // Den gamla franvCorr var uppblåst för att kompensera för heldagar → nollställ och lär om.
+    if (c.franvModelV !== 2) { c.franvCorr = 1; c.franvModelV = 2; }
+    // Engångsuppdatering: semesterlön/dag var kvar på fjolårets faktiska värde (2844).
+    // Uppskattat för intjänandeår apr 2025–mar 2026 ≈ 3040. Skrivs bara över om du inte satt värdet manuellt.
+    if (c.semLonV !== 2) { if (!c.semLonManual) c.semLonDag = D.semLonDag; c.semLonV = 2; }
     if (!Array.isArray(c.taxAnchors) || c.taxAnchors.length < 30) c.taxAnchors = JSON.parse(JSON.stringify(D.taxAnchors));
     if (!Array.isArray(c.bonusTiers) || !c.bonusTiers.length) c.bonusTiers = JSON.parse(JSON.stringify(D.bonusTiers));
     if (!c.bonusTiersByMonth || typeof c.bonusTiersByMonth !== 'object') c.bonusTiersByMonth = JSON.parse(JSON.stringify(D.bonusTiersByMonth));
@@ -1688,11 +1710,47 @@ function getMonthlySales(y, m){
     for (let d=1; d<=dim; d++){ const o = db.d[`${y}-${m}-${d}`]; if (o && o.s) tot += o.s; }
     return tot;
 }
-function getMonthlyFranvaroHours(y, m){
-    let h = 0; const dim = new Date(y, m, 0).getDate();
-    for (let d=1; d<=dim; d++){ const o = db.d[`${y}-${m}-${d}`]; if (o && o.abs_hours && o.abs !== 'Åtgärd krävs' && !(o.abs||'').includes('Semester')) h += o.abs_hours; }
-    return Math.round(h*100)/100;
+// Räknar HELA dagars frånvaro (ingen registrerad deltimme) – Föräldraledig/VAB/Tjänstledig.
+// Sjuk hanteras EJ här eftersom sjuklön följer andra regler (80% ersättning + karensavdrag), inte ett fast heldagsavdrag.
+// EN gemensam regel för hela appen (Frånvaro-listan OCH löneberäkningen använder denna):
+//   inga timmar alls            → heldag
+//   timmar >= 7,5 (en full dag) → heldag  (fångar Quinyx "24 tim"-buggen och 9,5 tim-fall)
+//   timmar < 7,5                → deldag, räknas som timmar
+// En arbetsdag motsvarar 7,64 tim (163,17 tim/mån × 4,68 %).
+const FULL_DAY_HOURS = 7.5;
+function isWholeDayAbsence(k){
+    const o = db.d[k] || {};
+    if (!o.abs) return false;
+    if (!o.abs_hours) return true;
+    return o.abs_hours >= FULL_DAY_HOURS;
 }
+// Exakt samma urval av frånvarotyper som Frånvaro-listan visar.
+const ABS_TYPES = ['Sjuk','VAB','VAB Belma','VAB Wilma','Föräldraledig','Föräldraledig Belma','Föräldraledig Wilma','Semester','Tjänstledig','Åtgärd krävs'];
+
+// ★ ENDA SANNINGEN för månadens frånvaro. Både Frånvaro-listan och Lön läser HÄRIFRÅN,
+//   så de kan per definition inte visa olika. Går igenom dagarna en gång och klassar varje dag
+//   som heldag eller deldag med exakt samma regel som listan renderar.
+//   Dagar utan registrerad frånvarotyp (t.ex. lösa abs_hours från Quinyx, 'Ledig') ignoreras helt
+//   – de syns inte i Frånvaro-listan och ska därför inte heller ge löneavdrag.
+function getMonthAbsenceBreakdown(y, m){
+    const dim = new Date(y, m, 0).getDate();
+    const items = []; let wholeDays = 0, hours = 0;
+    for (let d=1; d<=dim; d++){
+        const k = `${y}-${m}-${d}`; const o = db.d[k] || {};
+        const reason = o.abs;
+        if (!reason || !ABS_TYPES.some(a => reason.includes(a))) continue;
+        const whole = isWholeDayAbsence(k);
+        const h = whole ? 0 : (o.abs_hours || 0);
+        items.push({ k, d, reason, whole, hours: h });
+        if (reason === 'Åtgärd krävs') continue;          // ingen lön påverkas
+        if (reason.includes('Semester')) continue;        // semester hanteras som semestertillägg
+        if (whole){ if (!reason.includes('Sjuk')) wholeDays++; }  // sjuk = egna regler (sjuklön/karens)
+        else hours += h;
+    }
+    return { items, wholeDays, hours: Math.round(hours*100)/100 };
+}
+function getMonthlyFranvaroWholeDays(y, m){ return getMonthAbsenceBreakdown(y, m).wholeDays; }
+function getMonthlyFranvaroHours(y, m){ return getMonthAbsenceBreakdown(y, m).hours; }
 // Antal betalda semesterdagar (vardagar mån–fre) i månaden – för semestertillägg
 function getMonthlySemesterDays(y, m){
     let n = 0; const dim = new Date(y, m, 0).getDate();
@@ -1772,9 +1830,17 @@ function lonRecomputeLearning(){
         const est = lonEstimateOBraw(y, mo);
         if (ob50a!=null && est.ob50>0 && sane(ob50a/est.ob50)) r50.push(ob50a/est.ob50);
         if (ob100a!=null && est.ob100>0 && sane(ob100a/est.ob100)) r100.push(ob100a/est.ob100);
-        const ftim = pick(spec.franvaro_tim, pick(tid.franvaro_tim, getMonthlyFranvaroHours(y,mo)));
+        // Basen tas alltid från kalendern (specens/tidrapportens "frånvaro tim" är en totalsumma
+        // som även innehåller heldagarna → skulle blåsa upp franvCorr igen).
+        const brk = getMonthAbsenceBreakdown(y, mo);
+        const ftim = brk.hours;
         const fkr = spec.franvaro_avdrag_kr;
-        const base = (ftim||0) * (lonCfg.manadslon / (lonCfg.timdivisor||163.17));
+        // Basen måste spegla SAMMA sak som specens totalbelopp: timmar + heldagar.
+        // (Tidigare jämfördes totalen mot enbart timmar → franvCorr blåstes upp och gav dubbelräkning.)
+        const mlon = lonCfg.manadslon;
+        const baseTim = (ftim||0) * (mlon / (lonCfg.timdivisor||163.17));
+        const baseHel = getMonthlyFranvaroWholeDays(y,mo) * (mlon * (lonCfg.franvDagRate||0.0468));
+        const base = baseTim + baseHel;
         if (fkr!=null && base>0 && sane(Math.abs(fkr)/base)) rfranv.push(Math.abs(fkr)/base);
         if (spec.brutto!=null && spec.skatt!=null && +spec.brutto>5000){
             const g=Math.round(+spec.brutto), tax=Math.round(Math.abs(+spec.skatt));
@@ -1870,6 +1936,16 @@ function lonGetOB(){
     }
     return { ...est, src:'auto' };
 }
+// Visar exakt vilka dagar frånvaroavdraget bygger på – samma rader som i Frånvaro-vyn
+function lonFranvDetalj(){
+    if (!lonViewDate) return;
+    const y = lonViewDate.getFullYear(), mo = lonViewDate.getMonth()+1;
+    const brk = getMonthAbsenceBreakdown(y, mo);
+    const räknas = brk.items.filter(it => it.reason !== 'Åtgärd krävs' && !it.reason.includes('Semester') && !(it.whole && it.reason.includes('Sjuk')));
+    if (!räknas.length){ showToast('event_busy', 'Ingen frånvaro som ger löneavdrag denna månad'); return; }
+    const txt = räknas.map(it => `${it.d}: ${it.whole ? 'heldag' : it.hours.toFixed(2).replace('.00','')+' tim'}`).join(' · ');
+    showToast('fact_check', `${brk.wholeDays} heldagar + ${brk.hours} tim → ${txt}`, 7000);
+}
 function lonRecalc(){
     if (!lonViewDate) return;
     const H = lonTimpris();
@@ -1881,7 +1957,11 @@ function lonRecalc(){
     const ob50 = OB.ob50 * H * 0.5;
     const ob100 = OB.ob100 * H;
     const franvTim = lonNum('lon-franv');
-    const franvKr = franvTim * H * (lonCfg.franvCorr || 1);
+    // Heldagsfrånvaro (FL/VAB/Tjänstledig): dagssats = månadslön × 4,68 % (verifierat mot lönespecar 2025 & 2026)
+    const franvHelDagar = getMonthlyFranvaroWholeDays(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
+    const franvDagSats = Math.round(manadslon * (lonCfg.franvDagRate || 0.0468) * 100) / 100;
+    const franvHelDagarKr = franvHelDagar * franvDagSats;
+    const franvKr = ((franvTim * H) + franvHelDagarKr) * (lonCfg.franvCorr || 1);
     const extraAdd = lonNum('lon-extra-add');
     const extraDed = lonNum('lon-extra-ded');
 
@@ -1900,7 +1980,8 @@ function lonRecalc(){
     // Netto per dag = semesterlön/dag − semesteravdrag/dag. Båda lärs in från specar (Semesterlön heltid / Avdrag semester heltid).
     const semDays = getMonthlySemesterDays(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
     const semLonDag = lonCfg.semLonDag || 2844;
-    const semAvdragDag = lonCfg.semAvdragDag || Math.round(0.046 * manadslon);
+    // Semesteravdrag: månadslön × 4,625 % (verifierat mot lönespec). Följer aktuell månadslön automatiskt.
+    const semAvdragDag = Math.round(manadslon * (lonCfg.semAvdragRate || 0.04625) * 100) / 100;
     const semTillagg = Math.round(semDays * (semLonDag - semAvdragDag));
     let brutto = manadslon + tillagg + obTot + bonus + extraAdd + semTillagg - franvTot;
     let skatt = lonTax(brutto);
@@ -1930,6 +2011,11 @@ function lonRecalc(){
     const semRow = document.getElementById('lon-sem-row'), semOutEl = document.getElementById('lon-sem-out');
     if (semRow && semOutEl){ if (semOut > 0){ semRow.classList.remove('hidden'); semOutEl.innerText = lonKr(semOut); } else { semRow.classList.add('hidden'); } }
     document.getElementById('lon-franvaro-out').innerText = '−' + lonKr(franvOut);
+    const fsEl = document.getElementById('lon-franv-sub');
+    if (fsEl){
+        if (fromFacit && facit && facit.franvaro_avdrag_kr != null) { fsEl.innerText = ' enligt lönespec'; }
+        else { let parts=[]; if(franvHelDagar>0) parts.push(`${franvHelDagar} heldag${franvHelDagar===1?'':'ar'}`); if(franvTim>0) parts.push(`${franvTim} tim`); fsEl.innerText = parts.length ? ' ' + parts.join(' + ') : ''; }
+    }
     const obHintEl = document.getElementById('lon-ob-hint'); if (obHintEl) obHintEl.innerText = fromFacit ? 'Från lönespec (facit)' : 'Auto från dina pass';
     const avEl = document.getElementById('lon-bonus-sub');
     const reliefInfo = lonAdjustedTiers(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
@@ -2032,7 +2118,12 @@ function lonFillFields(){
     setV('lon-sales', getMonthlySales(y, mo) || '');
     const OB = lonGetOB(); setV('lon-ob50', OB.ob50); setV('lon-ob100', OB.ob100);
     const appFranv = getMonthlyFranvaroHours(y, mo);
-    setV('lon-franv', (m.franv!==undefined && m.franv!=='') ? m.franv : (appFranv || ''));
+    // Kalendern är sanningen: deltimmar räknas här, hela dagar räknas separat som heldagar.
+    // (Gamla sparade totalvärden innehöll BÅDE och gav dubbelräkning – därför används de inte längre
+    //  om du inte själv skrivit in ett värde manuellt.)
+    // Alltid kalendern. Gamla sparade värden (m.franv/franvManual) och tidrapportens totalsumma
+    // innehöll BÅDE heldagar och deltimmar → dubbelräkning. De används inte längre.
+    setV('lon-franv', appFranv || '');
     setV('lon-extra-add', m.extraAdd); setV('lon-extra-ded', m.extraDed);
     lonAvdrag = m.avdrag || 0;
     const seg=document.getElementById('lon-avdrag-seg'); if(seg) seg.querySelectorAll('button').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.av)===lonAvdrag));
@@ -2061,7 +2152,7 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v48';
+const APP_VERSION = 'v58';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();

@@ -409,12 +409,16 @@ function processParsedEvent(ev, desc) {
     if (!db.q[k]) db.q[k] = { work_h: 0, ledig_h: 0, ledigPeriods: [] };
     if (!db.q[k].ledigPeriods) db.q[k].ledigPeriods = [];
     if (isWork) {
-        db.q[k].exists = true; schedMemory[k] = 1;   // permanent minne: dagen var schemalagd if(!db.q[k].start || ev.start.time < db.q[k].start) db.q[k].start = ev.start.time;
+        db.q[k].exists = true; schedMemory[k] = 1;   // permanent minne: dagen var schemalagd
+        if(!db.q[k].start || ev.start.time < db.q[k].start) db.q[k].start = ev.start.time;
         if(endStr) { let currentEnd = db.q[k].end || "00:00"; if(currentEnd === "00:00" && endStr !== "00:00" && !db.q[k].end) { db.q[k].end = endStr; } else if (endStr === "00:00") { db.q[k].end = "00:00"; } else if (endStr > currentEnd && currentEnd !== "00:00") { db.q[k].end = endStr; } }
         db.q[k].work_h += duration;
     }
     if (isLedig) { 
         db.q[k].exists = true; 
+        // Ledighet MED tid = ett schemalagt pass som ersatts av frånvaro (semester/VAB/FL).
+        // Måste också in i schemaminnet, annars tappas semesteravdraget vid nästa import.
+        if (duration > 0) schedMemory[k] = 1;
         db.q[k].ledig_h += duration; 
         if (ev.start.hasTime && endStr) {
             db.q[k].ledigPeriods.push({ start: ev.start.time, end: endStr });
@@ -1903,8 +1907,8 @@ function lonRecomputeLearning(){
     lonCfg.franvCorr = Math.round(clamp(avg(rfranv))*1000)/1000;
     if (latestBase) lonCfg.manadslon = latestBase;
     // Applicera inlärd semesterlön/dag om ingen manuell override är satt
-    if (latestSemLon && !lonCfg.semLonManual) lonCfg.semLonDag = Math.round(latestSemLon);
-    if (latestSemAvdrag && !lonCfg.semLonManual) lonCfg.semAvdragDag = Math.round(latestSemAvdrag);
+    if (latestSemLon && !lonCfg.semLonManual) lonCfg.semLonDag = Math.round(latestSemLon*100)/100;   // behåll ören – 20 dagar × 0,47 kr blir annars ~10 kr fel
+    if (latestSemAvdrag && !lonCfg.semLonManual) lonCfg.semAvdragDag = Math.round(latestSemAvdrag*100)/100;
     // Semestersaldo: specens siffra vinner, annars behålls ett manuellt satt saldo
     if (latestSaldo) lonCfg.semSaldo = latestSaldo;
     else if (lonCfg.semSaldoManual && lonCfg.semSaldo) { /* behåll manuellt */ }
@@ -2054,8 +2058,14 @@ function lonRecalc(){
     // Bara BETALDA dagar ger semesterlön. Obetald semesterdag = enbart avdrag.
     // Saldot ("Betald semester") kommer från senaste lönespec och räknas ner för varje uttagen dag efter den.
     const semSplit = lonSemDagarSplit(lonViewDate.getFullYear(), lonViewDate.getMonth()+1, semDays);
+    // Finns lönespec för månaden är dess antal dagar facit – schemat för gamla månader finns
+    // sällan kvar i db.q, så uppskattningen skulle annars visa fel antal schemalagda dagar.
+    const specM = (lonMonthly[lonKey()] || {}).cal_lonespec || {};
+    const semFacit = (specM.sem_lon_dagar!=null && +specM.sem_lon_dagar>0);
+    const semPaidD = semFacit ? +specM.sem_lon_dagar : semSplit.paid;
+    const semSchedD = semFacit ? (specM.sem_avdrag_dagar!=null ? +specM.sem_avdrag_dagar : +specM.sem_lon_dagar) : semInfo.sched;
     // Lön på uttagna (betalda) dagar, avdrag bara på schemalagda dagar.
-    const semTillagg = Math.round(semSplit.paid * semLonDag - semInfo.sched * semAvdragDag);
+    const semTillagg = Math.round(semPaidD * semLonDag - semSchedD * semAvdragDag);
     let brutto = manadslon + tillagg + obTot + bonus + extraAdd + semTillagg - franvTot;
     let skatt = lonTax(brutto);
     let netto = brutto - skatt;
@@ -2082,10 +2092,11 @@ function lonRecalc(){
     document.getElementById('lon-bonus-out').innerText = lonKr(bonusOut);
     document.getElementById('lon-ob-out').innerText = lonKr(obOut);
     const semRow = document.getElementById('lon-sem-row'), semOutEl = document.getElementById('lon-sem-out');
-    if (semRow && semOutEl){ if (semDays > 0){ semRow.classList.remove('hidden'); semOutEl.innerText = lonKr(semOut); } else { semRow.classList.add('hidden'); } }
+    if (semRow && semOutEl){ if (semDays > 0 || semFacit){ semRow.classList.remove('hidden'); semOutEl.innerText = lonKr(semOut); } else { semRow.classList.add('hidden'); } }
     const semSubEl = document.getElementById('lon-sem-sub');
     if (semSubEl){
-        if (semDays > 0){
+        if (semFacit) semSubEl.innerText = ` ${semPaidD} dagar · avdrag ${semSchedD} enligt lönespec`;
+        else if (semDays > 0){
             let p = [`${semSplit.paid} betalda`];
             if (semSplit.unpaid > 0) p.push(`${semSplit.unpaid} obetalda`);
             if (semInfo.sched !== semDays) p.push(`avdrag ${semInfo.sched} schemalagda`);
@@ -2237,7 +2248,7 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v62';
+const APP_VERSION = 'v64';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();

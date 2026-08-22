@@ -1,5 +1,20 @@
 let sb = null;
 let db = { b: 240000, d: {}, q: {} };
+// ---- SCHEMAMINNE ----
+// db.q nollställs vid varje ICS-import (schemafilen innehåller bara en period framåt).
+// schedMemory kommer ihåg VARJE dag som någon gång haft ett arbetspass, permanent.
+// Behövs för semesteravdrag: när semester ersätter ett pass i Quinyx försvinner passet ur filen,
+// men löneavdrag ska ändå göras eftersom dagen var schemalagd.
+let schedMemory = {};
+try { schedMemory = JSON.parse(localStorage.getItem('sf_sched_memory') || '{}'); } catch(e){ schedMemory = {}; }
+function saveSchedMemory(){ try { localStorage.setItem('sf_sched_memory', JSON.stringify(schedMemory)); } catch(e){} }
+function wasScheduled(k){
+    const q = db.q[k];
+    if (q && (q.exists || q.start || q.work_h || q.ledig_h)) return true;
+    return !!schedMemory[k];
+}
+
+
 let timeline = {};
 let viewDate = new Date();
 let realToday = new Date(); realToday.setHours(0,0,0,0);
@@ -394,7 +409,7 @@ function processParsedEvent(ev, desc) {
     if (!db.q[k]) db.q[k] = { work_h: 0, ledig_h: 0, ledigPeriods: [] };
     if (!db.q[k].ledigPeriods) db.q[k].ledigPeriods = [];
     if (isWork) {
-        db.q[k].exists = true; if(!db.q[k].start || ev.start.time < db.q[k].start) db.q[k].start = ev.start.time;
+        db.q[k].exists = true; schedMemory[k] = 1;   // permanent minne: dagen var schemalagd if(!db.q[k].start || ev.start.time < db.q[k].start) db.q[k].start = ev.start.time;
         if(endStr) { let currentEnd = db.q[k].end || "00:00"; if(currentEnd === "00:00" && endStr !== "00:00" && !db.q[k].end) { db.q[k].end = endStr; } else if (endStr === "00:00") { db.q[k].end = "00:00"; } else if (endStr > currentEnd && currentEnd !== "00:00") { db.q[k].end = endStr; } }
         db.q[k].work_h += duration;
     }
@@ -458,6 +473,7 @@ async function loadAllData() {
                 else if (!line.includes(":")) { fullDesc += " " + line; }
             }
         }
+        saveSchedMemory();   // spara permanenta schemaminnet efter varje import
 
         let upserts = [];
         for (let k in db.q) {
@@ -1686,7 +1702,9 @@ function lonNormalizeCfg(c){
     if (typeof c.semAvdragRate !== 'number' || !c.semAvdragRate) c.semAvdragRate = D.semAvdragRate;
     // Engångsmigrering: frånvaromodellen gjordes om (heldagar räknas nu separat).
     // Den gamla franvCorr var uppblåst för att kompensera för heldagar → nollställ och lär om.
-    if (c.franvModelV !== 2) { c.franvCorr = 1; c.franvModelV = 2; }
+    // v3: franvCorr lärdes in mot en bas som dubbelräknade heldagar (tidrapportens totaltimmar).
+    // Den blev ~0,72 och drog ner avdraget felaktigt. Nollställs och lärs om från specarna.
+    if (c.franvModelV !== 3) { c.franvCorr = 1; c.franvModelV = 3; }
     // Engångsuppdatering: semesterlön/dag var kvar på fjolårets faktiska värde (2844).
     // Uppskattat för intjänandeår apr 2025–mar 2026 ≈ 3040. Skrivs bara över om du inte satt värdet manuellt.
     if (c.semLonV !== 2) { if (!c.semLonManual) c.semLonDag = D.semLonDag; c.semLonV = 2; }
@@ -1759,17 +1777,21 @@ function getMonthlySemesterDays(y, m){
 // du faktiskt var SCHEMALAGD. Verifierat mot lönespec juli 2026: 20 dagar semesterlön (3450,53×20)
 // men bara 17 dagars avdrag (1383,17×17) – juli hade 20 skift varav 3 var föräldralediga.
 // Saknas schemadata helt för månaden (schemat ej släppt än) antas alla dagar schemalagda.
+// Semesterlön betalas per UTTAGEN semesterdag (vardag mån–fre), men semesteravdrag görs för
+// ALLA dagar du var schemalagd – även lördag/söndag. Verifierat mot lönespec juli 2026:
+// 20 dagar semesterlön (3450,53×20 = alla vardagar 6–31 juli) men 17 dagars avdrag (1383,17×17
+// = de pass som fanns i perioden). Quinyx registrerar semester på alla 7 veckodagar, så helgpass
+// under semester MÅSTE ge avdrag annars blir bruttolönen för hög.
 function getMonthlySemesterInfo(y, m){
     let days = 0, sched = 0, anyQ = false;
     const dim = new Date(y, m, 0).getDate();
     for (let d=1; d<=dim; d++){
-        const k = `${y}-${m}-${d}`; const o = db.d[k]; const q = db.q[k];
-        if (q && (q.exists || q.start || q.work_h || q.ledig_h)) anyQ = true;
+        const k = `${y}-${m}-${d}`; const o = db.d[k];
+        if (wasScheduled(k)) anyQ = true;
+        if (!o || !(o.abs||'').includes('Semester')) continue;
         const wd = new Date(y, m-1, d).getDay();
-        if (o && (o.abs||'').includes('Semester') && wd!==0 && wd!==6){
-            days++;
-            if (q && (q.exists || q.start || q.work_h || q.ledig_h)) sched++;
-        }
+        if (wd!==0 && wd!==6) days++;      // semesterlön + saldoavräkning: bara vardagar
+        if (wasScheduled(k)) sched++;      // avdrag: varje schemalagd dag, helg inkluderad
     }
     return { days, sched: anyQ ? sched : days, hasSchedule: anyQ };
 }
@@ -2206,13 +2228,16 @@ function lonFillFields(){
 function renderLonSheet(){
     if (!lonCfg) lonLoad();
     lonViewDate = lonDefaultWorkDate();
+    // Räkna alltid om inlärningen från bilagorna vid öppning. Tidigare gjordes detta bara vid
+    // uppladdning, så en gammal felaktig franvCorr/obCorr kunde ligga kvar för evigt.
+    lonRecomputeLearning(); lonSaveCfg();
     lonFillFields(); lonRecalc();
     lonSyncRemote();
 }
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v60';
+const APP_VERSION = 'v62';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();

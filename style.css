@@ -1970,3 +1970,28 @@ body.sheet-instant .bottom-section { transition: none !important; }
 /* Menyn får aldrig klippa kortet */
 .lon-sheet-content { padding-bottom:120px !important; }
 body:not(.sheet-full) #sheet-lon .lon-sheet-content { padding-bottom:104px !important; }
+
+/* ===== v69: nättare bottenmeny + lönekortet får plats i miniläget ===== */
+/* Menyn krympt ~14px på höjden. Frigör utrymme åt arket utan att träffytorna blir för små. */
+.app-bottom-nav {
+    --nav-h: 46px;
+    bottom: calc(env(safe-area-inset-bottom, 4px) + 4px);
+    padding: 2px 5px;
+    border-radius: 23px;
+}
+.app-bottom-nav .bn-item .bn-ic { font-size: 19px; padding: 2px 13px; border-radius: 13px; }
+.app-bottom-nav .bn-item .bn-lbl { font-size: 8px; }
+.bottom-section { padding-bottom: 60px; }
+
+/* Miniläge: kortet ska ALLTID rymmas – kompaktare padding och rullning som skyddsnät */
+body:not(.sheet-full) #sheet-lon .lon-sheet-content {
+    padding: 10px 14px 74px !important;
+    overflow-y: auto;
+}
+body:not(.sheet-full) #sheet-lon .lon-result-card { padding: 18px 18px 14px; }
+body:not(.sheet-full) #sheet-lon .lon-net-val { font-size: 42px; }
+body:not(.sheet-full) #sheet-lon .lon-card-gear { top: 10px; right: 10px; width: 30px; height: 30px; }
+body:not(.sheet-full) #sheet-lon .lon-card-gear .material-symbols-rounded { font-size: 18px; }
+
+/* Expanderat: mindre tomrum under kortet */
+body.sheet-full #sheet-lon .lon-sheet-content { padding-bottom: 76px !important; }

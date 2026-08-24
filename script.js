@@ -767,8 +767,11 @@ function updateDash() {
     // Lättat dagskrav måste räknas mot det LÄTTADE målet minus redan såld summa,
     // inte som en nedskalning av ordinarie krav (redan intjänad försäljning ska inte skalas).
     // Detta ger samma tal som "kr /pass" i Lön-vyn → samma röda tråd i hela appen.
+    // MEN: har du inget pass idag är kravet 0, precis som på ordinarie mål. rawTarget är 0 på
+    // lediga dagar, och den signalen måste gälla även i lättat läge.
+    const worksToday = rawTarget > 0;
     const effTarget = useRelief
-        ? (rW > 0 ? Math.max(0, Math.round((effBudget - tS) / rW)) : Math.max(0, effBudget - tS))
+        ? (worksToday ? (rW > 0 ? Math.max(0, Math.round((effBudget - tS) / rW)) : Math.max(0, effBudget - tS)) : 0)
         : rawTarget;
     const rPill = document.getElementById('d-relief-toggle');
     const topSectionEl = document.querySelector('.top-section');
@@ -2264,7 +2267,7 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v67';
+const APP_VERSION = 'v68';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();

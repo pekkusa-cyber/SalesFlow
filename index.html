@@ -13,7 +13,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=67">
+    <link rel="stylesheet" href="style.css?v=68">
 </head>
 <body class="mode-dash">
 
@@ -677,6 +677,7 @@
                     <div class="sheet-content lon-sheet-content">
                         <div id="lon-reminder" class="lon-reminder hidden" onclick="openLonSettings()"></div>
                         <div class="lon-result-card">
+                            <button onclick="openLonSettings()" class="lon-card-gear" aria-label="Bilagor och bonusspann"><span class="material-symbols-rounded">settings</span></button>
                             <span class="lon-net-lbl">Beräknad lön efter skatt</span>
                             <span id="lon-net" class="lon-net-val">0 kr</span>
                             <span id="lon-period-sub" class="lon-period-sub"></span>
@@ -689,18 +690,15 @@
                                 <div class="lon-rrow lon-rrow-sem hidden" id="lon-sem-row"><span>↳ varav semestertillägg<small id="lon-sem-sub"></small></span><span id="lon-sem-out">0 kr</span></div>
                                 <div class="lon-rrow lon-rrow-neg" onclick="lonFranvDetalj()"><span>↳ frånvaroavdrag<small id="lon-franv-sub"></small></span><span id="lon-franvaro-out">0 kr</span></div>
                             </div>
-                        </div>
-                        <div class="lon-full-only">
-                            <div class="md-form-card lon-compact-card">
-                                <span class="lon-section-lbl">Bonusavdrag</span>
-                                <div id="lon-avdrag-seg" class="lon-seg">
+                            <div class="lon-card-avdrag lon-full-only">
+                                <span class="lon-card-avdrag-lbl">Bonusavdrag</span>
+                                <div id="lon-avdrag-seg" class="lon-seg lon-seg-oncard">
                                     <button data-av="0" class="active" onclick="lonSetAvdrag(0)">Inget</button>
                                     <button data-av="10" onclick="lonSetAvdrag(10)">10 %</button>
                                     <button data-av="20" onclick="lonSetAvdrag(20)">20 %</button>
                                     <button data-av="30" onclick="lonSetAvdrag(30)">30 %</button>
                                 </div>
                             </div>
-                            <button onclick="openLonSettings()" class="md-btn-outlined w-full md-btn-icon-text" style="margin-top:20px"><span class="material-symbols-rounded">settings</span> Bilagor &amp; bonusspann</button>
                         </div>
                         <!-- Dolda auto-fält -->
                         <div class="hidden">
@@ -739,7 +737,7 @@
         </button>
     </nav>
 
-    <script src="script.js?v=67"></script>
+    <script src="script.js?v=68"></script>
     <script>
     // ============================================================
     // SALESFLOW — Navigationscontroller

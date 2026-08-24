@@ -1943,3 +1943,30 @@ body:not(.sheet-full) .sf-sheet .cal-symbol-bar { display: none !important; }
 /* Instant-läge (Kalender/Frånvaro): ingen animering på topp-sektionen */
 body.sheet-instant .top-section { transition: none !important; }
 body.sheet-instant .bottom-section { transition: none !important; }
+
+/* ===== v68: kugghjul + bonusavdrag inbakat i lönekortet ===== */
+.lon-result-card { position:relative; }
+.lon-card-gear {
+    position:absolute; top:12px; right:12px; z-index:2;
+    width:34px; height:34px; border-radius:50%; border:none;
+    background:rgba(255,255,255,.16); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+}
+.lon-card-gear:active { background:rgba(255,255,255,.30); }
+.lon-card-gear .material-symbols-rounded { font-size:20px; }
+.lon-card-avdrag { margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,.18); }
+.lon-card-avdrag-lbl {
+    display:block; font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:rgba(255,255,255,.72); margin-bottom:7px;
+}
+.lon-seg-oncard { background:rgba(255,255,255,.14); border-radius:12px; padding:3px; display:flex; gap:3px; }
+.lon-seg-oncard button {
+    flex:1; border:none; background:transparent; color:rgba(255,255,255,.82);
+    font-size:13px; font-weight:600; padding:7px 0; border-radius:10px;
+}
+.lon-seg-oncard button.active { background:#fff; color:var(--g-blue-deep); }
+
+/* Menyn får aldrig klippa kortet */
+.lon-sheet-content { padding-bottom:120px !important; }
+body:not(.sheet-full) #sheet-lon .lon-sheet-content { padding-bottom:104px !important; }

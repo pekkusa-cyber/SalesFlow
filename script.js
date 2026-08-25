@@ -1070,7 +1070,6 @@ function createSliderCell(cd, k) {
         const shiftEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), endH, endM);
         isShiftActive = (state !== 'absent' && state !== 'ledig' && state !== 'semester' && now >= shiftStart && now < shiftEnd);
     }
-    let liveDot = isShiftActive ? '<span class="live-dot"></span>' : '';
 
     // Försäljning visas ALLTID om den finns, oavsett frånvaro
     if (o.s > 0) { 
@@ -1080,17 +1079,17 @@ function createSliderCell(cd, k) {
         const em = { 'Sjuk': '🤒', 'VAB': '👶', 'Föräldraledig': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' };
         valStr = `${em[o.abs] || em[bKey] || '•'}`;
     } else if (qData.start) { 
-        valStr = `${liveDot}${qData.start.substring(0,5)}`; 
+        valStr = `${qData.start.substring(0,5)}`;   // ingen live-punkt (se dagcellen)
     } else { 
         valStr = `Ledig`; 
     }
 
     const cell = document.createElement('div');
+    if (isShiftActive) cls += ' active-shift-pulse';   // samma markering som dagcellen
     cell.className = cls;
     cell.dataset.key = k;
     cell.onclick = (e) => selectDay(k, cell, e);
 
-    // Frånvaro-badge i hörnet OM det finns försäljning samtidigt (annars täcker valStr redan emojin)
     // Frånvaro-badge i hörnet OM det finns försäljning samtidigt (annars täcker valStr redan emojin)
     let absBadge = '';
     if (o.abs && o.s > 0) {
@@ -1172,13 +1171,12 @@ function createDayCell(cd, k) {
         isShiftActive = (state !== 'absent' && state !== 'ledig' && state !== 'semester' && now >= shiftStart && now < shiftEnd);
     }
     if (isShiftActive) cls += ' active-shift-pulse';
-    const liveDot = isShiftActive ? '<span class="live-dot"></span>' : '';
 
     // Värderad – som slidercellen
     let valStr = '';
     if (o.s > 0) { valStr = `${(o.s/1000).toFixed(1)}k`; }
     else if (o.abs) { let bKey = o.abs.split(' ')[0]; valStr = `${em[o.abs] || em[bKey] || '•'}`; }
-    else if (qData.start) { valStr = `${liveDot}${qData.start.substring(0,5)}`; }
+    else if (qData.start) { valStr = `${qData.start.substring(0,5)}`; }   // ingen live-punkt: cellen pulserar redan via .active-shift-pulse
     else { valStr = 'Ledig'; }
 
     // Badges
@@ -2267,7 +2265,7 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v69';
+const APP_VERSION = 'v71';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();

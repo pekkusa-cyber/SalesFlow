@@ -1995,3 +1995,5 @@ body:not(.sheet-full) #sheet-lon .lon-card-gear .material-symbols-rounded { font
 
 /* Expanderat: mindre tomrum under kortet */
 body.sheet-full #sheet-lon .lon-sheet-content { padding-bottom: 76px !important; }
+
+/* v71: live-punkten borttagen helt – .active-shift-pulse markerar aktivt pass. */

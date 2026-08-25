@@ -711,10 +711,23 @@ function calculateTimeline() {
         let tW = 0; 
         for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {}; const qData = db.q[k] || {}; if (qData.start || o.s > 0) tW++; }
         if (tW === 0) tW = 21; 
+        // Lättat mål körs genom EXAKT samma framrullning som ordinarie, så en missad dag höjer
+        // kravet på de kvarvarande passen. Tidigare räknades lättat dagsmål platt
+        // ((mål − sålt)/pass kvar), vilket gav samma siffra på alla framtida dagar.
+        const rRatio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(cy, cm) : 0;
         let rB = getBudgetForMonth(cy, cm), rP = tW;
+        let rBr = Math.round(getBudgetForMonth(cy, cm) * (1 - (rRatio || 0))), rPr = tW;
         for(let d=1; d<=daysM; d++) { 
             const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; const isW = (qData.start || o.s > 0); 
-            if (isW) { const target = rP > 0 ? rB / rP : 0; timeline[k] = { target: Math.max(0, target) }; rB -= o.s; rP--; } else { timeline[k] = { target: 0 }; rB -= o.s; } 
+            if (isW) {
+                const target = rP > 0 ? rB / rP : 0;
+                const targetRelief = rPr > 0 ? rBr / rPr : 0;
+                timeline[k] = { target: Math.max(0, target), targetRelief: Math.max(0, targetRelief) };
+                rB -= o.s; rP--; rBr -= o.s; rPr--;
+            } else {
+                timeline[k] = { target: 0, targetRelief: 0 };
+                rB -= o.s; rBr -= o.s;
+            } 
         }
     }
 }
@@ -918,15 +931,8 @@ function updateDashboardView() {
         title = `${daysLong[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`; subtitle = qData.start ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
         dTarget = timeline[activeK]?.target || 0;
         if (dashRelief) {
-            const dy=+parts[0], dm=+parts[1];
-            const dRatio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(dy, dm) : 0;
-            if (dRatio > 0) {
-                // Samma logik som Hem/Lön: (lättat mål − såld summa) / kvarvarande pass
-                const dimM = new Date(dy, dm, 0).getDate(); let sold=0, passLeft=0;
-                for (let dd=1; dd<=dimM; dd++){ const kk=`${dy}-${dm}-${dd}`; const oo=db.d[kk]||{s:0}; const qq=db.q[kk]||{}; sold += (oo.s||0); if ((qq.start||oo.s>0) && new Date(dy,dm-1,dd) >= realToday) passLeft++; }
-                const effB = Math.round(getBudgetForMonth(dy, dm) * (1 - dRatio));
-                dTarget = passLeft>0 ? Math.max(0, Math.round((effB - sold)/passLeft)) : Math.max(0, effB - sold);
-            }
+            // Progressiv framrullning, samma som ordinarie – ett missat pass höjer kravet på nästa.
+            dTarget = Math.round(timeline[activeK]?.targetRelief || 0);
         }
         dSales = o.s || 0; dDiff = dSales - dTarget; absType = o.abs;
         
@@ -2265,7 +2271,7 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v71';
+const APP_VERSION = 'v72';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();

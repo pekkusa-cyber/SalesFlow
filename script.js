@@ -1307,7 +1307,7 @@ function renderAbsence() {
         html += `<div class="abs-type" data-abs="${bKey}" data-reason="${reason.replace(/"/g,'&quot;')}">
             <button class="abs-type-head" onclick="absToggleType(this)">
                 <span class="abs-type-name ${tCol}">${icon} ${reason}</span>
-                <span class="abs-type-right"><span class="abs-type-count">${days.length} ${days.length === 1 ? 'dag' : 'dagar'}</span><span class="material-symbols-rounded abs-type-chev">expand_more</span></span>
+                <span class="abs-type-right"><span class="abs-type-count">${absCountLabel(reason, days)}</span><span class="material-symbols-rounded abs-type-chev">expand_more</span></span>
             </button>
             <div class="abs-type-list">${rows}</div>
         </div>`;
@@ -1786,6 +1786,22 @@ function getMonthAbsenceBreakdown(y, m){
 function getMonthlyFranvaroWholeDays(y, m){ return getMonthAbsenceBreakdown(y, m).wholeDays; }
 function getMonthlyFranvaroHours(y, m){ return getMonthAbsenceBreakdown(y, m).hours; }
 // Antal betalda semesterdagar (vardagar mån–fre) i månaden – för semestertillägg
+// Semester registreras av Quinyx på alla 7 veckodagar, men bara vardagar förbrukar
+// semesterdagar ur saldot och ger semesterlön. Rubriken visade kalenderdagar, vilket såg ut
+// som att fler dagar tagits ut än vad som faktiskt dragits (9 kalenderdagar = 5 semesterdagar).
+function absCountLabel(reason, days){
+    const n = days.length;
+    if ((reason||'').includes('Semester')){
+        let wd = 0;
+        days.forEach(it => {
+            const p = String(it.k).split('-');
+            const dow = new Date(+p[0], +p[1]-1, +p[2]).getDay();
+            if (dow !== 0 && dow !== 6) wd++;
+        });
+        if (wd !== n) return `${wd} semesterdagar · ${n} kalenderdagar`;
+    }
+    return `${n} ${n === 1 ? 'dag' : 'dagar'}`;
+}
 function getMonthlySemesterDays(y, m){
     return getMonthlySemesterInfo(y, m).days;
 }
@@ -2271,7 +2287,7 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v72';
+const APP_VERSION = 'v73';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();

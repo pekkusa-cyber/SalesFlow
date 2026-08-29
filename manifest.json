@@ -4,8 +4,8 @@
   "start_url": "/SalesFlow/",
   "scope": "/SalesFlow/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#0d47a1",
+  "theme_color": "#0d47a1",
   "icons": [
     {
       "src": "icon-192.png",

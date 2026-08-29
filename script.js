@@ -1287,7 +1287,7 @@ function renderAbsence() {
         }
         groups[reason].push({ k, dayStr, hStr, actualP, fk });
     });
-    if (totalAbs === 0) { pane.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div>`; return; }
+    if (totalAbs === 0) { pane.innerHTML = `<div class="abs-shell"><div class="abs-scroll hide-scrollbar"><div class="flex flex-col items-center justify-center h-full text-slate-400 opacity-60"><span class="text-4xl mb-3">💪</span><p class="text-[9px] font-black uppercase tracking-widest text-center px-4">Ingen registrerad frånvaro<br>denna månad</p></div></div><button onclick="absAddType()" class="abs-register-btn abs-register-fixed"><span class="material-symbols-rounded">add</span> Registrera frånvaro</button></div>`; return; }
 
     let html = `<div class="abs-sum-wrap"><h4 class="abs-sum-title">SAMMANFATTNING</h4>`;
     order.forEach(reason => {
@@ -1315,7 +1315,7 @@ function renderAbsence() {
     html += `</div>`;
     // Registrera-knappen ligger UTANFÖR det scrollande området, så den syns alltid.
     const regBtn = `<button onclick="absAddType()" class="abs-register-btn abs-register-fixed"><span class="material-symbols-rounded">add</span> Registrera frånvaro</button>`;
-    pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden"><div class="overflow-y-auto hide-scrollbar flex-1">${html}</div>${regBtn}</div>`;
+    pane.innerHTML = `<div class="abs-shell"><div class="abs-scroll hide-scrollbar">${html}</div>${regBtn}</div>`;
     applyAbsFilter(); updateAbsFilterButtons();
 }
 function absToggleType(btn) {

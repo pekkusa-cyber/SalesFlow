@@ -2016,3 +2016,56 @@ html, body { background: var(--header-bg); overscroll-behavior: none; }
 }
 /* Listan behöver ingen egen höjdbegränsning längre – ytterområdet scrollar, knappen står still */
 .abs-type.open .abs-type-list { max-height: 3000px; overflow: hidden; }
+
+
+/* ============================================================
+   v80 — Statusfält blått + frånvarovyn (ram, ingen klippning, knapp nedflyttad)
+   ============================================================ */
+
+/* ---- 1. Blå remsa högst upp (safe-area / statusfält) ----
+   Ligger över allt, även över öppna sheets, så statusfältet aldrig blir vitt.
+   Höjden är 0 om enheten inte lägger innehållet under statusfältet — då styrs
+   färgen istället av <meta name="theme-color"> + manifest.json. */
+#status-bar-tint {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: env(safe-area-inset-top, 0px);
+    background: #0d47a1;
+    z-index: 99999;
+    pointer-events: none;
+}
+/* Sheets/dialoger får aldrig måla vitt i safe-area upptill */
+.sf-sheet, .content-locker { background-clip: padding-box; }
+
+/* ---- 2. Frånvaro: ramad ruta som inte klipper innehållet ---- */
+.abs-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+.abs-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    background: var(--surface-1);
+    border: 1px solid var(--outline);
+    border-radius: 20px;
+    box-shadow: inset 0 1px 3px rgba(60,64,67,.05);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    overscroll-behavior: contain;
+}
+.abs-scroll::-webkit-scrollbar { display: none; }
+/* Luft i botten så sista raden aldrig kapas mot ramen */
+.abs-scroll .abs-sum-wrap { padding: 12px 10px 18px; gap: 9px; }
+
+/* ---- 3. Registrera-knappen längre ned (proportionellt mot bottenmenyn) ---- */
+#sheet-absence .sheet-content { padding-bottom: 64px; }
+#pane-absence { padding: 10px 12px 0 !important; }
+#pane-absence .abs-register-fixed {
+    margin: 10px 0 0;
+    width: 100%;
+    height: 48px;
+}

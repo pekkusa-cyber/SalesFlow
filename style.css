@@ -1981,7 +1981,6 @@ body:not(.sheet-full) #sheet-lon .lon-sheet-content { padding-bottom:104px !impo
 }
 .app-bottom-nav .bn-item .bn-ic { font-size: 19px; padding: 2px 13px; border-radius: 13px; }
 .app-bottom-nav .bn-item .bn-lbl { font-size: 8px; }
-.bottom-section { padding-bottom: 60px; }
 
 /* Miniläge: kortet ska ALLTID rymmas – kompaktare padding och rullning som skyddsnät */
 body:not(.sheet-full) #sheet-lon .lon-sheet-content {
@@ -2002,3 +2001,9 @@ body.sheet-full #sheet-lon .lon-sheet-content { padding-bottom: 76px !important;
 /* max-height:600px räckte till ~13 rader. Juli har 26 semesterdagar (~1400px) och resten blev
    helt oåtkomlig – overflow:hidden gav ingen scroll heller. 3000px rymmer en hel månad. */
 .abs-type.open .abs-type-list { max-height: 3000px; }
+
+/* ===== v77: skydd mot vit glipa upptill (utan att röra layouten) =====
+   Endast bakgrundsfärg + stoppad overscroll. Ingen padding, ingen höjd, inget som
+   påverkar var innehållet hamnar – v69:s padding-ändring var den som orsakade problemet. */
+html { background: var(--g-blue-deep); overscroll-behavior: none; }
+body { overscroll-behavior: none; }

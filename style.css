@@ -1997,3 +1997,8 @@ body:not(.sheet-full) #sheet-lon .lon-card-gear .material-symbols-rounded { font
 body.sheet-full #sheet-lon .lon-sheet-content { padding-bottom: 76px !important; }
 
 /* v71: live-punkten borttagen helt – .active-shift-pulse markerar aktivt pass. */
+
+/* ===== v75: långa frånvarolistor kapades ===== */
+/* max-height:600px räckte till ~13 rader. Juli har 26 semesterdagar (~1400px) och resten blev
+   helt oåtkomlig – overflow:hidden gav ingen scroll heller. 3000px rymmer en hel månad. */
+.abs-type.open .abs-type-list { max-height: 3000px; }

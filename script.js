@@ -1798,7 +1798,7 @@ function absCountLabel(reason, days){
             const dow = new Date(+p[0], +p[1]-1, +p[2]).getDay();
             if (dow !== 0 && dow !== 6) wd++;
         });
-        if (wd !== n) return `${wd} semesterdagar · ${n} kalenderdagar`;
+        return `${wd} semesterdagar`;
     }
     return `${n} ${n === 1 ? 'dag' : 'dagar'}`;
 }
@@ -2287,7 +2287,7 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v73';
+const APP_VERSION = 'v75';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();

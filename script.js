@@ -1312,8 +1312,10 @@ function renderAbsence() {
             <div class="abs-type-list">${rows}</div>
         </div>`;
     });
-    html += `<button onclick="absAddType()" class="abs-register-btn"><span class="material-symbols-rounded">add</span> Registrera frånvaro</button></div>`;
-    pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden"><div class="overflow-y-auto hide-scrollbar flex-1">${html}</div></div>`;
+    html += `</div>`;
+    // Registrera-knappen ligger UTANFÖR det scrollande området, så den syns alltid.
+    const regBtn = `<button onclick="absAddType()" class="abs-register-btn abs-register-fixed"><span class="material-symbols-rounded">add</span> Registrera frånvaro</button>`;
+    pane.innerHTML = `<div class="flex flex-col h-full overflow-hidden"><div class="overflow-y-auto hide-scrollbar flex-1">${html}</div>${regBtn}</div>`;
     applyAbsFilter(); updateAbsFilterButtons();
 }
 function absToggleType(btn) {
@@ -2287,7 +2289,7 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v78';
+const APP_VERSION = 'v79';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();

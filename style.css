@@ -1997,15 +1997,6 @@ body.sheet-full #sheet-lon .lon-sheet-content { padding-bottom: 76px !important;
 
 /* v71: live-punkten borttagen helt – .active-shift-pulse markerar aktivt pass. */
 
-/* ===== v78: långa frånvarolistor scrollar i sin egen ruta ===== */
-/* Tidigare kapades listan vid 600px utan scroll. Nu scrollar den INUTI kortet, så
-   "Registrera frånvaro" ligger kvar synlig istället för att tryckas ner under skärmkanten. */
-.abs-type.open .abs-type-list {
-    max-height: 46vh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-}
 
 /* ===== v77: skydd mot vit glipa upptill (utan att röra layouten) =====
    Endast bakgrundsfärg + stoppad overscroll. Ingen padding, ingen höjd, inget som
@@ -2014,3 +2005,14 @@ html, body { background: var(--header-bg); overscroll-behavior: none; }
 /* .bottom-section har egen ljus bakgrund och flex:1, så inget annat påverkas –
    det enda som ändras är att en ev. glipa vid skärmkanten blir blå istället för vit. */
 #app-shell { background: var(--header-bg); }
+
+/* ===== v79: Registrera-knappen alltid synlig ===== */
+/* Knappen låg inuti det scrollande området och försvann när listan blev lång.
+   Nu ligger den utanför scrollen, förankrad längst ner i frånvarovyn. */
+.abs-register-fixed {
+    flex-shrink: 0;
+    margin: 8px 14px 12px;
+    width: auto;
+}
+/* Listan behöver ingen egen höjdbegränsning längre – ytterområdet scrollar, knappen står still */
+.abs-type.open .abs-type-list { max-height: 3000px; overflow: hidden; }

@@ -1997,13 +1997,20 @@ body.sheet-full #sheet-lon .lon-sheet-content { padding-bottom: 76px !important;
 
 /* v71: live-punkten borttagen helt – .active-shift-pulse markerar aktivt pass. */
 
-/* ===== v75: långa frånvarolistor kapades ===== */
-/* max-height:600px räckte till ~13 rader. Juli har 26 semesterdagar (~1400px) och resten blev
-   helt oåtkomlig – overflow:hidden gav ingen scroll heller. 3000px rymmer en hel månad. */
-.abs-type.open .abs-type-list { max-height: 3000px; }
+/* ===== v78: långa frånvarolistor scrollar i sin egen ruta ===== */
+/* Tidigare kapades listan vid 600px utan scroll. Nu scrollar den INUTI kortet, så
+   "Registrera frånvaro" ligger kvar synlig istället för att tryckas ner under skärmkanten. */
+.abs-type.open .abs-type-list {
+    max-height: 46vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
 
 /* ===== v77: skydd mot vit glipa upptill (utan att röra layouten) =====
    Endast bakgrundsfärg + stoppad overscroll. Ingen padding, ingen höjd, inget som
    påverkar var innehållet hamnar – v69:s padding-ändring var den som orsakade problemet. */
-html { background: var(--g-blue-deep); overscroll-behavior: none; }
-body { overscroll-behavior: none; }
+html, body { background: var(--header-bg); overscroll-behavior: none; }
+/* .bottom-section har egen ljus bakgrund och flex:1, så inget annat påverkas –
+   det enda som ändras är att en ev. glipa vid skärmkanten blir blå istället för vit. */
+#app-shell { background: var(--header-bg); }

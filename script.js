@@ -2287,11 +2287,10 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v77';
+const APP_VERSION = 'v78';
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();
-    const ver=document.getElementById('app-version'); if(ver) ver.innerText = 'SalesFlow '+APP_VERSION;
     const m=document.getElementById('lon-settings-modal');
     if(m){ m.classList.remove('hidden'); setTimeout(()=>m.classList.replace('opacity-0','opacity-100'),10); if(window.sfPushHist) window.sfPushHist(); }
 }
@@ -3091,7 +3090,10 @@ function triggerChildSelection(type, source) {
     const m = document.getElementById('child-select-modal'); if(m) { document.getElementById('child-modal-title').innerText = type + ' GÄLLER VEM?'; m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } 
 }
 
-function openBudgetModal() { const m = document.getElementById('budget-modal'); if(m) m.classList.remove('hidden'); }
+function openBudgetModal() {
+    const ver = document.getElementById('app-version'); if (ver) ver.innerText = 'SalesFlow ' + APP_VERSION;
+    const m = document.getElementById('budget-modal'); if(m) m.classList.remove('hidden');
+}
 function closeBudgetModal() { const m = document.getElementById('budget-modal'); if(m) m.classList.add('hidden'); }
 function closeNoteConfirmModal() { const m = document.getElementById('note-confirm-modal'); if(m) m.classList.add('hidden'); }
 

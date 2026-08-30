@@ -766,6 +766,15 @@ function toggleReliefMode(){ dashRelief = !dashRelief; try{ localStorage.setItem
 window.toggleReliefMode = toggleReliefMode;
 try { dashRelief = localStorage.getItem('sf_dash_relief') === '1'; } catch(e){}
 
+// Ett enda dagsmål i hela appen. Lättat läge byter BARA vilket fält vi läser –
+// framrullning, "mål nått", grön/röd och streak har exakt samma villkor som normalt.
+// I månader utan lättnad är targetRelief === target, så anropet är alltid säkert.
+function dayTarget(k){
+    const t = timeline[k];
+    if (!t) return 0;
+    return (dashRelief && t.targetRelief !== undefined) ? t.targetRelief : (t.target || 0);
+}
+
 function updateDash() { 
     db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
     const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); let tS = 0, dP = 0, tP = 0, rW = 0; const daysM = new Date(cy, cm, 0).getDate();
@@ -776,16 +785,9 @@ function updateDash() {
     const reliefRatio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(cy, cm) : 0;
     const useRelief = dashRelief && reliefRatio > 0;
     const effBudget = useRelief ? Math.round(db.b * (1 - reliefRatio)) : db.b;
-    const rawTarget = timeline[getK(realToday)]?.target || 0;
-    // Lättat dagskrav måste räknas mot det LÄTTADE målet minus redan såld summa,
-    // inte som en nedskalning av ordinarie krav (redan intjänad försäljning ska inte skalas).
-    // Detta ger samma tal som "kr /pass" i Lön-vyn → samma röda tråd i hela appen.
-    // MEN: har du inget pass idag är kravet 0, precis som på ordinarie mål. rawTarget är 0 på
-    // lediga dagar, och den signalen måste gälla även i lättat läge.
-    const worksToday = rawTarget > 0;
-    const effTarget = useRelief
-        ? (worksToday ? (rW > 0 ? Math.max(0, Math.round((effBudget - tS) / rW)) : Math.max(0, effBudget - tS)) : 0)
-        : rawTarget;
+    // Samma källa som dagskortet: den progressiva framrullningen i calculateTimeline().
+    // Lediga dagar ger 0 i båda lägena.
+    const effTarget = dayTarget(getK(realToday));
     const rPill = document.getElementById('d-relief-toggle');
     const topSectionEl = document.querySelector('.top-section');
     if (rPill) {
@@ -929,11 +931,7 @@ function updateDashboardView() {
         const parts = activeK.split('-'); const dObj = new Date(parts[0], parts[1]-1, parts[2]); const o = db.d[activeK] || {s:0}; const qData = db.q[activeK] || {};
         const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']; const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
         title = `${daysLong[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`; subtitle = qData.start ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
-        dTarget = timeline[activeK]?.target || 0;
-        if (dashRelief) {
-            // Progressiv framrullning, samma som ordinarie – ett missat pass höjer kravet på nästa.
-            dTarget = Math.round(timeline[activeK]?.targetRelief || 0);
-        }
+        dTarget = dayTarget(activeK);
         dSales = o.s || 0; dDiff = dSales - dTarget; absType = o.abs;
         
         const state = getCellState(activeK);
@@ -991,12 +989,9 @@ function updateDashboardView() {
         }
     } else {
         let wPass = 0, firstShiftTarget = null; let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6); const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
-        for(let i=0; i<7; i++) { const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); const k = getK(cd); const state = getCellState(k); dSales += (db.d[k]?.s || 0); if(state === 'worked' || state === 'planned') { if(firstShiftTarget === null) firstShiftTarget = (timeline[k]?.target || 0); wPass++; } }
+        for(let i=0; i<7; i++) { const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); const k = getK(cd); const state = getCellState(k); dSales += (db.d[k]?.s || 0); if(state === 'worked' || state === 'planned') { if(firstShiftTarget === null) firstShiftTarget = dayTarget(k); wPass++; } }
+        // dayTarget() är redan lättat när läget är på – ingen extra nedskalning här.
         dTarget = (firstShiftTarget || 0) * wPass;
-        if (dashRelief) {
-            const wRatio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(currentWeekStart.getFullYear(), currentWeekStart.getMonth()+1) : 0;
-            if (wRatio > 0) dTarget = Math.round(dTarget * (1 - wRatio));
-        }
         dDiff = dSales - dTarget; title = `VECKA ${getWeekNumber(currentWeekStart)}`; subtitle = `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`; statusText = "VÄLJ DAG..."; showActions = false; absType = null; isReached = dTarget > 0 && dSales >= dTarget; 
         const statusMetaEl = document.getElementById('dash-status-meta'); if(statusMetaEl) statusMetaEl.innerText = "";
         const btnEval = document.getElementById('btn-trigger-eval'); if(btnEval) btnEval.classList.add('hidden');
@@ -1049,7 +1044,7 @@ function updateDashboardView() {
 }
 
 function createSliderCell(cd, k) {
-    const o = db.d[k] || {s:0}, t = timeline[k] || {target:0}, qData = db.q[k] || {}; 
+    const o = db.d[k] || {s:0}, tTarget = dayTarget(k), qData = db.q[k] || {};
     const isPast = cd < realToday, isToday = cd.getTime() === realToday.getTime(), state = getCellState(k);
     
     let cls = 'vp-cell';
@@ -1057,7 +1052,7 @@ function createSliderCell(cd, k) {
     else if (state === 'ledig' || state === 'unplanned') { cls += ' type-unplanned'; } 
     else if (qData.start) { cls += ' type-planned'; }
 
-    if (isPast) { cls += ' vp-past'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; } 
+    if (isPast) { cls += ' vp-past'; if (o.s >= tTarget && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; }
     else if (isToday) { cls += ' status-today'; }   // dagens dag har alltid sin ring
 
     if (activeK === k) cls += ' active-focus';
@@ -1136,7 +1131,7 @@ function createSliderCell(cd, k) {
 }
 
 function createDayCell(cd, k) {
-    const o = db.d[k] || {s:0}, t = timeline[k] || {target:0}, qData = db.q[k] || {}; 
+    const o = db.d[k] || {s:0}, tTarget = dayTarget(k), qData = db.q[k] || {};
     const em = { 'Sjuk': '🤒', 'VAB': '👶', 'VAB Belma': '👶', 'VAB Wilma': '👶', 'Föräldraledig': '🍼', 'Föräldraledig Belma': '🍼', 'Föräldraledig Wilma': '🍼', 'Semester': '✈️', 'Tjänstledig': '🏢', 'Åtgärd krävs': '⚠️' }; 
     const isPast = cd < realToday, isToday = cd.getTime() === realToday.getTime(), state = getCellState(k);
     const dayOfWeek = cd.getDay();
@@ -1158,7 +1153,7 @@ function createDayCell(cd, k) {
             else cls += ' type-absent';
         }
     } else if (state === 'ledig' || state === 'unplanned') { cls += ' type-unplanned'; }
-    else if (isPast) { cls += ' history-cell'; if (o.s >= t.target && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; }
+    else if (isPast) { cls += ' history-cell'; if (o.s >= tTarget && o.s > 0) cls += ' history-success'; else cls += ' history-fail'; }
     else if (qData.start) { cls += ' type-planned'; }
 
     if (isToday) cls += ' status-today';
@@ -1372,7 +1367,7 @@ function focusShowDay(k, el){
         if (o.fk_perc !== undefined && o.abs_hours) { const hStr = o.abs_hours.toFixed(2).replace('.00',''); metaTxt = `${dShort} ${parts[2]} · ${hStr} tim · FK ${o.fk_perc}%`; }
         else metaTxt = `${dShort} ${parts[2]} · heldag`;
     } else if (o.s > 0) {
-        const tgt = (timeline[k] && timeline[k].target) || 0;
+        const tgt = dayTarget(k);
         emoji = (tgt > 0 && o.s >= tgt) ? '🔥' : '💰'; main = `${(o.s/1000).toFixed(1)}k`;
         metaTxt = tgt > 0 ? `${dShort} ${parts[2]} · mål ${(tgt/1000).toFixed(1)}k` : `${dShort} ${parts[2]}`;
     } else {
@@ -2289,7 +2284,16 @@ function renderLonSheet(){
 window.renderLonSheet = renderLonSheet;
 
 function lonSettingsOpen(){ const m=document.getElementById('lon-settings-modal'); return m && !m.classList.contains('hidden'); }
-const APP_VERSION = 'v79';
+// Versionen härleds ur appens egen <script src="script.js?v=NN"> så att den
+// aldrig kan driva isär från cache-busterparametern i index.html.
+const APP_VERSION = (function(){
+    try {
+        const s = document.currentScript || document.querySelector('script[src*="script.js?v="]');
+        const m = s && /[?&]v=([\w.]+)/.exec(s.getAttribute('src') || '');
+        if (m) return 'v' + m[1];
+    } catch(e){}
+    return 'v80';   // reserv om skriptet laddas utan ?v=
+})();
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();
@@ -2568,7 +2572,7 @@ function inlinePress(key) {
 function inlineTarget() {
     inlineNumpadJustOpened = false;
     if (!activeK) return;
-    let target = timeline[activeK]?.target || 0;
+    let target = dayTarget(activeK);
     if (target > 0) { inlineNumpadValue = String(Math.ceil(target)); updateInlineNumpadDisplay(); }
 }
 
@@ -2971,7 +2975,7 @@ function calculateSummaryStats() {
     let badScores = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 }; let badCount = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
     
     for (let d=1; d<=daysM; d++) {
-        const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const tgt = timeline[k]?.target || 0; const qData = db.q[k] || {};
+        const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const tgt = dayTarget(k); const qData = db.q[k] || {};
         
         if ((o.s > 0) || (qData.start && !o.abs && o.st !== 'Ledig' && o.st !== 'Semester')) { wDays++; f_work.push(k); }
         if (o.abs && !o.abs.includes('Semester') && o.abs !== 'Åtgärd krävs') { aDays++; let baseAbs = o.abs.split(' ')[0]; absCounts[baseAbs] = (absCounts[baseAbs] || 0) + 1; }

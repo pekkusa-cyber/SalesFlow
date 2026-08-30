@@ -2069,3 +2069,95 @@ html, body { background: var(--header-bg); overscroll-behavior: none; }
     width: 100%;
     height: 48px;
 }
+
+/* ============================================================
+   v82: MODERNARE BOTTENMENY — en markör som glider
+   Ytterhöljet är oförändrat (46px hög, samma bredd och bottenmarginal),
+   så inga andra mått i appen påverkas.
+   ============================================================ */
+
+.app-bottom-nav {
+    /* Menyn är position:fixed → dess 100% är viewporten. Samma uttryck används
+       för både bredden och kolumnmatten, så de kan aldrig glida isär.
+       OBS: procent i translateX() syftar på elementets EGEN bredd, därför
+       måste stegen räknas i absoluta enheter här. */
+    --bn-w:    min(440px, calc(100vw - 24px));
+    --bn-col:  calc((var(--bn-w) - 20px) / 5);  /* 2px ram + 10px padding + 4×2px gap */
+    --bn-step: calc(var(--bn-col) + 2px);       /* kolumn + gap = avstånd mellan flikmitter */
+    --bn-ind-top: 7.5px;                        /* uppmätt mot riktiga appen, inte härlett */
+
+    /* Riktigt glas i stället för svag genomskinlighet */
+    background: color-mix(in srgb, var(--surface) 74%, transparent);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid color-mix(in srgb, var(--outline-variant) 75%, transparent);
+    /* Lättare, skiktad skugga – menyn svävar i stället för att ligga på */
+    box-shadow: 0 1px 2px rgba(60,64,67,.05),
+                0 8px 20px -8px rgba(60,64,67,.18),
+                0 20px 44px -22px rgba(60,64,67,.30),
+                inset 0 1px 0 rgba(255,255,255,.85);
+}
+
+/* Den glidande markören */
+.app-bottom-nav::before {
+    content: ''; position: absolute; z-index: 0;
+    top: var(--bn-ind-top); height: 24px; width: 46px;
+    left: calc(5px + (var(--bn-col) - 46px) / 2);
+    border-radius: 13px;
+    background: var(--g-blue-soft);
+    transition: transform .44s var(--ease-spring),
+                background-color .3s var(--ease-emp),
+                box-shadow .3s var(--ease-emp);
+}
+.app-bottom-nav:has(.bn-item:nth-child(2).is-active)::before { transform: translateX(var(--bn-step)); }
+.app-bottom-nav:has(.bn-item:nth-child(3).is-active)::before { transform: translateX(calc(var(--bn-step) * 2)); }
+.app-bottom-nav:has(.bn-item:nth-child(4).is-active)::before { transform: translateX(calc(var(--bn-step) * 3)); }
+.app-bottom-nav:has(.bn-item:nth-child(5).is-active)::before { transform: translateX(calc(var(--bn-step) * 4)); }
+
+/* Ikon och etikett ritas ovanpå markören */
+.app-bottom-nav .bn-item { position: relative; z-index: 1; }
+
+/* Kapseln tillhör markören nu – ikonen behåller bara fyllningen */
+.app-bottom-nav .bn-item.is-active .bn-ic {
+    background: none;
+    box-shadow: none;
+    transform: none;
+    animation: none;
+    font-variation-settings: 'FILL' 1;
+}
+.app-bottom-nav .bn-item .bn-lbl { font-weight: 600; transition: color .2s var(--ease-emp); }
+.app-bottom-nav .bn-item.is-active .bn-lbl { font-weight: 800; }
+
+/* HEM: blå ikonfärg som identitet, men inget permanent "vald"-utseende.
+   När Hem faktiskt är vald fylls den glidande markören solid i stället. */
+.app-bottom-nav .bn-item.bn-home .bn-ic {
+    background: none;
+    color: inherit;
+    box-shadow: none;
+    transform: none;
+}
+.app-bottom-nav:has(.bn-home.is-active)::before {
+    background: var(--g-blue);
+    box-shadow: 0 5px 16px -5px rgba(26,115,232,.6);
+}
+.app-bottom-nav .bn-item.bn-home.is-active .bn-ic { color: #fff; }
+.app-bottom-nav .bn-item.bn-home .bn-lbl { font-weight: 700; }
+.app-bottom-nav .bn-item.bn-home.is-active .bn-lbl { font-weight: 800; color: var(--g-blue); }
+
+/* Lugnare tryck: bara ikonen krymper, etiketten står still */
+.app-bottom-nav .bn-item:active { transform: none; }
+.app-bottom-nav .bn-item:active .bn-ic { transform: scale(.9); }
+
+/* Utan :has() faller vi tillbaka på den gamla kapseln i stället för en
+   markör som fastnar under första fliken. */
+@supports not (selector(:has(*))) {
+    .app-bottom-nav::before { display: none; }
+    .app-bottom-nav .bn-item.is-active .bn-ic {
+        background: var(--g-blue-soft);
+        box-shadow: 0 4px 14px -5px rgba(26,115,232,.55);
+    }
+    .app-bottom-nav .bn-item.bn-home .bn-ic { background: var(--g-blue); color: #fff; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .app-bottom-nav::before { transition: background-color .2s linear; }
+}

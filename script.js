@@ -751,14 +751,25 @@ function calculateTimeline() {
         let tW = 0; 
         for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {}; const qData = db.q[k] || {}; if (qData.start || o.s > 0) tW++; }
         if (tW === 0) tW = 21; 
-        // Lättat mål körs genom EXAKT samma framrullning som ordinarie, så en missad dag höjer
-        // kravet på de kvarvarande passen. Tidigare räknades lättat dagsmål platt
-        // ((mål − sålt)/pass kvar), vilket gav samma siffra på alla framtida dagar.
+        // EN regel: alla pass som är KVAR i månaden delar samma dagsmål
+        //   (månadsbudget − sålt på avslutade dagar) / antal pass kvar
+        // Avslutade dagar behåller sitt historiska krav, så grön/röd historik står still.
+        //
+        // Tidigare rullades framrullningen genom hela månaden, även framtida dagar. Då
+        // sjönk rP för varje pass medan rB bara minskade av faktisk försäljning, så målen
+        // skenade (240 000/20, /19, /18 … /1 = 240 000) trots att inget sålts och inget
+        // missats än. Det gjorde att en 4-passvecka kunde få högre mål än en 6-passvecka.
+        // Med ett gemensamt tal blir veckan automatiskt proportionell mot antalet pass.
         const rRatio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(cy, cm) : 0;
-        let rB = getBudgetForMonth(cy, cm), rP = tW;
-        let rBr = Math.round(getBudgetForMonth(cy, cm) * (1 - (rRatio || 0))), rPr = tW;
-        for(let d=1; d<=daysM; d++) { 
-            const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; const isW = (qData.start || o.s > 0); 
+        const budget = getBudgetForMonth(cy, cm);
+        let rB = budget, rP = tW;
+        let rBr = Math.round(budget * (1 - (rRatio || 0))), rPr = tW;
+        let kvarPass = 0;
+
+        // Steg 1 – avslutade dagar: historiskt krav, och räkna av vad som faktiskt såldes.
+        for(let d=1; d<=daysM; d++) {
+            const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; const isW = (qData.start || o.s > 0);
+            if (new Date(cy, cm-1, d) >= realToday) { if (isW) kvarPass++; continue; }
             if (isW) {
                 const target = rP > 0 ? rB / rP : 0;
                 const targetRelief = rPr > 0 ? rBr / rPr : 0;
@@ -767,7 +778,17 @@ function calculateTimeline() {
             } else {
                 timeline[k] = { target: 0, targetRelief: 0 };
                 rB -= o.s; rBr -= o.s;
-            } 
+            }
+        }
+
+        // Steg 2 – idag och framåt: ett och samma tal på varje kvarvarande pass.
+        const per  = kvarPass > 0 ? Math.max(0, rB  / kvarPass) : 0;
+        const perR = kvarPass > 0 ? Math.max(0, rBr / kvarPass) : 0;
+        for(let d=1; d<=daysM; d++) {
+            if (new Date(cy, cm-1, d) < realToday) continue;
+            const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {};
+            const isW = (qData.start || o.s > 0);
+            timeline[k] = isW ? { target: per, targetRelief: perR } : { target: 0, targetRelief: 0 };
         }
     }
 }
@@ -1028,15 +1049,31 @@ function updateDashboardView() {
             statusMetaEl.innerText = metaText;
         }
     } else {
-        let wPass = 0; let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6); const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
-        // Summera varje dags EGET mål. Tidigare togs första passets mål gånger antal pass,
-        // vilket antog att alla pass i veckan har samma mål. En vecka som spänner över ett
-        // månadsskifte fick då sista augustidagens mål (som bär hela månadens rest) pålagt
-        // även på septemberdagarna. calculateTimeline() räknar per månad, så varje dag
-        // hämtar automatiskt sin egen månads budget här.
+        let wPass = 0; const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+        // Veckokortet visar BARA den månad som står i toppen. En vecka som spänner över ett
+        // månadsskifte hör till två budgetar, och då går summan inte att jämföra med något.
+        // De dagarna är nedtonade i veckoremsan (.vp-other-month) – blurren betyder alltså
+        // exakt "räknas mot nästa månad, inte här".
         // dayTarget() är redan lättat när läget är på – ingen extra nedskalning här.
-        for(let i=0; i<7; i++) { const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); const k = getK(cd); const state = getCellState(k); dSales += (db.d[k]?.s || 0); if(state === 'worked' || state === 'planned') { dTarget += dayTarget(k); wPass++; } }
-        dDiff = dSales - dTarget; title = `VECKA ${getWeekNumber(currentWeekStart)}`; subtitle = `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`; statusText = "VÄLJ DAG..."; showActions = false; absType = null; isReached = dTarget > 0 && dSales >= dTarget; 
+        let firstIn = null, lastIn = null;
+        for(let i=0; i<7; i++) {
+            const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i);
+            if (cd.getMonth() !== viewDate.getMonth() || cd.getFullYear() !== viewDate.getFullYear()) continue;
+            if (!firstIn) firstIn = new Date(cd);
+            lastIn = new Date(cd);
+            const k = getK(cd); const state = getCellState(k);
+            dSales += (db.d[k]?.s || 0);
+            if(state === 'worked' || state === 'planned') { dTarget += dayTarget(k); wPass++; }
+        }
+        const startD = firstIn || new Date(currentWeekStart);
+        const endD = lastIn || new Date(currentWeekStart);
+        dDiff = dSales - dTarget; title = `VECKA ${getWeekNumber(currentWeekStart)}`;
+        // Klipps veckan av ett månadsskifte kan bara en dag bli kvar – då räcker ett datum.
+        const sammaDag = startD.getTime() === endD.getTime();
+        subtitle = sammaDag
+            ? `${startD.getDate()} ${months[startD.getMonth()]} (${wPass} Pass)`
+            : `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`;
+        statusText = "VÄLJ DAG..."; showActions = false; absType = null; isReached = dTarget > 0 && dSales >= dTarget;
         const statusMetaEl = document.getElementById('dash-status-meta'); if(statusMetaEl) statusMetaEl.innerText = "";
         const btnEval = document.getElementById('btn-trigger-eval'); if(btnEval) btnEval.classList.add('hidden');
     }

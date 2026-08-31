@@ -2189,3 +2189,13 @@ html, body { background: var(--header-bg); overscroll-behavior: none; }
     transition: background-color .2s var(--ease-emp), transform .15s var(--ease-emp);
 }
 .week-half-btn:active { transform: scale(.94); background: var(--g-blue-tint); }
+
+/* Mötesdag (≤3 h): bär ingen budget, egen badge.
+   Måste sätta position/storlek själv - .u-badge ger bara det gemensamma skalet,
+   och varje badge-klass placerar sig i sitt eget hörn. */
+.badge-meet {
+    top: -5px; right: -5px;
+    width: 18px; height: 18px; font-size: 10px;
+    background: #ede9fe; color: #6d28d9;
+    border-color: #c4b5fd;
+}

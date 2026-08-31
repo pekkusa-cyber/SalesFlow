@@ -748,12 +748,15 @@ function calculateTimeline() {
     for (let offset = -1; offset <= 1; offset++) {
         let tempD = new Date(viewDate.getFullYear(), viewDate.getMonth() + offset, 1);
         let cy = tempD.getFullYear(); let cm = tempD.getMonth() + 1; let daysM = new Date(cy, cm, 0).getDate();
-        let tW = 0; 
-        for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {}; const qData = db.q[k] || {}; if (qData.start || o.s > 0) tW++; }
-        if (tW === 0) tW = 21; 
+        // Summan av månadens SÄLJTIMMAR (möten och lediga dagar ger 0)
+        let tW = 0;
+        for(let d=1; d<=daysM; d++) tW += salesHours(`${cy}-${cm}-${d}`);
+        if (tW === 0) tW = 21 * 8;   // reserv: ~21 pass á 8 h
         // DAGSMÅLET ÄR EN STEGE, inte ett gemensamt tal. Varje pass svarar på:
         // "vad krävs den här dagen om allt före den går som det står just nu?"
-        //   krav(dag) = (budget − sålt före dagen) / (pass kvar från och med dagen)
+        //   krav(dag) = (budget − sålt före dagen) / (säljtimmar kvar) × dagens timmar
+        // Enheten är TIMMAR, inte pass, så en lördag på 6,5 h bär mindre än en
+        // måndag på 9,6 h, och ett möte (≤3 h) bär ingenting alls.
         // Säljer du inget stiger kravet framåt, och når du sista passet utan att ha sålt
         // något ligger hela budgeten där. Slår du in en siffra räknas alla senare dagar
         // om direkt, eftersom db.d läses live.
@@ -769,13 +772,13 @@ function calculateTimeline() {
 
         // Steg 1 – avslutade dagar: historiskt krav, och räkna av vad som faktiskt såldes.
         for(let d=1; d<=daysM; d++) {
-            const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; const isW = (qData.start || o.s > 0);
-            if (new Date(cy, cm-1, d) >= realToday) { if (isW) kvarPass++; continue; }
-            if (isW) {
-                const target = rP > 0 ? rB / rP : 0;
-                const targetRelief = rPr > 0 ? rBr / rPr : 0;
+            const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const h = salesHours(k);
+            if (new Date(cy, cm-1, d) >= realToday) { if (h > 0) kvarPass++; continue; }
+            if (h > 0) {
+                const target = rP > 0 ? (rB / rP) * h : 0;
+                const targetRelief = rPr > 0 ? (rBr / rPr) * h : 0;
                 timeline[k] = { target: Math.max(0, target), targetRelief: Math.max(0, targetRelief) };
-                rB -= o.s; rP--; rBr -= o.s; rPr--;
+                rB -= o.s; rP -= h; rBr -= o.s; rPr -= h;
             } else {
                 timeline[k] = { target: 0, targetRelief: 0 };
                 rB -= o.s; rBr -= o.s;
@@ -788,10 +791,10 @@ function calculateTimeline() {
         // senare dagar om direkt, eftersom db.d läses live här.
         for(let d=1; d<=daysM; d++) {
             if (new Date(cy, cm-1, d) < realToday) continue;
-            const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {};
-            if (qData.start || o.s > 0) {
-                timeline[k] = { target: Math.max(0, rP > 0 ? rB / rP : 0), targetRelief: Math.max(0, rPr > 0 ? rBr / rPr : 0) };
-                rB -= o.s; rP--; rBr -= o.s; rPr--;
+            const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const h = salesHours(k);
+            if (h > 0) {
+                timeline[k] = { target: Math.max(0, rP > 0 ? (rB / rP) * h : 0), targetRelief: Math.max(0, rPr > 0 ? (rBr / rPr) * h : 0) };
+                rB -= o.s; rP -= h; rBr -= o.s; rPr -= h;
             } else {
                 timeline[k] = { target: 0, targetRelief: 0 };
                 rB -= o.s; rBr -= o.s;
@@ -846,7 +849,7 @@ function dayTarget(k){
 function updateDash() { 
     db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
     const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); let tS = 0, dP = 0, tP = 0, rW = 0; const daysM = new Date(cy, cm, 0).getDate();
-    for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; tS += o.s; if (o.s > 0) dP++; if (qData.start || o.s > 0) { tP++; const dObj = new Date(cy, cm-1, d); if (dObj >= realToday) rW++; } }
+    for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; tS += o.s; if (o.s > 0) dP++; if ((qData.start || o.s > 0) && !isMeetingDay(k)) { tP++; const dObj = new Date(cy, cm-1, d); if (dObj >= realToday) rW++; } }
     const monthlyPerc = db.b > 0 ? Math.round((tS/db.b)*100) : 0; const avg = dP ? (tS / dP) : 0;
 
     // Lättnad (semester/föräldraledig) – växla mellan ordinarie och lättat mål
@@ -1003,7 +1006,7 @@ function updateDashboardView() {
         dSales = o.s || 0; dDiff = dSales - dTarget; absType = o.abs;
         
         const state = getCellState(activeK);
-        if (state === 'absent') statusText = absType.toUpperCase(); else if (state === 'semester') statusText = 'SEMESTER'; else if (state === 'ledig' || state === 'unplanned') statusText = 'LEDIG'; else statusText = 'ARBETSPASS';
+        if (state === 'absent') statusText = absType.toUpperCase(); else if (state === 'semester') statusText = 'SEMESTER'; else if (state === 'ledig' || state === 'unplanned') statusText = 'LEDIG'; else if (isMeetingDay(activeK)) statusText = 'MÖTE'; else statusText = 'ARBETSPASS';
         showActions = true; isReached = dTarget > 0 && dSales >= dTarget;
 
         const isToday = dObj.getTime() === realToday.getTime(); 
@@ -1062,9 +1065,10 @@ function updateDashboardView() {
         // månadsskifte hör till två budgetar, och då går summan inte att jämföra med något.
         // De dagarna är nedtonade i veckoremsan (.vp-other-month) – blurren betyder alltså
         // exakt "räknas mot nästa månad, inte här".
-        // Varje kommande pass bidrar med månadens JÄMNA takt, inte med sitt eget
-        // stegvärde. Då blir en 6-passvecka alltid 1,5 gånger en 4-passvecka, oavsett
-        // var i månaden de ligger. Passerade dagar bidrar med sitt historiska krav.
+        // Varje kommande pass bidrar med månadens jämna TIMTAKT gånger sina egna
+        // timmar, inte med sitt eget stegvärde. Då väger en lång vecka tyngre än en
+        // kort, och en helg mindre än en vardag. Passerade dagar bidrar med sitt
+        // historiska krav. Möten ger 0 timmar och räknas inte som pass.
         const pace = monthPace(viewDate.getFullYear(), viewDate.getMonth() + 1);
         let firstIn = null, lastIn = null;
         for(let i=0; i<7; i++) {
@@ -1074,7 +1078,11 @@ function updateDashboardView() {
             lastIn = new Date(cd);
             const k = getK(cd); const state = getCellState(k);
             dSales += (db.d[k]?.s || 0);
-            if(state === 'worked' || state === 'planned') { dTarget += (cd < realToday ? dayTarget(k) : pace); wPass++; }
+            if(state === 'worked' || state === 'planned') {
+                if (isMeetingDay(k)) continue;                       // möte: varken mål eller pass
+                dTarget += (cd < realToday ? dayTarget(k) : pace * salesHours(k));
+                wPass++;
+            }
         }
         const startD = firstIn || new Date(currentWeekStart);
         const endD = lastIn || new Date(currentWeekStart);
@@ -1207,8 +1215,12 @@ function createSliderCell(cd, k) {
         absBadge = `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`;
     }
 
+    // Möte (≤3 h): bär ingen budget, egen badge
+    let meetBadge = '';
+    if (!o.abs && isMeetingDay(k)) meetBadge = `<div class="u-badge badge-meet">\u{1F91D}</div>`;
+
     let keyBadge = '';
-    if (!o.abs && qData.start && qData.end) {
+    if (!o.abs && !isMeetingDay(k) && qData.start && qData.end) {
         let dayOfWeek = cd.getDay();
         let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
         const isClosing = (!isWeekend && qData.end.substring(0,5) === '19:30') ||
@@ -1234,7 +1246,7 @@ function createSliderCell(cd, k) {
         }
     }
 
-    cell.innerHTML = `${absBadge}${keyBadge}<span class="vp-name">${dayName}</span><span class="vp-date">${cd.getDate()}</span><span class="vp-val flex items-center justify-center">${valStr}</span>`;
+    cell.innerHTML = `${absBadge}${meetBadge}${keyBadge}<span class="vp-name">${dayName}</span><span class="vp-date">${cd.getDate()}</span><span class="vp-val flex items-center justify-center">${valStr}</span>`;
     return cell;
 }
 
@@ -1292,7 +1304,8 @@ function createDayCell(cd, k) {
     let b = '';
     if (dayOfWeek === 1) b += `<div class="week-tag">${getWeekNumber(cd)}</div>`;
     if (o.abs && o.s > 0) { let bKey = o.abs.split(' ')[0]; b += `<div class="u-badge badge-abs">${em[o.abs] || em[bKey] || '•'}</div>`; }
-    if (!o.abs && qData.start && qData.end) {
+    if (!o.abs && isMeetingDay(k)) b += `<div class="u-badge badge-meet">\u{1F91D}</div>`;   // möte: bär ingen budget
+    if (!o.abs && !isMeetingDay(k) && qData.start && qData.end) {
         let isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
         const isClosing = (!isWeekend && qData.end.substring(0,5) === '19:30') || (isWeekend && qData.end.substring(0,5) === '16:30');
         if (isClosing) { b += `<div class="u-badge badge-key">🔑</div>`; }
@@ -1322,7 +1335,7 @@ function computeNormalEndByWeekday() {
     for (let wd in counts) { let ne = null, mc = 0; for (let t2 in counts[wd]) { if (counts[wd][t2] > mc) { mc = counts[wd][t2]; ne = t2; } } best[wd] = ne; }
     return best;
 }
-function invalidateScheduleCache() { _normalEndCache = null; }
+function invalidateScheduleCache() { _normalEndCache = null; _hoursByWdCache = null; }
 
 function renderCal(y, m) { 
     const g = document.getElementById('d-cal'); if(!g) return;
@@ -1346,7 +1359,57 @@ function populateSlide(cId, sD) {
 
 function renderWeekSlides() { populateSlide('slide-curr', currentWeekStart); }
 
-// Månadens jämna takt per pass: vad som återstår att sälja delat på pass som återstår.
+// ============================================================
+//  SÄLJTIMMAR — budgeten fördelas per timme, inte per pass
+//  Ett söndagspass på 5,25 h ska inte bära lika mycket som en måndag på 9,6 h.
+//  Pass på MOTE_MAX_H timmar eller mindre är rena möten och bär ingen budget.
+// ============================================================
+const MOTE_MAX_H = 3;
+
+// Snittimmar per veckodag ur schemat. Samma cachemönster som computeNormalEndByWeekday().
+let _hoursByWdCache = null;
+function hoursByWeekday() {
+    if (_hoursByWdCache) return _hoursByWdCache;
+    const sum = {}, cnt = {};
+    for (const k2 in db.q) {
+        const h = db.q[k2] && db.q[k2].work_h;
+        if (!h || h <= MOTE_MAX_H) continue;          // möten ska inte dra ner snittet
+        const p = k2.split('-'); const wd = new Date(p[0], p[1]-1, p[2]).getDay();
+        sum[wd] = (sum[wd] || 0) + h; cnt[wd] = (cnt[wd] || 0) + 1;
+    }
+    const out = {};
+    for (const wd in sum) out[wd] = sum[wd] / cnt[wd];
+    _hoursByWdCache = out;
+    return out;
+}
+
+// Ett schemalagt pass räknas som möte först när vi VET timmarna. Fallbacken nedan
+// gissar, och en gissning får aldrig skapa ett fantommöte.
+function isMeetingDay(k) {
+    const h = db.q[k] && db.q[k].work_h;
+    return !!h && h <= MOTE_MAX_H;
+}
+
+// Timmar för en dag: schemat först, annars snittet för veckodagen, annars 8 h.
+// Fallbacken behövs för historik före schema.ics – utan den blir gamla dagar 0 i
+// mål och hela grön/röd-historiken röd.
+function dayHours(k) {
+    const q = db.q[k] || {};
+    if (q.work_h > 0) return q.work_h;
+    const p = k.split('-'); const wd = new Date(p[0], p[1]-1, p[2]).getDay();
+    const snitt = hoursByWeekday()[wd];
+    return snitt > 0 ? snitt : 8;
+}
+
+// Timmar som faktiskt bär budget. Möten och icke-arbetsdagar ger 0.
+function salesHours(k) {
+    const o = db.d[k] || {}, q = db.q[k] || {};
+    if (!(q.start || o.s > 0)) return 0;
+    if (isMeetingDay(k)) return 0;
+    return dayHours(k);
+}
+
+// Månadens jämna takt per TIMME: vad som återstår att sälja delat på säljtimmar kvar.
 // Detta är veckomålets byggsten. Dagsmålet är en stege (se calculateTimeline), men
 // veckan måste vara proportionell mot antal pass – annars kan en sen 4-passvecka få
 // högre mål än en tidig 6-passvecka. Därför egen formel här.
@@ -1359,13 +1422,13 @@ function monthPace(y, m) {
     // kommande försäljning dras INTE av här – veckomålet är ett mål du mäts mot,
     // inte en rest. Skulle det sjunka när du säljer räknades försäljningen två
     // gånger: en gång i målet och en gång i "sålt".
-    let saltFore = 0, passKvar = 0;
+    let saltFore = 0, timmarKvar = 0;
     for (let d = 1; d <= dim; d++) {
-        const k = `${y}-${m}-${d}`; const o = db.d[k] || {s:0}; const q = db.q[k] || {};
+        const k = `${y}-${m}-${d}`; const o = db.d[k] || {s:0};
         if (new Date(y, m-1, d) < realToday) saltFore += (o.s || 0);
-        else if (q.start || o.s > 0) passKvar++;
+        else timmarKvar += salesHours(k);
     }
-    return passKvar > 0 ? Math.max(0, (budget - saltFore) / passKvar) : 0;
+    return timmarKvar > 0 ? Math.max(0, (budget - saltFore) / timmarKvar) : 0;
 }
 
 // En vecka kan spänna över ett månadsskifte, och då hör halvorna till var sin budget.

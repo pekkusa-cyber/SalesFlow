@@ -1028,10 +1028,14 @@ function updateDashboardView() {
             statusMetaEl.innerText = metaText;
         }
     } else {
-        let wPass = 0, firstShiftTarget = null; let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6); const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
-        for(let i=0; i<7; i++) { const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); const k = getK(cd); const state = getCellState(k); dSales += (db.d[k]?.s || 0); if(state === 'worked' || state === 'planned') { if(firstShiftTarget === null) firstShiftTarget = dayTarget(k); wPass++; } }
+        let wPass = 0; let startD = new Date(currentWeekStart), endD = new Date(currentWeekStart); endD.setDate(endD.getDate() + 6); const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+        // Summera varje dags EGET mål. Tidigare togs första passets mål gånger antal pass,
+        // vilket antog att alla pass i veckan har samma mål. En vecka som spänner över ett
+        // månadsskifte fick då sista augustidagens mål (som bär hela månadens rest) pålagt
+        // även på septemberdagarna. calculateTimeline() räknar per månad, så varje dag
+        // hämtar automatiskt sin egen månads budget här.
         // dayTarget() är redan lättat när läget är på – ingen extra nedskalning här.
-        dTarget = (firstShiftTarget || 0) * wPass;
+        for(let i=0; i<7; i++) { const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i); const k = getK(cd); const state = getCellState(k); dSales += (db.d[k]?.s || 0); if(state === 'worked' || state === 'planned') { dTarget += dayTarget(k); wPass++; } }
         dDiff = dSales - dTarget; title = `VECKA ${getWeekNumber(currentWeekStart)}`; subtitle = `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`; statusText = "VÄLJ DAG..."; showActions = false; absType = null; isReached = dTarget > 0 && dSales >= dTarget; 
         const statusMetaEl = document.getElementById('dash-status-meta'); if(statusMetaEl) statusMetaEl.innerText = "";
         const btnEval = document.getElementById('btn-trigger-eval'); if(btnEval) btnEval.classList.add('hidden');
@@ -1088,6 +1092,10 @@ function createSliderCell(cd, k) {
     const isPast = cd < realToday, isToday = cd.getTime() === realToday.getTime(), state = getCellState(k);
     
     let cls = 'vp-cell';
+    // En vecka kan spänna över ett månadsskifte. Dagar utanför den månad som visas i
+    // toppen räknas mot sin EGEN månads budget, så de tonas ned. viewDate följer veckans
+    // torsdag (se navDay), alltså kan aldrig hela veckan hamna utanför.
+    if (cd.getMonth() !== viewDate.getMonth() || cd.getFullYear() !== viewDate.getFullYear()) cls += ' vp-other-month';
     if (o.abs) { cls += ' type-unplanned'; } 
     else if (state === 'ledig' || state === 'unplanned') { cls += ' type-unplanned'; } 
     else if (qData.start) { cls += ' type-planned'; }

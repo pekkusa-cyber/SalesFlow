@@ -2161,3 +2161,20 @@ html, body { background: var(--header-bg); overscroll-behavior: none; }
 @media (prefers-reduced-motion: reduce) {
     .app-bottom-nav::before { transition: background-color .2s linear; }
 }
+
+/* ============================================================
+   v84: veckoremsan – dagar utanför den visade månaden
+   En vecka kan spänna över ett månadsskifte. De dagarna hör till nästa
+   månads budget och räknas inte hit, så de tonas och suddas lätt.
+   ============================================================ */
+.vp-cell.vp-other-month {
+    opacity: .45;
+    filter: blur(1.2px) saturate(.6);
+    transition: opacity .25s var(--ease-emp), filter .25s var(--ease-emp);
+}
+/* Väljer man ändå en sådan dag ska den vara läsbar */
+.vp-cell.vp-other-month.active-focus,
+.vp-cell.vp-other-month:active {
+    opacity: 1;
+    filter: none;
+}

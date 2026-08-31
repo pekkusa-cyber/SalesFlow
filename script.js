@@ -751,15 +751,16 @@ function calculateTimeline() {
         let tW = 0; 
         for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {}; const qData = db.q[k] || {}; if (qData.start || o.s > 0) tW++; }
         if (tW === 0) tW = 21; 
-        // EN regel: alla pass som är KVAR i månaden delar samma dagsmål
-        //   (månadsbudget − sålt på avslutade dagar) / antal pass kvar
-        // Avslutade dagar behåller sitt historiska krav, så grön/röd historik står still.
+        // DAGSMÅLET ÄR EN STEGE, inte ett gemensamt tal. Varje pass svarar på:
+        // "vad krävs den här dagen om allt före den går som det står just nu?"
+        //   krav(dag) = (budget − sålt före dagen) / (pass kvar från och med dagen)
+        // Säljer du inget stiger kravet framåt, och når du sista passet utan att ha sålt
+        // något ligger hela budgeten där. Slår du in en siffra räknas alla senare dagar
+        // om direkt, eftersom db.d läses live.
         //
-        // Tidigare rullades framrullningen genom hela månaden, även framtida dagar. Då
-        // sjönk rP för varje pass medan rB bara minskade av faktisk försäljning, så målen
-        // skenade (240 000/20, /19, /18 … /1 = 240 000) trots att inget sålts och inget
-        // missats än. Det gjorde att en 4-passvecka kunde få högre mål än en 6-passvecka.
-        // Med ett gemensamt tal blir veckan automatiskt proportionell mot antalet pass.
+        // VECKOMÅLET får INTE vara summan av stegen – då blir en sen 4-passvecka större
+        // än en tidig 6-passvecka. Veckan använder monthPace() i stället, som fördelar
+        // månaden jämnt per pass. Två frågor, två formler.
         const rRatio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(cy, cm) : 0;
         const budget = getBudgetForMonth(cy, cm);
         let rB = budget, rP = tW;
@@ -781,32 +782,20 @@ function calculateTimeline() {
             }
         }
 
-        // Steg 2 – IDAG: kravet för dagen, låst medan dagen pågår. Det är måttstocken
-        // dagen bedöms mot (grön/röd), så det får inte flytta sig medan du säljer.
-        const per  = kvarPass > 0 ? Math.max(0, rB  / kvarPass) : 0;
-        const perR = kvarPass > 0 ? Math.max(0, rBr / kvarPass) : 0;
-
-        // Steg 3 – KOMMANDE pass: räknas om i realtid mot det du matat in idag.
-        // Svarar på "slutar du på X idag, vad krävs då per pass resten av månaden?".
-        // Har du inte sålt något stiger de – det är hela poängen, du ska se följden i
-        // förväg. Står allt kvar osålt när sista passet nås ligger hela budgeten där.
-        const todayInMonth = (realToday.getFullYear() === cy && realToday.getMonth() + 1 === cm);
-        const kToday   = todayInMonth ? `${cy}-${cm}-${realToday.getDate()}` : null;
-        const oToday   = kToday ? (db.d[kToday] || {s:0}) : {s:0};
-        const qToday   = kToday ? (db.q[kToday] || {}) : {};
-        const idagPass = !!(qToday.start || oToday.s > 0);
-        const framtidaPass = kvarPass - (todayInMonth && idagPass ? 1 : 0);
-        const saltIdag = oToday.s || 0;
-        const perNext  = framtidaPass > 0 ? Math.max(0, (rB  - saltIdag) / framtidaPass) : 0;
-        const perNextR = framtidaPass > 0 ? Math.max(0, (rBr - saltIdag) / framtidaPass) : 0;
-
+        // Steg 2 – idag och framåt: stegen fortsätter. Varje pass visar vad som krävs
+        // DEN dagen om allt före går som det står just nu. Har inget sålts stiger kravet
+        // framåt, och sista passet bär hela resten. Slår du in en siffra räknas alla
+        // senare dagar om direkt, eftersom db.d läses live här.
         for(let d=1; d<=daysM; d++) {
             if (new Date(cy, cm-1, d) < realToday) continue;
             const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {};
-            if (!(qData.start || o.s > 0)) { timeline[k] = { target: 0, targetRelief: 0 }; continue; }
-            const arIdag = todayInMonth && d === realToday.getDate();
-            timeline[k] = arIdag ? { target: per,     targetRelief: perR }
-                                 : { target: perNext, targetRelief: perNextR };
+            if (qData.start || o.s > 0) {
+                timeline[k] = { target: Math.max(0, rP > 0 ? rB / rP : 0), targetRelief: Math.max(0, rPr > 0 ? rBr / rPr : 0) };
+                rB -= o.s; rP--; rBr -= o.s; rPr--;
+            } else {
+                timeline[k] = { target: 0, targetRelief: 0 };
+                rB -= o.s; rBr -= o.s;
+            }
         }
     }
 }
@@ -1073,7 +1062,10 @@ function updateDashboardView() {
         // månadsskifte hör till två budgetar, och då går summan inte att jämföra med något.
         // De dagarna är nedtonade i veckoremsan (.vp-other-month) – blurren betyder alltså
         // exakt "räknas mot nästa månad, inte här".
-        // dayTarget() är redan lättat när läget är på – ingen extra nedskalning här.
+        // Varje kommande pass bidrar med månadens JÄMNA takt, inte med sitt eget
+        // stegvärde. Då blir en 6-passvecka alltid 1,5 gånger en 4-passvecka, oavsett
+        // var i månaden de ligger. Passerade dagar bidrar med sitt historiska krav.
+        const pace = monthPace(viewDate.getFullYear(), viewDate.getMonth() + 1);
         let firstIn = null, lastIn = null;
         for(let i=0; i<7; i++) {
             const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i);
@@ -1082,7 +1074,7 @@ function updateDashboardView() {
             lastIn = new Date(cd);
             const k = getK(cd); const state = getCellState(k);
             dSales += (db.d[k]?.s || 0);
-            if(state === 'worked' || state === 'planned') { dTarget += dayTarget(k); wPass++; }
+            if(state === 'worked' || state === 'planned') { dTarget += (cd < realToday ? dayTarget(k) : pace); wPass++; }
         }
         const startD = firstIn || new Date(currentWeekStart);
         const endD = lastIn || new Date(currentWeekStart);
@@ -1353,6 +1345,28 @@ function populateSlide(cId, sD) {
 }
 
 function renderWeekSlides() { populateSlide('slide-curr', currentWeekStart); }
+
+// Månadens jämna takt per pass: vad som återstår att sälja delat på pass som återstår.
+// Detta är veckomålets byggsten. Dagsmålet är en stege (se calculateTimeline), men
+// veckan måste vara proportionell mot antal pass – annars kan en sen 4-passvecka få
+// högre mål än en tidig 6-passvecka. Därför egen formel här.
+function monthPace(y, m) {
+    const dim = new Date(y, m, 0).getDate();
+    const ratio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(y, m) : 0;
+    let budget = getBudgetForMonth(y, m);
+    if (dashRelief && ratio > 0) budget = Math.round(budget * (1 - ratio));
+    // Pengar kvar delat på pass kvar, räknat från AVSLUTADE dagar. Dagens och
+    // kommande försäljning dras INTE av här – veckomålet är ett mål du mäts mot,
+    // inte en rest. Skulle det sjunka när du säljer räknades försäljningen två
+    // gånger: en gång i målet och en gång i "sålt".
+    let saltFore = 0, passKvar = 0;
+    for (let d = 1; d <= dim; d++) {
+        const k = `${y}-${m}-${d}`; const o = db.d[k] || {s:0}; const q = db.q[k] || {};
+        if (new Date(y, m-1, d) < realToday) saltFore += (o.s || 0);
+        else if (q.start || o.s > 0) passKvar++;
+    }
+    return passKvar > 0 ? Math.max(0, (budget - saltFore) / passKvar) : 0;
+}
 
 // En vecka kan spänna över ett månadsskifte, och då hör halvorna till var sin budget.
 // Slutar månaden på en onsdag blir det mån–ons i ena månaden och tors–sön i den andra.

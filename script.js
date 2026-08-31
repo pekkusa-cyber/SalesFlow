@@ -59,6 +59,42 @@ try { if (typeof supabase !== 'undefined') { sb = supabase.createClient(SB_URL, 
 //  HELPER FUNCTIONS
 // ==========================================
 function getK(d) { return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+// Kanonisk dagsnyckel. Appen skriver alltid opaddat (2026-5-10) via getK(), men
+// databasen innehåller även paddade nycklar (2026-05-10) från en äldre version.
+// De raderna blev osynliga eftersom uppslagen sker med opaddat format.
+function normK(k) {
+    if (!k) return k;
+    const p = String(k).split('-');
+    if (p.length !== 3) return k;
+    const y = +p[0], m = +p[1], d = +p[2];
+    if (!y || !m || !d) return k;
+    return y + '-' + m + '-' + d;
+}
+// Slår ihop två rader som visade sig vara samma dag i olika nyckelformat.
+// Den rad som faktiskt bär data vinner – en tom spökrad får aldrig skriva
+// över riktiga siffror, oavsett vilken ordning de kom i från databasen.
+function mergeDayRow(a, b) {
+    const score = r => (r.s > 0 ? 4 : 0) + (r.abs ? 2 : 0) + (r.eval ? 1 : 0);
+    const hi = score(b) > score(a) ? b : a;
+    const lo = hi === b ? a : b;
+    const pick = (x, y) => (x !== null && x !== undefined && x !== '' ? x : y);
+    // Beskriver vinnaren dagen på riktigt (försäljning eller egen frånvaro)? Då gäller
+    // dess besked om status/frånvaro även när fältet är tomt – annars kunde en spökrad
+    // lägga 'Ledig' på en dag med försäljning. Bara en helt tom vinnare fyller på från förloraren.
+    const hiDescribes = hi.s > 0 || !!hi.abs;
+    return {
+        st:        hiDescribes ? hi.st : pick(hi.st, lo.st),
+        s:         hi.s || lo.s || 0,
+        abs:       hiDescribes ? hi.abs : lo.abs,
+        src:       hi.src,
+        raw:       pick(hi.raw, lo.raw),
+        fk_perc:   pick(hi.fk_perc, lo.fk_perc),
+        abs_hours: pick(hi.abs_hours, lo.abs_hours),
+        eval:      hi.eval || lo.eval || null,
+        eval_text: '',
+        has_eval_saved: !!(hi.eval || lo.eval)
+    };
+}
 function parseNum(val) { if (val === undefined || val === null || val === '') return 0; if (typeof val === 'number') return val; let str = String(val).replace(/\s/g, '').replace(',', '.'); let num = parseFloat(str); return isNaN(num) ? 0 : num; }
 
 function getBudgetForMonth(y, m) { return savedBudgets[`${y}-${m}`] || 240000; }
@@ -443,9 +479,13 @@ async function loadAllData() {
 
             if (salesRes.data) {
                 db.d = {};
-                salesRes.data.forEach(r => db.d[r.date_key] = { 
-                    st: r.status, s: parseNum(r.sales), abs: r.is_absent, src: r.is_absent === 'Åtgärd krävs' ? 'Auto' : 'Manual', raw: r.raw_reason || r.is_absent || '', fk_perc: r.fk_perc, abs_hours: r.abs_hours,
-                    eval: r.eval_data || null, eval_text: '', has_eval_saved: !!r.eval_data
+                salesRes.data.forEach(r => {
+                    const k = normK(r.date_key);
+                    const row = {
+                        st: r.status, s: parseNum(r.sales), abs: r.is_absent, src: r.is_absent === 'Åtgärd krävs' ? 'Auto' : 'Manual', raw: r.raw_reason || r.is_absent || '', fk_perc: r.fk_perc, abs_hours: r.abs_hours,
+                        eval: r.eval_data || null, eval_text: '', has_eval_saved: !!r.eval_data
+                    };
+                    db.d[k] = db.d[k] ? mergeDayRow(db.d[k], row) : row;
                 });
             }
 
@@ -1330,7 +1370,10 @@ function absFocusType(reason){
     currentFocusReason = reason;
     document.body.classList.add('focus-mode-active');
     const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1;
-    let n = 0; Object.keys(db.d).forEach(k => { const p = k.split('-'); if (+p[0]===cy && +p[1]===cm) { const o = db.d[k]; if (o && o.abs && o.abs.includes(reason)) n++; } });
+    // Nycklarna är kanoniska sedan inläsningen, så jämför exakt i stället för att
+    // tala om +'05'===5 – annars räknades rader i gammalt paddat format med här,
+    // trots att kalendern inte kunde markera dem.
+    let n = 0; Object.keys(db.d).forEach(k => { const p = k.split('-'); if (p[0]===String(cy) && p[1]===String(cm)) { const o = db.d[k]; if (o && o.abs && o.abs.includes(reason)) n++; } });
     setFocusInfo(`<span class="fi-emoji">${focusEmoji(reason)}</span><span class="fi-main">${reason}</span><span class="fi-meta">${n} ${n===1?'dag':'dagar'} denna månad</span>`);
     if (typeof window.calSeg === 'function') window.calSeg('month');
 }
@@ -2978,8 +3021,12 @@ function calculateSummaryStats() {
         const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const tgt = dayTarget(k); const qData = db.q[k] || {};
         
         if ((o.s > 0) || (qData.start && !o.abs && o.st !== 'Ledig' && o.st !== 'Semester')) { wDays++; f_work.push(k); }
-        if (o.abs && !o.abs.includes('Semester') && o.abs !== 'Åtgärd krävs') { aDays++; let baseAbs = o.abs.split(' ')[0]; absCounts[baseAbs] = (absCounts[baseAbs] || 0) + 1; }
-        if (o.abs && o.abs !== 'Åtgärd krävs') { f_abs.push(k); const full = o.abs; (f_reasons[full] = f_reasons[full] || []).push(k); }
+        // Samma definition av frånvaro som getMonthAbsenceBreakdown() och lönen använder.
+        // 'Ledig' skrivs till o.abs av handleDashAction/checkOverwriteFromPopup men är
+        // ingen frånvaro – utan filtret räknades lediga dagar in här men inte i Frånvaro-vyn.
+        const isAbs = !!(o.abs && ABS_TYPES.some(a => o.abs.includes(a)));
+        if (isAbs && !o.abs.includes('Semester') && o.abs !== 'Åtgärd krävs') { aDays++; let baseAbs = o.abs.split(' ')[0]; absCounts[baseAbs] = (absCounts[baseAbs] || 0) + 1; }
+        if (isAbs && o.abs !== 'Åtgärd krävs') { f_abs.push(k); const full = o.abs; (f_reasons[full] = f_reasons[full] || []).push(k); }
         
         if (o.s > 0) {
             if (o.s > bestS) { bestS = o.s; bestD = `${d}/${cm}`; f_bestKey = k; }

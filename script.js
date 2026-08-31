@@ -781,14 +781,32 @@ function calculateTimeline() {
             }
         }
 
-        // Steg 2 – idag och framåt: ett och samma tal på varje kvarvarande pass.
+        // Steg 2 – IDAG: kravet för dagen, låst medan dagen pågår. Det är måttstocken
+        // dagen bedöms mot (grön/röd), så det får inte flytta sig medan du säljer.
         const per  = kvarPass > 0 ? Math.max(0, rB  / kvarPass) : 0;
         const perR = kvarPass > 0 ? Math.max(0, rBr / kvarPass) : 0;
+
+        // Steg 3 – KOMMANDE pass: räknas om i realtid mot det du matat in idag.
+        // Svarar på "slutar du på X idag, vad krävs då per pass resten av månaden?".
+        // Har du inte sålt något stiger de – det är hela poängen, du ska se följden i
+        // förväg. Står allt kvar osålt när sista passet nås ligger hela budgeten där.
+        const todayInMonth = (realToday.getFullYear() === cy && realToday.getMonth() + 1 === cm);
+        const kToday   = todayInMonth ? `${cy}-${cm}-${realToday.getDate()}` : null;
+        const oToday   = kToday ? (db.d[kToday] || {s:0}) : {s:0};
+        const qToday   = kToday ? (db.q[kToday] || {}) : {};
+        const idagPass = !!(qToday.start || oToday.s > 0);
+        const framtidaPass = kvarPass - (todayInMonth && idagPass ? 1 : 0);
+        const saltIdag = oToday.s || 0;
+        const perNext  = framtidaPass > 0 ? Math.max(0, (rB  - saltIdag) / framtidaPass) : 0;
+        const perNextR = framtidaPass > 0 ? Math.max(0, (rBr - saltIdag) / framtidaPass) : 0;
+
         for(let d=1; d<=daysM; d++) {
             if (new Date(cy, cm-1, d) < realToday) continue;
             const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {};
-            const isW = (qData.start || o.s > 0);
-            timeline[k] = isW ? { target: per, targetRelief: perR } : { target: 0, targetRelief: 0 };
+            if (!(qData.start || o.s > 0)) { timeline[k] = { target: 0, targetRelief: 0 }; continue; }
+            const arIdag = todayInMonth && d === realToday.getDate();
+            timeline[k] = arIdag ? { target: per,     targetRelief: perR }
+                                 : { target: perNext, targetRelief: perNextR };
         }
     }
 }
@@ -1023,6 +1041,7 @@ function updateDashboardView() {
             }
         }
 
+        const halfBtnDay = document.getElementById('btn-week-half'); if (halfBtnDay) halfBtnDay.classList.add('hidden');
         const btnEval = document.getElementById('btn-trigger-eval');
         if (btnEval) {
             if (qData.start && state !== 'ledig' && state !== 'semester') { 
@@ -1074,6 +1093,18 @@ function updateDashboardView() {
             ? `${startD.getDate()} ${months[startD.getMonth()]} (${wPass} Pass)`
             : `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`;
         statusText = "VÄLJ DAG..."; showActions = false; absType = null; isReached = dTarget > 0 && dSales >= dTarget;
+        // Delad vecka: knapp som växlar till den andra månadens halva
+        const halfBtn = document.getElementById('btn-week-half');
+        if (halfBtn) {
+            const other = otherWeekHalf();
+            if (other) {
+                const f = other.days[0], l = other.days[other.days.length - 1];
+                halfBtn.innerText = (f.getTime() === l.getTime())
+                    ? `${f.getDate()} ${months[f.getMonth()]} ›`
+                    : `${f.getDate()}–${l.getDate()} ${months[l.getMonth()]} ›`;
+                halfBtn.classList.remove('hidden');
+            } else halfBtn.classList.add('hidden');
+        }
         const statusMetaEl = document.getElementById('dash-status-meta'); if(statusMetaEl) statusMetaEl.innerText = "";
         const btnEval = document.getElementById('btn-trigger-eval'); if(btnEval) btnEval.classList.add('hidden');
     }
@@ -1322,6 +1353,34 @@ function populateSlide(cId, sD) {
 }
 
 function renderWeekSlides() { populateSlide('slide-curr', currentWeekStart); }
+
+// En vecka kan spänna över ett månadsskifte, och då hör halvorna till var sin budget.
+// Slutar månaden på en onsdag blir det mån–ons i ena månaden och tors–sön i den andra.
+function weekHalves() {
+    const halves = [];
+    for (let i = 0; i < 7; i++) {
+        const cd = new Date(currentWeekStart); cd.setDate(currentWeekStart.getDate() + i);
+        const key = cd.getFullYear() + '-' + (cd.getMonth() + 1);
+        let h = halves.find(x => x.key === key);
+        if (!h) { h = { key, y: cd.getFullYear(), m: cd.getMonth() + 1, days: [] }; halves.push(h); }
+        h.days.push(new Date(cd));
+    }
+    return halves;
+}
+// Den halva som INTE visas just nu (null om veckan ligger i en enda månad)
+function otherWeekHalf() {
+    return weekHalves().find(h => h.m !== (viewDate.getMonth() + 1) || h.y !== viewDate.getFullYear()) || null;
+}
+// Växla veckokortet till den andra halvan. Hela vyn följer med till den månadens
+// budget, för det är den halvans mål som ska visas.
+function switchWeekHalf() {
+    const other = otherWeekHalf(); if (!other) return;
+    viewDate = new Date(other.y, other.m - 1, 1);
+    db.b = getBudgetForMonth(other.y, other.m);
+    activeK = null;
+    calculateTimeline(); updateDash();
+}
+window.switchWeekHalf = switchWeekHalf;
 function getWeekNumber(d) { d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); return Math.ceil((((d - new Date(Date.UTC(d.getUTCFullYear(), 0, 1))) / 86400000) + 1) / 7); }
 
 let absFilterSet = new Set();

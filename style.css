@@ -2178,3 +2178,14 @@ html, body { background: var(--header-bg); overscroll-behavior: none; }
     opacity: 1;
     filter: none;
 }
+
+/* Växla mellan veckans två halvor när den spänner över ett månadsskifte */
+.week-half-btn {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 4px 9px; border-radius: 11px;
+    background: var(--g-blue-soft); color: var(--g-blue);
+    border: 1px solid color-mix(in srgb, var(--g-blue) 18%, transparent);
+    font-size: 9.5px; font-weight: 800; letter-spacing: .02em; white-space: nowrap;
+    transition: background-color .2s var(--ease-emp), transform .15s var(--ease-emp);
+}
+.week-half-btn:active { transform: scale(.94); background: var(--g-blue-tint); }

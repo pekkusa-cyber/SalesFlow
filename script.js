@@ -434,6 +434,17 @@ function processParsedEvent(ev, desc) {
                       'sjuk','tjänstled','tjanstled','permission','komp','frånvaro','franvaro'];
     if (fullText.includes("sen ankomst") || fullText.includes("tidig hemgång")) { isWork = true; }
     else if (ledigOrd.some(w => fullText.includes(w))) { isLedig = true; }
+    // Quinyx NAMNGER vissa frånvarotyper ("q: 07 Semester mer än 5 dagar") men skickar
+    // andra som helt generisk "q: ledighet". De namngivna kan vi sätta direkt; resten
+    // måste du tagga själv, och flaggas som "Åtgärd krävs".
+    let ledigTyp = null;
+    if (isLedig) {
+        if (fullText.includes('semester')) ledigTyp = 'Semester';
+        else if (fullText.includes('vab') || fullText.includes('vård av barn')) ledigTyp = 'VAB';
+        else if (fullText.includes('föräldraled') || fullText.includes('foraldraled')) ledigTyp = 'Föräldraledig';
+        else if (fullText.includes('sjuk')) ledigTyp = 'Sjuk';
+        else if (fullText.includes('tjänstled') || fullText.includes('tjanstled')) ledigTyp = 'Tjänstledig';
+    }
     else if (fullText.includes("sales") || fullText.includes("cross tech") || fullText.includes("arbetspass") || fullText.includes("q:")) { isWork = true; }
 
     let sdParts = ev.start.dateKey.split('-'); let sd = new Date(parseInt(sdParts[0]), parseInt(sdParts[1])-1, parseInt(sdParts[2]));
@@ -446,7 +457,20 @@ function processParsedEvent(ev, desc) {
         duration = (d2.getTime() - d1.getTime()) / 3600000; if(duration < 0) duration = 0;
     }
 
-    const k = `${sd.getFullYear()}-${sd.getMonth() + 1}-${sd.getDate()}`;
+    // Heldagsevent i Quinyx är flerdagarsblock och DTEND är EXKLUSIVT: 27/7 → 10/8
+    // betyder t.o.m. 9/8. Tidigare registrerades bara startdagen, så 13 av 14
+    // semesterdagar i det blocket försvann helt ur appen.
+    const dagar = [];
+    if (!ev.start.hasTime && ev.end && ev.end.dateKey) {
+        const ep = ev.end.dateKey.split('-');
+        const slut = new Date(parseInt(ep[0]), parseInt(ep[1])-1, parseInt(ep[2]));
+        for (let cur = new Date(sd); cur < slut; cur.setDate(cur.getDate() + 1)) {
+            dagar.push(`${cur.getFullYear()}-${cur.getMonth() + 1}-${cur.getDate()}`);
+        }
+    }
+    if (!dagar.length) dagar.push(`${sd.getFullYear()}-${sd.getMonth() + 1}-${sd.getDate()}`);
+
+    for (const k of dagar) {
     if (!db.q[k]) db.q[k] = { work_h: 0, ledig_h: 0, ledigPeriods: [] };
     if (!db.q[k].ledigPeriods) db.q[k].ledigPeriods = [];
     if (isWork) {
@@ -461,9 +485,12 @@ function processParsedEvent(ev, desc) {
         // Måste också in i schemaminnet, annars tappas semesteravdraget vid nästa import.
         if (duration > 0) schedMemory[k] = 1;
         db.q[k].ledig_h += duration; 
+        if (!ev.start.hasTime) db.q[k].ledigHeldag = true;   // heldag: inga timmar, hela dagen borta
+        if (ledigTyp) db.q[k].ledigTyp = db.q[k].ledigTyp || ledigTyp;
         if (ev.start.hasTime && endStr) {
             db.q[k].ledigPeriods.push({ start: ev.start.time, end: endStr });
         }
+    }
     }
 }
 
@@ -547,26 +574,47 @@ async function loadAllData() {
         let upserts = [];
         for (let k in db.q) {
             let qd = db.q[k];
-            if (qd.ledig_h > 0) {
-                let total = qd.work_h + qd.ledig_h; let actual_perc = total > 0 ? (qd.ledig_h / total) * 100 : 100;
-                let fk_perc = 0; if (actual_perc >= 100) fk_perc = 100; else if (actual_perc >= 75) fk_perc = 75; else if (actual_perc >= 50) fk_perc = 50; else if (actual_perc >= 25) fk_perc = 25; else fk_perc = 0;
-                qd.actual_perc = actual_perc; qd.fk_perc = fk_perc; qd.abs_hours = qd.ledig_h;
-                
+            // Deldagsledighet under en halvtimme är rast-/avrundningsbrus, inte frånvaro.
+            const MIN_LEDIG_H = 0.5;
+            const heldag = !!qd.ledigHeldag && !(qd.ledig_h > 0);
+            if (qd.ledig_h >= MIN_LEDIG_H || heldag) {
+                let fk_perc, absH;
+                if (heldag) {
+                    // Hela dagen borta. abs_hours null = heldag enligt isWholeDayAbsence().
+                    fk_perc = 100; absH = null; qd.actual_perc = 100;
+                } else {
+                    let total = qd.work_h + qd.ledig_h; let actual_perc = total > 0 ? (qd.ledig_h / total) * 100 : 100;
+                    fk_perc = 0; if (actual_perc >= 100) fk_perc = 100; else if (actual_perc >= 75) fk_perc = 75; else if (actual_perc >= 50) fk_perc = 50; else if (actual_perc >= 25) fk_perc = 25; else fk_perc = 0;
+                    qd.actual_perc = actual_perc; absH = qd.ledig_h;
+                }
+                qd.fk_perc = fk_perc; qd.abs_hours = absH;
+
+                // Quinyx namngav typen? Sätt den direkt. Annars "Åtgärd krävs" så du
+                // taggar den själv med ett tryck – flödet kan inte gissa VAB, det ordet
+                // finns helt enkelt inte i webcal-flödet.
+                const typ = qd.ledigTyp || 'Åtgärd krävs';
+                const raw = heldag ? (qd.ledigTyp ? qd.ledigTyp : 'Frånvaro heldag')
+                                   : `Frånvaro ${qd.ledig_h.toFixed(2)}h`;
+
                 let existing = db.d[k]; let needsFlag = false;
                 if (!existing) { needsFlag = true; } 
                 else {
                     const validAbsences = ['Sjuk', 'VAB', 'VAB Belma', 'VAB Wilma', 'Föräldraledig', 'Föräldraledig Belma', 'Föräldraledig Wilma', 'Semester', 'Tjänstledig'];
                     const hasValidAbsence = existing.abs && validAbsences.some(a => existing.abs.includes(a));
-                    if (!hasValidAbsence && existing.abs !== 'Åtgärd krävs') { if (!(existing.st === 'Arbete' && existing.s > 0)) { needsFlag = true; } }
+                    // Har du själv markerat dagen som Ledig är det ditt svar – rör den inte.
+                    const egetValLedig = existing.src === 'Manual' && existing.abs === 'Ledig';
+                    // Dagar där du sålt flaggas numera också: man kan gå hem för VAB mitt
+                    // i ett pass och ändå ha sålt före det (31 aug var precis så).
+                    if (!hasValidAbsence && !egetValLedig && existing.abs !== 'Åtgärd krävs') needsFlag = true;
                 }
 
                 if (needsFlag) {
-                    db.d[k] = { st: 'Arbete', s: existing?.s || 0, abs: 'Åtgärd krävs', src: 'Auto', raw: `Frånvaro ${qd.ledig_h.toFixed(2)}h`, fk_perc: fk_perc, abs_hours: qd.ledig_h, eval: existing?.eval || null, eval_text: '', has_eval_saved: !!existing?.eval };
-                    upserts.push({ date_key: k, status: 'Arbete', sales: existing?.s || 0, is_absent: 'Åtgärd krävs', raw_reason: `Frånvaro ${qd.ledig_h.toFixed(2)}h`, fk_perc: fk_perc, abs_hours: qd.ledig_h, eval_data: existing?.eval || null });
+                    db.d[k] = { st: 'Arbete', s: existing?.s || 0, abs: typ, src: 'Auto', raw: raw, fk_perc: fk_perc, abs_hours: absH, eval: existing?.eval || null, eval_text: '', has_eval_saved: !!existing?.eval };
+                    upserts.push({ date_key: k, status: 'Arbete', sales: existing?.s || 0, is_absent: typ, raw_reason: raw, fk_perc: fk_perc, abs_hours: absH, eval_data: existing?.eval || null });
                 } else if (existing && existing.src === 'Manual') {
                     if(existing.fk_perc == null || existing.abs_hours == null) {
-                         existing.fk_perc = fk_perc; existing.abs_hours = qd.ledig_h;
-                         upserts.push({ date_key: k, status: existing.st, sales: existing.s, is_absent: existing.abs, raw_reason: existing.raw, fk_perc: fk_perc, abs_hours: qd.ledig_h, eval_data: existing.eval || null });
+                         existing.fk_perc = fk_perc; existing.abs_hours = absH;
+                         upserts.push({ date_key: k, status: existing.st, sales: existing.s, is_absent: existing.abs, raw_reason: existing.raw, fk_perc: fk_perc, abs_hours: absH, eval_data: existing.eval || null });
                     }
                 }
             }

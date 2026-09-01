@@ -74,7 +74,11 @@ function normK(k) {
 // Den rad som faktiskt bär data vinner – en tom spökrad får aldrig skriva
 // över riktiga siffror, oavsett vilken ordning de kom i från databasen.
 function mergeDayRow(a, b) {
-    const score = r => (r.s > 0 ? 4 : 0) + (r.abs ? 2 : 0) + (r.eval ? 1 : 0);
+    // Riktig frånvarotyp > eget val 'Ledig' > ingenting. Med en platt abs-poäng blev
+    // 'Föräldraledig Wilma' mot en spökrads 'Ledig' oavgjort, och då avgjorde
+    // radordningen från databasen vilken som vann.
+    const absRang = a => !a ? 0 : (ABS_TYPES.some(t => a.includes(t)) ? 3 : 1);
+    const score = r => (r.s > 0 ? 8 : 0) + absRang(r.abs) * 2 + (r.eval ? 1 : 0);
     const hi = score(b) > score(a) ? b : a;
     const lo = hi === b ? a : b;
     const pick = (x, y) => (x !== null && x !== undefined && x !== '' ? x : y);
@@ -512,8 +516,13 @@ async function loadAllData() {
                 db.d = {};
                 salesRes.data.forEach(r => {
                     const k = normK(r.date_key);
+                    // 'Arbete' i is_absent är alltid gammalt skräp – appen skriver null för
+                    // arbetsdagar (se handleDashAction). Samtliga förekomster ligger i
+                    // spökrader med paddad nyckel, och utan den här raden vinner spöket
+                    // över den riktiga dagen och passet försvinner ur kalendern.
+                    const absVarde = (r.is_absent === 'Arbete') ? null : r.is_absent;
                     const row = {
-                        st: r.status, s: parseNum(r.sales), abs: r.is_absent, src: r.is_absent === 'Åtgärd krävs' ? 'Auto' : 'Manual', raw: r.raw_reason || r.is_absent || '', fk_perc: r.fk_perc, abs_hours: r.abs_hours,
+                        st: r.status, s: parseNum(r.sales), abs: absVarde, src: absVarde === 'Åtgärd krävs' ? 'Auto' : 'Manual', raw: r.raw_reason || absVarde || '', fk_perc: r.fk_perc, abs_hours: r.abs_hours,
                         eval: r.eval_data || null, eval_text: '', has_eval_saved: !!r.eval_data
                     };
                     db.d[k] = db.d[k] ? mergeDayRow(db.d[k], row) : row;

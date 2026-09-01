@@ -467,6 +467,10 @@ function processParsedEvent(ev, desc) {
     }
 }
 
+// Vilken källa schemat kom från senast: 'live' (Quinyx via edge-funktionen)
+// eller 'backup' (schema.ics i repot). Visas i Synkronisera-knappens kvittens.
+let scheduleSource = null;
+
 async function loadAllData() {
     try {
         if (sb) {
@@ -507,8 +511,24 @@ async function loadAllData() {
             }
         }
 
-        const response = await fetch("https://raw.githubusercontent.com/pekkusa-cyber/SalesFlow/main/schema.ics?t=" + Date.now()); 
-        if(!response.ok) throw new Error("Kunde inte hämta ICS"); const text = await response.text();
+        // Schemat hämtas i två steg. Först LIVE från Quinyx via edge-funktionen
+        // refresh-schedule – webbläsaren kan inte gå dit direkt, Quinyx skickar
+        // ingen Access-Control-Allow-Origin. Svarar den inte faller vi tillbaka på
+        // schema.ics i repot, som GitHub-actionen uppdaterar 19:00 varje kväll.
+        let text = null;
+        try {
+            const live = await fetch(SB_URL + "/functions/v1/refresh-schedule", { cache: 'no-store' });
+            if (live.ok) {
+                const t = await live.text();
+                if (t.includes('BEGIN:VCALENDAR')) { text = t; scheduleSource = 'live'; }
+            }
+        } catch(e) { /* nätverksfel – reserven nedan tar över */ }
+        if (text === null) {
+            const response = await fetch("https://raw.githubusercontent.com/pekkusa-cyber/SalesFlow/main/schema.ics?t=" + Date.now());
+            if(!response.ok) throw new Error("Kunde inte hämta ICS");
+            text = await response.text();
+            scheduleSource = 'backup';
+        }
         
         db.q = {}; invalidateScheduleCache(); const lines = text.split(/\r?\n/); let inEvent = false; let event = {}; let fullDesc = "";
         for (let i = 0; i < lines.length; i++) {
@@ -568,10 +588,13 @@ async function loadAllData() {
 async function syncData() {
     const btn = document.getElementById('sync-btn'); if(!btn) return;
     const oldTxt = btn.innerHTML; btn.innerHTML = '<span>⚡</span> SYNKAR...';
+    scheduleSource = null;
     await loadAllData(); calculateTimeline(); updateDash(); 
     if (viewMode === 'dash') updateDashboardView();
     else if (viewMode === 'absence') renderAbsence();
     setTimeout(() => { btn.innerHTML = oldTxt; }, 800);
+    if (scheduleSource === 'live') showToast('✅', 'Schemat hämtat direkt från Quinyx', 2200);
+    else if (scheduleSource === 'backup') showToast('⚠️', 'Quinyx svarade inte – använde gårdagens schema', 3000);
 }
 
 // ==========================================

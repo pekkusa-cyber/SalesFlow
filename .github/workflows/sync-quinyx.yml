@@ -1,8 +1,12 @@
 name: Sync Quinyx Schedule
 on:
+  # GitHub kör cron i UTC, och Sverige växlar mellan UTC+1 och UTC+2.
+  # En enda cron kan därför inte träffa 19:00 svensk tid året om, så vi kör
+  # båda tiderna och låter jobbet självt avgöra vilken som är rätt just idag.
   schedule:
-    - cron: '0 20 * * *' # Körs varje kväll kl 20:00
-  workflow_dispatch:      # Gör att du kan köra den manuellt från GitHub
+    - cron: '0 17 * * *'   # = 19:00 svensk tid under sommartid (CEST, UTC+2)
+    - cron: '0 18 * * *'   # = 19:00 svensk tid under vintertid (CET, UTC+1)
+  workflow_dispatch:       # Manuell körning från Actions-fliken
 
 jobs:
   sync:
@@ -10,15 +14,32 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Rätt timme i Sverige?
+        id: gate
+        run: |
+          # Manuell körning ska alltid gå igenom. Schemalagd körning bara när
+          # klockan faktiskt är 19 i Stockholm - då hoppar den "fel" cron:en över.
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          elif [ "$(TZ=Europe/Stockholm date +%H)" = "19" ]; then
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "Klockan är $(TZ=Europe/Stockholm date +%H:%M) i Sverige - hoppar över."
+            echo "run=no" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout repository
+        if: steps.gate.outputs.run == 'yes'
         uses: actions/checkout@v4
-      
+
       - name: Fetch Quinyx Webcal
+        if: steps.gate.outputs.run == 'yes'
         run: |
           # Vi kör utan User-Agent för att Quinyx ska skicka med fullständig data
           curl -L "https://app.quinyx.com/webcal/?id=a4bee41611fc30679551a7a595abe310" -o schema.ics
-      
+
       - name: Commit and push changes
+        if: steps.gate.outputs.run == 'yes'
         run: |
           git config --global user.name 'GitHub Action'
           git config --global user.email 'action@github.com'

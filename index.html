@@ -19,7 +19,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=91">
+    <link rel="stylesheet" href="style.css?v=92">
 </head>
 <body class="mode-dash">
 
@@ -240,6 +240,14 @@
                     <span id="sum-streak" class="md-row-val">0 🔥</span>
                 </div>
 
+                <div id="sum-boost-row" class="md-row-card md-row-blue hidden">
+                    <div class="flex flex-col">
+                        <span class="md-row-title">⚡ Boostade dagar</span>
+                        <span id="sum-boost-sub" class="md-row-sub">--</span>
+                    </div>
+                    <span id="sum-boost-val" class="md-row-val">0 ⚡</span>
+                </div>
+
                 <div id="sum-bestweek-container" onclick="focusFromSummary('week')" class="md-row-card md-row-indigo sum-clickable">
                     <div class="flex flex-col">
                         <span class="md-row-title">Bästa veckan</span>
@@ -276,6 +284,19 @@
         </div>
     </div>
 
+    <!-- BOOST-VAL (långtryck på boost-pillen) -->
+    <div id="boost-modal" class="md-scrim fixed inset-0 z-[37500] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="md-dialog w-full max-w-[330px]">
+            <div class="md-dialog-header">
+                <h2 class="md-dialog-title flex items-center gap-2">⚡ Höj ribban</h2>
+                <button onclick="closeBoostModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <p id="boost-modal-sub" class="lon-hint" style="margin:-4px 0 10px"></p>
+            <div id="boost-options" class="flex flex-col gap-2"></div>
+            <button id="boost-clear" onclick="clearBoost(activeK); closeBoostModal();" class="md-btn-text mt-2">Ta bort boosten</button>
+        </div>
+    </div>
+
     <!-- BARN VAL -->
     <div id="child-select-modal" class="md-scrim fixed inset-0 z-[25000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="md-dialog w-[300px]" id="child-modal-content">
@@ -306,6 +327,10 @@
                 <button onclick="setGlobalBudget(240000)" class="md-budget-btn">240 000 kr</button>
                 <button onclick="setGlobalBudget(350000)" class="md-budget-btn">350 000 kr</button>
             </div>
+            <div class="md-divider"></div>
+            <p class="md-section-lbl text-center">Boost per tryck</p>
+            <input id="boost-step" type="number" inputmode="numeric" step="500" class="md-input" onchange="setBoostStep(this.value)" placeholder="3000">
+            <p id="boost-step-hint" class="lon-hint" style="margin-top:4px"></p>
             <p id="app-version" class="lon-version">SalesFlow</p>
             <button onclick="closeBudgetModal()" class="md-btn-text mt-1">Stäng</button>
         </div>
@@ -472,6 +497,7 @@
                                             </div>
                                             <div class="flex items-center gap-1.5">
                                                 <button id="btn-week-half" onclick="switchWeekHalf()" class="week-half-btn hidden" title="Visa veckans andra halva"></button>
+                                                <button id="btn-boost" class="boost-btn hidden" title="Höj ribban – långtryck för fler val"></button>
                                                 <button id="btn-trigger-eval" onclick="openEvalModal()" class="md-eval-trigger hidden" title="Utvärdera pass">
                                                     <span class="material-symbols-rounded text-[16px]">rate_review</span>
                                                 </button>
@@ -747,7 +773,7 @@
         </button>
     </nav>
 
-    <script src="script.js?v=91"></script>
+    <script src="script.js?v=92"></script>
     <script>
     // ============================================================
     // SALESFLOW — Navigationscontroller
@@ -1049,7 +1075,7 @@
             'summary-modal': 'closeSummaryModal', 'coach-main-modal': 'closeCoachModalMain',
             'coach-history-modal': 'closeCoachHistoryModal', 'coach-read-modal': 'closeCoachCall',
             'red-thread-modal': 'closeRedThreadModal', 'child-select-modal': 'closeChildModal',
-            'note-confirm-modal': 'closeNoteConfirmModal'
+            'note-confirm-modal': 'closeNoteConfirmModal', 'boost-modal': 'closeBoostModal'
         };
         Object.keys(modalCloseMap).forEach(function(id) {
             const el = document.getElementById(id); if (!el) return;

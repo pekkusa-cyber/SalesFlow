@@ -1074,7 +1074,8 @@ function updateDashboardView() {
     const dashTab = document.getElementById('tab-dash'); 
     if (dashTab) dashTab.innerText = activeK ? 'DAG' : 'VECKA';
     
-    let dTarget = 0, dSales = 0, dDiff = 0; 
+    let dTarget = 0, dSales = 0, dDiff = 0;
+    let dagBoost = 0, malVisat = 0;   // boost = personlig stretch ovanpå basmålet 
     let title = "", subtitle = "", statusText = "VÄLJ DAG"; 
     let showActions = false, absType = null, isReached = false, isActiveNow = false;
 
@@ -1083,7 +1084,12 @@ function updateDashboardView() {
         const daysLong = ['Söndag', 'Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag']; const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
         title = `${daysLong[dObj.getDay()]} ${dObj.getDate()} ${months[dObj.getMonth()]}`; subtitle = qData.start ? `${qData.start.substring(0,5)} — ${qData.end.substring(0,5)}` : 'Inga tider';
         dTarget = dayTarget(activeK);
-        dSales = o.s || 0; dDiff = dSales - dTarget; absType = o.abs;
+        dSales = o.s || 0; absType = o.abs;
+        // Basmålet avgör om dagen är vunnen. Boosten lägger sig ovanpå och styr bara
+        // vad mätaren siktar mot – en grön dag förblir grön.
+        dagBoost = boostFor(activeK);
+        malVisat = dTarget + dagBoost;
+        dDiff = dSales - malVisat;
         
         const state = getCellState(activeK);
         if (state === 'absent') statusText = absType.toUpperCase(); else if (state === 'semester') statusText = 'SEMESTER'; else if (state === 'ledig' || state === 'unplanned') statusText = 'LEDIG'; else if (isMeetingDay(activeK)) statusText = 'MÖTE'; else statusText = 'ARBETSPASS';
@@ -1173,6 +1179,7 @@ function updateDashboardView() {
             ? `${startD.getDate()} ${months[startD.getMonth()]} (${wPass} Pass)`
             : `${startD.getDate()} ${months[startD.getMonth()]} - ${endD.getDate()} ${months[endD.getMonth()]} (${wPass} Pass)`;
         statusText = "VÄLJ DAG..."; showActions = false; absType = null; isReached = dTarget > 0 && dSales >= dTarget;
+        dagBoost = 0; malVisat = dTarget;   // veckokortet har ingen boost
         // Delad vecka: knapp som växlar till den andra månadens halva
         const halfBtn = document.getElementById('btn-week-half');
         if (halfBtn) {
@@ -1193,15 +1200,36 @@ function updateDashboardView() {
     const subtitleEl = document.getElementById('dash-subtitle'); if(subtitleEl) subtitleEl.innerText = subtitle; 
     const statusTextEl = document.getElementById('dash-status-text'); if(statusTextEl) statusTextEl.innerText = statusText;
     const lblTargetEl = document.getElementById('dash-lbl-target'); if(lblTargetEl) lblTargetEl.innerText = activeK ? "DAGSMÅL" : "VECKOMÅL"; 
-    const valTargetEl = document.getElementById('dash-val-target'); if(valTargetEl) valTargetEl.innerText = (dTarget/1000).toFixed(1) + " k";
-    
+    // Mätaren siktar mot det BOOSTADE målet, men färgen följer basmålet: har du vunnit
+    // dagen är ringen grön även om du fortfarande jagar den höjda ribban.
+    const valTargetEl = document.getElementById('dash-val-target');
+    if(valTargetEl) valTargetEl.innerText = (malVisat/1000).toFixed(1) + " k" + (dagBoost > 0 ? ` (+${Math.round(dagBoost/1000)}k)` : "");
+    const lblTgt = document.getElementById('dash-lbl-target');
+    if(lblTgt && activeK) lblTgt.innerText = dagBoost > 0 ? "BOOSTAT MÅL" : "DAGSMÅL";
+
     const salesEl = document.getElementById('dash-val-sales'); if(salesEl) { salesEl.innerText = (dSales/1000).toFixed(1) + " k"; salesEl.style.color = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)'); }
     const diffEl = document.getElementById('dash-val-diff'); if(diffEl) { diffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; diffEl.style.color = dDiff >= 0 ? "var(--sting-blue)" : "var(--neg)"; }
     
-    const p = dTarget > 0 ? Math.min(100, Math.round((dSales / dTarget) * 100)) : 0; 
+    const p = malVisat > 0 ? Math.min(100, Math.round((dSales / malVisat) * 100)) : 0; 
     const valPercEl = document.getElementById('dash-val-perc'); if(valPercEl) valPercEl.innerText = p + "%";
     
-    const g = document.getElementById('dash-gauge-prog'); if(g) { g.style.strokeDashoffset = 283 - ((p / 100) * 212); g.style.stroke = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)'); }
+    const g = document.getElementById('dash-gauge-prog'); if(g) { g.style.strokeDashoffset = 283 - ((p / 100) * 212); g.style.stroke = isReached ? 'var(--pos)' : (malVisat > 0 ? 'var(--neg)' : 'var(--sting-blue)'); }
+
+    // Boost-pillen: dyker upp först när dagens mål är nått, och kommer tillbaka
+    // varje gång du klarat även den höjda ribban.
+    const bBtn = document.getElementById('btn-boost');
+    if (bBtn) {
+        const kanBoosta = !!activeK && isReached && !absType;
+        if (kanBoosta) {
+            const niva = dagBoost > 0 ? Math.round(dagBoost / boostStep) : 0;
+            const klar = dSales >= malVisat;
+            bBtn.innerHTML = klar
+                ? `⚡ BOOSTA +${Math.round(boostStep/1000)}k${niva ? ` <b>×${niva}</b>` : ''}`
+                : `⚡ ×${niva} · ${((malVisat - dSales)/1000).toFixed(1)}k kvar`;
+            bBtn.classList.toggle('is-jagar', !klar);
+            bBtn.classList.remove('hidden');
+        } else bBtn.classList.add('hidden');
+    }
     
     const badgeEl = document.getElementById('dash-abs-badge');
     if (badgeEl) {
@@ -1487,6 +1515,144 @@ function salesHours(k) {
     if (!(q.start || o.s > 0)) return 0;
     if (isMeetingDay(k)) return 0;
     return dayHours(k);
+}
+
+// ============================================================
+//  BOOST — personlig stretch ovanpå dagsmålet
+//  Klarar du dagens mål kan du höja ribban för dig själv. Boosten är ETT EGET
+//  LAGER: den rör aldrig timeline, monthPace, veckomålet, lönen eller grön/röd.
+//  Basmålet avgör om dagen är vunnen, och en vunnen dag kan aldrig bli röd igen
+//  för att du siktade högre. Boosten kan bara ge dig mer, aldrig ta ifrån dig.
+// ============================================================
+let dayBoosts = {};
+try { dayBoosts = JSON.parse(localStorage.getItem('sf_boosts') || '{}'); } catch(e){ dayBoosts = {}; }
+function saveBoosts(){ try { localStorage.setItem('sf_boosts', JSON.stringify(dayBoosts)); } catch(e){} }
+
+let boostStep = 3000;
+try { const v = parseInt(localStorage.getItem('sf_boost_step')); if (v > 0) boostStep = v; } catch(e){}
+function setBoostStep(v){
+    const n = Math.max(500, Math.round((parseNum(v) || 3000) / 500) * 500);
+    boostStep = n;
+    try { localStorage.setItem('sf_boost_step', String(n)); } catch(e){}
+    const el = document.getElementById('boost-step-hint');
+    if (el) el.innerText = `Ett tryck lägger på ${lonKr ? lonKr(n) : n + ' kr'}.`;
+    updateDashboardView();
+}
+window.setBoostStep = setBoostStep;
+
+function boostFor(k){ return (k && dayBoosts[k]) || 0; }
+
+// Höj ribban. belopp utelämnat = standardsteget.
+function addBoost(k, belopp){
+    if (!k) return;
+    const b = Math.max(0, Math.round(belopp === undefined ? boostStep : belopp));
+    if (b <= 0) return;
+    dayBoosts[k] = boostFor(k) + b;
+    saveBoosts();
+    showToast('⚡', `Ribban höjd ${lonKr(b)} — nytt mål ${lonKr(dayTarget(k) + dayBoosts[k])}`, 2400);
+    updateDashboardView(); renderWeekSlides();
+}
+function clearBoost(k){
+    if (!k || !dayBoosts[k]) return;
+    delete dayBoosts[k]; saveBoosts();
+    updateDashboardView(); renderWeekSlides();
+}
+window.addBoost = addBoost; window.clearBoost = clearBoost;
+
+// Månadens boostade dagar + hur mycket du sålt ÖVER basmålet.
+// Långtrycksmenyn: förslag räknade ur data appen redan har.
+function boostOptions(k){
+    const o = db.d[k] || {s:0}; const bas = dayTarget(k); const salt = o.s || 0;
+    const nu = bas + boostFor(k);
+    const ut = [];
+    // Rimlighetstak. Ett förslag måste gå att ta PÅ EN DAG. Utan taket föreslår
+    // bonusspannet "+126 060 kr" på en söndag med 6 940 i mål, och då tappar hela
+    // menyn trovärdighet. Taket följer dagens mål, som redan skalar med timmarna.
+    const maxStretch = Math.max(bas * 1.5, boostStep * 2);
+    const lagg = (ikon, titel, mal, undertext) => {
+        const extra = Math.round(mal - nu);
+        if (extra > 0 && extra <= maxStretch) ut.push({ ikon, titel, extra, undertext });
+    };
+
+    // Gårdagens resultat
+    const p = k.split('-'); const ig = new Date(+p[0], +p[1]-1, +p[2]); ig.setDate(ig.getDate()-1);
+    let igarK = getK(ig), varv = 0;
+    while (!(db.d[igarK] && db.d[igarK].s > 0) && varv < 10) { ig.setDate(ig.getDate()-1); igarK = getK(ig); varv++; }
+    const igarSalj = (db.d[igarK] || {}).s || 0;
+    if (igarSalj > 0) lagg('📈', 'Slå förra säljdagen', igarSalj + 100, `${lonKr(igarSalj)} den ${igarK.split('-')[2]}/${igarK.split('-')[1]}`);
+
+    // Månadens bästa dag
+    const y = +p[0], m = +p[1]; const dim = new Date(y, m, 0).getDate();
+    let bast = 0, bastD = null;
+    for (let d=1; d<=dim; d++){ const kk=`${y}-${m}-${d}`; const v=(db.d[kk]||{}).s||0; if (v>bast && kk!==k){ bast=v; bastD=d; } }
+    if (bast > 0) lagg('🚀', 'Slå månadens bästa', bast + 100, `${lonKr(bast)} den ${bastD}/${m}`);
+
+    // Nästa bonusspann – kopplar ansträngningen till riktiga pengar
+    try {
+        let manadsSalj = 0; for (let d=1; d<=dim; d++) manadsSalj += ((db.d[`${y}-${m}-${d}`]||{}).s || 0);
+        const info = lonAdjustedTiers(y, m);
+        const nasta = info.tiers.find(t => manadsSalj < t.min);
+        if (nasta) {
+            const behovs = nasta.min - manadsSalj;
+            if (behovs > 0) lagg('💰', `Nå ${nasta.pct}%-spannet`, salt + behovs, `${lonKr(behovs)} kvar till ${lonKr(nasta.min)}`);
+        }
+    } catch(e){ /* lönen är inte konfigurerad – hoppa över förslaget */ }
+
+    // Alltid ett rakt steg
+    ut.sort((a,b) => a.extra - b.extra);   // minsta steget först
+    ut.push({ ikon:'⚡', titel:`Standard +${Math.round(boostStep/1000)}k`, extra: boostStep, undertext:'Ställs in i Inställningar' });
+    return ut;
+}
+
+function openBoostModal(){
+    if (!activeK) return;
+    const bas = dayTarget(activeK), b = boostFor(activeK);
+    const sub = document.getElementById('boost-modal-sub');
+    if (sub) sub.innerText = b > 0
+        ? `Dagens mål ${lonKr(bas)}, höjt till ${lonKr(bas+b)}.`
+        : `Dagens mål ${lonKr(bas)} är klart. Hur mycket vill du lägga på?`;
+    const box = document.getElementById('boost-options');
+    if (box) box.innerHTML = boostOptions(activeK).map(x =>
+        `<button onclick="addBoost(activeK, ${x.extra}); closeBoostModal();" class="boost-opt">
+            <span class="boost-opt-ic">${x.ikon}</span>
+            <span class="boost-opt-txt"><b>${x.titel}</b><small>${x.undertext}</small></span>
+            <span class="boost-opt-amt">+${lonKr(x.extra)}</span>
+        </button>`).join('');
+    const clr = document.getElementById('boost-clear');
+    if (clr) clr.classList.toggle('hidden', b <= 0);
+    const m = document.getElementById('boost-modal');
+    if (m){ m.classList.remove('hidden'); setTimeout(()=>m.classList.remove('opacity-0'),10); if(window.sfPushHist) window.sfPushHist(); }
+}
+function closeBoostModal(){ const m=document.getElementById('boost-modal'); if(m){ m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),300); } }
+window.openBoostModal = openBoostModal; window.closeBoostModal = closeBoostModal;
+
+// Tryck = standardsteget. Långtryck = menyn.
+function bindBoostBtn(){
+    const b = document.getElementById('btn-boost'); if (!b || b.dataset.bound) return;
+    b.dataset.bound = '1';
+    let timer = null, long = false;
+    const start = () => { long = false; timer = setTimeout(()=>{ long = true; openBoostModal(); }, 450); };
+    const end = (e) => { clearTimeout(timer); if (!long && e) { e.preventDefault(); addBoost(activeK); } };
+    b.addEventListener('touchstart', start, { passive: true });
+    b.addEventListener('touchend', end);
+    b.addEventListener('touchcancel', ()=>clearTimeout(timer));
+    b.addEventListener('mousedown', start);
+    b.addEventListener('mouseup', end);
+    b.addEventListener('mouseleave', ()=>clearTimeout(timer));
+    b.addEventListener('contextmenu', e=>e.preventDefault());
+}
+
+function boostStats(y, m){
+    const dim = new Date(y, m, 0).getDate();
+    let dagar = 0, over = 0, klarade = 0;
+    for (let d = 1; d <= dim; d++){
+        const k = `${y}-${m}-${d}`;
+        const o = db.d[k] || {s:0}; const bas = dayTarget(k); const b = boostFor(k);
+        if (b > 0) dagar++;
+        if (bas > 0 && o.s > bas) over += (o.s - bas);
+        if (b > 0 && o.s >= bas + b) klarade++;
+    }
+    return { dagar, klarade, over };
 }
 
 // Månadens jämna takt per TIMME: vad som återstår att sälja delat på säljtimmar kvar.
@@ -2833,6 +2999,7 @@ async function init() {
     await loadAllData();
     setMode('dash');
     updateTopTitle();
+    bindBoostBtn();
 }
 
 function openInlineNumpad() {
@@ -3315,6 +3482,19 @@ function calculateSummaryStats() {
     if (worstS !== Infinity) { document.getElementById('sum-worstday-val').innerText = (worstS/1000).toFixed(1) + "k"; document.getElementById('sum-worstday-lbl').innerText = worstD; } else { document.getElementById('sum-worstday-val').innerText = "0k"; document.getElementById('sum-worstday-lbl').innerText = "--"; }
     
     document.getElementById('sum-streak').innerText = maxStreak + " 🔥";
+
+    // Boost: dagar du höjde ribban själv, och hur mycket du sålt ÖVER basmålet.
+    const bs = boostStats(cy, cm);
+    const bRow = document.getElementById('sum-boost-row');
+    if (bRow) {
+        if (bs.dagar > 0 || bs.over > 0) {
+            bRow.classList.remove('hidden');
+            document.getElementById('sum-boost-val').innerText = bs.klarade + "/" + bs.dagar + " ⚡";
+            document.getElementById('sum-boost-sub').innerText = bs.over > 0
+                ? `${lonKr(Math.round(bs.over))} över målet i månaden`
+                : 'Klarade boostar av satta';
+        } else bRow.classList.add('hidden');
+    }
     
     let weeklySalesMap = {};
     for (let d=1; d<=daysM; d++) {
@@ -3406,6 +3586,8 @@ function triggerChildSelection(type, source) {
 
 function openBudgetModal() {
     const ver = document.getElementById('app-version'); if (ver) ver.innerText = 'SalesFlow ' + APP_VERSION;
+    const bs = document.getElementById('boost-step'); if (bs) bs.value = boostStep;
+    const bh = document.getElementById('boost-step-hint'); if (bh) bh.innerText = `Ett tryck lägger på ${lonKr(boostStep)}.`;
     const m = document.getElementById('budget-modal'); if(m) m.classList.remove('hidden');
 }
 function closeBudgetModal() { const m = document.getElementById('budget-modal'); if(m) m.classList.add('hidden'); }

@@ -2199,3 +2199,35 @@ html, body { background: var(--header-bg); overscroll-behavior: none; }
     background: #ede9fe; color: #6d28d9;
     border-color: #c4b5fd;
 }
+
+/* ===== BOOST — personlig stretch ovanpå dagsmålet ===== */
+.boost-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 11px;
+    background: linear-gradient(135deg, #fff3c4, #ffe08a);
+    color: #7a5a00; border: 1px solid #f5c94c;
+    font-size: 9.5px; font-weight: 800; letter-spacing: .02em; white-space: nowrap;
+    box-shadow: 0 2px 8px -3px rgba(245,201,76,.7);
+    transition: transform .15s var(--ease-emp), filter .2s var(--ease-emp);
+}
+.boost-btn b { font-weight: 900; }
+.boost-btn:active { transform: scale(.93); filter: brightness(.96); }
+/* Jagar en höjd ribba: lugnare, blå – dagen är redan vunnen */
+.boost-btn.is-jagar {
+    background: var(--g-blue-soft); color: var(--g-blue);
+    border-color: color-mix(in srgb, var(--g-blue) 22%, transparent);
+    box-shadow: none;
+}
+
+.boost-opt {
+    display: flex; align-items: center; gap: 11px;
+    padding: 11px 13px; border-radius: 14px; text-align: left;
+    background: var(--surface-1, #f8f9fb); border: 1px solid var(--outline-variant);
+    transition: background-color .2s var(--ease-emp), transform .15s var(--ease-emp);
+}
+.boost-opt:active { transform: scale(.98); background: var(--g-blue-soft); }
+.boost-opt-ic { font-size: 20px; flex-shrink: 0; }
+.boost-opt-txt { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.boost-opt-txt b { font-size: 12px; font-weight: 800; color: var(--on-surface); }
+.boost-opt-txt small { font-size: 10px; font-weight: 600; color: var(--on-surface-variant); margin-top: 1px; }
+.boost-opt-amt { font-size: 12px; font-weight: 900; color: var(--g-blue); flex-shrink: 0; }

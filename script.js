@@ -1611,6 +1611,12 @@ function openBoostModal(){
     if (sub) sub.innerText = b > 0
         ? `Dagens mål ${lonKr(bas)}, höjt till ${lonKr(bas+b)}.`
         : `Dagens mål ${lonKr(bas)} är klart. Hur mycket vill du lägga på?`;
+    // Snabbval med egna belopp. Rimlighetstaket gäller INTE här – det finns för att
+    // appen inte ska föreslå dumheter själv. Väljer du med handen är det ditt beslut.
+    const chipBox = document.getElementById('boost-chips');
+    if (chipBox) chipBox.innerHTML = [1000, 2000, 3000, 5000].map(v =>
+        `<button onclick="addBoost(activeK, ${v}); closeBoostModal();" class="boost-chip">+${v/1000}k</button>`
+    ).join('');
     const box = document.getElementById('boost-options');
     if (box) box.innerHTML = boostOptions(activeK).map(x =>
         `<button onclick="addBoost(activeK, ${x.extra}); closeBoostModal();" class="boost-opt">

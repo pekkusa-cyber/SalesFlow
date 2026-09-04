@@ -2231,3 +2231,14 @@ html, body { background: var(--header-bg); overscroll-behavior: none; }
 .boost-opt-txt b { font-size: 12px; font-weight: 800; color: var(--on-surface); }
 .boost-opt-txt small { font-size: 10px; font-weight: 600; color: var(--on-surface-variant); margin-top: 1px; }
 .boost-opt-amt { font-size: 12px; font-weight: 900; color: var(--g-blue); flex-shrink: 0; }
+
+/* Snabbval av eget boostbelopp, ovanför de uträknade förslagen */
+.boost-chips { display: flex; gap: 6px; margin-bottom: 10px; }
+.boost-chip {
+    flex: 1; padding: 9px 0; border-radius: 12px;
+    background: var(--g-blue-soft); color: var(--g-blue);
+    border: 1px solid color-mix(in srgb, var(--g-blue) 18%, transparent);
+    font-size: 12px; font-weight: 900; letter-spacing: .01em;
+    transition: transform .15s var(--ease-emp), background-color .2s var(--ease-emp);
+}
+.boost-chip:active { transform: scale(.94); background: var(--g-blue-tint); }

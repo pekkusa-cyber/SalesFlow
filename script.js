@@ -2996,16 +2996,33 @@ function lonRenderFile(slot){
     const d = el.querySelector('.lon-file-del'); if(d) d.onclick = ()=>{ delete lonMonthly[k]['file_'+slot]; lonClearCalibration(k, slot); delete (lonMonthly[k]||{})['prog_'+slot]; lonSaveMonthly(); lonRenderUploads(); lonRenderReminder(); lonRecalc(); showToast('🗑️',`${lonMonthLabel(k)} ${slot} borttagen – omräknad`,2800); };
 }
 
+// Tar bort laddskärmen. Säkerhetstimern nedan gör att den ALLTID försvinner –
+// loadAllData kan kasta om nätet ligger nere, och en laddskärm som fastnar är
+// värre än ingen alls.
+const BOOT_START = Date.now();
+const BOOT_MIN_MS = 550;      // minsta visningstid: ett blink är sämre än ingen laddskärm
+function hideBoot(){
+    const el = document.getElementById('sf-boot');
+    if (!el || el.classList.contains('is-done')) return;
+    const kvar = BOOT_MIN_MS - (Date.now() - BOOT_START);
+    if (kvar > 0) { setTimeout(hideBoot, kvar); return; }
+    el.classList.add('is-done');
+    setTimeout(()=>{ if (el.parentNode) el.parentNode.removeChild(el); }, 600);
+}
+window.hideBoot = hideBoot;
+setTimeout(hideBoot, 8000);
+
 async function init() {
     try {
         const savedTheme = localStorage.getItem('sf_theme') || 'light';
         if (document.body) { document.body.setAttribute('data-theme', savedTheme); }
     } catch(e) { console.warn('Theme init error', e); }
 
-    await loadAllData();
+    try { await loadAllData(); } finally { /* skalet ska visas även om hämtningen fallerar */ }
     setMode('dash');
     updateTopTitle();
     bindBoostBtn();
+    hideBoot();
 }
 
 function openInlineNumpad() {

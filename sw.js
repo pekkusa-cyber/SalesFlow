@@ -1,10 +1,12 @@
-const CACHE_NAME = "salesflow-v2"; // Jag har döpt om den till v2 för att tvinga bort den gamla direkt
+const CACHE_NAME = "salesflow-v3"; // Bumpas vid varje släpp som byter cachade filer. Aktiveringssteget nedan
+// raderar alla cachar som inte matchar namnet.
 const URLS_TO_CACHE = [
   "/SalesFlow/",
   "/SalesFlow/index.html",
   "/SalesFlow/manifest.json",
-  "/SalesFlow/icon-192.png",
-  "/SalesFlow/icon-512.png"
+  "/SalesFlow/icon-192-v2.png",
+  "/SalesFlow/icon-512-v2.png",
+  "/SalesFlow/icon-maskable-512-v2.png"
 ];
 
 // INSTALLATION: Tvinga omedelbar installation av ny version

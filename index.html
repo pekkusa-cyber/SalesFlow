@@ -20,7 +20,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=96">
+    <link rel="stylesheet" href="style.css?v=97">
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
          målningen, innan Tailwind och Google Fonts laddats. Samma blå som
@@ -45,45 +45,69 @@
 </head>
 <body class="mode-dash">
 
-    <!-- FOKUSLÄGE — egen helskärmsvy under passet. Bara dagen, inget annat. -->
+    <!-- FOKUSLÄGE — egen helskärmsvy under passet. Bara dagen, inget annat.
+         Knapparna har INGA inline-onclick: all interaktion hanteras av en
+         delegerad lyssnare i script.js, som lyssnar på både click och touch. -->
     <div id="focus-mode" class="hidden">
         <div class="fm-top">
             <div class="fm-when">
                 <span id="fm-day">IDAG</span>
-                <span id="fm-shift">09:00 — 19:15</span>
+                <span id="fm-shift">—</span>
             </div>
-            <button onclick="closeFocusMode2()" class="fm-exit" title="Till vanliga appen">
-                <span class="material-symbols-rounded">close_fullscreen</span>
+            <button class="fm-exit" data-fm="exit" aria-label="Till vanliga appen">
+                <span class="material-symbols-rounded">close</span>
             </button>
         </div>
 
-        <div class="fm-gauge">
-            <svg viewBox="0 0 200 200">
-                <circle class="fm-ring-bg" cx="100" cy="100" r="86" stroke-dasharray="405 540" transform="rotate(135 100 100)"></circle>
-                <circle id="fm-ring" class="fm-ring" cx="100" cy="100" r="86" stroke-dasharray="540" stroke-dashoffset="540" transform="rotate(135 100 100)"></circle>
-            </svg>
-            <div class="fm-center">
-                <span id="fm-sales">0 kr</span>
-                <span id="fm-of">av 0 kr</span>
+        <div class="fm-stage">
+            <div class="fm-gauge">
+                <svg viewBox="0 0 200 200">
+                    <circle class="fm-ring-bg" cx="100" cy="100" r="84" stroke-dasharray="396 528" transform="rotate(135 100 100)"></circle>
+                    <circle id="fm-ring" class="fm-ring" cx="100" cy="100" r="84" stroke-dasharray="528" stroke-dashoffset="528" transform="rotate(135 100 100)"></circle>
+                </svg>
+                <div class="fm-center">
+                    <span id="fm-sales">0 kr</span>
+                    <span id="fm-of">av 0 kr</span>
+                </div>
             </div>
-        </div>
 
-        <div id="fm-pace" class="fm-pace">
-            <span id="fm-left" class="fm-left">0 kr kvar</span>
-            <span id="fm-rate" class="fm-rate">—</span>
-        </div>
+            <div class="fm-facts">
+                <div class="fm-fact">
+                    <span class="fm-fact-lbl">Kvar</span>
+                    <span id="fm-left" class="fm-fact-val">0 kr</span>
+                </div>
+                <div class="fm-fact fm-fact-mid">
+                    <span class="fm-fact-lbl">Per timme</span>
+                    <span id="fm-rate" class="fm-fact-val">—</span>
+                </div>
+                <div class="fm-fact">
+                    <span class="fm-fact-lbl">Kvar av passet</span>
+                    <span id="fm-time" class="fm-fact-val">—</span>
+                </div>
+            </div>
 
-        <button id="fm-boost" class="fm-boost hidden"></button>
+            <div class="fm-pacebar">
+                <div class="fm-pacebar-track">
+                    <div id="fm-pacefill" class="fm-pacebar-fill"></div>
+                    <div id="fm-pacemark" class="fm-pacebar-mark"></div>
+                </div>
+                <span id="fm-pacetext" class="fm-pacetext">—</span>
+            </div>
+
+            <button id="fm-boost" class="fm-boost hidden" data-fm="boost"></button>
+        </div>
 
         <div class="fm-pad">
             <div class="fm-display"><span id="fm-input">—</span></div>
             <div class="fm-keys">
-                <button onclick="fmKey('1')">1</button><button onclick="fmKey('2')">2</button><button onclick="fmKey('3')">3</button>
-                <button onclick="fmKey('4')">4</button><button onclick="fmKey('5')">5</button><button onclick="fmKey('6')">6</button>
-                <button onclick="fmKey('7')">7</button><button onclick="fmKey('8')">8</button><button onclick="fmKey('9')">9</button>
-                <button onclick="fmKey('c')" class="fm-alt">C</button><button onclick="fmKey('0')">0</button><button onclick="fmKey('back')" class="fm-alt"><span class="material-symbols-rounded">backspace</span></button>
+                <button data-fm="k" data-k="1">1</button><button data-fm="k" data-k="2">2</button><button data-fm="k" data-k="3">3</button>
+                <button data-fm="k" data-k="4">4</button><button data-fm="k" data-k="5">5</button><button data-fm="k" data-k="6">6</button>
+                <button data-fm="k" data-k="7">7</button><button data-fm="k" data-k="8">8</button><button data-fm="k" data-k="9">9</button>
+                <button data-fm="k" data-k="c" class="fm-alt">C</button>
+                <button data-fm="k" data-k="0">0</button>
+                <button data-fm="k" data-k="back" class="fm-alt"><span class="material-symbols-rounded">backspace</span></button>
             </div>
-            <button onclick="fmSave()" id="fm-save" class="fm-save">Spara dagens siffra</button>
+            <button id="fm-save" class="fm-save" data-fm="save">Spara dagens siffra</button>
         </div>
     </div>
 
@@ -861,7 +885,7 @@
         </button>
     </nav>
 
-    <script src="script.js?v=96"></script>
+    <script src="script.js?v=97"></script>
     <script>
     // ============================================================
     // SALESFLOW — Navigationscontroller

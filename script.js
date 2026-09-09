@@ -1571,23 +1571,45 @@ function fmRender(){
     T('fm-sales', lonKr(salt));
     T('fm-of', 'av ' + lonKr(mal) + (boost > 0 ? ' ⚡' : ''));
 
-    // Ringen: fyller mot målet, grön när basmålet är klart (samma regel som dagskortet)
+    // Ringen fyller mot målet men färgas av BASmålet – en boost kan aldrig
+    // göra en vunnen dag röd, samma regel som på dagskortet.
     const pct = mal > 0 ? Math.min(100, (salt/mal)*100) : 0;
     const ring = document.getElementById('fm-ring');
-    if (ring){ ring.style.strokeDashoffset = 540 - (pct/100)*405; ring.style.stroke = klar ? 'var(--pos)' : 'var(--neg)'; }
+    if (ring){ ring.style.strokeDashoffset = 528 - (pct/100)*396; ring.style.stroke = klar ? 'var(--pos)' : '#ff6b81'; }
 
-    // Det viktigaste talet: vad krävs per timme under resten av passet
     const nu = new Date();
     let timmar = sk ? (sk.slut - nu)/3600000 : 0;
     if (timmar < 0) timmar = 0;
-    if (kvar <= 0) {
-        T('fm-left', klar ? 'Dagens mål klart 🎉' : lonKr(kvar) + ' kvar');
-        T('fm-rate', timmar > 0 ? fmTid(timmar) + ' kvar av passet' : 'Passet slut');
+
+    T('fm-left', klar ? 'Klart 🎉' : lonKr(kvar));
+    T('fm-rate', kvar > 0 && timmar > 0.05 ? lonKr(Math.round(kvar/timmar/10)*10) : (kvar > 0 ? lonKr(kvar) : '—'));
+    T('fm-time', sk ? (timmar > 0.02 ? fmTid(timmar) : 'Slut') : '—');
+
+    // Takt: ligger du före eller efter där du borde vara vid den här tidpunkten?
+    // Jämför andel sålt mot andel av passet som gått. Det svarar på "hur går det"
+    // bättre än en ren summa gör.
+    const fill = document.getElementById('fm-pacefill');
+    const mark = document.getElementById('fm-pacemark');
+    if (sk && mal > 0) {
+        const total = (sk.slut - sk.start)/3600000;
+        let gatt = (nu - sk.start)/3600000;
+        gatt = Math.max(0, Math.min(total, gatt));
+        const borde = total > 0 ? (gatt/total) : 0;
+        const har = Math.min(1, salt/mal);
+        if (fill) fill.style.width = (har*100).toFixed(1) + '%';
+        if (mark) mark.style.left = (borde*100).toFixed(1) + '%';
+        const diff = Math.round(salt - mal*borde);
+        const el = document.getElementById('fm-pacetext');
+        if (el){
+            if (klar)          { el.innerText = 'Dagens mål klart'; el.className = 'fm-pacetext is-fore'; }
+            else if (diff >= 0){ el.innerText = 'Före takten +' + lonKr(diff); el.className = 'fm-pacetext is-fore'; }
+            else               { el.innerText = 'Efter takten ' + lonKr(diff); el.className = 'fm-pacetext is-efter'; }
+        }
     } else {
-        T('fm-left', lonKr(kvar) + ' kvar');
-        T('fm-rate', timmar > 0.05
-            ? `${fmTid(timmar)} · ${lonKr(Math.round(kvar/timmar/10)*10)}/timme`
-            : 'Passet slut');
+        if (fill) fill.style.width = '0%';
+        if (mark) mark.style.left = '0%';
+        const el = document.getElementById('fm-pacetext');
+        if (el){ el.innerText = sk ? '—' : 'Inget pass idag'; el.className = 'fm-pacetext'; }
     }
 
     const bb = document.getElementById('fm-boost');
@@ -1597,7 +1619,6 @@ function fmRender(){
             bb.innerText = salt >= mal ? `⚡ Höj ribban +${Math.round(boostStep/1000)}k${niva?' ×'+niva:''}`
                                        : `⚡ ×${niva} · ${lonKr(mal-salt)} kvar`;
             bb.classList.remove('hidden');
-            bb.onclick = () => { addBoost(k); fmRender(); };
         } else bb.classList.add('hidden');
     }
     const inp = document.getElementById('fm-input');
@@ -1605,6 +1626,33 @@ function fmRender(){
     const sv = document.getElementById('fm-save');
     if (sv) sv.disabled = (fmInput === '');
 }
+
+// All interaktion går genom EN delegerad lyssnare på behållaren, inte via
+// inline-onclick per knapp. Både click och touchend fångas, så en knapp kan
+// inte sluta svara för att ett enskilt attribut eller en global funktion
+// försvinner.
+let fmBound = false;
+function bindFocusMode(){
+    if (fmBound) return;
+    const rot = document.getElementById('focus-mode'); if (!rot) return;
+    fmBound = true;
+    const hantera = (e) => {
+        const knapp = e.target.closest('[data-fm]'); if (!knapp) return;
+        if (knapp.disabled) return;
+        const vad = knapp.getAttribute('data-fm');
+        if (vad === 'k')          fmKey(knapp.getAttribute('data-k'));
+        else if (vad === 'save')  fmSave();
+        else if (vad === 'boost') { addBoost(getK(realToday)); fmRender(); }
+        else if (vad === 'exit')  closeFocusMode2();
+    };
+    // pointerup brinner exakt en gång per tryck, för både mus och finger. Att
+    // lyssna på click OCH touchend gav dubbelutlösning, och en spärr mot det
+    // råkade i stället svälja snabb inmatning.
+    if (window.PointerEvent) rot.addEventListener('pointerup', hantera);
+    else rot.addEventListener('click', hantera);
+}
+window.bindFocusMode = bindFocusMode;
+
 function fmTid(h){
     const t = Math.floor(h), m = Math.round((h-t)*60);
     return t > 0 ? `${t} h ${String(m).padStart(2,'0')} min` : `${m} min`;
@@ -1634,6 +1682,7 @@ function openFocusMode2(){
     fmInput = '';
     el.classList.remove('hidden');
     document.body.classList.add('focus-mode-on');
+    bindFocusMode();
     fmRender();
     if (fmTimer) clearInterval(fmTimer);
     fmTimer = setInterval(fmRender, 30000);          // tiden kvar ska ticka

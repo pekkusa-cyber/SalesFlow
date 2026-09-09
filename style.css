@@ -2253,11 +2253,13 @@ html, body { background: var(--header-bg); overscroll-behavior: none; }
 #focus-mode {
     position: fixed; inset: 0; z-index: 9700;
     display: none; flex-direction: column;
-    padding: calc(env(safe-area-inset-top, 0px) + 16px) 18px calc(env(safe-area-inset-bottom, 0px) + 16px);
-    background:
-        radial-gradient(120% 80% at 50% -10%, #1d5fc4 0%, transparent 60%),
-        linear-gradient(170deg, #0f4fae 0%, #0d47a1 42%, #08306e 100%);
-    color: #fff; overflow: hidden;
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px calc(env(safe-area-inset-bottom, 0px) + 14px);
+    /* Exakt samma blå som appens banner – fokusläget ska kännas som appen. */
+    background: radial-gradient(120% 70% at 50% -12%, rgba(255,255,255,.10) 0%, transparent 55%), var(--header-bg);
+    color: #fff;
+    font-family: 'Google Sans', 'Roboto Flex', 'Roboto', system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    overflow: hidden;
     /* Inga fördröjda tryck, ingen dubbeltrycks-zoom som äter klick */
     touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
@@ -2265,99 +2267,120 @@ html, body { background: var(--header-bg); overscroll-behavior: none; }
 body.focus-mode-on .app-bottom-nav { display: none; }
 
 /* ---- topprad ---- */
-.fm-top { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.fm-top { display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0; }
 .fm-when { display: flex; flex-direction: column; gap: 3px; }
-#fm-day   { font-size: 10.5px; font-weight: 800; letter-spacing: .18em; opacity: .6; }
-#fm-shift { font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+#fm-day   { font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: .18em; color: rgba(255,255,255,.65); }
+#fm-shift { font-family: 'Google Sans', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -.01em; }
 .fm-exit {
-    width: 42px; height: 42px; border-radius: 14px;
+    width: 38px; height: 38px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.16);
-    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.18);
     transition: transform .15s var(--ease-emp), background-color .2s;
 }
-.fm-exit:active { transform: scale(.9); background: rgba(255,255,255,.26); }
-.fm-exit .material-symbols-rounded { font-size: 22px; }
+.fm-exit:active { transform: scale(.9); background: rgba(255,255,255,.28); }
+.fm-exit .material-symbols-rounded { font-size: 20px; }
 
-/* ---- övre halvan ---- */
-.fm-stage { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
-.fm-gauge { position: relative; width: min(54vw, 208px); aspect-ratio: 1; margin: 6px 0 2px; }
-.fm-gauge svg { width: 100%; height: 100%; overflow: visible; }
-.fm-ring-bg { fill: none; stroke: rgba(255,255,255,.13); stroke-width: 13; stroke-linecap: round; }
-.fm-ring    { fill: none; stroke: #ff6b81; stroke-width: 13; stroke-linecap: round;
-              transition: stroke-dashoffset .85s var(--ease-emp), stroke .45s ease;
-              filter: drop-shadow(0 3px 12px rgba(0,0,0,.3)); }
+/* ---- mätaren: appens 270°-båge, i tre lager ----
+   .g-bg      spåret (delas med bannern)
+   #fm-arc-boost  guld, hela vägen till totalmålet
+   #fm-arc-bas    vit/grön ovanpå guldet – bara delen BORTOM basmålet blir gul
+   #fm-arc-mark   en mörk skåra exakt där basmålet går                        */
+.fm-stage { display: flex; flex-direction: column; align-items: center; justify-content: center;
+            flex: 1 1 auto; min-height: 0; }
+.fm-gauge-row { width: 100%; max-width: 360px; margin-top: 10px; }
+.fm-gauge { position: relative; width: min(52vw, 196px); aspect-ratio: 1; margin: 0 2px; flex-shrink: 0; }
+.fm-gauge svg { width: 100%; height: 100%; }
+.fm-arc { fill: none; stroke-width: 8; stroke-linecap: round;
+          transition: stroke-dasharray .8s var(--ease-emp), stroke .4s ease; }
+.fm-arc-boost { stroke: var(--g-yellow); }
+.fm-arc-bas   { stroke: #ffffff; }
+.fm-arc-bas.is-klar { stroke: #81c995; }          /* Googles ljusa grön – läsbar på blått */
+.fm-arc-mark { fill: none; stroke: #0b3d8c; stroke-width: 8; stroke-linecap: butt;
+               transition: stroke-dasharray .8s var(--ease-emp), opacity .3s ease; }
 .fm-center { position: absolute; inset: 0; display: flex; flex-direction: column;
-             align-items: center; justify-content: center; gap: 4px; }
-#fm-sales { font-size: clamp(27px, 8vw, 38px); font-weight: 900; letter-spacing: -.035em; line-height: 1;
-            text-shadow: 0 2px 10px rgba(0,0,0,.2); }
-#fm-of    { font-size: 11.5px; font-weight: 700; opacity: .6; letter-spacing: .01em; }
+             align-items: center; justify-content: center; gap: 3px; }
+#fm-sales { font-family: 'Google Sans', sans-serif; font-size: clamp(17px, 5.4vw, 23px);
+            font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+#fm-perc  { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.9); }
 
-/* ---- tre nyckeltal ---- */
-.fm-facts {
-    display: flex; align-items: stretch; width: 100%; max-width: 340px; margin-top: 4px;
-    background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.13);
-    border-radius: 18px; padding: 11px 4px;
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-}
-.fm-fact { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
-.fm-fact-mid { border-left: 1px solid rgba(255,255,255,.13); border-right: 1px solid rgba(255,255,255,.13); }
-.fm-fact-lbl { font-size: 8.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .55; }
-.fm-fact-val { font-size: 14.5px; font-weight: 900; letter-spacing: -.02em; white-space: nowrap; }
+/* sidokolumnerna använder bannerns .side-col/.micro-lbl/.val-display/.status-pill */
+.fm-gauge-row .val-display { font-size: 16px; }
+.fm-gauge-row .status-pill { margin-top: 5px; border: 1px solid transparent; }
+.fm-gauge-row .status-pill.is-klar  { background: rgba(52,168,83,.38); border-color: rgba(129,201,149,.65); color: #d7f5e0; }
+.fm-gauge-row .status-pill.is-boost { background: rgba(251,188,4,.26); border-color: rgba(251,188,4,.55); color: #ffe9a8; }
+.fm-gauge-row .status-pill.is-off   { opacity: .42; }
 
-/* ---- takten: ligger du före eller efter? ---- */
-.fm-pacebar { width: 100%; max-width: 340px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
-.fm-pacebar-track { position: relative; height: 6px; border-radius: 6px; background: rgba(255,255,255,.14); overflow: visible; }
-.fm-pacebar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg,#7fd7a4,#34a853);
-                   transition: width .7s var(--ease-emp); }
+/* ---- nyckeltal: bannerns .meta-row rakt av ---- */
+.fm-meta { width: 100%; max-width: 360px; margin-top: 10px; padding-top: 10px; }
+.fm-meta .meta-val { font-size: 15px; }
+
+/* ---- takten: ligger du före eller efter där du borde vara just nu? ---- */
+.fm-pacebar { width: 100%; max-width: 360px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.fm-pacebar-track { position: relative; height: 6px; border-radius: 100px; background: rgba(255,255,255,.18); }
+.fm-pacebar-fill { height: 100%; border-radius: 100px; background: #81c995; transition: width .7s var(--ease-emp); }
 .fm-pacebar-mark { position: absolute; top: -4px; width: 2px; height: 14px; border-radius: 2px;
-                   background: rgba(255,255,255,.85); transition: left .7s var(--ease-emp);
-                   box-shadow: 0 0 6px rgba(0,0,0,.35); }
-.fm-pacetext { font-size: 11.5px; font-weight: 800; letter-spacing: .01em; text-align: center; opacity: .8; }
-.fm-pacetext.is-fore  { color: #9ff0be; opacity: 1; }
-.fm-pacetext.is-efter { color: #ffb3bd; opacity: 1; }
+                   background: #fff; transition: left .7s var(--ease-emp); box-shadow: 0 0 6px rgba(0,0,0,.35); }
+.fm-pacetext { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+               text-align: center; color: rgba(255,255,255,.7); }
+.fm-pacetext.is-fore  { color: #b9f6ca; }
+.fm-pacetext.is-efter { color: #ffb3bd; }
 
+/* ---- boostknappen: piller i .md-info-bar-form, gult ---- */
 .fm-boost {
-    margin-top: 12px; padding: 10px 20px; border-radius: 15px;
-    background: linear-gradient(135deg,#ffeaa8,#ffd35c); color: #6b4e00;
-    font-size: 12.5px; font-weight: 900; letter-spacing: .02em;
-    box-shadow: 0 6px 20px -7px rgba(0,0,0,.55);
-    transition: transform .15s var(--ease-emp);
+    margin-top: 11px; padding: 8px 18px; border-radius: 100px;
+    background: rgba(251,188,4,.26); border: 1px solid rgba(251,188,4,.55); color: #ffe9a8;
+    font-family: 'Google Sans', sans-serif; font-size: 9.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .08em; white-space: nowrap;
+    transition: transform .15s var(--ease-emp), background-color .2s, color .2s;
 }
+/* Basmålet klart och boosten inhämtad – då är knappen en riktig uppmaning */
+.fm-boost.is-redo { background: var(--g-yellow); border-color: var(--g-yellow); color: #5f4300;
+                    box-shadow: 0 6px 18px -8px rgba(251,188,4,.9); }
 .fm-boost:active { transform: scale(.95); }
 
-/* ---- inmatning ---- */
-.fm-pad {
-    width: 100%; max-width: 340px; margin: 14px auto 0;
-    display: flex; flex-direction: column; gap: 9px; flex: 1; min-height: 0;
-}
-.fm-display {
-    background: rgba(255,255,255,.11); border: 1px solid rgba(255,255,255,.16);
-    border-radius: 17px; padding: 11px; text-align: center; flex-shrink: 0;
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-}
-#fm-input { font-size: 23px; font-weight: 900; letter-spacing: -.025em; }
+/* ---- inmatning: samma känsla som .md-numkey, men på blått ---- */
+/* Knapparna får sin storlek av bredden (aspect-ratio), inte av hur mycket
+   plats som råkar bli över. Då sväller de inte på en hög skärm och lämnar
+   inget tomrum på en låg. Mätaren tar resten och centreras i den ytan. */
+.fm-pad { width: 100%; max-width: 360px; margin: 12px auto 0;
+          display: flex; flex-direction: column; gap: 8px; flex: 0 0 auto; }
+.fm-display { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.2);
+              border-radius: 14px; padding: 8px; text-align: center; flex-shrink: 0; }
+#fm-input { font-family: 'Google Sans', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
 /* Tomt fält visar dagens sparade siffra som platshållare – dimmad, så att
    C och radera syns att de faktiskt tömde fältet. */
-#fm-input.is-placeholder { opacity: .42; font-weight: 800; }
-.fm-keys { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; flex: 1; min-height: 0; }
+#fm-input.is-placeholder { opacity: .45; }
+.fm-keys { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; }
 .fm-keys button {
-    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.12);
-    border-radius: 16px; color: #fff; font-size: 22px; font-weight: 800;
+    aspect-ratio: 100 / 52;
+    background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.16);
+    border-radius: 12px; color: #fff;
+    font-family: 'Google Sans', sans-serif; font-size: 19px; font-weight: 700;
     display: flex; align-items: center; justify-content: center;
-    transition: transform .1s var(--ease-emp), background-color .15s;
+    transition: transform .15s var(--ease-emp), background-color .15s;
 }
-.fm-keys button:active { transform: scale(.93); background: rgba(255,255,255,.3); }
-.fm-keys .fm-alt { background: rgba(255,255,255,.055); }
-.fm-keys .fm-alt .material-symbols-rounded { font-size: 21px; }
+.fm-keys button:active { transform: scale(.94); background: rgba(255,255,255,.32); }
+.fm-keys .fm-alt { background: rgba(255,255,255,.06); font-size: 16px; }
+.fm-keys .fm-c { background: rgba(255,255,255,.06); border-color: rgba(255,138,128,.34); color: #ffb3ab; }
+.fm-keys .fm-alt .material-symbols-rounded { font-size: 20px; }
 .fm-save {
-    flex-shrink: 0; padding: 16px; border-radius: 18px; background: #fff; color: var(--g-blue-deep);
-    font-size: 14px; font-weight: 900; letter-spacing: .02em;
-    box-shadow: 0 8px 24px -10px rgba(0,0,0,.6);
-    transition: transform .15s var(--ease-emp), opacity .2s;
+    flex-shrink: 0; padding: 13px; border-radius: 16px; background: #fff; color: var(--g-blue-deep);
+    font-family: 'Google Sans', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: .02em;
+    box-shadow: var(--elev-2); transition: transform .15s var(--ease-emp), opacity .2s;
 }
 .fm-save:active { transform: scale(.97); }
-.fm-save:disabled { opacity: .38; box-shadow: none; }
+.fm-save:disabled { opacity: .4; box-shadow: none; }
+
+/* Låga skärmar: krymp mätaren först, inmatningen sist */
+@media (max-height: 760px) {
+    .fm-gauge { width: min(36vw, 132px); }
+    .fm-gauge-row { margin-top: 4px; }
+    .fm-meta, .fm-pacebar { margin-top: 8px; }
+    .fm-pad { margin-top: 8px; }
+    .fm-boost { margin-top: 8px; }
+    .fm-keys button { aspect-ratio: 100 / 44; }
+    .fm-save { padding: 11px; }
+}
 
 /* Knappen in i fokusläget, bredvid utvärdering och boost */
 .focus-btn {
@@ -2375,9 +2398,3 @@ body.focus-mode-on .app-bottom-nav { display: none; }
 }
 .md-toggle-row input { width: 42px; height: 24px; accent-color: var(--g-blue); }
 
-/* Låga skärmar: krymp mätaren i stället för att klippa knapparna */
-@media (max-height: 700px) {
-    .fm-gauge { width: min(42vw, 160px); }
-    .fm-facts { padding: 9px 4px; }
-    .fm-pad { margin-top: 10px; }
-}

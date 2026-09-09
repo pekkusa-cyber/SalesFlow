@@ -1545,22 +1545,56 @@ function fmShift(k){
     return { start: new Date(y,m,d,sh,sm), slut: new Date(y,m,d,eh,em) };
 }
 
+// Bortvalet ✕ lever bara så länge appen är igång. Startar du appen på nytt
+// mitt i passet ska fokusläget möta dig igen – annars stängde ETT tryck av
+// autostarten resten av dygnet, vilket är precis vad som hände i v98.
+function fmArBortvald(k){ try { return sessionStorage.getItem('sf_focus_off_' + k) === '1'; } catch(e){ return false; } }
+function fmSattBortvald(k){ try { sessionStorage.setItem('sf_focus_off_' + k, '1'); } catch(e){} }
+// Äldre versioner sparade bortvalet i localStorage, där det överlevde omstart.
+// Rensa bort dem en gång, annars sitter gamla flaggor kvar och blockerar.
+try {
+    for (let i = localStorage.length - 1; i >= 0; i--){
+        const namn = localStorage.key(i);
+        if (namn && namn.indexOf('sf_focus_off_') === 0) localStorage.removeItem(namn);
+    }
+} catch(e){}
+
 // Ska fokusläget öppna sig självt just nu?
 function fmBorOppna(){
     if (!focusAuto) return false;
     const k = getK(realToday);
-    try { if (localStorage.getItem('sf_focus_off_' + k) === '1') return false; } catch(e){}
+    if (fmArBortvald(k)) return false;
     const sk = fmShift(k); if (!sk) return false;
     const nu = new Date();
     return nu >= new Date(sk.start.getTime() - FM_FORE_MIN*60000) && nu < sk.slut;
 }
 
+// Öppnar fokusläget av sig självt när passet börjar – även om appen redan låg
+// öppen eller väcks ur bakgrunden. Aldrig ovanpå något du håller på med.
+function fmKollaAuto(){
+    const el = document.getElementById('focus-mode');
+    if (!el || el.classList.contains('is-open')) return;
+    if (document.hidden) return;
+    if (document.querySelector('.md-scrim:not(.hidden)')) return;              // öppen dialog
+    const np = document.getElementById('dash-inline-numpad');
+    if (np && !np.classList.contains('pointer-events-none')) return;           // pågående inmatning
+    if (fmBorOppna()) openFocusMode2();
+}
+window.fmKollaAuto = fmKollaAuto;
+setInterval(fmKollaAuto, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) fmKollaAuto(); });
+
+// 270° av omkretsen vid r=52 (2π·52 = 326.7) – samma båge som bannern ritar.
+const FM_ARC = 245, FM_OMKRETS = 326.7;
+
 function fmRender(){
     const k = getK(realToday);
     const o = db.d[k] || {s:0};
     const bas = dayTarget(k), boost = boostFor(k), mal = bas + boost;
-    const salt = o.s || 0, kvar = Math.max(0, mal - salt);
-    const klar = mal > 0 && salt >= bas;
+    const salt = o.s || 0;
+    // BASMÅLET avgör om dagen är vunnen. Boosten är en frivillig stretch och
+    // kan aldrig göra en vunnen dag röd – samma regel som på dagskortet.
+    const klar = bas > 0 && salt >= bas;
     const T = (id,v) => { const e = document.getElementById(id); if (e) e.innerText = v; };
 
     const dagar = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
@@ -1568,59 +1602,99 @@ function fmRender(){
     const sk = fmShift(k);
     T('fm-shift', sk ? `${db.q[k].start.substring(0,5)} — ${db.q[k].end.substring(0,5)}` : 'Inget pass idag');
 
+    // Mitten svarar på "är dagen vunnen?", och räknar därför mot BASmålet.
     T('fm-sales', lonKr(salt));
-    T('fm-of', 'av ' + lonKr(mal) + (boost > 0 ? ' ⚡' : ''));
+    T('fm-perc', klar ? '100 % ✓' : (bas > 0 ? Math.round(salt/bas*100) : 0) + ' %');
 
-    // Ringen fyller mot målet men färgas av BASmålet – en boost kan aldrig
-    // göra en vunnen dag röd, samma regel som på dagskortet.
-    const pct = mal > 0 ? Math.min(100, (salt/mal)*100) : 0;
-    const ring = document.getElementById('fm-ring');
-    if (ring){ ring.style.strokeDashoffset = 528 - (pct/100)*396; ring.style.stroke = klar ? 'var(--pos)' : '#ff6b81'; }
+    // ---- mätaren i tre lager ----
+    // Guldbågen går till totalmålet, den vita/gröna läggs ovanpå fram till
+    // basmålet. Bara sträckan BORTOM basmålet blir alltså gul.
+    const tot = mal > 0 ? mal : 1;
+    const bage = (id, andel) => {
+        const e = document.getElementById(id);
+        if (e) e.setAttribute('stroke-dasharray', (Math.max(0, Math.min(1, andel)) * FM_ARC).toFixed(1) + ' ' + FM_OMKRETS);
+    };
+    bage('fm-arc-boost', Math.min(salt, mal) / tot);
+    bage('fm-arc-bas',   Math.min(salt, bas) / tot);
+    const basB = document.getElementById('fm-arc-bas');
+    if (basB) basB.classList.toggle('is-klar', klar);
 
+    // Markören visar VAR basmålet går. Utan boost ÄR bågens slut basmålet, och
+    // då skulle skåran bara äta upp den rundade spetsen – göm den i stället.
+    const mark = document.getElementById('fm-arc-mark');
+    if (mark){
+        if (boost > 0 && bas > 0){
+            const p = Math.max(3, (bas/tot) * FM_ARC);
+            mark.setAttribute('stroke-dasharray', `0 ${(p - 1.75).toFixed(1)} 3.5 999`);
+            mark.style.opacity = '';
+        } else mark.style.opacity = '0';
+    }
+
+    // ---- sidokolumnerna: basmål till vänster, boost till höger ----
+    T('fm-bas', lonKr(bas));
+    const bp = document.getElementById('fm-bas-pill');
+    if (bp){
+        bp.innerText = klar ? '✓ Klart' : lonKr(Math.max(0, bas - salt)) + ' kvar';
+        bp.classList.toggle('is-klar', klar);
+    }
+    const niva = (boost > 0 && boostStep > 0) ? Math.round(boost/boostStep) : 0;
+    T('fm-boostval', boost > 0 ? '+' + lonKr(boost) : '—');
+    const bop = document.getElementById('fm-boost-pill');
+    if (bop){
+        bop.innerText = boost > 0 ? ('⚡ ×' + niva) : 'Ingen';
+        bop.classList.toggle('is-boost', boost > 0);
+        bop.classList.toggle('is-off',   boost === 0);
+    }
+
+    // ---- nyckeltal ----
     const nu = new Date();
     let timmar = sk ? (sk.slut - nu)/3600000 : 0;
     if (timmar < 0) timmar = 0;
+    const kvar = Math.max(0, mal - salt);
 
-    T('fm-left', klar ? 'Klart 🎉' : lonKr(kvar));
+    T('fm-left', kvar > 0 ? lonKr(kvar) : 'Klart 🎉');
     T('fm-rate', kvar > 0 && timmar > 0.05 ? lonKr(Math.round(kvar/timmar/10)*10) : (kvar > 0 ? lonKr(kvar) : '—'));
     T('fm-time', sk ? (timmar > 0.02 ? fmTid(timmar) : 'Slut') : '—');
 
     // Takt: ligger du före eller efter där du borde vara vid den här tidpunkten?
     // Jämför andel sålt mot andel av passet som gått. Det svarar på "hur går det"
-    // bättre än en ren summa gör.
+    // bättre än en ren summa gör. Mäts mot BASmålet, inte mot boosten.
     const fill = document.getElementById('fm-pacefill');
-    const mark = document.getElementById('fm-pacemark');
-    if (sk && mal > 0) {
+    const pmark = document.getElementById('fm-pacemark');
+    if (sk && bas > 0) {
         const total = (sk.slut - sk.start)/3600000;
         let gatt = (nu - sk.start)/3600000;
         gatt = Math.max(0, Math.min(total, gatt));
         const borde = total > 0 ? (gatt/total) : 0;
-        const har = Math.min(1, salt/mal);
-        if (fill) fill.style.width = (har*100).toFixed(1) + '%';
-        if (mark) mark.style.left = (borde*100).toFixed(1) + '%';
-        const diff = Math.round(salt - mal*borde);
+        const har = Math.min(1, salt/bas);
+        if (fill)  fill.style.width = (har*100).toFixed(1) + '%';
+        if (pmark) pmark.style.left = (borde*100).toFixed(1) + '%';
+        const diff = Math.round(salt - bas*borde);
         const el = document.getElementById('fm-pacetext');
         if (el){
-            if (klar)          { el.innerText = 'Dagens mål klart'; el.className = 'fm-pacetext is-fore'; }
+            if (klar)          { el.innerText = 'Dagens mål klart';            el.className = 'fm-pacetext is-fore'; }
             else if (diff >= 0){ el.innerText = 'Före takten +' + lonKr(diff); el.className = 'fm-pacetext is-fore'; }
             else               { el.innerText = 'Efter takten ' + lonKr(diff); el.className = 'fm-pacetext is-efter'; }
         }
     } else {
-        if (fill) fill.style.width = '0%';
-        if (mark) mark.style.left = '0%';
+        if (fill)  fill.style.width = '0%';
+        if (pmark) pmark.style.left = '0%';
         const el = document.getElementById('fm-pacetext');
         if (el){ el.innerText = sk ? '—' : 'Inget pass idag'; el.className = 'fm-pacetext'; }
     }
 
+    // Boostknappen dyker upp först när basmålet är klart. Texten skiljer på
+    // "du kan höja ribban" och "du har höjt den, så här långt kvar dit".
     const bb = document.getElementById('fm-boost');
     if (bb){
         if (klar){
-            const niva = boost > 0 ? Math.round(boost/boostStep) : 0;
-            bb.innerText = salt >= mal ? `⚡ Höj ribban +${Math.round(boostStep/1000)}k${niva?' ×'+niva:''}`
-                                       : `⚡ ×${niva} · ${lonKr(mal-salt)} kvar`;
+            if (kvar > 0) bb.innerText = `⚡ ×${niva} · ${lonKr(kvar)} kvar till boostmålet`;
+            else          bb.innerText = `⚡ Höj ribban +${Math.round(boostStep/1000)}k${niva ? ' ×' + niva : ''}`;
+            bb.classList.toggle('is-redo', kvar <= 0);
             bb.classList.remove('hidden');
         } else bb.classList.add('hidden');
     }
+
     const inp = document.getElementById('fm-input');
     if (inp){
         const tomt = fmInput === '';
@@ -1658,7 +1732,10 @@ function bindFocusMode(){
 window.bindFocusMode = bindFocusMode;
 
 function fmTid(h){
-    const t = Math.floor(h), m = Math.round((h-t)*60);
+    // Avrunda minuterna FÖRST och bär över till timmar – annars ger 5.996 h
+    // "5 h 60 min", vilket det stod på skärmen.
+    let m = Math.round(h*60);
+    const t = Math.floor(m/60); m -= t*60;
     return t > 0 ? `${t} h ${String(m).padStart(2,'0')} min` : `${m} min`;
 }
 
@@ -1698,7 +1775,7 @@ function closeFocusMode2(){
     document.body.classList.remove('focus-mode-on');
     if (fmTimer) { clearInterval(fmTimer); fmTimer = null; }
     // Valde du bort fokus mitt i passet ska det inte poppa upp igen samma dag.
-    try { localStorage.setItem('sf_focus_off_' + getK(realToday), '1'); } catch(e){}
+    fmSattBortvald(getK(realToday));
     calculateTimeline(); updateDash();
 }
 window.openFocusMode2 = openFocusMode2; window.closeFocusMode2 = closeFocusMode2;
@@ -3852,7 +3929,9 @@ document.addEventListener('touchend', function(e){
     if (Math.abs(dx) <= Math.abs(dy) || Math.abs(dx) < 40) return;   // endast tydliga horisontella svep
     const dir = dx > 0 ? -1 : 1;
     const t = e.target;
-    if (document.body.classList.contains('focus-mode-on')) return;    // inga månadsbyten i fokusläge
+    // focus-mode-on = helskärmsläget, focus-mode-active = dagfokus i kalendern.
+    if (document.body.classList.contains('focus-mode-on') ||
+        document.body.classList.contains('focus-mode-active')) return;
     // Lön: svep var som helst på lönevyn → byt månad
     const lonSheet = document.getElementById('sheet-lon');
     if (lonSheet && lonSheet.classList.contains('is-open') && t.closest('#sheet-lon')) { if (typeof lonNavMonth === 'function') lonNavMonth(dir); return; }

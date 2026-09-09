@@ -20,7 +20,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=98">
+    <link rel="stylesheet" href="style.css?v=99">
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
          målningen, innan Tailwind och Google Fonts laddats. Samma blå som
@@ -46,8 +46,10 @@
 <body class="mode-dash">
 
     <!-- FOKUSLÄGE — egen helskärmsvy under passet. Bara dagen, inget annat.
-         Knapparna har INGA inline-onclick: all interaktion hanteras av en
-         delegerad lyssnare i script.js, som lyssnar på både click och touch. -->
+         Byggt av appens egna delar: bannerns 270°-båge (.g-bg/.g-marks),
+         .side-col/.micro-lbl/.val-display/.status-pill och .meta-row.
+         Knapparna har INGA inline-onclick: all interaktion går genom en
+         delegerad pointerup-lyssnare i script.js. -->
     <div id="focus-mode" class="hidden">
         <div class="fm-top">
             <div class="fm-when">
@@ -60,30 +62,40 @@
         </div>
 
         <div class="fm-stage">
-            <div class="fm-gauge">
-                <svg viewBox="0 0 200 200">
-                    <circle class="fm-ring-bg" cx="100" cy="100" r="84" stroke-dasharray="396 528" transform="rotate(135 100 100)"></circle>
-                    <circle id="fm-ring" class="fm-ring" cx="100" cy="100" r="84" stroke-dasharray="528" stroke-dashoffset="528" transform="rotate(135 100 100)"></circle>
-                </svg>
-                <div class="fm-center">
-                    <span id="fm-sales">0 kr</span>
-                    <span id="fm-of">av 0 kr</span>
+            <!-- Mätaren: basmålet ritas vitt/grönt, boosten fortsätter i guld
+                 bortom en markör som visar exakt var basmålet går. -->
+            <div class="gauge-layout fm-gauge-row">
+                <div class="side-col">
+                    <p class="micro-lbl">Basmål</p>
+                    <p id="fm-bas" class="val-display pop-highlight">0 kr</p>
+                    <div id="fm-bas-pill" class="status-pill pill-blue">—</div>
+                </div>
+
+                <div class="fm-gauge">
+                    <svg viewBox="0 0 130 130">
+                        <circle class="g-bg" cx="65" cy="65" r="52" stroke-dasharray="245 326.7" transform="rotate(135 65 65)"></circle>
+                        <circle class="g-marks" cx="65" cy="65" r="44" stroke-dasharray="1 18" transform="rotate(135 65 65)"></circle>
+                        <circle id="fm-arc-boost" class="fm-arc fm-arc-boost" cx="65" cy="65" r="52" stroke-dasharray="0 326.7" transform="rotate(135 65 65)"></circle>
+                        <circle id="fm-arc-bas" class="fm-arc fm-arc-bas" cx="65" cy="65" r="52" stroke-dasharray="0 326.7" transform="rotate(135 65 65)"></circle>
+                        <circle id="fm-arc-mark" class="fm-arc-mark" cx="65" cy="65" r="52" stroke-dasharray="0 245 3.5 999" transform="rotate(135 65 65)"></circle>
+                    </svg>
+                    <div class="fm-center">
+                        <span id="fm-sales">0 kr</span>
+                        <span id="fm-perc">0 %</span>
+                    </div>
+                </div>
+
+                <div class="side-col">
+                    <p class="micro-lbl">Boost</p>
+                    <p id="fm-boostval" class="val-display pop-highlight">—</p>
+                    <div id="fm-boost-pill" class="status-pill pill-blue is-off">Ingen</div>
                 </div>
             </div>
 
-            <div class="fm-facts">
-                <div class="fm-fact">
-                    <span class="fm-fact-lbl">Kvar</span>
-                    <span id="fm-left" class="fm-fact-val">0 kr</span>
-                </div>
-                <div class="fm-fact fm-fact-mid">
-                    <span class="fm-fact-lbl">Per timme</span>
-                    <span id="fm-rate" class="fm-fact-val">—</span>
-                </div>
-                <div class="fm-fact">
-                    <span class="fm-fact-lbl">Kvar av passet</span>
-                    <span id="fm-time" class="fm-fact-val">—</span>
-                </div>
+            <div class="meta-row fm-meta">
+                <div class="meta-cell"><p class="meta-lbl">Kvar</p><p id="fm-left" class="meta-val">0 kr</p></div>
+                <div class="meta-cell border-left"><p class="meta-lbl">Per timme</p><p id="fm-rate" class="meta-val">—</p></div>
+                <div class="meta-cell border-left"><p class="meta-lbl">Kvar av passet</p><p id="fm-time" class="meta-val">—</p></div>
             </div>
 
             <div class="fm-pacebar">
@@ -103,7 +115,7 @@
                 <button data-fm="k" data-k="1">1</button><button data-fm="k" data-k="2">2</button><button data-fm="k" data-k="3">3</button>
                 <button data-fm="k" data-k="4">4</button><button data-fm="k" data-k="5">5</button><button data-fm="k" data-k="6">6</button>
                 <button data-fm="k" data-k="7">7</button><button data-fm="k" data-k="8">8</button><button data-fm="k" data-k="9">9</button>
-                <button data-fm="k" data-k="c" class="fm-alt">C</button>
+                <button data-fm="k" data-k="c" class="fm-alt fm-c">C</button>
                 <button data-fm="k" data-k="0">0</button>
                 <button data-fm="k" data-k="back" class="fm-alt"><span class="material-symbols-rounded">backspace</span></button>
             </div>
@@ -885,7 +897,7 @@
         </button>
     </nav>
 
-    <script src="script.js?v=98"></script>
+    <script src="script.js?v=99"></script>
     <script>
     // ============================================================
     // SALESFLOW — Navigationscontroller

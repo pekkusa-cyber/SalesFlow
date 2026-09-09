@@ -1518,6 +1518,139 @@ function salesHours(k) {
 }
 
 // ============================================================
+//  FOKUSLÄGE — bara dagen, inget annat
+//  Egen helskärmsvy under passet. Läser samma dayTarget/boostFor som resten av
+//  appen och sparar via pushMatrixSync, så det finns ingen andra sanning här.
+// ============================================================
+const FM_FORE_MIN = 15;              // öppnar så här många minuter före passets start
+let fmTimer = null, fmInput = '';
+
+let focusAuto = true;
+try { focusAuto = localStorage.getItem('sf_focus_auto') !== '0'; } catch(e){}
+function setFocusAuto(pa){
+    focusAuto = !!pa;
+    try { localStorage.setItem('sf_focus_auto', focusAuto ? '1' : '0'); } catch(e){}
+}
+window.setFocusAuto = setFocusAuto;
+
+// Passets tider som riktiga Date, eller null om dagen inte är ett säljpass.
+function fmShift(k){
+    const q = db.q[k] || {}, o = db.d[k] || {};
+    if (!q.start || !q.end) return null;
+    if (isMeetingDay(k)) return null;                 // möte: inget att sälja
+    if (o.abs && ABS_TYPES.some(t => o.abs.includes(t))) return null;
+    const p = k.split('-'); const y = +p[0], m = +p[1]-1, d = +p[2];
+    const [sh,sm] = q.start.split(':').map(Number);
+    const [eh,em] = q.end.split(':').map(Number);
+    return { start: new Date(y,m,d,sh,sm), slut: new Date(y,m,d,eh,em) };
+}
+
+// Ska fokusläget öppna sig självt just nu?
+function fmBorOppna(){
+    if (!focusAuto) return false;
+    const k = getK(realToday);
+    try { if (localStorage.getItem('sf_focus_off_' + k) === '1') return false; } catch(e){}
+    const sk = fmShift(k); if (!sk) return false;
+    const nu = new Date();
+    return nu >= new Date(sk.start.getTime() - FM_FORE_MIN*60000) && nu < sk.slut;
+}
+
+function fmRender(){
+    const k = getK(realToday);
+    const o = db.d[k] || {s:0};
+    const bas = dayTarget(k), boost = boostFor(k), mal = bas + boost;
+    const salt = o.s || 0, kvar = Math.max(0, mal - salt);
+    const klar = mal > 0 && salt >= bas;
+    const T = (id,v) => { const e = document.getElementById(id); if (e) e.innerText = v; };
+
+    const dagar = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+    T('fm-day', dagar[realToday.getDay()].toUpperCase());
+    const sk = fmShift(k);
+    T('fm-shift', sk ? `${db.q[k].start.substring(0,5)} — ${db.q[k].end.substring(0,5)}` : 'Inget pass idag');
+
+    T('fm-sales', lonKr(salt));
+    T('fm-of', 'av ' + lonKr(mal) + (boost > 0 ? ' ⚡' : ''));
+
+    // Ringen: fyller mot målet, grön när basmålet är klart (samma regel som dagskortet)
+    const pct = mal > 0 ? Math.min(100, (salt/mal)*100) : 0;
+    const ring = document.getElementById('fm-ring');
+    if (ring){ ring.style.strokeDashoffset = 540 - (pct/100)*405; ring.style.stroke = klar ? 'var(--pos)' : 'var(--neg)'; }
+
+    // Det viktigaste talet: vad krävs per timme under resten av passet
+    const nu = new Date();
+    let timmar = sk ? (sk.slut - nu)/3600000 : 0;
+    if (timmar < 0) timmar = 0;
+    if (kvar <= 0) {
+        T('fm-left', klar ? 'Dagens mål klart 🎉' : lonKr(kvar) + ' kvar');
+        T('fm-rate', timmar > 0 ? fmTid(timmar) + ' kvar av passet' : 'Passet slut');
+    } else {
+        T('fm-left', lonKr(kvar) + ' kvar');
+        T('fm-rate', timmar > 0.05
+            ? `${fmTid(timmar)} · ${lonKr(Math.round(kvar/timmar/10)*10)}/timme`
+            : 'Passet slut');
+    }
+
+    const bb = document.getElementById('fm-boost');
+    if (bb){
+        if (klar){
+            const niva = boost > 0 ? Math.round(boost/boostStep) : 0;
+            bb.innerText = salt >= mal ? `⚡ Höj ribban +${Math.round(boostStep/1000)}k${niva?' ×'+niva:''}`
+                                       : `⚡ ×${niva} · ${lonKr(mal-salt)} kvar`;
+            bb.classList.remove('hidden');
+            bb.onclick = () => { addBoost(k); fmRender(); };
+        } else bb.classList.add('hidden');
+    }
+    const inp = document.getElementById('fm-input');
+    if (inp) inp.innerText = fmInput === '' ? (salt > 0 ? lonKr(salt) : '—') : lonKr(Number(fmInput));
+    const sv = document.getElementById('fm-save');
+    if (sv) sv.disabled = (fmInput === '');
+}
+function fmTid(h){
+    const t = Math.floor(h), m = Math.round((h-t)*60);
+    return t > 0 ? `${t} h ${String(m).padStart(2,'0')} min` : `${m} min`;
+}
+
+function fmKey(k){
+    if (k === 'c') fmInput = '';
+    else if (k === 'back') fmInput = fmInput.slice(0,-1);
+    else if (fmInput.length < 8) fmInput += k;
+    fmRender();
+}
+function fmSave(){
+    if (fmInput === '') return;
+    const k = getK(realToday), val = Number(fmInput) || 0;
+    const ex = db.d[k] || {};
+    // Samma regel som dagskortets numpad: frånvaro behålls, siffran räknas ändå.
+    if (ex.abs) pushMatrixSync(k, { s: val });
+    else pushMatrixSync(k, { s: val, st: 'Arbete', abs: null });
+    fmInput = '';
+    showToast('✅', 'Sparat ' + lonKr(val), 1600);
+    fmRender();
+}
+window.fmKey = fmKey; window.fmSave = fmSave;
+
+function openFocusMode2(){
+    const el = document.getElementById('focus-mode'); if (!el) return;
+    fmInput = '';
+    el.classList.remove('hidden');
+    document.body.classList.add('focus-mode-on');
+    fmRender();
+    if (fmTimer) clearInterval(fmTimer);
+    fmTimer = setInterval(fmRender, 30000);          // tiden kvar ska ticka
+    if (window.sfPushHist) window.sfPushHist();
+}
+function closeFocusMode2(){
+    const el = document.getElementById('focus-mode'); if (!el) return;
+    el.classList.add('hidden');
+    document.body.classList.remove('focus-mode-on');
+    if (fmTimer) { clearInterval(fmTimer); fmTimer = null; }
+    // Valde du bort fokus mitt i passet ska det inte poppa upp igen samma dag.
+    try { localStorage.setItem('sf_focus_off_' + getK(realToday), '1'); } catch(e){}
+    calculateTimeline(); updateDash();
+}
+window.openFocusMode2 = openFocusMode2; window.closeFocusMode2 = closeFocusMode2;
+
+// ============================================================
 //  BOOST — personlig stretch ovanpå dagsmålet
 //  Klarar du dagens mål kan du höja ribban för dig själv. Boosten är ETT EGET
 //  LAGER: den rör aldrig timeline, monthPace, veckomålet, lönen eller grön/röd.
@@ -3023,6 +3156,7 @@ async function init() {
     updateTopTitle();
     bindBoostBtn();
     hideBoot();
+    if (fmBorOppna()) openFocusMode2();
 }
 
 function openInlineNumpad() {
@@ -3609,6 +3743,7 @@ function triggerChildSelection(type, source) {
 
 function openBudgetModal() {
     const ver = document.getElementById('app-version'); if (ver) ver.innerText = 'SalesFlow ' + APP_VERSION;
+    const fa = document.getElementById('focus-auto'); if (fa) fa.checked = focusAuto;
     const bs = document.getElementById('boost-step'); if (bs) bs.value = boostStep;
     const bh = document.getElementById('boost-step-hint'); if (bh) bh.innerText = `Ett tryck lägger på ${lonKr(boostStep)}.`;
     const m = document.getElementById('budget-modal'); if(m) m.classList.remove('hidden');

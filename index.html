@@ -20,7 +20,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=95">
+    <link rel="stylesheet" href="style.css?v=96">
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
          målningen, innan Tailwind och Google Fonts laddats. Samma blå som
@@ -44,6 +44,48 @@
     </style>
 </head>
 <body class="mode-dash">
+
+    <!-- FOKUSLÄGE — egen helskärmsvy under passet. Bara dagen, inget annat. -->
+    <div id="focus-mode" class="hidden">
+        <div class="fm-top">
+            <div class="fm-when">
+                <span id="fm-day">IDAG</span>
+                <span id="fm-shift">09:00 — 19:15</span>
+            </div>
+            <button onclick="closeFocusMode2()" class="fm-exit" title="Till vanliga appen">
+                <span class="material-symbols-rounded">close_fullscreen</span>
+            </button>
+        </div>
+
+        <div class="fm-gauge">
+            <svg viewBox="0 0 200 200">
+                <circle class="fm-ring-bg" cx="100" cy="100" r="86" stroke-dasharray="405 540" transform="rotate(135 100 100)"></circle>
+                <circle id="fm-ring" class="fm-ring" cx="100" cy="100" r="86" stroke-dasharray="540" stroke-dashoffset="540" transform="rotate(135 100 100)"></circle>
+            </svg>
+            <div class="fm-center">
+                <span id="fm-sales">0 kr</span>
+                <span id="fm-of">av 0 kr</span>
+            </div>
+        </div>
+
+        <div id="fm-pace" class="fm-pace">
+            <span id="fm-left" class="fm-left">0 kr kvar</span>
+            <span id="fm-rate" class="fm-rate">—</span>
+        </div>
+
+        <button id="fm-boost" class="fm-boost hidden"></button>
+
+        <div class="fm-pad">
+            <div class="fm-display"><span id="fm-input">—</span></div>
+            <div class="fm-keys">
+                <button onclick="fmKey('1')">1</button><button onclick="fmKey('2')">2</button><button onclick="fmKey('3')">3</button>
+                <button onclick="fmKey('4')">4</button><button onclick="fmKey('5')">5</button><button onclick="fmKey('6')">6</button>
+                <button onclick="fmKey('7')">7</button><button onclick="fmKey('8')">8</button><button onclick="fmKey('9')">9</button>
+                <button onclick="fmKey('c')" class="fm-alt">C</button><button onclick="fmKey('0')">0</button><button onclick="fmKey('back')" class="fm-alt"><span class="material-symbols-rounded">backspace</span></button>
+            </div>
+            <button onclick="fmSave()" id="fm-save" class="fm-save">Spara dagens siffra</button>
+        </div>
+    </div>
 
     <!-- LADDSKÄRM — tas bort i init() när datan är på plats -->
     <div id="sf-boot">
@@ -367,6 +409,12 @@
                 <button onclick="setGlobalBudget(350000)" class="md-budget-btn">350 000 kr</button>
             </div>
             <div class="md-divider"></div>
+            <label class="md-toggle-row">
+                <span>🎯 Öppna fokusläget under passet</span>
+                <input id="focus-auto" type="checkbox" onchange="setFocusAuto(this.checked)">
+            </label>
+            <p class="lon-hint" style="margin-top:2px">Slår på sig 15 minuter före passets start.</p>
+            <div class="md-divider"></div>
             <p class="md-section-lbl text-center">Boost per tryck</p>
             <input id="boost-step" type="number" inputmode="numeric" step="500" class="md-input" onchange="setBoostStep(this.value)" placeholder="3000">
             <p id="boost-step-hint" class="lon-hint" style="margin-top:4px"></p>
@@ -536,6 +584,7 @@
                                             </div>
                                             <div class="flex items-center gap-1.5">
                                                 <button id="btn-week-half" onclick="switchWeekHalf()" class="week-half-btn hidden" title="Visa veckans andra halva"></button>
+                                                <button id="btn-focus" onclick="openFocusMode2()" class="focus-btn" title="Fokusläge">🎯</button>
                                                 <button id="btn-boost" class="boost-btn hidden" title="Höj ribban – långtryck för fler val"></button>
                                                 <button id="btn-trigger-eval" onclick="openEvalModal()" class="md-eval-trigger hidden" title="Utvärdera pass">
                                                     <span class="material-symbols-rounded text-[16px]">rate_review</span>
@@ -812,7 +861,7 @@
         </button>
     </nav>
 
-    <script src="script.js?v=95"></script>
+    <script src="script.js?v=96"></script>
     <script>
     // ============================================================
     // SALESFLOW — Navigationscontroller
@@ -1005,6 +1054,7 @@
         function pushHist() { try { history.pushState({ sf: ++histDepth }, ''); } catch (e) {} }
         window.sfPushHist = pushHist;
         window.addEventListener('popstate', function() {
+            if (document.body.classList.contains('focus-mode-on') && typeof window.closeFocusMode2 === 'function') { window.closeFocusMode2(); return; }
             if (typeof window.lonSettingsOpen === 'function' && window.lonSettingsOpen()) { window.closeLonSettings(); return; }
             const sn = document.getElementById('saved-notes-modal');
             if (sn && !sn.classList.contains('hidden')) { if (typeof window.closeSavedNotesModal === 'function') window.closeSavedNotesModal(); return; }

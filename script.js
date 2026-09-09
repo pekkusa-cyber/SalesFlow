@@ -1622,7 +1622,11 @@ function fmRender(){
         } else bb.classList.add('hidden');
     }
     const inp = document.getElementById('fm-input');
-    if (inp) inp.innerText = fmInput === '' ? (salt > 0 ? lonKr(salt) : '—') : lonKr(Number(fmInput));
+    if (inp){
+        const tomt = fmInput === '';
+        inp.innerText = tomt ? (salt > 0 ? lonKr(salt) : '—') : lonKr(Number(fmInput));
+        inp.classList.toggle('is-placeholder', tomt);
+    }
     const sv = document.getElementById('fm-save');
     if (sv) sv.disabled = (fmInput === '');
 }
@@ -1680,7 +1684,7 @@ window.fmKey = fmKey; window.fmSave = fmSave;
 function openFocusMode2(){
     const el = document.getElementById('focus-mode'); if (!el) return;
     fmInput = '';
-    el.classList.remove('hidden');
+    el.classList.remove('hidden'); el.classList.add('is-open');
     document.body.classList.add('focus-mode-on');
     bindFocusMode();
     fmRender();
@@ -1690,7 +1694,7 @@ function openFocusMode2(){
 }
 function closeFocusMode2(){
     const el = document.getElementById('focus-mode'); if (!el) return;
-    el.classList.add('hidden');
+    el.classList.remove('is-open'); el.classList.add('hidden');
     document.body.classList.remove('focus-mode-on');
     if (fmTimer) { clearInterval(fmTimer); fmTimer = null; }
     // Valde du bort fokus mitt i passet ska det inte poppa upp igen samma dag.
@@ -3848,7 +3852,7 @@ document.addEventListener('touchend', function(e){
     if (Math.abs(dx) <= Math.abs(dy) || Math.abs(dx) < 40) return;   // endast tydliga horisontella svep
     const dir = dx > 0 ? -1 : 1;
     const t = e.target;
-    if (document.body.classList.contains('focus-mode-active')) return; // inga månadsbyten i fokusläge
+    if (document.body.classList.contains('focus-mode-on')) return;    // inga månadsbyten i fokusläge
     // Lön: svep var som helst på lönevyn → byt månad
     const lonSheet = document.getElementById('sheet-lon');
     if (lonSheet && lonSheet.classList.contains('is-open') && t.closest('#sheet-lon')) { if (typeof lonNavMonth === 'function') lonNavMonth(dir); return; }
@@ -3886,6 +3890,9 @@ document.addEventListener('click', (e) => {
     } 
 });
 
-window.addEventListener('DOMContentLoaded', () => { init(); });
+// Fokuslägets knappar kopplas FÖRE init(). Låg anropet sist i init() blev de
+// aldrig kopplade om datahämtningen hängde sig – och då satt man fast i en
+// vy där ingenting svarade. fmBound-spärren gör anropet ofarligt att upprepa.
+window.addEventListener('DOMContentLoaded', () => { bindFocusMode(); init(); });
 
 if ("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js").catch(e => {}); }

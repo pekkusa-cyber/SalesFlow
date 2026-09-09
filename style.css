@@ -2246,9 +2246,13 @@ html, body { background: var(--header-bg); overscroll-behavior: none; }
 /* ============================================================
    FOKUSLÄGE — helskärm under passet, bara dagen
    ============================================================ */
+/* Synligheten styrs av .is-open, INTE av Tailwinds .hidden. En id-selektor
+   (1-0-0) slår en klass (0-1-0), så #focus-mode{display:flex} vann över
+   .hidden{display:none} och rutan gick aldrig att stänga. Samma mönster som
+   #sf-boot / .is-done. */
 #focus-mode {
     position: fixed; inset: 0; z-index: 9700;
-    display: flex; flex-direction: column;
+    display: none; flex-direction: column;
     padding: calc(env(safe-area-inset-top, 0px) + 16px) 18px calc(env(safe-area-inset-bottom, 0px) + 16px);
     background:
         radial-gradient(120% 80% at 50% -10%, #1d5fc4 0%, transparent 60%),
@@ -2257,6 +2261,7 @@ html, body { background: var(--header-bg); overscroll-behavior: none; }
     /* Inga fördröjda tryck, ingen dubbeltrycks-zoom som äter klick */
     touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
+#focus-mode.is-open { display: flex; }
 body.focus-mode-on .app-bottom-nav { display: none; }
 
 /* ---- topprad ---- */
@@ -2332,6 +2337,9 @@ body.focus-mode-on .app-bottom-nav { display: none; }
     backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
 #fm-input { font-size: 23px; font-weight: 900; letter-spacing: -.025em; }
+/* Tomt fält visar dagens sparade siffra som platshållare – dimmad, så att
+   C och radera syns att de faktiskt tömde fältet. */
+#fm-input.is-placeholder { opacity: .42; font-weight: 800; }
 .fm-keys { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; flex: 1; min-height: 0; }
 .fm-keys button {
     background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.12);

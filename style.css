@@ -12,6 +12,7 @@
   --g-red:        #ea4335;
   --g-red-soft:   #fce8e6;
   --g-yellow:     #fbbc04;
+  --boost-gold:   #f29900;      /* guld som håller mot vitt – #fbbc04 är för ljus */
   --g-yellow-soft:#fef7e0;
   --g-green:      #34a853;
   --g-green-soft: #e6f4ea;
@@ -381,6 +382,10 @@ body.focus-mode-active .md-focus-close { transform: translateY(0); }
 
 .focus-gauge-bg { fill: none; stroke: var(--outline-variant); stroke-linecap: round; }
 .fg-sales { fill: none; stroke-linecap: round; transition: stroke-dashoffset 0.7s var(--ease-emp), stroke 0.4s; stroke: var(--g-blue); }
+/* Dagskortet i boostläge: mätaren mäter stretchen, inte dagsmålet. */
+.fg-sales.is-boost { stroke: var(--boost-gold) !important; }
+#dash-val-sales.is-boost { color: var(--boost-gold) !important; }
+#dash-val-perc.is-klart { color: var(--g-green); font-weight: 800; letter-spacing: .06em; }
 
 /* Force prominent absence badge on day card — overrides JS-set Tailwind classes */
 body #dash-abs-badge:not(.hidden) {
@@ -2287,16 +2292,23 @@ body.focus-mode-on .app-bottom-nav { display: none; }
    #fm-arc-mark   en mörk skåra exakt där basmålet går                        */
 .fm-stage { display: flex; flex-direction: column; align-items: center; justify-content: center;
             flex: 1 1 auto; min-height: 0; }
+
+/* ---- statusremsan: svarar på "är dagen klar?" innan du hunnit läsa siffror ---- */
+.fm-status {
+    padding: 6px 15px; border-radius: 100px; margin-bottom: 2px;
+    font-family: 'Google Sans', sans-serif; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .10em; white-space: nowrap;
+    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.2); color: #fff;
+}
+.fm-status.is-klart { background: rgba(52,168,83,.34); border-color: rgba(129,201,149,.65); color: #d7f5e0; }
+.fm-status.is-boost { background: rgba(251,188,4,.26); border-color: rgba(251,188,4,.55); color: #ffe9a8; }
 .fm-gauge-row { width: 100%; max-width: 360px; margin-top: 10px; }
-.fm-gauge { position: relative; width: min(52vw, 196px); aspect-ratio: 1; margin: 0 2px; flex-shrink: 0; }
+.fm-gauge { position: relative; width: min(52vw, 196px, 20vh); aspect-ratio: 1; margin: 0 2px; flex-shrink: 0; }
 .fm-gauge svg { width: 100%; height: 100%; }
-.fm-arc { fill: none; stroke-width: 8; stroke-linecap: round;
+.fm-arc { fill: none; stroke-width: 8; stroke-linecap: round; stroke: #ffffff;
           transition: stroke-dasharray .8s var(--ease-emp), stroke .4s ease; }
-.fm-arc-boost { stroke: var(--g-yellow); }
-.fm-arc-bas   { stroke: #ffffff; }
-.fm-arc-bas.is-klar { stroke: #81c995; }          /* Googles ljusa grön – läsbar på blått */
-.fm-arc-mark { fill: none; stroke: #0b3d8c; stroke-width: 8; stroke-linecap: butt;
-               transition: stroke-dasharray .8s var(--ease-emp), opacity .3s ease; }
+.fm-arc.is-klart { stroke: #81c995; }             /* Googles ljusa grön – läsbar på blått */
+.fm-arc.is-boost { stroke: var(--g-yellow); }
 .fm-center { position: absolute; inset: 0; display: flex; flex-direction: column;
              align-items: center; justify-content: center; gap: 3px; }
 #fm-sales { font-family: 'Google Sans', sans-serif; font-size: clamp(17px, 5.4vw, 23px);
@@ -2373,13 +2385,25 @@ body.focus-mode-on .app-bottom-nav { display: none; }
 
 /* Låga skärmar: krymp mätaren först, inmatningen sist */
 @media (max-height: 760px) {
-    .fm-gauge { width: min(36vw, 132px); }
     .fm-gauge-row { margin-top: 4px; }
-    .fm-meta, .fm-pacebar { margin-top: 8px; }
+    .fm-meta { margin-top: 8px; padding-top: 8px; }
+    .fm-pacebar { margin-top: 8px; }
     .fm-pad { margin-top: 8px; }
-    .fm-boost { margin-top: 8px; }
-    .fm-keys button { aspect-ratio: 100 / 44; }
+    .fm-boost { margin-top: 8px; padding: 7px 15px; }
+    .fm-status { padding: 5px 13px; }
+    .fm-keys button { aspect-ratio: 100 / 40; }
+    .fm-keys { gap: 6px; }
     .fm-save { padding: 11px; }
+    .fm-display { padding: 7px; }
+}
+
+/* Riktigt låga skärmar: mätaren ger efter först, knapparna sist. */
+@media (max-height: 660px) {
+    .fm-gauge { width: min(36vw, 132px, 16vh); }
+    .fm-keys button { aspect-ratio: 100 / 36; }
+    .fm-boost { margin-top: 6px; }
+    .fm-gauge-row { margin-top: 0; }
+    .fm-status { margin-bottom: 0; }
 }
 
 /* Knappen in i fokusläget, bredvid utvärdering och boost */

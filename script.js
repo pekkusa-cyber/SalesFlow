@@ -926,6 +926,45 @@ function dayTarget(k){
     return (dashRelief && t.targetRelief !== undefined) ? t.targetRelief : (t.target || 0);
 }
 
+// ============================================================
+//  DAGENS LÄGE — mätaren ska svara på EN fråga i taget
+//  Att rita basmål och boost i samma båge gjorde att bågen mätte en sak och
+//  siffran i mitten en annan. I stället byter mätaren betydelse när du
+//  passerar dagsmålet:
+//    'jagar'  basmålet inte nått        -> mätaren mäter 0 → dagsmålet
+//    'klart'  nått, ingen boost satt    -> full grön ring
+//    'boost'  nått och en boost satt    -> mätaren mäter 0 → boosten
+//  Båda ytorna (dagskortet och fokusläget) läser härifrån, annars glider de isär.
+// ============================================================
+function malVy(k){
+    const bas = dayTarget(k), boost = boostFor(k), salt = (db.d[k] || {s:0}).s || 0;
+    const lage = !(bas > 0) || salt < bas ? 'jagar' : (boost > 0 ? 'boost' : 'klart');
+    const paBoost = Math.max(0, salt - bas);              // hur mycket av stretchen som är gjord
+    const andel = lage === 'jagar' ? (bas > 0 ? salt/bas : 0)
+                : lage === 'klart' ? 1
+                : Math.min(1, paBoost / boost);
+    return { bas, boost, salt, lage, paBoost, andel };
+}
+
+// Firandet spelas bara upp i själva ÖVERGÅNGEN från 'jagar'. Bläddrar du till
+// en gammal klarad dag har den aldrig setts som 'jagar', och då händer inget.
+let malForra = {}, firarTill = 0, firarTimer = null;
+function kollaFirande(k, lage){
+    const forra = malForra[k];
+    malForra[k] = lage;
+    if (forra === 'jagar' && lage !== 'jagar'){
+        firarTill = Date.now() + 1400;
+        if (firarTimer) clearTimeout(firarTimer);
+        // Rita om när firandet är över, annars står vyn kvar i festläge.
+        firarTimer = setTimeout(() => {
+            firarTimer = null;
+            updateDashboardView();
+            if (document.getElementById('focus-mode')?.classList.contains('is-open')) fmRender();
+        }, 1450);
+    }
+    return Date.now() < firarTill;
+}
+
 function updateDash() { 
     db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
     const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); let tS = 0, dP = 0, tP = 0, rW = 0; const daysM = new Date(cy, cm, 0).getDate();
@@ -1199,21 +1238,72 @@ function updateDashboardView() {
     const titleEl = document.getElementById('dash-title'); if(titleEl) titleEl.innerText = title.toUpperCase(); 
     const subtitleEl = document.getElementById('dash-subtitle'); if(subtitleEl) subtitleEl.innerText = subtitle; 
     const statusTextEl = document.getElementById('dash-status-text'); if(statusTextEl) statusTextEl.innerText = statusText;
-    const lblTargetEl = document.getElementById('dash-lbl-target'); if(lblTargetEl) lblTargetEl.innerText = activeK ? "DAGSMÅL" : "VECKOMÅL"; 
-    // Mätaren siktar mot det BOOSTADE målet, men färgen följer basmålet: har du vunnit
-    // dagen är ringen grön även om du fortfarande jagar den höjda ribban.
-    const valTargetEl = document.getElementById('dash-val-target');
-    if(valTargetEl) valTargetEl.innerText = (malVisat/1000).toFixed(1) + " k" + (dagBoost > 0 ? ` (+${Math.round(dagBoost/1000)}k)` : "");
-    const lblTgt = document.getElementById('dash-lbl-target');
-    if(lblTgt && activeK) lblTgt.innerText = dagBoost > 0 ? "BOOSTAT MÅL" : "DAGSMÅL";
+    // Samma tre lägen som fokusläget, ur malVy(). Mätaren mäter dagsmålet tills
+    // det är klart, och byter sedan till att mäta boosten – aldrig båda samtidigt.
+    // Veckokortet har ingen boost och hamnar alltid i 'jagar' eller 'klart'.
+    const vy = activeK ? malVy(activeK)
+                       : { bas: dTarget, boost: 0, salt: dSales, paBoost: Math.max(0, dSales - dTarget),
+                           lage: (dTarget > 0 && dSales >= dTarget) ? 'klart' : 'jagar',
+                           andel: dTarget > 0 ? dSales/dTarget : 0 };
+    const firar = activeK ? kollaFirande(activeK, vy.lage) : false;
 
-    const salesEl = document.getElementById('dash-val-sales'); if(salesEl) { salesEl.innerText = (dSales/1000).toFixed(1) + " k"; salesEl.style.color = isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)'); }
-    const diffEl = document.getElementById('dash-val-diff'); if(diffEl) { diffEl.innerText = (dDiff >= 0 ? "+" : "") + (dDiff/1000).toFixed(1) + " k"; diffEl.style.color = dDiff >= 0 ? "var(--sting-blue)" : "var(--neg)"; }
-    
-    const p = malVisat > 0 ? Math.min(100, Math.round((dSales / malVisat) * 100)) : 0; 
-    const valPercEl = document.getElementById('dash-val-perc'); if(valPercEl) valPercEl.innerText = p + "%";
-    
-    const g = document.getElementById('dash-gauge-prog'); if(g) { g.style.strokeDashoffset = 283 - ((p / 100) * 212); g.style.stroke = isReached ? 'var(--pos)' : (malVisat > 0 ? 'var(--neg)' : 'var(--sting-blue)'); }
+    const lblTgt = document.getElementById('dash-lbl-target');
+    if (lblTgt) lblTgt.innerText = !activeK ? (vy.lage === 'klart' ? "VECKOMÅL ✓" : "VECKOMÅL")
+                                 : vy.lage === 'boost' ? "BOOST"
+                                 : vy.lage === 'klart' ? "DAGSMÅL ✓" : "DAGSMÅL";
+    const valTargetEl = document.getElementById('dash-val-target');
+    if (valTargetEl) valTargetEl.innerText = vy.lage === 'boost'
+        ? "+" + (vy.boost/1000).toFixed(1) + " k"
+        : (vy.bas/1000).toFixed(1) + " k";
+
+    // I boostläge visar stora siffran vad du gjort PÅ boosten, så att båge och
+    // siffra mäter samma sak. ⚡ före talet markerar att det inte är totalen.
+    const salesEl = document.getElementById('dash-val-sales');
+    if (salesEl) {
+        const boostLage = vy.lage === 'boost' && !firar;
+        salesEl.innerText = firar ? "KLART" : (boostLage ? "⚡" + (vy.paBoost/1000).toFixed(1) + " k"
+                                                         : (dSales/1000).toFixed(1) + " k");
+        salesEl.classList.toggle('is-boost', boostLage);
+        salesEl.style.color = boostLage ? '' : (isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)'));
+    }
+
+    const diffLbl = document.getElementById('dash-lbl-diff');
+    if (diffLbl) diffLbl.innerText = vy.lage === 'jagar' ? "DIFF" : (vy.lage === 'klart' ? "ÖVER" : (dDiff >= 0 ? "ÖVER" : "KVAR"));
+    const diffEl = document.getElementById('dash-val-diff');
+    if (diffEl) {
+        // DIFF måste följa samma mål som mätaren. I 'jagar' räknas mot dagsmålet
+        // även om en boost råkar ligga kvar sedan tidigare (t.ex. att målet höjts
+        // efteråt), annars visar den ett underskott mot ett mål som inte gäller.
+        const visa = vy.lage === 'jagar' ? (vy.salt - vy.bas)
+                   : vy.lage === 'klart' ? vy.paBoost : dDiff;
+        // "KVAR -1.4 k" läser fel. Är etiketten KVAR visas beloppet positivt;
+        // tecknet hör till DIFF och ÖVER.
+        const kvarLage = diffLbl && diffLbl.innerText === "KVAR";
+        diffEl.innerText = kvarLage ? (Math.abs(visa)/1000).toFixed(1) + " k"
+                                    : (visa >= 0 ? "+" : "") + (visa/1000).toFixed(1) + " k";
+        diffEl.style.color = (kvarLage || visa < 0) ? "var(--neg)" : "var(--sting-blue)";
+    }
+
+    // Kortet ska SÄGA att dagsmålet är klart, inte bara antyda det med glöden.
+    // Frånvarotexten äger raden när den finns och skrivs om vid varje rendering.
+    const smeta = document.getElementById('dash-status-meta');
+    if (smeta && activeK && vy.lage !== 'jagar' && !smeta.innerText.trim()) smeta.innerText = "✓ DAGSMÅL KLART";
+
+    const p = Math.round(Math.max(0, Math.min(1, firar ? 1 : vy.andel)) * 100);
+    const valPercEl = document.getElementById('dash-val-perc');
+    if (valPercEl) {
+        const klartText = firar || vy.lage === 'klart';
+        valPercEl.innerText = klartText ? "KLART" : p + "%";
+        valPercEl.classList.toggle('is-klart', klartText);
+    }
+
+    const g = document.getElementById('dash-gauge-prog');
+    if (g) {
+        g.style.strokeDashoffset = 283 - ((p / 100) * 212);
+        g.classList.toggle('is-boost', vy.lage === 'boost' && !firar);
+        g.style.stroke = (vy.lage === 'boost' && !firar) ? ''
+                       : (isReached || firar ? 'var(--pos)' : (vy.bas > 0 ? 'var(--neg)' : 'var(--sting-blue)'));
+    }
 
     // Boost-pillen: dyker upp först när dagens mål är nått, och kommer tillbaka
     // varje gång du klarat även den höjda ribban.
@@ -1225,7 +1315,7 @@ function updateDashboardView() {
             const klar = dSales >= malVisat;
             bBtn.innerHTML = klar
                 ? `⚡ BOOSTA +${Math.round(boostStep/1000)}k${niva ? ` <b>×${niva}</b>` : ''}`
-                : `⚡ ×${niva} · ${((malVisat - dSales)/1000).toFixed(1)}k kvar`;
+                : `⚡ <b>×${niva}</b>`;
             bBtn.classList.toggle('is-jagar', !klar);
             bBtn.classList.remove('hidden');
         } else bBtn.classList.add('hidden');
@@ -1589,119 +1679,130 @@ const FM_ARC = 245, FM_OMKRETS = 326.7;
 
 function fmRender(){
     const k = getK(realToday);
-    const o = db.d[k] || {s:0};
-    const bas = dayTarget(k), boost = boostFor(k), mal = bas + boost;
-    const salt = o.s || 0;
-    // BASMÅLET avgör om dagen är vunnen. Boosten är en frivillig stretch och
-    // kan aldrig göra en vunnen dag röd – samma regel som på dagskortet.
-    const klar = bas > 0 && salt >= bas;
-    const T = (id,v) => { const e = document.getElementById(id); if (e) e.innerText = v; };
+    const v = malVy(k);
+    const firar = kollaFirande(k, v.lage);
+    const T = (id,x) => { const e = document.getElementById(id); if (e) e.innerText = x; };
+    const E = id => document.getElementById(id);
 
     const dagar = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
     T('fm-day', dagar[realToday.getDay()].toUpperCase());
     const sk = fmShift(k);
     T('fm-shift', sk ? `${db.q[k].start.substring(0,5)} — ${db.q[k].end.substring(0,5)}` : 'Inget pass idag');
 
-    // Mitten svarar på "är dagen vunnen?", och räknar därför mot BASmålet.
-    T('fm-sales', lonKr(salt));
-    T('fm-perc', klar ? '100 % ✓' : (bas > 0 ? Math.round(salt/bas*100) : 0) + ' %');
+    const niva = (v.boost > 0 && boostStep > 0) ? Math.round(v.boost/boostStep) : 0;
 
-    // ---- mätaren i tre lager ----
-    // Guldbågen går till totalmålet, den vita/gröna läggs ovanpå fram till
-    // basmålet. Bara sträckan BORTOM basmålet blir alltså gul.
-    const tot = mal > 0 ? mal : 1;
-    const bage = (id, andel) => {
-        const e = document.getElementById(id);
-        if (e) e.setAttribute('stroke-dasharray', (Math.max(0, Math.min(1, andel)) * FM_ARC).toFixed(1) + ' ' + FM_OMKRETS);
-    };
-    bage('fm-arc-boost', Math.min(salt, mal) / tot);
-    bage('fm-arc-bas',   Math.min(salt, bas) / tot);
-    const basB = document.getElementById('fm-arc-bas');
-    if (basB) basB.classList.toggle('is-klar', klar);
-
-    // Markören visar VAR basmålet går. Utan boost ÄR bågens slut basmålet, och
-    // då skulle skåran bara äta upp den rundade spetsen – göm den i stället.
-    const mark = document.getElementById('fm-arc-mark');
-    if (mark){
-        if (boost > 0 && bas > 0){
-            const p = Math.max(3, (bas/tot) * FM_ARC);
-            mark.setAttribute('stroke-dasharray', `0 ${(p - 1.75).toFixed(1)} 3.5 999`);
-            mark.style.opacity = '';
-        } else mark.style.opacity = '0';
+    // ---- statusremsan ----
+    const st = E('fm-status');
+    if (st){
+        st.classList.remove('is-klart','is-boost');
+        if (v.lage === 'jagar') st.classList.add('hidden');
+        else {
+            st.classList.remove('hidden');
+            if (v.lage === 'boost'){ st.innerText = `⚡ Boostläge ×${niva} · dagsmålet klart`; st.classList.add('is-boost'); }
+            else                   { st.innerText = `✓ Dagsmål klart · ${lonKr(v.bas)}`;      st.classList.add('is-klart'); }
+        }
     }
 
-    // ---- sidokolumnerna: basmål till vänster, boost till höger ----
-    T('fm-bas', lonKr(bas));
-    const bp = document.getElementById('fm-bas-pill');
+    // ---- mätaren: EN båge, betydelsen styrs av läget ----
+    const arc = E('fm-arc');
+    if (arc){
+        const andel = firar ? 1 : v.andel;
+        arc.setAttribute('stroke-dasharray', (Math.max(0, Math.min(1, andel)) * FM_ARC).toFixed(1) + ' ' + FM_OMKRETS);
+        arc.classList.toggle('is-klart', firar || v.lage === 'klart');
+        arc.classList.toggle('is-boost', !firar && v.lage === 'boost');
+    }
+
+    // ---- mitten ----
+    if (firar){
+        T('fm-sales', 'Dagsmål');
+        T('fm-perc', 'KLART ✓');
+    } else if (v.lage === 'boost'){
+        // Bågen mäter boosten, alltså gör siffran det också.
+        T('fm-sales', lonKr(v.paBoost));
+        T('fm-perc', 'av ' + lonKr(v.boost));
+    } else {
+        T('fm-sales', lonKr(v.salt));
+        T('fm-perc', v.lage === 'klart' ? '✓ KLART' : Math.round(v.andel*100) + ' %');
+    }
+
+    // ---- sidokolumnerna ----
+    T('fm-lbl-left', v.lage === 'jagar' ? 'Dagsmål' : 'Dagsmål ✓');
+    T('fm-bas', lonKr(v.bas));
+    const bp = E('fm-bas-pill');
     if (bp){
-        bp.innerText = klar ? '✓ Klart' : lonKr(Math.max(0, bas - salt)) + ' kvar';
-        bp.classList.toggle('is-klar', klar);
+        bp.innerText = v.lage === 'jagar' ? lonKr(Math.max(0, v.bas - v.salt)) + ' kvar' : '✓ Klart';
+        bp.classList.toggle('is-klar', v.lage !== 'jagar');
     }
-    const niva = (boost > 0 && boostStep > 0) ? Math.round(boost/boostStep) : 0;
-    T('fm-boostval', boost > 0 ? '+' + lonKr(boost) : '—');
-    const bop = document.getElementById('fm-boost-pill');
+    // I boostläge flyttar totalsumman hit, så den inte krockar med mitten.
+    T('fm-lbl-right', v.lage === 'boost' ? 'Totalt i dag' : 'Boost');
+    T('fm-boostval', v.lage === 'boost' ? lonKr(v.salt) : '—');
+    const bop = E('fm-boost-pill');
     if (bop){
-        bop.innerText = boost > 0 ? ('⚡ ×' + niva) : 'Ingen';
-        bop.classList.toggle('is-boost', boost > 0);
-        bop.classList.toggle('is-off',   boost === 0);
+        bop.innerText = v.boost > 0 ? ('⚡ ×' + niva) : 'Ingen';
+        bop.classList.toggle('is-boost', v.boost > 0);
+        bop.classList.toggle('is-off',   v.boost === 0);
     }
 
     // ---- nyckeltal ----
     const nu = new Date();
     let timmar = sk ? (sk.slut - nu)/3600000 : 0;
     if (timmar < 0) timmar = 0;
-    const kvar = Math.max(0, mal - salt);
+    // Vad "kvar" betyder följer läget: till dagsmålet, eller till boostmålet.
+    const mal = v.bas + v.boost;
+    const kvar = Math.max(0, (v.lage === 'jagar' ? v.bas : mal) - v.salt);
 
-    T('fm-left', kvar > 0 ? lonKr(kvar) : 'Klart 🎉');
+    if (v.lage === 'jagar')      { T('fm-lbl-kvar', 'Kvar');            T('fm-left', lonKr(kvar)); }
+    else if (v.lage === 'klart') { T('fm-lbl-kvar', 'Över mål');        T('fm-left', '+' + lonKr(v.paBoost)); }
+    else                         { T('fm-lbl-kvar', 'Kvar till boost'); T('fm-left', kvar > 0 ? lonKr(kvar) : 'Klart 🎉'); }
+
     T('fm-rate', kvar > 0 && timmar > 0.05 ? lonKr(Math.round(kvar/timmar/10)*10) : (kvar > 0 ? lonKr(kvar) : '—'));
     T('fm-time', sk ? (timmar > 0.02 ? fmTid(timmar) : 'Slut') : '—');
 
     // Takt: ligger du före eller efter där du borde vara vid den här tidpunkten?
-    // Jämför andel sålt mot andel av passet som gått. Det svarar på "hur går det"
-    // bättre än en ren summa gör. Mäts mot BASmålet, inte mot boosten.
-    const fill = document.getElementById('fm-pacefill');
-    const pmark = document.getElementById('fm-pacemark');
-    if (sk && bas > 0) {
+    // Mäts alltid mot BASmålet – takten handlar om dagens riktiga krav, inte om
+    // hur långt du valt att sträcka dig.
+    const fill = E('fm-pacefill'), pmark = E('fm-pacemark'), ptxt = E('fm-pacetext');
+    if (sk && v.bas > 0) {
         const total = (sk.slut - sk.start)/3600000;
         let gatt = (nu - sk.start)/3600000;
         gatt = Math.max(0, Math.min(total, gatt));
         const borde = total > 0 ? (gatt/total) : 0;
-        const har = Math.min(1, salt/bas);
-        if (fill)  fill.style.width = (har*100).toFixed(1) + '%';
+        if (fill)  fill.style.width = (Math.min(1, v.salt/v.bas)*100).toFixed(1) + '%';
         if (pmark) pmark.style.left = (borde*100).toFixed(1) + '%';
-        const diff = Math.round(salt - bas*borde);
-        const el = document.getElementById('fm-pacetext');
-        if (el){
-            if (klar)          { el.innerText = 'Dagens mål klart';            el.className = 'fm-pacetext is-fore'; }
-            else if (diff >= 0){ el.innerText = 'Före takten +' + lonKr(diff); el.className = 'fm-pacetext is-fore'; }
-            else               { el.innerText = 'Efter takten ' + lonKr(diff); el.className = 'fm-pacetext is-efter'; }
+        const diff = Math.round(v.salt - v.bas*borde);
+        if (ptxt){
+            if (v.lage !== 'jagar'){ ptxt.innerText = 'Dagens mål klart';            ptxt.className = 'fm-pacetext is-fore'; }
+            else if (diff >= 0)    { ptxt.innerText = 'Före takten +' + lonKr(diff); ptxt.className = 'fm-pacetext is-fore'; }
+            else                   { ptxt.innerText = 'Efter takten ' + lonKr(diff); ptxt.className = 'fm-pacetext is-efter'; }
         }
     } else {
         if (fill)  fill.style.width = '0%';
         if (pmark) pmark.style.left = '0%';
-        const el = document.getElementById('fm-pacetext');
-        if (el){ el.innerText = sk ? '—' : 'Inget pass idag'; el.className = 'fm-pacetext'; }
+        if (ptxt){ ptxt.innerText = sk ? '—' : 'Inget pass idag'; ptxt.className = 'fm-pacetext'; }
     }
 
-    // Boostknappen dyker upp först när basmålet är klart. Texten skiljer på
-    // "du kan höja ribban" och "du har höjt den, så här långt kvar dit".
-    const bb = document.getElementById('fm-boost');
+    // Boostknappen dyker upp först när dagsmålet är klart.
+    const bb = E('fm-boost');
     if (bb){
-        if (klar){
-            if (kvar > 0) bb.innerText = `⚡ ×${niva} · ${lonKr(kvar)} kvar till boostmålet`;
-            else          bb.innerText = `⚡ Höj ribban +${Math.round(boostStep/1000)}k${niva ? ' ×' + niva : ''}`;
-            bb.classList.toggle('is-redo', kvar <= 0);
+        if (v.lage !== 'jagar' && !firar){
+            // Knappen är en HANDLING, inte en avläsning – "kvar till boostmålet"
+            // står redan i metaraden och behöver inte dubbleras här.
+            const kvarBoost = Math.max(0, mal - v.salt);
+            bb.innerText = kvarBoost > 0
+                ? `⚡ Höj ribban ytterligare +${Math.round(boostStep/1000)}k`
+                : `⚡ Höj ribban +${Math.round(boostStep/1000)}k${niva ? ' ×' + niva : ''}`;
+            bb.classList.toggle('is-redo', kvarBoost <= 0);
             bb.classList.remove('hidden');
         } else bb.classList.add('hidden');
     }
 
-    const inp = document.getElementById('fm-input');
+    const inp = E('fm-input');
     if (inp){
         const tomt = fmInput === '';
-        inp.innerText = tomt ? (salt > 0 ? lonKr(salt) : '—') : lonKr(Number(fmInput));
+        inp.innerText = tomt ? (v.salt > 0 ? lonKr(v.salt) : '—') : lonKr(Number(fmInput));
         inp.classList.toggle('is-placeholder', tomt);
     }
-    const sv = document.getElementById('fm-save');
+    const sv = E('fm-save');
     if (sv) sv.disabled = (fmInput === '');
 }
 

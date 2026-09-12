@@ -1005,6 +1005,39 @@ body:not(.sheet-full) .cal-week-badge, body:not(.sheet-full) .wk-badge { transfo
   100% { transform: translateY(280px); opacity: 0; }
 }
 
+/* ---- BOOSTLÄGE: kortet ska SE blixtigt ut ----
+   Blixten togs bort från siffran; i stället bär hela kortet läget. Guldkant
+   med pulserande glöd, plus ett snett gyllene sken som sveper över kortet. */
+.boost-ambient { border-color: var(--boost-gold) !important; animation: boostGlow 2.2s infinite alternate ease-in-out; }
+@keyframes boostGlow {
+  0%   { box-shadow: 0 0 10px rgba(242,153,0,0.18), 0 10px 20px -10px rgba(242,153,0,0.28); }
+  100% { box-shadow: 0 0 28px rgba(242,153,0,0.52), 0 20px 40px -10px rgba(242,153,0,0.58); }
+}
+.boost-ambient-gauge { filter: drop-shadow(0 0 9px rgba(242,153,0,0.65)) !important; }
+
+/* Skensvepet delar element med den blå passkannern, men rör sig snett och
+   långsammare – ett glimtande ljus, inte en skanner. */
+.cyber-scanner-overlay.boost-scan {
+  top: -30%; left: -60%; width: 55%; height: 160%;
+  /* Kortet är vitt, så skenet måste TONA ned ytan för att synas.
+     mix-blend-mode: screen gör ingenting mot vitt. */
+  background: linear-gradient(100deg, transparent, rgba(242,153,0,0.06), rgba(242,153,0,0.14), rgba(242,153,0,0.06), transparent);
+  border-bottom: none; box-shadow: none;
+  transform: rotate(14deg);
+  animation: boostSheen 6s ease-in-out infinite;
+  opacity: 1;
+}
+@keyframes boostSheen {
+  0%   { transform: translateX(0) rotate(14deg); opacity: 0; }
+  12%  { opacity: 1; }
+  58%  { opacity: 1; }
+  72%, 100% { transform: translateX(320%) rotate(14deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boost-ambient { animation: none; box-shadow: 0 0 18px rgba(242,153,0,0.35); }
+  .cyber-scanner-overlay.boost-scan { animation: none; opacity: 0; }
+}
+
 .live-dot { display: inline-block; width: 5px; height: 5px; background-color: #ffffff; border-radius: 50%; margin-right: 4px; animation: pulseLive 1.5s infinite alternate; }
 .vp-today:not(.active-focus) .live-dot { background-color: var(--g-blue); }
 @keyframes pulseLive { 0% { opacity: 0.4; transform: scale(0.85); } 100% { opacity: 1; transform: scale(1.2); } }
@@ -1655,6 +1688,41 @@ body.variant-c .md-budget-btn { background: #fafbfd !important; border: 1px soli
 .bn-item.is-active .bn-lbl { font-weight: 800; }
 @keyframes bnPop { 0%{transform:scale(1)} 45%{transform:scale(1.16) translateY(-2px)} 100%{transform:scale(1.04) translateY(-1px)} }
 .bn-item.is-active .bn-ic { animation: bnPop .34s var(--ease-spring, cubic-bezier(.34,1.56,.64,1)); }
+
+/* ---- DAGINFO i bottenmenyns plats ----
+   Markerar du en dag i kalendern ska du slippa hoppa till dagskortet för att
+   se vad den innehåller. Remsan ligger exakt där navigeringen ligger, med
+   samma bredd och rundning, så det blir ett byte och inte ett tillägg. */
+.day-info-bar {
+  display: none;
+  position: fixed; z-index: 9500;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom, 6px) + 6px);
+  width: min(440px, calc(100% - 24px));
+  min-height: 52px;
+  align-items: center; justify-content: space-between; gap: 10px;
+  padding: 7px 15px;
+  background: var(--g-blue-soft);
+  border: 1px solid var(--g-blue-tint);
+  border-radius: 20px;
+  box-shadow: var(--elev-2);
+}
+body.day-info-on .day-info-bar { display: flex; }
+body.day-info-on .app-bottom-nav { display: none; }
+.day-info-bar:active { transform: translateX(-50%) scale(.985); }
+.di-left, .di-right { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+.di-right { align-items: flex-end; text-align: right; flex-shrink: 0; }
+.di-title { font-family: 'Google Sans', sans-serif; font-size: 11px; font-weight: 700;
+            color: var(--g-blue-deep); text-transform: uppercase; letter-spacing: .06em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.di-sub   { font-size: 10px; font-weight: 500; color: var(--on-surface-variant);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.di-val   { font-family: 'Google Sans', sans-serif; font-size: 15px; font-weight: 700;
+            color: var(--on-surface); line-height: 1.05; white-space: nowrap; }
+.di-val.is-klar  { color: var(--g-green); }
+.di-val.is-under { color: var(--g-red); }
+.di-meta  { font-size: 9.5px; font-weight: 700; color: var(--on-surface-variant); white-space: nowrap; }
+.di-meta.is-boost { color: var(--boost-gold); }
 
 /* HEM-knappen i mitten: alltid blå och något större */
 .bn-item.bn-home { color: var(--g-blue); }

@@ -1261,8 +1261,7 @@ function updateDashboardView() {
     const salesEl = document.getElementById('dash-val-sales');
     if (salesEl) {
         const boostLage = vy.lage === 'boost' && !firar;
-        salesEl.innerText = firar ? "KLART" : (boostLage ? "⚡" + (vy.paBoost/1000).toFixed(1) + " k"
-                                                         : (dSales/1000).toFixed(1) + " k");
+        salesEl.innerText = firar ? "KLART" : ((boostLage ? vy.paBoost : dSales)/1000).toFixed(1) + " k";
         salesEl.classList.toggle('is-boost', boostLage);
         salesEl.style.color = boostLage ? '' : (isReached ? 'var(--pos)' : (dTarget > 0 ? 'var(--neg)' : 'var(--sting-blue)'));
     }
@@ -1313,8 +1312,10 @@ function updateDashboardView() {
         if (kanBoosta) {
             const niva = dagBoost > 0 ? Math.round(dagBoost / boostStep) : 0;
             const klar = dSales >= malVisat;
+            // Kort text: pillen delar rad med dagens rubrik, och en lång text
+            // bryter "FREDAG 4 SEP" till två rader.
             bBtn.innerHTML = klar
-                ? `⚡ BOOSTA +${Math.round(boostStep/1000)}k${niva ? ` <b>×${niva}</b>` : ''}`
+                ? `⚡ +${Math.round(boostStep/1000)}k${niva ? ` <b>×${niva}</b>` : ''}`
                 : `⚡ <b>×${niva}</b>`;
             bBtn.classList.toggle('is-jagar', !klar);
             bBtn.classList.remove('hidden');
@@ -1334,12 +1335,19 @@ function updateDashboardView() {
     }
     
     const scannerLayer = document.getElementById('cyber-scanner-layer');
-    if (dashInner) { dashInner.classList.remove('goal-ambient', 'red-cyber', 'blue-cyber'); }
-    if (g) { g.classList.remove('goal-ambient-gauge', 'red-cyber-gauge', 'blue-cyber-gauge'); }
-    if (scannerLayer) scannerLayer.style.display = 'none';
+    if (dashInner) { dashInner.classList.remove('goal-ambient', 'red-cyber', 'blue-cyber', 'boost-ambient'); }
+    if (g) { g.classList.remove('goal-ambient-gauge', 'red-cyber-gauge', 'blue-cyber-gauge', 'boost-ambient-gauge'); }
+    if (scannerLayer) { scannerLayer.style.display = 'none'; scannerLayer.classList.toggle('boost-scan', vy.lage === 'boost' && !firar); }
     
     if (activeK && viewMode === 'dash') {
-        if (isActiveNow) { 
+        // Boostläget vinner över både den gröna glöden och den blå passkannern.
+        // En boostad dag är per definition redan vunnen, och boosten är det
+        // läge du vill se när du är i det.
+        if (vy.lage === 'boost' && !firar) {
+            if(dashInner) dashInner.classList.add('boost-ambient');
+            if(g) g.classList.add('boost-ambient-gauge');
+            if(scannerLayer) scannerLayer.style.display = 'block';
+        } else if (isActiveNow) { 
             if(scannerLayer) scannerLayer.style.display = 'block'; 
             if(g) g.classList.add('blue-cyber-gauge'); 
             if(dashInner) dashInner.classList.add('blue-cyber'); 
@@ -2183,6 +2191,7 @@ function focusFromSummary(type, arg) {
     else if (type === 'best') { keys = F.best || []; emoji = '🚀'; label = 'Bästa dag'; }
     else if (type === 'worst') { keys = F.worst || []; emoji = '📉'; label = 'Sämsta dag'; }
     else if (type === 'green') { keys = F.green || []; emoji = '🔥'; label = 'Gröna dagar'; }
+    else if (type === 'boost') { keys = F.boost || []; emoji = '⚡'; label = 'Boostade dagar'; }
     else if (type === 'week') { keys = F.week || []; emoji = '🏆'; label = 'Bästa veckan'; }
     else if (type === 'reason') { keys = (F.reasons && F.reasons[arg]) || []; emoji = focusEmoji(arg); label = arg; }
     if (!keys.length) { showToast('ℹ️', 'Inga dagar att visa', 1800); return; }
@@ -3525,7 +3534,68 @@ function updateCalToolbar() {
         else if (n > 1) { mText.innerText = n + ' dagar'; }
         else { mText.innerText = '0 kr'; }
     }
+    renderDayInfoBar();
 }
+
+// ============================================================
+//  DAGINFO I BOTTENMENYN
+//  Markerar du en dag i kalendern ska du slippa hoppa till dagskortet för att
+//  se vad den innehåller. Så länge något är markerat byter navigeringen plats
+//  med en textrad om markeringen; avmarkerar du kommer navigeringen tillbaka.
+// ============================================================
+function renderDayInfoBar(){
+    const bar = document.getElementById('day-info-bar');
+    if (!bar) return;
+    const nycklar = Array.from(multiSelectKeys || []);
+    // Bara i kalendervyn, och bara när något faktiskt är markerat.
+    const visa = nycklar.length > 0 && viewMode === 'month'
+                 && !document.body.classList.contains('focus-mode-active');
+    document.body.classList.toggle('day-info-on', visa);
+    if (!visa) return;
+
+    const T = (id, txt, kl) => {
+        const e = document.getElementById(id); if (!e) return;
+        e.innerText = txt;
+        e.className = e.className.split(' ').filter(c => !c.startsWith('is-')).join(' ');
+        if (kl) e.classList.add(kl);
+    };
+
+    if (nycklar.length > 1){
+        const summa = nycklar.reduce((s,k) => s + ((db.d[k]||{}).s || 0), 0);
+        T('di-title', nycklar.length + ' dagar markerade');
+        T('di-sub', 'Tryck för att avmarkera');
+        T('di-val', summa > 0 ? lonKr(summa) : '—');
+        T('di-meta', 'Totalt');
+        return;
+    }
+
+    const k = nycklar[0];
+    const o = db.d[k] || {}, q = db.q[k] || {};
+    const p = k.split('-'); const d = new Date(+p[0], +p[1]-1, +p[2]);
+    const dagar = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+    const man = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+    T('di-title', `${dagar[d.getDay()]} ${d.getDate()} ${man[d.getMonth()]}`);
+
+    const tid = q.start && q.end ? `${q.start.substring(0,5)} — ${q.end.substring(0,5)}` : null;
+    const state = getCellState(k);
+    let rad;
+    if (o.abs)                    rad = `${focusEmoji(o.abs)} ${o.abs}` + (o.abs_hours ? ` · ${String(o.abs_hours.toFixed(2)).replace('.00','')} tim` : ' · heldag');
+    else if (state === 'ledig' ||
+             state === 'unplanned') rad = 'Ledig';
+    else if (isMeetingDay(k))     rad = tid ? `${tid} · Möte` : 'Möte';
+    else                          rad = tid ? `${tid} · Arbetspass` : 'Arbetspass';
+    T('di-sub', rad);
+
+    const salt = o.s || 0, bas = dayTarget(k), boost = boostFor(k);
+    T('di-val', salt > 0 ? lonKr(salt) : '—', salt > 0 && bas > 0 ? (salt >= bas ? 'is-klar' : 'is-under') : null);
+
+    const niva = (boost > 0 && boostStep > 0) ? Math.round(boost/boostStep) : 0;
+    if (bas > 0 && !isMeetingDay(k)){
+        const klar = salt >= bas;
+        T('di-meta', (klar ? '✓ mål ' : 'mål ') + lonKr(bas) + (niva ? ` · ⚡×${niva}` : ''), niva ? 'is-boost' : null);
+    } else T('di-meta', niva ? `⚡×${niva}` : '—', niva ? 'is-boost' : null);
+}
+window.renderDayInfoBar = renderDayInfoBar;
 
 function calApply(type) {
     if (!multiSelectKeys.size) { showToast('☝️', 'Markera dag(ar) i kalendern först'); return; }
@@ -3828,7 +3898,7 @@ function calculateSummaryStats() {
     const cy = viewDate.getFullYear(); const cm = viewDate.getMonth() + 1; const daysM = new Date(cy, cm, 0).getDate();
     let wDays = 0, aDays = 0, bestS = 0, bestD = "--", worstS = Infinity, worstD = "--";
     let streak = 0, maxStreak = 0; let absCounts = {};
-    let f_work = [], f_abs = [], f_green = [], f_reasons = {}, f_bestKey = null, f_worstKey = null, weekKeyMap = {};
+    let f_work = [], f_abs = [], f_green = [], f_boost = [], f_reasons = {}, f_bestKey = null, f_worstKey = null, weekKeyMap = {};
     let totalEvals = 0;
     let goodScores = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 }; let goodCount = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
     let badScores = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 }; let badCount = { flow: 0, energy: 0, engagement: 0, closing: 0, upsell: 0 };
@@ -3850,6 +3920,7 @@ function calculateSummaryStats() {
         }
         
         if (tgt > 0 && o.s >= tgt) { streak++; if (streak > maxStreak) maxStreak = streak; f_green.push(k); } else if (tgt > 0 && o.s < tgt && !o.abs) { streak = 0; }
+        if (boostFor(k) > 0) f_boost.push(k);        // dagar du själv höjde ribban
 
         if (o.eval) {
             totalEvals++; let ev = typeof o.eval === 'string' ? JSON.parse(o.eval) : o.eval;
@@ -3879,8 +3950,13 @@ function calculateSummaryStats() {
             bRow.classList.remove('hidden');
             document.getElementById('sum-boost-val').innerText = bs.klarade + "/" + bs.dagar + " ⚡";
             document.getElementById('sum-boost-sub').innerText = bs.over > 0
-                ? `${lonKr(Math.round(bs.over))} över målet i månaden`
-                : 'Klarade boostar av satta';
+                ? `${lonKr(Math.round(bs.over))} över målet`
+                : 'Klarade av satta';
+            // Raden visas även när du bara sålt över målet utan att ha boostat.
+            // Då finns inga dagar att markera, så lova det inte heller.
+            const bHint = document.getElementById('sum-boost-hint');
+            if (bHint) bHint.innerText = bs.dagar > 0 ? 'Markera boostade dagar' : 'Inga boostade dagar';
+            bRow.classList.toggle('sum-clickable', bs.dagar > 0);
         } else bRow.classList.add('hidden');
     }
     
@@ -3915,7 +3991,7 @@ function calculateSummaryStats() {
 
     // Spara nyckelmängder för sammanfattningens fokusåtgärder
     summaryFocus = {
-        work: f_work, abs: f_abs, green: f_green, reasons: f_reasons,
+        work: f_work, abs: f_abs, green: f_green, boost: f_boost, reasons: f_reasons,
         best: f_bestKey ? [f_bestKey] : [], worst: f_worstKey ? [f_worstKey] : [],
         week: bestWkKey ? (weekKeyMap[bestWkKey] || []) : []
     };

@@ -899,6 +899,7 @@ function pushMatrixSync(k, o) {
     };
     db.d[k] = merged; calculateTimeline(); updateDash(); 
     if (viewMode === 'dash') updateDashboardView();
+    if (k === getK(realToday) && typeof sparaDagSnapshot === 'function') sparaDagSnapshot();
     if (sb) { 
         sb.from('sales_data').upsert({ 
             date_key: k, status: merged.st, sales: merged.s, is_absent: merged.abs, 
@@ -1898,7 +1899,8 @@ window.openFocusMode2 = openFocusMode2; window.closeFocusMode2 = closeFocusMode2
 // ============================================================
 let dayBoosts = {};
 try { dayBoosts = JSON.parse(localStorage.getItem('sf_boosts') || '{}'); } catch(e){ dayBoosts = {}; }
-function saveBoosts(){ try { localStorage.setItem('sf_boosts', JSON.stringify(dayBoosts)); } catch(e){} }
+function saveBoosts(){ try { localStorage.setItem('sf_boosts', JSON.stringify(dayBoosts)); } catch(e){}
+    if (typeof sparaDagSnapshot === 'function') sparaDagSnapshot(); }
 
 let boostStep = 3000;
 try { const v = parseInt(localStorage.getItem('sf_boost_step')); if (v > 0) boostStep = v; } catch(e){}
@@ -3385,6 +3387,161 @@ function hideBoot(){
 window.hideBoot = hideBoot;
 setTimeout(hideBoot, 8000);
 
+// ============================================================
+//  SNABBNOTISEN — appens "widget"
+//  Android låter inte en PWA lägga ut widgets på hemskärmen. Det närmaste vi
+//  kommer är en notis som ligger kvar i notisfältet och på låsskärmen med
+//  dagens mål, hur långt du kommit, och en knapp som registrerar ett steg.
+//
+//  Sidan äger sanningen så länge appen är öppen. Service workern jobbar mot en
+//  ögonblicksbild i en egen cache, och allt som skrivs är ABSOLUTA belopp –
+//  aldrig differenser. Då kan samma summa skrivas två gånger utan att något
+//  dubbelräknas, vilket gör offline-fallet ofarligt.
+// ============================================================
+const SNABB_STEG = 1000;
+const SNAP_URL_SIDA = '/SalesFlow/__sf-dag';
+let snabbNotisPa = false;
+try { snabbNotisPa = localStorage.getItem('sf_notis') === '1'; } catch(e){}
+
+function snabbNotisStods(){
+    return 'serviceWorker' in navigator && 'Notification' in window && 'caches' in window;
+}
+
+async function lasSnapshotSida(){
+    try {
+        const c = await caches.open('sf-snapshot');
+        const r = await c.match(SNAP_URL_SIDA);
+        return r ? await r.json() : null;
+    } catch(e) { return null; }
+}
+
+function byggDagSnapshot(tidigare){
+    const k = getK(realToday);
+    const o = db.d[k] || {};
+    const dagar = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+    const man = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+    // Finns en kö är det NOTISENS summa som gäller. Sidans egen siffra kommer
+    // från databasen, och den saknar just det som inte hunnit skrivas – att
+    // bygga om från den skulle radera trycket.
+    const koad = (tidigare && tidigare.k === k) ? (tidigare.osynkat || 0) : 0;
+    return {
+        pa: snabbNotisPa, k,
+        datum: `${dagar[realToday.getDay()]} ${realToday.getDate()} ${man[realToday.getMonth()]}`,
+        mal: Math.round(dayTarget(k)), boost: Math.round(boostFor(k)),
+        salt: koad > 0 ? tidigare.salt : (o.s || 0), steg: SNABB_STEG,
+        st: o.st || 'Arbete', abs: o.abs || null, raw: o.raw || '',
+        fk_perc: o.fk_perc === undefined ? null : o.fk_perc,
+        abs_hours: o.abs_hours === undefined ? null : o.abs_hours,
+        eval: o.eval || null,
+        // Ett tryck som gjordes utan nät ligger kvar tills det bevisligen är
+        // skrivet. Att nollställa här skulle tappa det, för sidans egen
+        // skrivning faller på samma nät.
+        osynkat: koad
+    };
+}
+
+// navigator.serviceWorker.ready löser sig ALDRIG om workern inte installeras.
+// Ett oskyddat await på den kan därför hänga hela starten.
+function swRedo(ms){
+    return Promise.race([
+        navigator.serviceWorker.ready.catch(() => null),
+        new Promise(r => setTimeout(() => r(null), ms || 3000))
+    ]);
+}
+
+// Lämnar över dagens läge till service workern, som ritar om notisen.
+async function sparaDagSnapshot(){
+    if (!snabbNotisStods()) return;
+    try {
+        const reg = await swRedo();
+        const snap = byggDagSnapshot(await lasSnapshotSida());
+        if (reg && reg.active) reg.active.postMessage({ typ: 'sf-snapshot', snapshot: snap });
+    } catch(e){}
+}
+window.sparaDagSnapshot = sparaDagSnapshot;
+
+async function setSnabbNotis(pa){
+    if (!snabbNotisStods()){ showToast('⚠️', 'Notiser stöds inte här', 2200); return; }
+    if (pa){
+        let lage = Notification.permission;
+        if (lage === 'default') { try { lage = await Notification.requestPermission(); } catch(e){ lage = 'denied'; } }
+        if (lage !== 'granted'){
+            snabbNotisPa = false;
+            const el = document.getElementById('snabb-notis'); if (el) el.checked = false;
+            showToast('🔕', 'Notiser är avstängda för appen', 2800);
+            try { localStorage.setItem('sf_notis', '0'); } catch(e){}
+            return;
+        }
+    }
+    snabbNotisPa = !!pa;
+    try { localStorage.setItem('sf_notis', snabbNotisPa ? '1' : '0'); } catch(e){}
+    await sparaDagSnapshot();
+    showToast(snabbNotisPa ? '📲' : '🔕', snabbNotisPa ? 'Snabbnotisen är på' : 'Snabbnotisen avstängd', 2000);
+}
+window.setSnabbNotis = setSnabbNotis;
+
+// Service workern har lagt på ett steg medan appen låg öppen. Skriv igenom det
+// absoluta beloppet, så blir raden rätt även om workerns egen skrivning föll.
+if (snabbNotisStods()){
+    navigator.serviceWorker.addEventListener('message', (e) => {
+        const d = e.data || {};
+        if (d.typ !== 'sf-tillagt') return;
+        pushMatrixSync(d.k, { s: d.salt });
+        showToast('⚡', 'Registrerat ' + lonKr(d.steg), 1800);
+    });
+}
+
+// Ett tryck som gjordes utan nät ligger kvar i ögonblicksbilden. Beloppet är
+// absolut, så det kan skrivas igenom utan risk för dubbelräkning.
+async function synkaSnabbnotis(){
+    if (!snabbNotisStods()) return;
+    const snap = await lasSnapshotSida();
+    if (snap && snap.osynkat > 0 && snap.k === getK(realToday)){
+        const belopp = snap.osynkat;
+        // Skriv igenom och VÄNTA på svaret. Kön får bara tömmas när raden
+        // bevisligen är uppe, annars tappas trycket helt om nätet är nere igen.
+        db.d[snap.k] = Object.assign(db.d[snap.k] || {}, { s: snap.salt });
+        let uppe = false;
+        if (sb) {
+            try {
+                const { error } = await sb.from('sales_data').upsert({
+                    date_key: snap.k, status: snap.st || 'Arbete', sales: snap.salt,
+                    is_absent: snap.abs || null, raw_reason: snap.raw || '',
+                    fk_perc: snap.fk_perc, abs_hours: snap.abs_hours, eval_data: snap.eval
+                });
+                uppe = !error;
+            } catch(e) { uppe = false; }
+        }
+        if (uppe) {
+            snap.osynkat = 0;
+            try {
+                const c = await caches.open('sf-snapshot');
+                await c.put(SNAP_URL_SIDA, new Response(JSON.stringify(snap), { headers: { 'Content-Type': 'application/json' } }));
+            } catch(e){}
+            showToast('📲', lonKr(belopp) + ' från notisen synkat', 2800);
+        }
+        calculateTimeline(); updateDash(); updateDashboardView();
+    }
+    await sparaDagSnapshot();
+}
+
+// Genvägarna på appikonen (långtryck) landar här.
+function hanteraGenvag(){
+    let par;
+    try { par = new URLSearchParams(location.search); } catch(e){ return; }
+    const add = parseInt(par.get('add'), 10);
+    const fokus = par.get('fokus');
+    if (add > 0){
+        const k = getK(realToday);
+        const o = db.d[k] || {};
+        pushMatrixSync(k, { s: (o.s || 0) + add, st: o.abs ? undefined : 'Arbete' });
+        showToast('⚡', 'Registrerat ' + lonKr(add), 2200);
+    }
+    if (fokus === '1' && typeof openFocusMode2 === 'function') openFocusMode2();
+    // Städa adressen, annars läggs samma belopp på igen vid omladdning.
+    if (add > 0 || fokus) { try { history.replaceState({}, '', location.pathname); } catch(e){} }
+}
+
 async function init() {
     try {
         const savedTheme = localStorage.getItem('sf_theme') || 'light';
@@ -3396,6 +3553,11 @@ async function init() {
     updateTopTitle();
     bindBoostBtn();
     hideBoot();
+    // Kön först: allt annat bygger om ögonblicksbilden och skulle skriva över
+    // ett tryck som gjordes utan nät. Kedjan får däremot aldrig hålla upp
+    // resten av starten – fokusläget ska öppna sig direkt.
+    synkaSnabbnotis().then(hanteraGenvag);
+    const sn = document.getElementById('snabb-notis'); if (sn) sn.checked = snabbNotisPa;
     if (fmBorOppna()) openFocusMode2();
 }
 

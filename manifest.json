@@ -25,5 +25,33 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Registrera 1 000 kr",
+      "short_name": "+1 000 kr",
+      "description": "Lägger 1 000 kr på dagens försäljning",
+      "url": "/SalesFlow/?add=1000",
+      "icons": [
+        {
+          "src": "icon-192-v2.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Fokusläge",
+      "short_name": "Fokus",
+      "description": "Öppnar fokusläget för dagens pass",
+      "url": "/SalesFlow/?fokus=1",
+      "icons": [
+        {
+          "src": "icon-192-v2.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }

@@ -2358,52 +2358,87 @@ body.focus-mode-on .app-bottom-nav { display: none; }
    #fm-arc-boost  guld, hela vägen till totalmålet
    #fm-arc-bas    vit/grön ovanpå guldet – bara delen BORTOM basmålet blir gul
    #fm-arc-mark   en mörk skåra exakt där basmålet går                        */
-.fm-stage { display: flex; flex-direction: column; align-items: center; justify-content: center;
-            flex: 1 1 auto; min-height: 0; }
+.fm-stage { display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            flex: 1 1 auto; min-height: 0; padding-top: 12px; }
 
-/* ---- statusremsan: svarar på "är dagen klar?" innan du hunnit läsa siffror ---- */
-.fm-status {
-    padding: 6px 15px; border-radius: 100px; margin-bottom: 2px;
-    font-family: 'Google Sans', sans-serif; font-size: 9px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .10em; white-space: nowrap;
-    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.2); color: #fff;
-}
-.fm-status.is-klart { background: rgba(52,168,83,.34); border-color: rgba(129,201,149,.65); color: #d7f5e0; }
-.fm-status.is-boost { background: rgba(251,188,4,.26); border-color: rgba(251,188,4,.55); color: #ffe9a8; }
+/* ---- mätarens geometri: bannerns 270°-båge, knuten till tillgänglig höjd ---- */
 .fm-gauge-row { width: 100%; max-width: 360px; margin-top: 10px; }
 .fm-gauge { position: relative; width: min(52vw, 196px, 20vh); aspect-ratio: 1; margin: 0 2px; flex-shrink: 0; }
-.fm-gauge svg { width: 100%; height: 100%; }
-.fm-arc { fill: none; stroke-width: 8; stroke-linecap: round; stroke: #ffffff;
-          transition: stroke-dasharray .8s var(--ease-emp), stroke .4s ease; }
-.fm-arc.is-klart { stroke: #81c995; }             /* Googles ljusa grön – läsbar på blått */
-.fm-arc.is-boost { stroke: var(--g-yellow); }
+.fm-gauge svg { width: 100%; height: 100%; overflow: visible; }
 .fm-center { position: absolute; inset: 0; display: flex; flex-direction: column;
              align-items: center; justify-content: center; gap: 3px; }
 #fm-sales { font-family: 'Google Sans', sans-serif; font-size: clamp(17px, 5.4vw, 23px);
-            font-weight: 700; letter-spacing: -.02em; line-height: 1; }
-#fm-perc  { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.9); }
+            font-weight: 700; letter-spacing: -.02em; line-height: 1; white-space: nowrap; }
+#fm-perc  { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.9); white-space: nowrap; }
 
-/* sidokolumnerna använder bannerns .side-col/.micro-lbl/.val-display/.status-pill */
-.fm-gauge-row .val-display { font-size: 16px; }
-.fm-gauge-row .status-pill { margin-top: 5px; border: 1px solid transparent; }
-.fm-gauge-row .status-pill.is-klar  { background: rgba(52,168,83,.38); border-color: rgba(129,201,149,.65); color: #d7f5e0; }
-.fm-gauge-row .status-pill.is-boost { background: rgba(251,188,4,.26); border-color: rgba(251,188,4,.55); color: #ffe9a8; }
-.fm-gauge-row .status-pill.is-off   { opacity: .42; }
+/* ---- rubriken: vad mätaren siktar på, i klartext och i färg ---- */
+.fm-mal {
+    padding: 8px 18px; border-radius: 100px; margin-bottom: 6px;
+    font-family: 'Google Sans', sans-serif; font-size: 11px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .10em; white-space: nowrap;
+    border: 1px solid transparent; transition: background-color .35s, color .35s, border-color .35s;
+}
+.fm-mal.ar-rod     { background: rgba(234,67,53,.26);  border-color: rgba(255,138,149,.55); color: #ffc4c9; }
+.fm-mal.ar-gron    { background: rgba(52,168,83,.34);  border-color: rgba(129,201,149,.70); color: #d7f5e0; }
+.fm-mal.ar-neutral { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.20); color: #fff; }
 
-/* ---- nyckeltal: bannerns .meta-row rakt av ---- */
-.fm-meta { width: 100%; max-width: 360px; margin-top: 10px; padding-top: 10px; }
-.fm-meta .meta-val { font-size: 15px; }
+/* ---- mätaren: ETT tillstånd i taget ----
+   .ar-rod   jagar dagsmålet
+   .ar-gron  dagsmålet klart (firandet)
+   .ar-guld  stretchen ovanpå, flammande
+   .is-puls  passet pågår och ringens mål är inte nått
+   .is-fast  ringens mål är nått – stillastående sken                     */
+.fm-arc { fill: none; stroke-width: 8; stroke-linecap: round; stroke: rgba(255,255,255,.55);
+          transition: stroke-dasharray .8s var(--ease-emp), stroke .45s ease; }
+.fm-arc.ar-rod  { stroke: #ff8a95; }
+.fm-arc.ar-gron { stroke: #81c995; }
+.fm-arc.ar-guld { stroke: url(#fm-flam); }
 
-/* ---- takten: ligger du före eller efter där du borde vara just nu? ---- */
-.fm-pacebar { width: 100%; max-width: 360px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
-.fm-pacebar-track { position: relative; height: 6px; border-radius: 100px; background: rgba(255,255,255,.18); }
-.fm-pacebar-fill { height: 100%; border-radius: 100px; background: #81c995; transition: width .7s var(--ease-emp); }
-.fm-pacebar-mark { position: absolute; top: -4px; width: 2px; height: 14px; border-radius: 2px;
-                   background: #fff; transition: left .7s var(--ease-emp); box-shadow: 0 0 6px rgba(0,0,0,.35); }
-.fm-pacetext { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
-               text-align: center; color: rgba(255,255,255,.7); }
-.fm-pacetext.is-fore  { color: #b9f6ca; }
-.fm-pacetext.is-efter { color: #ffb3bd; }
+.fm-arc.ar-rod.is-puls  { animation: fmPulsRod 1.8s ease-in-out infinite; }
+.fm-arc.ar-rod.is-fast  { filter: drop-shadow(0 0 13px rgba(255,138,149,.85)); }
+.fm-arc.ar-gron.is-puls { animation: fmPulsGron 1.8s ease-in-out infinite; }
+.fm-arc.ar-gron.is-fast { filter: drop-shadow(0 0 15px rgba(129,201,149,.95)); }
+@keyframes fmPulsRod {
+    0%, 100% { filter: drop-shadow(0 0 3px rgba(255,138,149,.40)); opacity: .90; }
+    50%      { filter: drop-shadow(0 0 15px rgba(255,138,149,.95)); opacity: 1; }
+}
+@keyframes fmPulsGron {
+    0%, 100% { filter: drop-shadow(0 0 3px rgba(129,201,149,.40)); opacity: .90; }
+    50%      { filter: drop-shadow(0 0 15px rgba(129,201,149,.95)); opacity: 1; }
+}
+
+/* Flamman: tre gradientstopp som byter färg i OLIKA takt. Otakten är det som
+   gör att det läser som eld i stället för som en snurrande ring. */
+.fm-arc.ar-guld { animation: fmFlamSken 2.4s ease-in-out infinite; }
+#fm-flam stop:nth-child(1) { stop-color: #ffd65a; animation: flamA 1.9s ease-in-out infinite alternate; }
+#fm-flam stop:nth-child(2) { stop-color: #fbbc04; animation: flamB 1.5s ease-in-out infinite alternate; }
+#fm-flam stop:nth-child(3) { stop-color: #ff8a00; animation: flamC 2.2s ease-in-out infinite alternate; }
+@keyframes flamA { to { stop-color: #ff9d2e; } }
+@keyframes flamB { to { stop-color: #ffe07a; } }
+@keyframes flamC { to { stop-color: #ffc14d; } }
+@keyframes fmFlamSken {
+    0%, 100% { filter: drop-shadow(0 0  8px rgba(251,188,4,.70)); }
+    35%      { filter: drop-shadow(0 0 19px rgba(255,138,0,.95)); }
+    70%      { filter: drop-shadow(0 0 11px rgba(255,214,90,.85)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fm-arc.ar-rod.is-puls, .fm-arc.ar-gron.is-puls, .fm-arc.ar-guld { animation: none; }
+    #fm-flam stop:nth-child(1), #fm-flam stop:nth-child(2), #fm-flam stop:nth-child(3) { animation: none; }
+    .fm-arc.ar-guld { filter: drop-shadow(0 0 12px rgba(251,188,4,.8)); }
+}
+
+/* KVAR och PER TIMME är huvudtal, inte bihang */
+.fm-gauge-row .val-display { font-size: 20px; }
+.fm-gauge-row .micro-lbl { margin-bottom: 5px; }
+
+/* Passets återstående tid, tunn rad under tiderna */
+.fm-tidkvar { flex-shrink: 0; margin-top: 3px; font-size: 10px; font-weight: 700;
+              letter-spacing: .04em; color: rgba(255,255,255,.62); }
+
+/* Dagens totalsumma – bara i guldläget, där mitten mäter stretchen */
+.fm-total { margin-top: 10px; font-size: 10.5px; font-weight: 700; letter-spacing: .06em;
+            text-transform: uppercase; color: rgba(255,255,255,.62); }
 
 /* ---- boostknappen: piller i .md-info-bar-form, gult ---- */
 .fm-boost {
@@ -2454,11 +2489,12 @@ body.focus-mode-on .app-bottom-nav { display: none; }
 /* Låga skärmar: krymp mätaren först, inmatningen sist */
 @media (max-height: 760px) {
     .fm-gauge-row { margin-top: 4px; }
-    .fm-meta { margin-top: 8px; padding-top: 8px; }
-    .fm-pacebar { margin-top: 8px; }
     .fm-pad { margin-top: 8px; }
     .fm-boost { margin-top: 8px; padding: 7px 15px; }
-    .fm-status { padding: 5px 13px; }
+    .fm-total { margin-top: 7px; }
+    .fm-mal { padding: 6px 15px; }
+    /* Mittsiffran måste krympa med ringen, annars spiller den utanför */
+    #fm-sales { font-size: clamp(15px, 4.6vw, 19px); }
     .fm-keys button { aspect-ratio: 100 / 40; }
     .fm-keys { gap: 6px; }
     .fm-save { padding: 11px; }
@@ -2471,7 +2507,10 @@ body.focus-mode-on .app-bottom-nav { display: none; }
     .fm-keys button { aspect-ratio: 100 / 36; }
     .fm-boost { margin-top: 6px; }
     .fm-gauge-row { margin-top: 0; }
-    .fm-status { margin-bottom: 0; }
+    .fm-mal { margin-bottom: 2px; }
+    .fm-gauge-row .val-display { font-size: 17px; }
+    #fm-sales { font-size: 15px; }
+    #fm-perc { font-size: 9px; }
 }
 
 /* Knappen in i fokusläget, bredvid utvärdering och boost */

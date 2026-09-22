@@ -2795,18 +2795,23 @@ let reliefManualDays = {};
 try { reliefManualDays = JSON.parse(localStorage.getItem('sf_relief_manual') || '{}'); } catch(e){ reliefManualDays = {}; }
 function saveReliefManualDays(){ try { localStorage.setItem('sf_relief_manual', JSON.stringify(reliefManualDays)); } catch(e){} }
 
-function getMonthlyBonusReliefRatio(y, m){
+function bonusLattnad(y, m){
     const dim = new Date(y, m, 0).getDate();
-    let away = 0;
+    let dagar = 0;
     for (let d=1; d<=dim; d++){
         const k = `${y}-${m}-${d}`; const o = db.d[k];
-        if (o && o.abs && (o.abs.includes('Semester') || o.abs.includes('Föräldraledig'))) {
-            if (o.abs_hours) { if (reliefManualDays[k] === true) away += 1; }  // deldag – kräver manuellt ja
-            else { away += 1; }  // heldag – räknas alltid
-        }
+        if (!o || !o.abs) continue;
+        if (!(o.abs.includes('Semester') || o.abs.includes('Föräldraledig'))) continue;
+        // Heldag eller deldag avgörs av appens EGEN gemensamma regel, inte av om
+        // det råkar finnas timmar på raden. Quinyx lägger hela ett flerdagsblocks
+        // timmar på första dagen – 10 aug 2026 fick 36 tim – och en egen
+        // "finns timmar = deldag"-tolkning här hoppade därför över en hel dag.
+        if (isWholeDayAbsence(k)) dagar += 1;
+        else if (reliefManualDays[k] === true) dagar += 1;   // äkta deldag – kräver manuellt ja
     }
-    return dim > 0 ? away / dim : 0;
+    return { dagar, dim, ratio: dim > 0 ? dagar / dim : 0 };
 }
+function getMonthlyBonusReliefRatio(y, m){ return bonusLattnad(y, m).ratio; }
 // Sätt/ta bort manuell inkludering av en deldag i lättnaden
 function setDayReliefManual(k, include){
     if (include) reliefManualDays[k] = true; else delete reliefManualDays[k];
@@ -2817,10 +2822,10 @@ window.setDayReliefManual = setDayReliefManual;
 // Trösklar justerade för hur många dagar man varit borta (semester+föräldraledig) den månaden
 function lonAdjustedTiers(y, mo){
     const base = lonTiersForMonth(mo);
-    const ratio = getMonthlyBonusReliefRatio(y, mo);
-    if (ratio <= 0) return { tiers: base, ratio: 0 };
+    const { dagar, dim, ratio } = bonusLattnad(y, mo);
+    if (ratio <= 0) return { tiers: base, ratio: 0, dagar, dim };
     const adj = base.map(t => ({ min: Math.round(t.min * (1-ratio)), max: (t.max==null ? null : Math.round(t.max * (1-ratio))), pct: t.pct }));
-    return { tiers: adj, ratio };
+    return { tiers: adj, ratio, dagar, dim };
 }
 function lonBonusAuto(sales){
     const y = lonViewDate.getFullYear(), mo = lonViewDate.getMonth()+1;
@@ -2974,7 +2979,7 @@ function lonRecalc(){
     const obHintEl = document.getElementById('lon-ob-hint'); if (obHintEl) obHintEl.innerText = fromFacit ? 'Från lönespec (facit)' : 'Auto från dina pass';
     const avEl = document.getElementById('lon-bonus-sub');
     const reliefInfo = lonAdjustedTiers(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
-    if (avEl){ let t = sales>0 ? ` ${pct}% av ${lonKr(sales)}` : ''; if((lonAvdrag||0)>0) t += ` − ${lonAvdrag}%`; if (reliefInfo.ratio>0) t += ` · trösklar lättade ${Math.round(reliefInfo.ratio*100)}%`; avEl.innerText = t; }
+    if (avEl){ let t = sales>0 ? ` ${pct}% av ${lonKr(sales)}` : ''; if((lonAvdrag||0)>0) t += ` − ${lonAvdrag}%`; if (reliefInfo.ratio>0) t += ` · trösklar lättade ${Math.round(reliefInfo.ratio*100)}% · ${reliefInfo.dagar} av ${reliefInfo.dim} dagar`; avEl.innerText = t; }
     lonRenderTierGoal(sales, reliefInfo);
 
     lonCfg.manadslon = manadslon || lonCfg.manadslon;

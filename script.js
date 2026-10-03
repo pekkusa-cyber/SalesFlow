@@ -444,12 +444,26 @@ function noteraTackning(rad){
     if (!schemaTackning) schemaTackning = { min: d, max: d };
     else { if (d < schemaTackning.min) schemaTackning.min = d; if (d > schemaTackning.max) schemaTackning.max = d; }
 }
-// Täcker den inlästa filen HELA månaden? Bara då går det att lita på en
-// uppskattning av månadens OB-timmar.
+// Går månadens OB-timmar att lita på? Feeden behöver inte spänna hela
+// kalendermånaden – det räcker att den täcker alla dagar du FAKTISKT jobbade.
+// September 2026 är fallet: feeden börjar 3 september, men 1 september var VAB
+// och 2 september ledig, så uppskattningen är ändå komplett.
+// Signalen för en arbetad dag är registrerad försäljning. En arbetad dag helt
+// utan försäljning skulle slinka igenom, men alternativet – att aldrig kunna
+// kalibrera för att fönstret börjar en dag in i månaden – är sämre.
 function schemaTackerManad(y, m){
     if (!schemaTackning) return false;
     const forsta = new Date(y, m-1, 1), sista = new Date(y, m, 0);
-    return schemaTackning.min <= forsta && schemaTackning.max >= sista;
+    if (schemaTackning.min <= forsta && schemaTackning.max >= sista) return true;
+    if (schemaTackning.min > sista || schemaTackning.max < forsta) return false;
+    const dim = sista.getDate();
+    for (let d = 1; d <= dim; d++){
+        const dt = new Date(y, m-1, d);
+        if (dt >= schemaTackning.min && dt <= schemaTackning.max) continue;
+        const o = db.d[`${y}-${m}-${d}`];
+        if (o && o.s > 0) return false;        // en arbetad dag ligger utanför fönstret
+    }
+    return true;
 }
 window.schemaTackerManad = schemaTackerManad;
 
@@ -2775,7 +2789,13 @@ function lonRecomputeLearning(){
         const tid = rec.cal_tidrapport || {}, spec = rec.cal_lonespec || {};
         const parts = mk.split('-'); const y=+parts[0], mo=+parts[1];
         const pick=(a,b)=> (a!=null? a : (b!=null? b : null));
-        const ob50a = pick(spec.ob50, tid.ob50), ob100a = pick(spec.ob100, tid.ob100);
+        // En tidrapport som laddades upp MEDAN månaden pågick hamnar i prog_ och
+        // räknades aldrig som underlag. När månaden väl är slut är de siffrorna
+        // definitiva – annars blir riktiga värden liggande oanvända för alltid.
+        const manadSlut = new Date(y, mo, 0) < realToday;
+        const prog = (manadSlut && rec.prog_tidrapport) ? rec.prog_tidrapport : {};
+        const ob50a  = pick(spec.ob50,  pick(tid.ob50,  prog.ob50));
+        const ob100a = pick(spec.ob100, pick(tid.ob100, prog.ob100));
         // Uppskattningen MÅSTE bygga på ett schema som täcker hela månaden. Annars
         // jämförs en hel månads lönespec mot en halv månads uppskattning, och kvoten
         // blir ren artefakt – det var så obCorr.ob100 blev 1,851 (17,58 tim facit mot

@@ -428,6 +428,31 @@ function extractDateTime(line) {
     } return null;
 }
 
+// ============================================================
+//  SCHEMATS TÄCKNING
+//  Quinyx-feeden är ett RULLANDE fönster – den innehåller bara en period framåt.
+//  Utan att veta vilken period den täcker gick det inte att skilja "ingen pass
+//  den dagen" från "ingen data om den dagen". Lönekalibreringen jämförde då en
+//  hel månads lönespec mot en uppskattning byggd på en halv månad, och lärde sig
+//  en korrigeringsfaktor på 1,851 som gjorde OB-prognosen 85 % för hög.
+// ============================================================
+let schemaTackning = null;          // { min: 'ÅÅÅÅ-M-D', max: ... } ur den inlästa filen
+function noteraTackning(rad){
+    const m = String(rad).match(/:(\d{4})(\d{2})(\d{2})/);
+    if (!m) return;
+    const d = new Date(+m[1], +m[2]-1, +m[3]);
+    if (!schemaTackning) schemaTackning = { min: d, max: d };
+    else { if (d < schemaTackning.min) schemaTackning.min = d; if (d > schemaTackning.max) schemaTackning.max = d; }
+}
+// Täcker den inlästa filen HELA månaden? Bara då går det att lita på en
+// uppskattning av månadens OB-timmar.
+function schemaTackerManad(y, m){
+    if (!schemaTackning) return false;
+    const forsta = new Date(y, m-1, 1), sista = new Date(y, m, 0);
+    return schemaTackning.min <= forsta && schemaTackning.max >= sista;
+}
+window.schemaTackerManad = schemaTackerManad;
+
 function processParsedEvent(ev, desc) {
     if (!ev.start) return;
     const fullText = desc.toLowerCase(); let isWork = false; let isLedig = false;
@@ -566,13 +591,14 @@ async function loadAllData() {
             scheduleSource = 'backup';
         }
         
-        db.q = {}; invalidateScheduleCache(); const lines = text.split(/\r?\n/); let inEvent = false; let event = {}; let fullDesc = "";
+        db.q = {}; invalidateScheduleCache(); schemaTackning = null;
+        const lines = text.split(/\r?\n/); let inEvent = false; let event = {}; let fullDesc = "";
         for (let i = 0; i < lines.length; i++) {
             let line = lines[i];
             if (line === "BEGIN:VEVENT") { inEvent = true; event = {}; fullDesc = ""; } 
             else if (line === "END:VEVENT") { inEvent = false; processParsedEvent(event, fullDesc); } 
             else if (inEvent) {
-                if (line.startsWith("DTSTART")) { event.start = extractDateTime(line); } 
+                if (line.startsWith("DTSTART")) { event.start = extractDateTime(line); noteraTackning(line); } 
                 else if (line.startsWith("DTEND")) { event.end = extractDateTime(line); } 
                 else if (line.startsWith("SUMMARY:") || line.startsWith("DESCRIPTION:")) { fullDesc += " " + line; } 
                 else if (!line.includes(":")) { fullDesc += " " + line; }
@@ -2544,6 +2570,10 @@ function lonNormalizeCfg(c){
     // v3: franvCorr lärdes in mot en bas som dubbelräknade heldagar (tidrapportens totaltimmar).
     // Den blev ~0,72 och drog ner avdraget felaktigt. Nollställs och lärs om från specarna.
     if (c.franvModelV !== 3) { c.franvCorr = 1; c.franvModelV = 3; }
+    // obCorr lärdes in mot månader där schemafilen bara täckte en del av månaden.
+    // Faktorn blev 1,851 och gjorde OB-prognosen 85 % för hög. Kalibreringen kräver
+    // nu full täckning, så nollställ en gång och lär om på rätt underlag.
+    if (c.obModelV !== 2) { c.obCorr = { ob50:1, ob100:1 }; c.obModelV = 2; }
     // Engångsuppdatering: semesterlön/dag var kvar på fjolårets faktiska värde (2844).
     // Uppskattat för intjänandeår apr 2025–mar 2026 ≈ 3040. Skrivs bara över om du inte satt värdet manuellt.
     if (c.semLonV !== 2) { if (!c.semLonManual) c.semLonDag = D.semLonDag; c.semLonV = 2; }
@@ -2689,6 +2719,31 @@ function lonEstimateOB(y, m){
     return { ob50: Math.round(r.ob50*(c.ob50||1)*100)/100, ob100: Math.round(r.ob100*(c.ob100||1)*100)/100 };
 }
 
+// Fryser månadens råa OB-uppskattning medan schemafilen fortfarande täcker hela
+// månaden. Feeden är ett rullande fönster, så utan en sparad kopia går underlaget
+// förlorat – och kalibreringen skulle då jämföra facit mot en halv månad.
+function sparaRaOB(){
+    if (!schemaTackning || !lonCfg || !lonMonthly) return;
+    let andrat = false;
+    const d = new Date(schemaTackning.min.getFullYear(), schemaTackning.min.getMonth(), 1);
+    const slut = schemaTackning.max;
+    while (d <= slut){
+        const y = d.getFullYear(), mo = d.getMonth()+1;
+        if (schemaTackerManad(y, mo)){
+            const k = `${y}-${mo}`;
+            const est = lonEstimateOBraw(y, mo);
+            const rec = lonMonthly[k] || {};
+            if (rec.rawOb50 !== est.ob50 || rec.rawOb100 !== est.ob100){
+                rec.rawOb50 = est.ob50; rec.rawOb100 = est.ob100;
+                lonMonthly[k] = rec; andrat = true;
+            }
+        }
+        d.setMonth(d.getMonth()+1);
+    }
+    if (andrat) lonSaveMonthly();
+}
+window.sparaRaOB = sparaRaOB;
+
 // ---- Inlärning (FAIL-SAFE): spara råvärden per månad+typ; senaste gäller; räkna om allt från grunden ----
 function lonApplyCalibration(d, monthKey, slot){
     const k = monthKey || lonUploadTargetKey();
@@ -2721,9 +2776,17 @@ function lonRecomputeLearning(){
         const parts = mk.split('-'); const y=+parts[0], mo=+parts[1];
         const pick=(a,b)=> (a!=null? a : (b!=null? b : null));
         const ob50a = pick(spec.ob50, tid.ob50), ob100a = pick(spec.ob100, tid.ob100);
-        const est = lonEstimateOBraw(y, mo);
-        if (ob50a!=null && est.ob50>0 && sane(ob50a/est.ob50)) r50.push(ob50a/est.ob50);
-        if (ob100a!=null && est.ob100>0 && sane(ob100a/est.ob100)) r100.push(ob100a/est.ob100);
+        // Uppskattningen MÅSTE bygga på ett schema som täcker hela månaden. Annars
+        // jämförs en hel månads lönespec mot en halv månads uppskattning, och kvoten
+        // blir ren artefakt – det var så obCorr.ob100 blev 1,851 (17,58 tim facit mot
+        // 9,50 tim uppskattat, där schemafilen bara nådde från 23 augusti).
+        const est = (rec.rawOb50 != null || rec.rawOb100 != null)
+                  ? { ob50: rec.rawOb50 || 0, ob100: rec.rawOb100 || 0 }
+                  : (schemaTackerManad(y, mo) ? lonEstimateOBraw(y, mo) : null);
+        if (est){
+            if (ob50a!=null && est.ob50>0 && sane(ob50a/est.ob50)) r50.push(ob50a/est.ob50);
+            if (ob100a!=null && est.ob100>0 && sane(ob100a/est.ob100)) r100.push(ob100a/est.ob100);
+        }
         // Basen tas alltid från kalendern (specens/tidrapportens "frånvaro tim" är en totalsumma
         // som även innehåller heldagarna → skulle blåsa upp franvCorr igen).
         const brk = getMonthAbsenceBreakdown(y, mo);
@@ -2827,6 +2890,45 @@ function lonAdjustedTiers(y, mo){
     const adj = base.map(t => ({ min: Math.round(t.min * (1-ratio)), max: (t.max==null ? null : Math.round(t.max * (1-ratio))), pct: t.pct }));
     return { tiers: adj, ratio, dagar, dim };
 }
+// ============================================================
+//  BONUSKORRIGERING — när ARBETSGIVAREN betalat fel
+//  Appens uträkning kan vara rätt och lönespecen fel. Då ska appen inte dra
+//  slutsatsen att den själv räknar fel: beloppet registreras som en skuld,
+//  appens siffra står kvar som den riktiga, och ingenting av detta får gå in
+//  i inlärningen.
+// ============================================================
+function bonusKorr(key){
+    const m = lonMonthly[key || lonKey()] || {};
+    const b = m.bonusKorr;
+    if (!b || !(+b.brutto)) return null;
+    return { brutto: +b.brutto, netto: +b.netto || 0, note: b.note || '', reglerad: !!b.reglerad };
+}
+function setBonusKorr(brutto, netto, note){
+    const k = lonKey(); const m = lonMonthly[k] || {};
+    const b = Math.round(parseNum(brutto) || 0);
+    if (!b) delete m.bonusKorr;
+    else m.bonusKorr = { brutto: b, netto: Math.round(parseNum(netto) || 0), note: note || '', reglerad: false,
+                         skapad: new Date().toISOString().slice(0,10) };
+    lonMonthly[k] = m; lonSaveMonthly(); lonFillFields(); lonRecalc();
+}
+function setBonusKorrReglerad(pa){
+    const k = lonKey(); const m = lonMonthly[k] || {};
+    if (m.bonusKorr){ m.bonusKorr.reglerad = !!pa; lonMonthly[k] = m; lonSaveMonthly(); lonRecalc(); }
+}
+// Allt du har utestående, över alla månader
+function bonusKorrTotal(){
+    let brutto = 0, netto = 0; const rader = [];
+    Object.keys(lonMonthly || {}).forEach(k => {
+        if (!/^\d{4}-\d{1,2}$/.test(k)) return;
+        const b = lonMonthly[k] && lonMonthly[k].bonusKorr;
+        if (!b || !(+b.brutto) || b.reglerad) return;
+        brutto += +b.brutto; netto += (+b.netto || 0); rader.push({ k, ...b });
+    });
+    return { brutto, netto, rader };
+}
+window.setBonusKorr = setBonusKorr; window.setBonusKorrReglerad = setBonusKorrReglerad;
+window.bonusKorrTotal = bonusKorrTotal;
+
 function lonBonusAuto(sales){
     const y = lonViewDate.getFullYear(), mo = lonViewDate.getMonth()+1;
     const { tiers } = lonAdjustedTiers(y, mo);
@@ -2875,6 +2977,7 @@ function lonSemDagarSplit(y, m, semDays){
     return { paid, unpaid: semDays - paid, known: true };
 }
 function lonRecalc(){
+    sparaRaOB();   // frys underlaget medan schemat fortfarande täcker månaden
     if (!lonViewDate) return;
     const H = lonTimpris();
     const tpEl = document.getElementById('lon-cfg-timpris'); if (tpEl) tpEl.value = H;
@@ -2899,7 +3002,6 @@ function lonRecalc(){
     const extraDed = lonNum('lon-extra-ded');
 
     const obEl=document.getElementById('lon-ob50'); if(obEl) obEl.value=OB.ob50; const ob1El=document.getElementById('lon-ob100'); if(ob1El) ob1El.value=OB.ob100;
-    const obHint=document.getElementById('lon-ob-hint'); if(obHint) obHint.innerText = OB.src==='faktisk' ? 'Från bilaga (faktisk)' : 'Auto från dina pass';
 
     // BONUS: auto ur försäljning × tier, minus procentavdrag (10/20/30)
     const pct = lonBonusPct(sales);
@@ -2976,11 +3078,41 @@ function lonRecalc(){
         if (fromFacit && facit && facit.franvaro_avdrag_kr != null) { fsEl.innerText = ' enligt lönespec'; }
         else { let parts=[]; if(franvHelDagar>0) parts.push(`${franvHelDagar} heldag${franvHelDagar===1?'':'ar'}`); if(franvTim>0) parts.push(`${franvTim} tim`); fsEl.innerText = parts.length ? ' ' + parts.join(' + ') : ''; }
     }
-    const obHintEl = document.getElementById('lon-ob-hint'); if (obHintEl) obHintEl.innerText = fromFacit ? 'Från lönespec (facit)' : 'Auto från dina pass';
+    // EN enda tilldelning. Tidigare sattes raden på två ställen i samma funktion
+    // och den senare vann, så den första var död kod. Säger nu VAR siffran kommer
+    // ifrån – och varnar när den bygger på ett schema som inte täcker månaden.
+    const obHintEl = document.getElementById('lon-ob-hint');
+    if (obHintEl){
+        const y2 = lonViewDate.getFullYear(), m2 = lonViewDate.getMonth()+1;
+        const heltSchema = schemaTackerManad(y2, m2) || (lonMonthly[lonKey()] || {}).rawOb100 != null;
+        const auto = !fromFacit && OB.src === 'auto';
+        obHintEl.innerText = (fromFacit || OB.src === 'facit') ? 'Från lönespec (facit)'
+                           : OB.src === 'prognos'              ? 'Från tidrapport'
+                           : heltSchema                        ? 'Auto från dina pass'
+                           : '⚠️ Auto – schemat täcker bara en del av månaden';
+        obHintEl.classList.toggle('lon-hint-varning', auto && !heltSchema);
+    }
     const avEl = document.getElementById('lon-bonus-sub');
     const reliefInfo = lonAdjustedTiers(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
     if (avEl){ let t = sales>0 ? ` ${pct}% av ${lonKr(sales)}` : ''; if((lonAvdrag||0)>0) t += ` − ${lonAvdrag}%`; if (reliefInfo.ratio>0) t += ` · trösklar lättade ${Math.round(reliefInfo.ratio*100)}% · ${reliefInfo.dagar} av ${reliefInfo.dim} dagar`; avEl.innerText = t; }
     lonRenderTierGoal(sales, reliefInfo);
+
+    // Felaktigt utbetald bonus: appens siffra står kvar som den riktiga. Raden
+    // visar vad som faktiskt kom ut och vad du har att få.
+    const kk = bonusKorr();
+    const kRow = document.getElementById('lon-korr-row');
+    if (kRow){
+        if (kk && !kk.reglerad){
+            kRow.classList.remove('hidden');
+            const ut = document.getElementById('lon-korr-ut');
+            const sub = document.getElementById('lon-korr-sub');
+            if (ut) ut.innerText = '+' + lonKr(kk.brutto);
+            // Visa "utbetalt" bara när appen faktiskt har en bonus att jämföra med.
+            const utbetalt = Math.round(bonus) - kk.brutto;
+            if (sub) sub.innerText = (bonus > 0 && utbetalt >= 0 ? `utbetalt ${lonKr(utbetalt)} · ` : '')
+                                   + (kk.netto ? `${lonKr(kk.netto)} netto` : 'brutto');
+        } else kRow.classList.add('hidden');
+    }
 
     lonCfg.manadslon = manadslon || lonCfg.manadslon;
     lonCfg.tillagg = tillagg || lonCfg.tillagg;
@@ -3085,6 +3217,21 @@ function lonFillFields(){
     // innehöll BÅDE heldagar och deltimmar → dubbelräkning. De används inte längre.
     setV('lon-franv', appFranv || '');
     setV('lon-extra-add', m.extraAdd); setV('lon-extra-ded', m.extraDed);
+    // Bonuskorrigeringen hör till EN månad – fälten följer med när du bläddrar.
+    const kk = m.bonusKorr || {};
+    setV('lon-korr-brutto', kk.brutto); setV('lon-korr-netto', kk.netto);
+    const kn = document.getElementById('lon-korr-note'); if (kn) kn.value = kk.note || '';
+    const kr = document.getElementById('lon-korr-reglerad'); if (kr) kr.checked = !!kk.reglerad;
+    const krRow = document.getElementById('lon-korr-reglerad-row');
+    if (krRow) krRow.classList.toggle('hidden', !kk.brutto);
+    const kt = document.getElementById('lon-korr-total');
+    if (kt){
+        const t = bonusKorrTotal();
+        kt.innerText = t.brutto > 0
+            ? `Utestående totalt: ${lonKr(t.brutto)} brutto` + (t.netto ? ` · ${lonKr(t.netto)} netto` : '')
+              + ` (${t.rader.length} ${t.rader.length===1?'månad':'månader'})`
+            : '';
+    }
     lonAvdrag = m.avdrag || 0;
     const seg=document.getElementById('lon-avdrag-seg'); if(seg) seg.querySelectorAll('button').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.av)===lonAvdrag));
     setV('lon-cfg-manadslon', lonCfg.manadslon); setV('lon-cfg-tillagg', lonCfg.tillagg);

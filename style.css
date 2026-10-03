@@ -1903,6 +1903,8 @@ body:not(.sheet-full) #sheet-lon .lon-net-val { font-size:46px; }
 .lon-del-btn { flex-shrink:0; width:30px; height:30px; border-radius:10px; border:none; background:#fde8e8; color:#d33; font-weight:800; }
 .lon-hint { font-size:10px; color:var(--on-surface-variant); margin-top:6px; line-height:1.4; }
 .lon-rrow-bonus small { display:block; font-size:9px; font-weight:600; opacity:.8; margin-top:1px; }
+.lon-rrow-ob small { display:block; font-size:9px; font-weight:600; opacity:.8; margin-top:1px; }
+.lon-rrow-ob span:first-child { display:flex; flex-direction:column; }
 .lon-seg { display:flex; gap:6px; }
 .lon-seg button { flex:1; padding:9px 4px; border-radius:12px; border:1px solid var(--outline-variant); background:var(--surface); color:var(--on-surface-variant); font-size:12px; font-weight:800; transition:all .15s var(--ease-emp); }
 .lon-seg button.active { background:var(--g-blue); color:#fff; border-color:var(--g-blue); box-shadow:var(--elev-1); }
@@ -2521,6 +2523,17 @@ body.focus-mode-on .app-bottom-nav { display: none; }
     transition: transform .15s var(--ease-emp);
 }
 .focus-btn:active { transform: scale(.9); }
+
+.lon-hint-varning { color: var(--boost-gold); font-weight: 700; }
+
+/* Felaktigt utbetald bonus – en skuld, inte ett räknefel i appen */
+.lon-rrow-korr { color: var(--g-yellow); cursor: pointer; }
+.lon-rrow-korr span:first-child { display: flex; flex-direction: column; }
+.lon-rrow-korr small { font-size: 9px; font-weight: 600; opacity: .8; margin-top: 1px; }
+.lon-korr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lon-korr-f { display: flex; flex-direction: column; gap: 3px; }
+.lon-korr-f span { font-size: 9px; font-weight: 700; text-transform: uppercase;
+                   letter-spacing: .10em; color: var(--on-surface-variant); }
 
 /* Av/på-rad i Inställningar */
 .md-toggle-row {

@@ -101,7 +101,21 @@ function mergeDayRow(a, b) {
 }
 function parseNum(val) { if (val === undefined || val === null || val === '') return 0; if (typeof val === 'number') return val; let str = String(val).replace(/\s/g, '').replace(',', '.'); let num = parseFloat(str); return isNaN(num) ? 0 : num; }
 
-function getBudgetForMonth(y, m) { return savedBudgets[`${y}-${m}`] || 240000; }
+// En budget du satt själv vinner alltid. Annars följer målet månadens
+// bonustrappa: golvet för 12 %, som du själv satte juni–september (240 000).
+// Förut stod det 240 000 för ALLA månader, och i november – där 12 % börjar
+// på 340 000 och ens 10 % kräver 260 000 – hade "mål nått" betytt ingen bonus.
+function getBudgetForMonth(y, m) {
+    const satt = savedBudgets[`${y}-${m}`];
+    if (satt) return satt;
+    try {
+        if (lonCfg){
+            const steg = lonTiersForMonth(m).find(t => Number(t.pct) === 12);
+            if (steg && Number(steg.min) > 0) return Number(steg.min);
+        }
+    } catch(e){}
+    return 240000;
+}
 
 function setGlobalBudget(amount) { 
     let cy = viewDate.getFullYear(); let cm = viewDate.getMonth() + 1;
@@ -574,12 +588,7 @@ async function loadAllData() {
                 try { localStorage.setItem('sf_budgets', JSON.stringify(savedBudgets)); } catch(e){} 
             }
 
-            if (notesRes.data) {
-                savedNotes = notesRes.data.map(r => ({
-                    id: r.id, name: r.customer_name || '', phone: r.phone || '', order: r.order_nr || '', text: r.note_text
-                }));
-                try { localStorage.setItem('sf_notes', JSON.stringify(savedNotes)); } catch(e){}
-            }
+            if (notesRes.data) synkaNotes(notesRes.data);
 
             if (callsRes && callsRes.data) {
                 savedCalls = callsRes.data;
@@ -661,9 +670,15 @@ async function loadAllData() {
                     db.d[k] = { st: 'Arbete', s: existing?.s || 0, abs: typ, src: 'Auto', raw: raw, fk_perc: fk_perc, abs_hours: absH, eval: existing?.eval || null, eval_text: '', has_eval_saved: !!existing?.eval };
                     upserts.push({ date_key: k, status: 'Arbete', sales: existing?.s || 0, is_absent: typ, raw_reason: raw, fk_perc: fk_perc, abs_hours: absH, eval_data: existing?.eval || null });
                 } else if (existing && existing.src === 'Manual') {
-                    if(existing.fk_perc == null || existing.abs_hours == null) {
-                         existing.fk_perc = fk_perc; existing.abs_hours = absH;
-                         upserts.push({ date_key: k, status: existing.st, sales: existing.s, is_absent: existing.abs, raw_reason: existing.raw, fk_perc: fk_perc, abs_hours: absH, eval_data: existing.eval || null });
+                    // Fyll bara i det som SAKNAS – en dag du själv justerat ska schemat inte
+                    // skriva över. abs_hours är null för heldagar, och då är null rätt
+                    // värde, inte ett som saknas: förut skrevs varje heldag om vid varje start.
+                    const fkSaknas  = existing.fk_perc == null && fk_perc != null;
+                    const absSaknas = existing.abs_hours == null && absH != null;
+                    if (fkSaknas || absSaknas) {
+                         if (fkSaknas) existing.fk_perc = fk_perc;
+                         if (absSaknas) existing.abs_hours = absH;
+                         upserts.push({ date_key: k, status: existing.st, sales: existing.s, is_absent: existing.abs, raw_reason: existing.raw, fk_perc: existing.fk_perc, abs_hours: existing.abs_hours, eval_data: existing.eval || null });
                     }
                 }
             }
@@ -1006,11 +1021,35 @@ function kollaFirande(k, lage){
     return Date.now() < firarTill;
 }
 
+// Snitt per dag med försäljning, för en hel månad.
+function snittPerPass(y, m){
+    const dim = new Date(y, m, 0).getDate(); let sum = 0, n = 0;
+    for (let d = 1; d <= dim; d++){ const s = (db.d[`${y}-${m}-${d}`] || {}).s || 0; if (s > 0){ sum += s; n++; } }
+    return n ? sum / n : 0;
+}
+
 function updateDash() { 
     db.b = getBudgetForMonth(viewDate.getFullYear(), viewDate.getMonth() + 1);
     const cm = viewDate.getMonth() + 1, cy = viewDate.getFullYear(); let tS = 0, dP = 0, tP = 0, rW = 0; const daysM = new Date(cy, cm, 0).getDate();
-    for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; tS += o.s; if (o.s > 0) dP++; if ((qData.start || o.s > 0) && !isMeetingDay(k)) { tP++; const dObj = new Date(cy, cm-1, d); if (dObj >= realToday) rW++; } }
-    const monthlyPerc = db.b > 0 ? Math.round((tS/db.b)*100) : 0; const avg = dP ? (tS / dP) : 0;
+    // Prognosen bygger på AVSLUTADE dagar. Förut räknades dagens försäljning in
+    // i snittet som om dagen vore slut: första dagen i månaden blev prognosen
+    // bara "det du sålt hittills × antal pass", och den svängde hela dagen.
+    let sAvsl = 0, dAvsl = 0, sIdag = 0, idagPass = false;
+    for(let d=1; d<=daysM; d++) { const k = `${cy}-${cm}-${d}`; const o = db.d[k] || {s:0}; const qData = db.q[k] || {}; const dObj = new Date(cy, cm-1, d);
+        tS += o.s; if (o.s > 0) dP++;
+        const arIdag = dObj.getTime() === realToday.getTime();
+        if (dObj < realToday) { sAvsl += o.s; if (o.s > 0) dAvsl++; } else if (arIdag) sIdag = o.s;
+        if ((qData.start || o.s > 0) && !isMeetingDay(k)) { tP++; if (dObj >= realToday) rW++; if (arIdag) idagPass = true; } }
+    const monthlyPerc = db.b > 0 ? Math.round((tS/db.b)*100) : 0;
+    // Snittet per pass: månadens avslutade dagar. Har månaden inga än (första
+    // säljdagen) lånas förra månadens snitt – annars blev 500 kr vid tio på
+    // morgonen en prognos på 8 000 kr för hela månaden.
+    let avg = dAvsl ? (sAvsl / dAvsl) : 0;
+    if (!avg) { const f = new Date(cy, cm-2, 1); avg = snittPerPass(f.getFullYear(), f.getMonth()+1); }
+    if (!avg) avg = dP ? (tS / dP) : 0;
+    // Dagen räknas som det högsta av vad du sålt hittills och snittet – en
+    // halv dag ska inte dra ner prognosen, en stark dag ska få synas.
+    const prognos = sAvsl + (idagPass ? Math.max(sIdag, avg) : sIdag) + avg * Math.max(0, rW - (idagPass ? 1 : 0));
 
     // Lättnad (semester/föräldraledig) – växla mellan ordinarie och lättat mål
     const reliefRatio = (typeof getMonthlyBonusReliefRatio === 'function') ? getMonthlyBonusReliefRatio(cy, cm) : 0;
@@ -1034,7 +1073,8 @@ function updateDash() {
 
     const bValEl = document.getElementById('d-budget-val'); if(bValEl) bValEl.innerText = effBudget.toLocaleString('sv-SE') + " kr";
     const maxK = Math.round(effBudget / 1000); const maxLbl = document.getElementById('g-max-lbl'); if (maxLbl) maxLbl.innerText = maxK;
-    const tgtEl = document.getElementById('d-today-target'); if(tgtEl) tgtEl.innerText = Math.round(effTarget/1000) + " k";
+    // En decimal, som dagskortet – annars stod samma mål som "12 k" här och "11.7 k" där.
+    const tgtEl = document.getElementById('d-today-target'); if(tgtEl) tgtEl.innerText = effTarget > 0 ? (effTarget/1000).toFixed(1) + " k" : "0 k";
     const avgEl = document.getElementById('d-avg-val'); if(avgEl) avgEl.innerText = Math.round(avg/1000) + " k"; 
     const mainValEl = document.getElementById('h-main-val'); if(mainValEl) mainValEl.innerText = (tS/1000).toFixed(1) + " k";
     const leftEl = document.getElementById('d-work-left'); if(leftEl) leftEl.innerText = `${rW} Pass Kvar`;
@@ -1051,7 +1091,7 @@ function updateDash() {
         hCirc.style.filter = isTopReached ? 'drop-shadow(0 0 8px rgba(16,185,129,0.6))' : 'drop-shadow(0 0 8px rgba(244,63,94,0.6))';
     }
     
-    const progStr = Math.round((avg * tP)/1000); 
+    const progStr = Math.round(prognos/1000); 
     const progEl = document.getElementById('d-prog'); if(progEl) { progEl.innerText = progStr + " k"; progEl.style.color = progStr >= (effBudget/1000) ? 'var(--pos)' : 'var(--neg)'; }
     const statEl = document.getElementById('d-status'); if(statEl) { statEl.innerText = progStr >= (effBudget/1000) ? "I FAS" : "EFTER"; statEl.style.color = progStr >= (effBudget/1000) ? 'var(--pos)' : 'var(--neg)'; }
     
@@ -2384,54 +2424,6 @@ async function handleNoteImageSelect(input) {
     }
 }
 
-async function handleNoteImageSelect(input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    const spinner = document.getElementById('image-load-spinner');
-    if (spinner) spinner.classList.remove('hidden');
-
-    try {
-        if (!sb) throw new Error("Supabase-klienten saknas. Ladda om appen.");
-
-        // Komprimera bilden till max ~500KB
-        const compressed = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const maxW = 1024;
-                    const scale = Math.min(1, maxW / img.width);
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
-                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.6));
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
-
-        const { data, error } = await sb.functions.invoke('analyze-sales-note-image', {
-            body: { image_base64: compressed }
-        });
-
-        if (error) throw new Error(error.message);
-
-        // Stöd både snake_case och camelCase från Gemini
-        if (data.namn || data.name)        document.getElementById('note-name').value  = data.namn || data.name;
-        if (data.telefon || data.phone)    document.getElementById('note-phone').value = data.telefon || data.phone;
-        if (data.ordernummer || data.order) document.getElementById('note-order').value = data.ordernummer || data.order;
-
-    } catch (err) {
-        alert("Kunde inte analysera: " + err.message);
-    } finally {
-        if (spinner) spinner.classList.add('hidden');
-        input.value = '';
-    }
-}
-
 async function handleGMImageSelect(input) {
     const file = input.files[0];
     if (!file) return;
@@ -2549,7 +2541,7 @@ function lonUndoPrognos(key, slot){ const m=lonMonthly[key]; if(m){ delete m['pr
 function lonClearFileKey(key, slot){ const m=lonMonthly[key]; if(m){ delete m['file_'+slot]; lonSaveMonthly(); } }
 
 const LON_CFG_DEF = {
-    manadslon: 29554, tillagg: 515, timpris: 181.14, timdivisor: 163.17,
+    manadslon: 29554, tillagg: 515, timpris: 181.14, timdivisor: 166, timModelV: 2,
     obWindows: {
         weekday: [ {from:'18:15', to:'20:00', bucket:50}, {from:'20:00', to:'24:00', bucket:100} ],
         sat:     [ {from:'12:00', to:'24:00', bucket:100} ],
@@ -2601,6 +2593,10 @@ function lonNormalizeCfg(c){
     // Faktorn blev 1,851 och gjorde OB-prognosen 85 % för hög. Kalibreringen kräver
     // nu full täckning, så nollställ en gång och lär om på rätt underlag.
     if (c.obModelV !== 2) { c.obCorr = { ob50:1, ob100:1 }; c.obModelV = 2; }
+    // Timlönen är (månadslön + individuellt tillägg) / 166, inte månadslön / 163,17.
+    // Lönespecen säger 181,14 på varje timrad (OB, FL och VAB del av dag), och
+    // (29 554 + 515) / 166 = 181,14 exakt. Den gamla formeln gav 181,12.
+    if (c.timModelV !== 2) { c.timdivisor = 166; c.timModelV = 2; }
     // Engångsuppdatering: semesterlön/dag var kvar på fjolårets faktiska värde (2844).
     // Uppskattat för intjänandeår apr 2025–mar 2026 ≈ 3040. Skrivs bara över om du inte satt värdet manuellt.
     if (c.semLonV !== 2) { if (!c.semLonManual) c.semLonDag = D.semLonDag; c.semLonV = 2; }
@@ -2616,7 +2612,52 @@ function lonLoad() {
     try { lonMonthly = JSON.parse(localStorage.getItem('sf_lon_monthly')) || {}; } catch(e){ lonMonthly = {}; }
 }
 function lonSaveCfg(){ try { localStorage.setItem('sf_lon_cfg', JSON.stringify(lonCfg)); } catch(e){} lonPushRemote('cfg', lonCfg); }
-function lonSaveMonthly(){ try { localStorage.setItem('sf_lon_monthly', JSON.stringify(lonMonthly)); } catch(e){} lonPushRemote('monthly', lonMonthly); }
+function lonSaveMonthly(){ try { localStorage.setItem('sf_lon_monthly', JSON.stringify(lonUtanBilddata(lonMonthly))); } catch(e){} lonPushRemote('monthly', lonMonthly); }
+
+// ---- Lönedatan mot molnet ----
+// 1. Bilderna (file_*.data) ligger BARA i molnet. localStorage rymmer ~5 M tecken
+//    och åtta lönespecsbilder tog 3,4 M av dem – fyra till och sparningen
+//    misslyckades tyst, så telefonens kopia frös.
+// 2. Inget skickas upp förrän molnet lästs. Förut skickade lönefliken upp
+//    telefonens kopia FÖRST och läste molnet sedan – en gammal kopia kunde
+//    skriva över den riktiga innan appen ens sett den.
+// 3. Identiskt innehåll skickas inte igen. Varje öppning av fliken laddade
+//    upp hela lönedatan två–tre gånger, ~6,7 MB.
+let lonMolnLast = false;          // har molnet lästs i den här sessionen?
+const lonSistSkickat = {};        // id -> det molnet har just nu, i stabil form
+let lonSynkPagar = null;
+
+function lonUtanBilddata(m){
+    const ut = {};
+    for (const k in m){
+        const v = m[k];
+        if (!v || typeof v !== 'object' || Array.isArray(v)) { ut[k] = v; continue; }
+        const r = {};
+        for (const f in v){
+            // Namnet räcker för listan över bilagor; själva bilden hämtas ur molnet.
+            if (f.startsWith('file_') && v[f] && typeof v[f] === 'object') r[f] = { name: v[f].name };
+            else r[f] = v[f];
+        }
+        ut[k] = r;
+    }
+    return ut;
+}
+// En bilaga som bara har sitt namn kvar kommer från telefonens avskalade kopia.
+// Den får aldrig skickas upp – då skulle bilden i molnet raderas.
+function lonHarBildstubb(m){
+    for (const k in m){
+        const v = m[k]; if (!v || typeof v !== 'object') continue;
+        for (const f in v) if (f.startsWith('file_') && v[f] && typeof v[f] === 'object' && !v[f].data) return true;
+    }
+    return false;
+}
+// Postgres sorterar om nycklarna i jsonb, så vanlig JSON.stringify skulle se
+// varje läst kopia som "ändrad". Jämför med sorterade nycklar.
+function lonStabil(o){
+    if (o === null || typeof o !== 'object') return JSON.stringify(o);
+    if (Array.isArray(o)) return '[' + o.map(lonStabil).join(',') + ']';
+    return '{' + Object.keys(o).sort().map(k => JSON.stringify(k) + ':' + lonStabil(o[k])).join(',') + '}';
+}
 function lonKey(){ return `${lonViewDate.getFullYear()}-${lonViewDate.getMonth()+1}`; }
 
 function getMonthlySales(y, m){
@@ -2707,7 +2748,12 @@ function getMonthlySemesterInfo(y, m){
     }
     return { days, sched: anyQ ? sched : days, hasSchedule: anyQ };
 }
-function lonTimpris(){ const mn = lonNum('lon-cfg-manadslon') || (lonCfg && lonCfg.manadslon) || LON_CFG_DEF.manadslon; const div = (lonCfg && lonCfg.timdivisor) || 163.17; return Math.round(mn/div*100)/100; }
+function lonTimlon(manadslon){
+    const till = (lonCfg && typeof lonCfg.tillagg === 'number') ? lonCfg.tillagg : LON_CFG_DEF.tillagg;
+    const div = (lonCfg && lonCfg.timdivisor) || LON_CFG_DEF.timdivisor;
+    return (manadslon + till) / div;
+}
+function lonTimpris(){ const mn = lonNum('lon-cfg-manadslon') || (lonCfg && lonCfg.manadslon) || LON_CFG_DEF.manadslon; return Math.round(lonTimlon(mn)*100)/100; }
 
 // ---- Svenska röda dagar (helgdagar) ----
 function lonEaster(y){ const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1; return new Date(y,mo-1,da); }
@@ -2828,7 +2874,7 @@ function lonRecomputeLearning(){
         // Basen måste spegla SAMMA sak som specens totalbelopp: timmar + heldagar.
         // (Tidigare jämfördes totalen mot enbart timmar → franvCorr blåstes upp och gav dubbelräkning.)
         const mlon = lonCfg.manadslon;
-        const baseTim = (ftim||0) * (mlon / (lonCfg.timdivisor||163.17));
+        const baseTim = (ftim||0) * lonTimlon(mlon);
         const baseHel = getMonthlyFranvaroWholeDays(y,mo) * (mlon * (lonCfg.franvDagRate||0.0468));
         const base = baseTim + baseHel;
         if (fkr!=null && base>0 && sane(Math.abs(fkr)/base)) rfranv.push(Math.abs(fkr)/base);
@@ -3076,7 +3122,7 @@ function lonRecalc(){
     const facit = (lonMonthly[lonKey()] || {}).cal_lonespec;
     if (facit && facit.brutto != null && facit.skatt != null && +facit.brutto > 5000
         && +facit.brutto > brutto * 0.5 && +facit.brutto < brutto * 2) {   // rimlighetskoll → skydd mot felläst års-/fel belopp
-        const Hf = ((facit.manadslon && +facit.manadslon > 10000 && +facit.manadslon < 60000) ? +facit.manadslon : manadslon) / (lonCfg.timdivisor || 163.17);
+        const Hf = lonTimlon((facit.manadslon && +facit.manadslon > 10000 && +facit.manadslon < 60000) ? +facit.manadslon : manadslon);
         brutto = Math.round(+facit.brutto);
         skatt = Math.round(Math.abs(+facit.skatt));
         netto = (facit.netto != null && +facit.netto > 0) ? Math.round(+facit.netto) : (brutto - skatt);
@@ -3419,22 +3465,46 @@ function lonRenderHistory(){
 
 async function lonSyncRemote(){
     if (typeof sb === 'undefined' || !sb) return;
-    try {
-        const { data, error } = await sb.from('lon_store').select('id,data');
-        if (error || !data) return;
-        let changed=false;
-        data.forEach(row=>{
-            if(row.id==='cfg' && row.data && typeof row.data.manadslon === 'number'){ lonCfg = lonNormalizeCfg(row.data); changed=true; }
-            if(row.id==='monthly' && row.data && typeof row.data === 'object'){ lonMonthly = row.data; changed=true; }
-        });
-        // Om molnet bara har tomma seed-rader: spara upp den lokala (riktiga) konfigen dit
-        const cfgRow = data.find(r=>r.id==='cfg');
-        if (!cfgRow || !cfgRow.data || typeof cfgRow.data.manadslon !== 'number') lonPushRemote('cfg', lonCfg);
-        if (changed){ try{ localStorage.setItem('sf_lon_cfg', JSON.stringify(lonCfg)); localStorage.setItem('sf_lon_monthly', JSON.stringify(lonMonthly)); }catch(e){}
-            lonRenderTiers(); lonRenderAnchors(); lonFillFields(); lonRecalc(); }
-    } catch(e){}
+    if (lonSynkPagar) return lonSynkPagar;
+    lonSynkPagar = (async () => {
+        try {
+            const { data, error } = await sb.from('lon_store').select('id,data');
+            if (error || !data) return;
+            let changed=false;
+            data.forEach(row=>{
+                if(row.id==='cfg' && row.data && typeof row.data.manadslon === 'number'){ lonCfg = lonNormalizeCfg(row.data); lonSistSkickat.cfg = lonStabil(row.data); changed=true; }
+                if(row.id==='monthly' && row.data && typeof row.data === 'object'){ lonMonthly = row.data; lonSistSkickat.monthly = lonStabil(row.data); changed=true; }
+            });
+            lonMolnLast = true;   // från och med nu får ändringar skickas upp
+            // Om molnet bara har tomma seed-rader: spara upp den lokala (riktiga) konfigen dit
+            const cfgRow = data.find(r=>r.id==='cfg');
+            if (!cfgRow || !cfgRow.data || typeof cfgRow.data.manadslon !== 'number') lonPushRemote('cfg', lonCfg);
+            if (changed){
+                try{ localStorage.setItem('sf_lon_cfg', JSON.stringify(lonCfg)); localStorage.setItem('sf_lon_monthly', JSON.stringify(lonUtanBilddata(lonMonthly))); }catch(e){}
+                lonRecomputeLearning();
+                // Lönefliken ritas bara om den har öppnats; vid appstart finns ingen vald månad än.
+                if (lonViewDate){ lonRenderTiers(); lonRenderAnchors(); lonFillFields(); lonRecalc(); }
+                else lonSaveCfg();
+                // Bonustrappan styr startsidans mål i månader utan egen budget.
+                if (typeof updateDash === 'function') updateDash();
+            }
+        } catch(e){}
+        finally { lonSynkPagar = null; }
+    })();
+    return lonSynkPagar;
 }
-function lonPushRemote(id, data){ if (typeof sb === 'undefined' || !sb) return; try { sb.from('lon_store').upsert({ id, data, updated_at: new Date().toISOString() }).then(()=>{}); } catch(e){} }
+function lonPushRemote(id, data){
+    if (typeof sb === 'undefined' || !sb) return;
+    if (!lonMolnLast) return;                                  // regel 2
+    if (id === 'monthly' && lonHarBildstubb(data)) { console.warn('Lönedata utan bilder skickas inte upp'); return; }
+    let s; try { s = lonStabil(data); } catch(e){ return; }
+    if (s === lonSistSkickat[id]) return;                      // regel 3
+    lonSistSkickat[id] = s;
+    try {
+        sb.from('lon_store').upsert({ id, data, updated_at: new Date().toISOString() })
+          .then(({error}) => { if (error) delete lonSistSkickat[id]; });   // försök igen nästa gång
+    } catch(e){ delete lonSistSkickat[id]; }
+}
 
 async function lonHandleUpload(input, slot){
     const file = input.files[0]; if(!file) return;
@@ -3708,8 +3778,14 @@ async function init() {
         if (document.body) { document.body.setAttribute('data-theme', savedTheme); }
     } catch(e) { console.warn('Theme init error', e); }
 
+    // Lönekonfigen behövs redan i första ritningen: bonustrappan avgör
+    // startsidans mål i månader utan egen budget.
+    try { if (!lonCfg) lonLoad(); } catch(e){}
     try { await loadAllData(); } finally { /* skalet ska visas även om hämtningen fallerar */ }
     setMode('dash');
+    // Läs lönedatan ur molnet direkt, inte först när lönefliken öppnas – då är
+    // den färsk överallt, och uppladdningsspärren hinner släppa.
+    lonSyncRemote();
     updateTopTitle();
     bindBoostBtn();
     hideBoot();
@@ -4060,6 +4136,72 @@ function closeNotesModal() {
     }
 }
 
+// ---- Anteckningar mot molnet ----
+// Förut var molnet en återvändsgränd: nya anteckningar skickades upp, men
+// ändringar, raderingar, datum och prio stannade på telefonen, och appen läste
+// aldrig tillbaka det som låg i molnet. Ett telefonbyte tömde listan.
+// Nu: telefonens lista är det du ser, varje ändring går upp via en kö som
+// överlever att nätet är borta, och vid start slås molnet och telefonen ihop.
+function lasNotes(){ try { return JSON.parse(localStorage.getItem('sf_notes_clean')) || []; } catch(e){ return []; } }
+function sparaNotesLokalt(l){ try { localStorage.setItem('sf_notes_clean', JSON.stringify(l)); } catch(e){} }
+function notesKo(){ try { return JSON.parse(localStorage.getItem('sf_notes_ko')) || {}; } catch(e){ return {}; } }   // id -> 'upp' | 'bort'
+function sparaNotesKo(k){ try { localStorage.setItem('sf_notes_ko', JSON.stringify(k)); } catch(e){} }
+function noteTillRad(n){ return { id: Number(n.id), customer_name: n.name || '', phone: n.phone || '', order_nr: n.order || '', note_text: n.text || '', due: n.due || null, prio: n.prio || null }; }
+function radTillNote(r){ return { id: Number(r.id), name: r.customer_name || '', phone: r.phone || '', order: r.order_nr || '', text: r.note_text || '', due: r.due || '', prio: r.prio || '' }; }
+
+function notesSkicka(id, typ){
+    const nyckel = String(id);
+    const ko = notesKo(); ko[nyckel] = typ; sparaNotesKo(ko);
+    if (typeof sb === 'undefined' || !sb) return;
+    // Kön töms bara när molnet bekräftat – och bara om inget nyare hunnit läggas i den.
+    const klar = (svar) => { if (svar && svar.error) return; const k = notesKo(); if (k[nyckel] === typ) { delete k[nyckel]; sparaNotesKo(k); } };
+    try {
+        if (typ === 'bort') sb.from('notes').delete().eq('id', Number(id)).then(klar, () => {});
+        else {
+            const n = lasNotes().find(x => String(x.id) === nyckel);
+            if (n) sb.from('notes').upsert(noteTillRad(n)).then(klar, () => {}); else klar({});
+        }
+    } catch(e){}
+}
+
+function synkaNotes(rader){
+    if (!Array.isArray(rader)) return;
+    const lokal = lasNotes();
+    const ko = notesKo();
+    let flyttad = false; try { flyttad = localStorage.getItem('sf_notes_v2') === '1'; } catch(e){}
+    if (!flyttad){
+        // Engångsflytt. Telefonens lista är det du sett hela tiden, så den är facit:
+        // det som raderats här tidigare ligger fortfarande i molnet och ska bort,
+        // och allt här ska upp med datum och prio. Är telefonen TOM raderas
+        // ingenting – då är det en ny telefon, och listan hämtas från molnet.
+        if (lokal.length > 0){
+            const har = new Set(lokal.map(n => String(n.id)));
+            rader.forEach(r => { if (!har.has(String(r.id))) ko[String(r.id)] = 'bort'; });
+            lokal.forEach(n => { ko[String(n.id)] = 'upp'; });
+        }
+        try { localStorage.setItem('sf_notes_v2', '1'); } catch(e){}
+    }
+    // Molnet gäller, utom för det som fortfarande väntar i kön.
+    const lokalMap = new Map(lokal.map(n => [String(n.id), n]));
+    const ut = [], sett = new Set();
+    rader.forEach(r => {
+        const id = String(r.id); sett.add(id);
+        if (ko[id] === 'bort') return;
+        ut.push(ko[id] === 'upp' && lokalMap.has(id) ? lokalMap.get(id) : radTillNote(r));
+    });
+    // Finns bara på telefonen: hellre upp i molnet än bort.
+    lokal.forEach(n => { const id = String(n.id); if (!sett.has(id) && ko[id] !== 'bort'){ ut.push(n); ko[id] = 'upp'; } });
+    ut.sort((a, b) => Number(b.id) - Number(a.id));
+    sparaNotesLokalt(ut);
+    sparaNotesKo(ko);
+    Object.keys(ko).forEach(id => notesSkicka(id, ko[id]));
+    try { renderNotes(); } catch(e){}
+}
+
+// Anteckningarna kommer nu från molnet, och tabellen tar emot skrivningar från
+// vem som helst med den publika nyckeln. Inget därifrån får tolkas som HTML.
+function escHtml(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
+
 function addNote() { 
     const nameEl = document.getElementById('note-name');
     const phoneEl = document.getElementById('note-phone');
@@ -4080,20 +4222,20 @@ function addNote() {
     let cleanNotes = [];
     try { cleanNotes = JSON.parse(localStorage.getItem('sf_notes_clean')) || []; } catch(e){}
 
+    let sparadId;
     if (currentEditId) {
         const index = cleanNotes.findIndex(n => n.id === currentEditId);
-        if (index !== -1) { cleanNotes[index] = { ...cleanNotes[index], name, phone, order, text, due, prio }; }
+        if (index !== -1) { cleanNotes[index] = { ...cleanNotes[index], name, phone, order, text, due, prio }; sparadId = currentEditId; }
         currentEditId = null;
         document.getElementById('note-submit-btn').innerText = "SPARA ANTECKNING";
     } else {
         const newNote = { id: Date.now(), name, phone, order, text, due, prio };
         cleanNotes.unshift(newNote);
-        if (typeof sb !== 'undefined' && sb) {
-            sb.from('notes').insert([{ id: newNote.id, customer_name: newNote.name, phone: newNote.phone, order_nr: newNote.order, note_text: newNote.text }]).then(({error}) => { if(error) console.warn("Supabase fel:", error); });
-        }
+        sparadId = newNote.id;
     }
     
-    localStorage.setItem('sf_notes_clean', JSON.stringify(cleanNotes));
+    sparaNotesLokalt(cleanNotes);
+    if (sparadId) notesSkicka(sparadId, 'upp');   // förut gick bara NYA anteckningar upp, och utan datum/prio
     
     if(nameEl) nameEl.value = ''; if(phoneEl) phoneEl.value = ''; if(orderEl) orderEl.value = ''; 
     if(textEl) textEl.value = ''; if(dueEl) dueEl.value = ''; if(prioEl) prioEl.value = ''; 
@@ -4127,7 +4269,8 @@ function deleteNote(id) {
     let cleanNotes = [];
     try { cleanNotes = JSON.parse(localStorage.getItem('sf_notes_clean')) || []; } catch(e){}
     cleanNotes = cleanNotes.filter(n => n.id !== id);
-    localStorage.setItem('sf_notes_clean', JSON.stringify(cleanNotes));
+    sparaNotesLokalt(cleanNotes);
+    notesSkicka(id, 'bort');   // förut låg raden kvar i molnet för alltid
     renderNotes();
 }
 
@@ -4159,26 +4302,26 @@ function renderNotes() {
         if (note.due) {
             const daysLeft = Math.ceil((new Date(note.due) - new Date()) / (1000 * 60 * 60 * 24));
             const colorClass = daysLeft < 0 ? 'text-red-500 font-black' : (daysLeft <= 7 ? 'text-amber-500 font-bold' : 'text-slate-400');
-            dueHtml = `<span class="${colorClass}">⏳ ${note.due}</span>`;
+            dueHtml = `<span class="${colorClass}">⏳ ${escHtml(note.due)}</span>`;
         }
         
         return `
             <div class="p-3.5 bg-white border border-slate-200 rounded-xl flex flex-col gap-1.5 shadow-sm relative">
                 <div class="flex justify-between items-start">
-                    ${note.name ? `<div class="text-[10px] font-black uppercase text-[#0ea5e9] tracking-wider">${note.name}</div>` : '<div></div>'}
+                    ${note.name ? `<div class="text-[10px] font-black uppercase text-[#0ea5e9] tracking-wider">${escHtml(note.name)}</div>` : '<div></div>'}
                     <div class="flex gap-2">
-                        <button onclick="editNote(${note.id})" class="text-[10px] text-slate-300 hover:text-[#0ea5e9] transition-colors">✏️</button>
-                        <button onclick="deleteNote(${note.id})" class="text-[10px] text-slate-300 hover:text-red-500 transition-colors">🗑️</button>
+                        <button onclick="editNote(${Number(note.id)})" class="text-[10px] text-slate-300 hover:text-[#0ea5e9] transition-colors">✏️</button>
+                        <button onclick="deleteNote(${Number(note.id)})" class="text-[10px] text-slate-300 hover:text-red-500 transition-colors">🗑️</button>
                     </div>
                 </div>
-                ${note.text ? `<div class="text-[11px] font-bold text-slate-700 leading-snug whitespace-pre-wrap">${note.text}</div>` : ''}
+                ${note.text ? `<div class="text-[11px] font-bold text-slate-700 leading-snug whitespace-pre-wrap">${escHtml(note.text)}</div>` : ''}
                 <div class="flex justify-between items-center text-[9px] font-black text-slate-400 mt-1 uppercase tracking-wide border-t border-slate-100 pt-2">
                     <div class="flex flex-col gap-1">
-                        ${note.phone ? `<span>📞 ${note.phone}</span>` : ''}
-                        ${note.order ? `<span>📦 ${note.order}</span>` : ''}
+                        ${note.phone ? `<span>📞 ${escHtml(note.phone)}</span>` : ''}
+                        ${note.order ? `<span>📦 ${escHtml(note.order)}</span>` : ''}
                     </div>
                     <div class="flex flex-col items-end gap-1 text-right">
-                        ${note.prio ? `<span>${prioIcons[note.prio]}</span>` : ''}
+                        ${note.prio && prioIcons[note.prio] ? `<span>${prioIcons[note.prio]}</span>` : ''}
                         ${dueHtml}
                     </div>
                 </div>

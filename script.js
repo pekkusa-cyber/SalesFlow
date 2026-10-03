@@ -1834,6 +1834,19 @@ function fmRender(){
 // inline-onclick per knapp. Både click och touchend fångas, så en knapp kan
 // inte sluta svara för att ett enskilt attribut eller en global funktion
 // försvinner.
+// Vi stänger på pointerup. Webbläsaren skickar sedan ett click på samma punkt,
+// och då är overlayn redan borta – clicket landar på det som råkar ligga under
+// fingret. X i fokusläget sitter på 358 px, säljcoachens knapp på 364: de
+// överlappar, så ett tryck på X öppnade coachen. Vi sväljer därför det enda
+// click som kommer direkt efter stängningen.
+function svaljNastaKlick(ms){
+    let t = null;
+    const stad = () => { document.removeEventListener('click', slug, true); clearTimeout(t); };
+    const slug = (e) => { e.stopPropagation(); e.preventDefault(); stad(); };
+    document.addEventListener('click', slug, true);
+    t = setTimeout(stad, ms || 400);
+}
+
 let fmBound = false;
 function bindFocusMode(){
     if (fmBound) return;
@@ -1846,7 +1859,7 @@ function bindFocusMode(){
         if (vad === 'k')          fmKey(knapp.getAttribute('data-k'));
         else if (vad === 'save')  fmSave();
         else if (vad === 'boost') { addBoost(getK(realToday)); fmRender(); }
-        else if (vad === 'exit')  closeFocusMode2();
+        else if (vad === 'exit')  { svaljNastaKlick(); closeFocusMode2(); }
     };
     // pointerup brinner exakt en gång per tryck, för både mus och finger. Att
     // lyssna på click OCH touchend gav dubbelutlösning, och en spärr mot det

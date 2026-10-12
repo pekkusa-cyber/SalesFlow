@@ -2205,14 +2205,8 @@ function renderAbsence() {
         const days = groups[reason];
         const rows = days.map(it => {
             const meta = it.hStr ? `${it.hStr} tim · andel ${it.actualP}%${it.fk ? ` · FK ${it.fk}%` : ''}` : 'heldag';
-            const isReliefType = (bKey === 'Semester' || reason.includes('Föräldraledig'));
-            const isDeldag = !!it.hStr;
-            let reliefChip = '';
-            if (isReliefType && isDeldag) {
-                const on = reliefManualDays[it.k] === true;
-                reliefChip = `<button onclick="event.stopPropagation(); setDayReliefManual('${it.k}', ${on ? 'false' : 'true'})" class="abs-relief-chip${on ? ' is-on' : ''}" title="Räkna denna deldag i bonuslättnaden">${on ? '✓ Lättnad' : '+ Lättnad'}</button>`;
-            }
-            return `<div onclick="absFocusDay('${it.k}','${reason.replace(/'/g,"\\'")}')" class="abs-day-row"><span class="abs-day-when">${it.dayStr}</span><span class="abs-day-meta">${meta}</span>${reliefChip}<span class="material-symbols-rounded abs-day-arrow">my_location</span></div>`;
+            // Deldagar ger aldrig bonuslättnad – knappen för att bocka i dem är borttagen.
+            return `<div onclick="absFocusDay('${it.k}','${reason.replace(/'/g,"\\'")}')" class="abs-day-row"><span class="abs-day-when">${it.dayStr}</span><span class="abs-day-meta">${meta}</span><span class="material-symbols-rounded abs-day-arrow">my_location</span></div>`;
         }).join('');
         html += `<div class="abs-type" data-abs="${bKey}" data-reason="${reason.replace(/"/g,'&quot;')}">
             <button class="abs-type-head" onclick="absToggleType(this)">
@@ -2937,22 +2931,41 @@ let reliefManualDays = {};
 try { reliefManualDays = JSON.parse(localStorage.getItem('sf_relief_manual') || '{}'); } catch(e){ reliefManualDays = {}; }
 function saveReliefManualDays(){ try { localStorage.setItem('sf_relief_manual', JSON.stringify(reliefManualDays)); } catch(e){} }
 
+// Lättnad ges bara för SAMMANHÄNGANDE ledighet: heldagar med semester eller
+// föräldraledighet, minst två kalenderdagar i följd (helger räknas, semester och
+// FL får blandas – 1–9 aug semester + 10–12 aug FL är EN period på 12 dagar,
+// precis som arbetsgivaren räknade). En ensam strödag, som 7 okt 2026, ger
+// ingen lättnad. Deldagar ger aldrig lättnad.
+// Heldag eller deldag avgörs av appens gemensamma regel isWholeDayAbsence –
+// Quinyx lägger ett flerdagsblocks timmar på första dagen (10 aug fick 36 tim).
+const LATTNAD_MIN_DAGAR = 2;
+function arLattnadsdag(dt){
+    const k = `${dt.getFullYear()}-${dt.getMonth()+1}-${dt.getDate()}`;
+    const o = db.d[k];
+    if (!o || !o.abs) return false;
+    if (!(o.abs.includes('Semester') || o.abs.includes('Föräldraledig'))) return false;
+    return isWholeDayAbsence(k);
+}
+// Hur lång är perioden dagen ingår i? Går över månadsskiftet: 26 okt–1 nov är
+// sju dagar i följd, så 1 nov räknas i november fast den står ensam där.
+function lattnadPeriod(dt){
+    if (!arLattnadsdag(dt)) return 0;
+    let n = 1;
+    const d = new Date(dt); d.setDate(d.getDate()-1);
+    while (arLattnadsdag(d) && n < 400) { n++; d.setDate(d.getDate()-1); }
+    const e = new Date(dt); e.setDate(e.getDate()+1);
+    while (arLattnadsdag(e) && n < 400) { n++; e.setDate(e.getDate()+1); }
+    return n;
+}
 function bonusLattnad(y, m){
     const dim = new Date(y, m, 0).getDate();
     let dagar = 0;
     for (let d=1; d<=dim; d++){
-        const k = `${y}-${m}-${d}`; const o = db.d[k];
-        if (!o || !o.abs) continue;
-        if (!(o.abs.includes('Semester') || o.abs.includes('Föräldraledig'))) continue;
-        // Heldag eller deldag avgörs av appens EGEN gemensamma regel, inte av om
-        // det råkar finnas timmar på raden. Quinyx lägger hela ett flerdagsblocks
-        // timmar på första dagen – 10 aug 2026 fick 36 tim – och en egen
-        // "finns timmar = deldag"-tolkning här hoppade därför över en hel dag.
-        if (isWholeDayAbsence(k)) dagar += 1;
-        else if (reliefManualDays[k] === true) dagar += 1;   // äkta deldag – kräver manuellt ja
+        if (lattnadPeriod(new Date(y, m-1, d)) >= LATTNAD_MIN_DAGAR) dagar += 1;
     }
     return { dagar, dim, ratio: dim > 0 ? dagar / dim : 0 };
 }
+
 function getMonthlyBonusReliefRatio(y, m){ return bonusLattnad(y, m).ratio; }
 // Sätt/ta bort manuell inkludering av en deldag i lättnaden
 function setDayReliefManual(k, include){

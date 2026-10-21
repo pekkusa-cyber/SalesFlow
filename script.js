@@ -2559,7 +2559,7 @@ const LON_CFG_DEF = {
     },
     semLonDag: 3040,      // semesterlön per betald semesterdag (heltid) – lärs in från specar, kan överskridas manuellt
     semAvdragDag: 1323,   // (äldre fält, behålls för bakåtkompatibilitet)
-    franvDagRate: 0.0468,   // heldagsfrånvaro FL/VAB = månadslön × 4,68 % (verifierat mot specar 2025+2026)
+    franvDagRate: 0.046,    // heldagsfrånvaro = (månadslön + tillägg) × 4,6 % = 1 383,17 (juli- och septemberspecen)
     semAvdragRate: 0.0468  // (ej längre använd i beräkningen – semesteravdrag = samma sats som franvDagRate, se lonRecalc)
 };
 
@@ -2582,7 +2582,11 @@ function lonNormalizeCfg(c){
     // Den gamla franvCorr var uppblåst för att kompensera för heldagar → nollställ och lär om.
     // v3: franvCorr lärdes in mot en bas som dubbelräknade heldagar (tidrapportens totaltimmar).
     // Den blev ~0,72 och drog ner avdraget felaktigt. Nollställs och lärs om från specarna.
-    if (c.franvModelV !== 3) { c.franvCorr = 1; c.franvModelV = 3; }
+    if (c.franvModelV !== 3 && c.franvModelV !== 4) { c.franvCorr = 1; c.franvModelV = 3; }
+    // Dagsavdraget är 4,6 % av månadslön + tillägg: 30 069 × 4,6 % = 1 383,17, exakt
+    // det som står på juli- (semester) och septemberspecen (VAB heltid). Förut
+    // 4,68 % av bara månadslönen = 1 383,13. Augustis 1 307,35 är undantaget.
+    if (c.franvModelV !== 4) { c.franvDagRate = 0.046; c.franvCorr = 1; c.franvModelV = 4; }
     // obCorr lärdes in mot månader där schemafilen bara täckte en del av månaden.
     // Faktorn blev 1,851 och gjorde OB-prognosen 85 % för hög. Kalibreringen kräver
     // nu full täckning, så nollställ en gång och lär om på rätt underlag.
@@ -2747,6 +2751,30 @@ function lonTimlon(manadslon){
     const div = (lonCfg && lonCfg.timdivisor) || LON_CFG_DEF.timdivisor;
     return (manadslon + till) / div;
 }
+function lonDagsats(manadslon){
+    const till = (lonCfg && typeof lonCfg.tillagg === 'number') ? lonCfg.tillagg : LON_CFG_DEF.tillagg;
+    return (manadslon + till) * ((lonCfg && lonCfg.franvDagRate) || LON_CFG_DEF.franvDagRate);
+}
+// Skannern av lönespecen lade i september KRONOR i fälten för TIMMAR:
+// ob50 = 747,2 (= 90,57 kr × 8,25 tim) och ob100 = 3 048,59 (= 181,14 × 16,83).
+// Appen räknade då OB till 619 895 kr. Mer än 80 OB-timmar på en månad går
+// inte (heltid är 166), så ett sådant värde är kronor och delas med satsen.
+// Blir det ändå orimligt kastas det, och appen räknar själv.
+const LON_MAX_OB_TIM = 80;
+function lonRensaOB(d){
+    if (!d || typeof d !== 'object') return d;
+    const H = lonTimlon((lonCfg && lonCfg.manadslon) || LON_CFG_DEF.manadslon);
+    const fix = (v, sats) => {
+        if (v == null || v === '') return v;
+        let t = +v; if (!isFinite(t) || t < 0) return null;
+        if (t > LON_MAX_OB_TIM) t = Math.round(t / sats * 100) / 100;
+        return t > LON_MAX_OB_TIM ? null : t;
+    };
+    const ut = { ...d };
+    if ('ob50' in d)  ut.ob50  = fix(d.ob50,  H * 0.5);
+    if ('ob100' in d) ut.ob100 = fix(d.ob100, H);
+    return ut;
+}
 function lonTimpris(){ const mn = lonNum('lon-cfg-manadslon') || (lonCfg && lonCfg.manadslon) || LON_CFG_DEF.manadslon; return Math.round(lonTimlon(mn)*100)/100; }
 
 // ---- Svenska röda dagar (helgdagar) ----
@@ -2815,7 +2843,7 @@ window.sparaRaOB = sparaRaOB;
 function lonApplyCalibration(d, monthKey, slot){
     const k = monthKey || lonUploadTargetKey();
     const m = lonMonthly[k] || {};
-    m['cal_'+(slot||'lonespec')] = d;   // skriv över – senaste bilagan gäller, inget snitt
+    m['cal_'+(slot||'lonespec')] = lonRensaOB(d);   // skriv över – senaste bilagan gäller, inget snitt
     lonMonthly[k] = m;
     lonRecomputeLearning();
     lonSaveMonthly(); lonSaveCfg();
@@ -2839,14 +2867,14 @@ function lonRecomputeLearning(){
     Object.keys(lonMonthly).forEach(mk=>{
         if (mk==='_uploads' || !/^\d{4}-\d{1,2}$/.test(mk)) return;
         const rec = lonMonthly[mk]; if(!rec || typeof rec!=='object') return;
-        const tid = rec.cal_tidrapport || {}, spec = rec.cal_lonespec || {};
+        const tid = lonRensaOB(rec.cal_tidrapport || {}), spec = lonRensaOB(rec.cal_lonespec || {});
         const parts = mk.split('-'); const y=+parts[0], mo=+parts[1];
         const pick=(a,b)=> (a!=null? a : (b!=null? b : null));
         // En tidrapport som laddades upp MEDAN månaden pågick hamnar i prog_ och
         // räknades aldrig som underlag. När månaden väl är slut är de siffrorna
         // definitiva – annars blir riktiga värden liggande oanvända för alltid.
         const manadSlut = new Date(y, mo, 0) < realToday;
-        const prog = (manadSlut && rec.prog_tidrapport) ? rec.prog_tidrapport : {};
+        const prog = (manadSlut && rec.prog_tidrapport) ? lonRensaOB(rec.prog_tidrapport) : {};
         const ob50a  = pick(spec.ob50,  pick(tid.ob50,  prog.ob50));
         const ob100a = pick(spec.ob100, pick(tid.ob100, prog.ob100));
         // Uppskattningen MÅSTE bygga på ett schema som täcker hela månaden. Annars
@@ -2869,7 +2897,7 @@ function lonRecomputeLearning(){
         // (Tidigare jämfördes totalen mot enbart timmar → franvCorr blåstes upp och gav dubbelräkning.)
         const mlon = lonCfg.manadslon;
         const baseTim = (ftim||0) * lonTimlon(mlon);
-        const baseHel = getMonthlyFranvaroWholeDays(y,mo) * (mlon * (lonCfg.franvDagRate||0.0468));
+        const baseHel = getMonthlyFranvaroWholeDays(y,mo) * lonDagsats(mlon);
         const base = baseTim + baseHel;
         if (fkr!=null && base>0 && sane(Math.abs(fkr)/base)) rfranv.push(Math.abs(fkr)/base);
         if (spec.brutto!=null && spec.skatt!=null && +spec.brutto>5000){
@@ -3085,9 +3113,9 @@ function lonRecalc(){
     // Dagssatsen är identisk för frånvaro och semesteravdrag (bekräftat: båda 1383,17 på julispecen).
     // Har vi läst in den från en spec används den exakta siffran, annars 4,68 % av månadslönen.
     // Skyddsspärr: avvikelser >10 % mot schablonen ignoreras (t.ex. gammal sats efter lönehöjning).
-    const franvDagCalc = Math.round(manadslon * (lonCfg.franvDagRate || 0.0468) * 100) / 100;
-    const franvDagSpec = lonCfg.semAvdragDag || 0;
-    const franvDagSats = (franvDagSpec > 0 && Math.abs(franvDagSpec - franvDagCalc) / franvDagCalc < 0.10) ? franvDagSpec : franvDagCalc;
+    // Förut vann senaste specens semesteravdrag/dag om den låg inom 10 % – då slog
+    // augustis udda 1 307,35 igenom på alla månader. Satsen är nu verifierad mot två specar.
+    const franvDagSats = Math.round(lonDagsats(manadslon) * 100) / 100;
     const franvHelDagarKr = franvHelDagar * franvDagSats;
     const franvKr = ((franvTim * H) + franvHelDagarKr) * (lonCfg.franvCorr || 1);
     const extraAdd = lonNum('lon-extra-add');
@@ -3132,7 +3160,7 @@ function lonRecalc(){
     let obOut = obTot, franvOut = franvTot, bonusOut = bonus, semOut = semTillagg, fromFacit = false;
 
     // FACIT: om månaden har en uppladdad lönespec → visa specens faktiska siffror rakt av (ingen härledning, ingen kompoundering)
-    const facit = (lonMonthly[lonKey()] || {}).cal_lonespec;
+    const facit = lonRensaOB((lonMonthly[lonKey()] || {}).cal_lonespec);
     if (facit && facit.brutto != null && facit.skatt != null && +facit.brutto > 5000
         && +facit.brutto > brutto * 0.5 && +facit.brutto < brutto * 2) {   // rimlighetskoll → skydd mot felläst års-/fel belopp
         const Hf = lonTimlon((facit.manadslon && +facit.manadslon > 10000 && +facit.manadslon < 60000) ? +facit.manadslon : manadslon);

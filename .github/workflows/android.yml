@@ -1,0 +1,92 @@
+name: Android APK
+
+# Appen laddar SalesFlow från GitHub Pages, så vanliga ändringar i index.html,
+# script.js och style.css når telefonen direkt. En ny APK byggs bara när själva
+# Android-skalet ändras – eller när du trycker "Run workflow".
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'native-www/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VERSION_CODE: ${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Synka Android-projektet
+        run: |
+          npm ci
+          npx cap sync android
+
+      - name: Signeringsnyckel
+        id: keys
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KS" ]; then
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Signeringsnyckel saknas::Lägg till repo-secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS och ANDROID_KEY_PASSWORD. Bygget kontrolleras men ingen Release skapas."
+          else
+            echo "$KS" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bygg APK
+        if: steps.keys.outputs.ok == 'true'
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
+          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/salesflow.apk"
+
+      - name: Kontrollbygge utan nyckel
+        if: steps.keys.outputs.ok != 'true'
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Publicera Release
+        if: steps.keys.outputs.ok == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: SalesFlow 1.${{ github.run_number }}
+          make_latest: true
+          files: salesflow.apk
+          body: |
+            Ladda ner **salesflow.apk** på telefonen och öppna filen för att installera eller uppdatera.
+            Appen hämtar själva SalesFlow från webben, så vanliga uppdateringar kommer utan ny APK.

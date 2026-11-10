@@ -1,0 +1,17 @@
+{
+  "appId": "se.foric.salesflow",
+  "appName": "SalesFlow",
+  "webDir": "native-www",
+  "server": {
+    "url": "https://pekkusa-cyber.github.io/SalesFlow/",
+    "errorPath": "offline.html",
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#0d47a1"
+  },
+  "plugins": {
+    "SystemBars": { "insetsHandling": "css" },
+    "LocalNotifications": { "smallIcon": "ic_stat_notify", "iconColor": "#0d47a1" }
+  }
+}

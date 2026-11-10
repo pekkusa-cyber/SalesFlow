@@ -3695,8 +3695,51 @@ const SNAP_URL_SIDA = '/SalesFlow/__sf-dag';
 let snabbNotisPa = false;
 try { snabbNotisPa = localStorage.getItem('sf_notis') === '1'; } catch(e){}
 
+// I Android-appen (Capacitor) finns inga webbnotiser – där ritas snabbnotisen
+// av appens egna notiser i stället, med samma +1 000-knapp.
+function iAppen(){ try { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); } catch(e){ return false; } }
+function appNotiser(){ try { return iAppen() && window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications; } catch(e){ return null; } }
 function snabbNotisStods(){
+    if (appNotiser()) return true;
     return 'serviceWorker' in navigator && 'Notification' in window && 'caches' in window;
+}
+const APP_NOTIS_ID = 4711;
+let appNotisKlar = false;
+async function appNotisForbered(){
+    const LN = appNotiser(); if (!LN || appNotisKlar) return LN;
+    appNotisKlar = true;
+    try {
+        await LN.registerActionTypes({ types: [{ id: 'sf-dag', actions: [{ id: 'plus', title: '+' + lonKr(SNABB_STEG) }] }] });
+        await LN.createChannel({ id: 'sf-dag', name: 'Dagens mål', importance: 2, visibility: 1, vibration: false });
+    } catch(e){}
+    // Knappen öppnar appen och lägger på ett steg. Händelsen sparas av Android
+    // tills lyssnaren finns, så den kommer fram även om appen var stängd.
+    try {
+        LN.addListener('localNotificationActionPerformed', (h) => {
+            if (!h || h.actionId !== 'plus') return;
+            const k = getK(realToday); const o = db.d[k] || {};
+            pushMatrixSync(k, { s: (o.s || 0) + SNABB_STEG, st: o.abs ? undefined : 'Arbete' });
+            showToast('⚡', 'Registrerat ' + lonKr(SNABB_STEG), 1800);
+            calculateTimeline(); updateDash();
+        });
+    } catch(e){}
+    return LN;
+}
+async function appNotisRita(){
+    const LN = await appNotisForbered(); if (!LN) return;
+    try { await LN.cancel({ notifications: [{ id: APP_NOTIS_ID }] }); } catch(e){}
+    if (!snabbNotisPa) return;
+    const s = byggDagSnapshot(null);
+    const kr = n => lonKr(n);
+    const mal = (s.mal || 0) + (s.boost || 0), kvar = Math.max(0, mal - s.salt);
+    let rubrik, rad;
+    if (!s.mal) { rubrik = 'SalesFlow · ' + s.datum; rad = s.salt > 0 ? kr(s.salt) + ' registrerat' : 'Inget mål i dag'; }
+    else if (s.salt >= s.mal) { rubrik = '✓ Dagsmål klart · ' + kr(s.mal); rad = kr(s.salt) + (kvar > 0 ? ' · ' + kr(kvar) + ' kvar till boosten' : ' · ' + kr(s.salt - s.mal) + ' över målet'); }
+    else { rubrik = 'Dagens mål · ' + kr(s.mal); rad = kr(s.salt) + ' · ' + Math.round(s.salt / s.mal * 100) + ' % · ' + kr(kvar) + ' kvar'; }
+    try {
+        await LN.schedule({ notifications: [{ id: APP_NOTIS_ID, title: rubrik, body: rad, channelId: 'sf-dag',
+            actionTypeId: 'sf-dag', ongoing: true, autoCancel: false, smallIcon: 'ic_stat_notify' }] });
+    } catch(e){}
 }
 
 async function lasSnapshotSida(){
@@ -3743,6 +3786,7 @@ function swRedo(ms){
 
 // Lämnar över dagens läge till service workern, som ritar om notisen.
 async function sparaDagSnapshot(){
+    if (appNotiser()) return appNotisRita();
     if (!snabbNotisStods()) return;
     try {
         const reg = await swRedo();
@@ -3754,7 +3798,17 @@ window.sparaDagSnapshot = sparaDagSnapshot;
 
 async function setSnabbNotis(pa){
     if (!snabbNotisStods()){ showToast('⚠️', 'Notiser stöds inte här', 2200); return; }
-    if (pa){
+    if (pa && appNotiser()){
+        let ok = false;
+        try { const r = await appNotiser().requestPermissions(); ok = r && r.display === 'granted'; } catch(e){}
+        if (!ok){
+            snabbNotisPa = false;
+            const el = document.getElementById('snabb-notis'); if (el) el.checked = false;
+            showToast('🔕', 'Notiser är avstängda för appen', 2800);
+            try { localStorage.setItem('sf_notis', '0'); } catch(e){}
+            return;
+        }
+    } else if (pa){
         let lage = Notification.permission;
         if (lage === 'default') { try { lage = await Notification.requestPermission(); } catch(e){ lage = 'denied'; } }
         if (lage !== 'granted'){
@@ -3786,6 +3840,7 @@ if (snabbNotisStods()){
 // Ett tryck som gjordes utan nät ligger kvar i ögonblicksbilden. Beloppet är
 // absolut, så det kan skrivas igenom utan risk för dubbelräkning.
 async function synkaSnabbnotis(){
+    if (appNotiser()) { await appNotisForbered(); return appNotisRita(); }
     if (!snabbNotisStods()) return;
     const snap = await lasSnapshotSida();
     if (snap && snap.osynkat > 0 && snap.k === getK(realToday)){

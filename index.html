@@ -20,9 +20,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=114">
+    <link rel="stylesheet" href="style.css?v=115">
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="cockpit.css?v=114">
+    <link rel="stylesheet" href="ui.css?v=115">
     <script>try{var v=localStorage.getItem('sf_ck')||'ljust';document.documentElement.setAttribute('data-ck',(v==='mork'||(v==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches))?'dark':'light');}catch(e){}</script>
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
@@ -175,45 +175,51 @@
 
     <!-- ANTECKNINGAR -->
     <div id="notes-modal" class="md-scrim fixed inset-0 z-[8000] hidden flex items-stretch justify-center opacity-0">
-        <div class="md-dialog notes-fullscreen w-full max-w-[480px]">
-            <div class="notes-head">
-                <h2 class="notes-title">Anteckningar</h2>
-                <span class="notes-sub">Kundinfo &amp; uppgifter</span>
+        <div class="md-dialog notes-fullscreen nt w-full max-w-[480px]">
+            <div class="nt-head">
+                <div><h2 class="nt-title">Anteckningar</h2><span id="nt-count" class="nt-count">Kunder &amp; uppgifter</span></div>
+                <button class="nt-new" onclick="ntNy()" data-testid="new-note"><span>＋</span> Ny</button>
             </div>
+            <label class="nt-search"><span class="material-symbols-rounded">search</span><input id="nt-sok" type="search" placeholder="Sök namn, telefon eller order" oninput="ntSok(this.value)"></label>
+            <div class="nt-filter" id="nt-filter">
+                <button data-f="alla" class="is-on" onclick="ntFilter('alla')">Alla</button>
+                <button data-f="prio" onclick="ntFilter('prio')">🔴 Prio 1</button>
+                <button data-f="snart" onclick="ntFilter('snart')">⏳ Förfaller snart</button>
+            </div>
+            <div id="notes-list-container" class="nt-list"></div>
 
-            <div class="notes-body">
-                <div class="notes-imgrow">
-                    <button onclick="document.getElementById('camera-input').click()" class="notes-imgbtn" data-testid="btn-camera">
-                        <span class="material-symbols-rounded">photo_camera</span> Kamera
-                    </button>
-                    <button onclick="document.getElementById('gallery-input').click()" class="notes-imgbtn" data-testid="btn-gallery">
-                        <span class="material-symbols-rounded">image</span> Galleri
-                    </button>
-                    <div id="image-load-spinner" class="md-spinner hidden shrink-0"></div>
+            <!-- Ny / ändra: ark ovanpå listan -->
+            <div id="nt-form" class="nt-form" onclick="if(event.target===this)ntStangForm()">
+                <div class="nt-form-panel">
+                    <div class="ui-grab"></div>
+                    <div class="nt-form-top">
+                        <b id="nt-form-title">Ny anteckning</b>
+                        <button onclick="document.getElementById('camera-input').click()" class="nt-ic" title="Skanna med kameran" data-testid="btn-camera"><span class="material-symbols-rounded">photo_camera</span></button>
+                        <button onclick="document.getElementById('gallery-input').click()" class="nt-ic" title="Skanna från galleriet" data-testid="btn-gallery"><span class="material-symbols-rounded">image</span></button>
+                        <div id="image-load-spinner" class="md-spinner hidden shrink-0"></div>
+                        <button onclick="ntStangForm()" class="ui-x">✕</button>
+                    </div>
+                    <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleNoteImageSelect(this)">
+                    <input type="file" id="gallery-input" accept="image/*" class="hidden" onchange="handleNoteImageSelect(this)">
+                    <div class="nt-fields">
+                        <label class="nt-f"><span>Kund / ämne</span><input type="text" id="note-name" autocomplete="off"></label>
+                        <div class="nt-two">
+                            <label class="nt-f"><span>Telefon</span><input type="tel" id="note-phone" autocomplete="off"></label>
+                            <label class="nt-f"><span>Ordernr</span><input type="text" id="note-order" autocomplete="off"></label>
+                        </div>
+                        <div class="nt-row">
+                            <div class="nt-prio" id="nt-prio">
+                                <button data-p="1" onclick="ntPrio('1')"><i class="p1"></i>Hög</button>
+                                <button data-p="2" onclick="ntPrio('2')"><i class="p2"></i>Medel</button>
+                                <button data-p="3" onclick="ntPrio('3')"><i class="p3"></i>Låg</button>
+                            </div>
+                            <label class="nt-due"><span class="material-symbols-rounded">event</span><input type="date" id="note-due" onchange="ntDueRita()"><em id="nt-due-txt">Förfaller</em></label>
+                        </div>
+                        <select id="note-prio" class="hidden"><option value=""></option><option value="1"></option><option value="2"></option><option value="3"></option></select>
+                        <label class="nt-f nt-f-text"><span>Anteckning</span><textarea id="note-text"></textarea></label>
+                    </div>
+                    <button id="note-submit-btn" onclick="addNote()" class="nt-save" data-testid="save-note">Spara anteckning</button>
                 </div>
-                <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden" onchange="handleNoteImageSelect(this)">
-                <input type="file" id="gallery-input" accept="image/*" class="hidden" onchange="handleNoteImageSelect(this)">
-
-                <input type="text" id="note-name" class="md-input" placeholder="Namn / Ämne">
-                <div class="flex gap-2">
-                    <input type="tel" id="note-phone" class="md-input w-1/2" placeholder="Telefon">
-                    <input type="text" id="note-order" class="md-input w-1/2" placeholder="Ordernr">
-                </div>
-                <div class="flex gap-2">
-                    <input type="date" id="note-due" class="md-input w-1/2">
-                    <select id="note-prio" class="md-input w-1/2">
-                        <option value="">Ingen prio</option>
-                        <option value="1">🔴 Prio 1 (Hög)</option>
-                        <option value="2">🟡 Prio 2 (Medel)</option>
-                        <option value="3">🔵 Prio 3 (Låg)</option>
-                    </select>
-                </div>
-                <textarea id="note-text" class="md-input notes-textarea" placeholder="Skriv din anteckning här..."></textarea>
-
-                <button id="note-submit-btn" onclick="addNote()" class="md-btn-filled w-full" data-testid="save-note">Spara anteckning</button>
-                <button onclick="openSavedNotesModal()" class="md-btn-tonal w-full md-btn-icon-text" data-testid="open-saved-notes">
-                    <span class="material-symbols-rounded">folder_open</span> Visa sparade anteckningar
-                </button>
             </div>
         </div>
     </div>
@@ -334,7 +340,7 @@
                 <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded text-google-blue">folder</span>Sparade</h2>
                 <button onclick="closeSavedNotesModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
             </div>
-            <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-3 p-4" id="notes-list-container"></div>
+            <div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-3 p-4" id="notes-list-gammal"></div>
         </div>
     </div>
 
@@ -594,7 +600,13 @@
                         <span id="top-month-lbl" class="ck-month">MÅNAD</span>
                         <span class="material-symbols-rounded ck-head-ico">insights</span>
                     </div>
-                    <button id="d-relief-toggle" class="relief-pill hidden" onclick="toggleReliefMode()"></button>
+                    <div class="hl-row">
+                        <div class="hl-seg" role="group" aria-label="Visa dag eller månad">
+                            <button data-hl="dag" onclick="setHemLage('dag')">Dag</button>
+                            <button data-hl="manad" onclick="setHemLage('manad')">Månad</button>
+                        </div>
+                        <button id="d-relief-toggle" class="relief-pill hidden" onclick="toggleReliefMode()"></button>
+                    </div>
 
                     <div class="ck-gauge gauge-container">
                         <svg viewBox="0 0 130 130" aria-hidden="true">
@@ -613,8 +625,14 @@
                     </div>
                     <div id="g-tier-lbl" class="ck-tiers"></div>
 
-                    <div class="ck-stats">
-                        <div class="ck-st"><span>Snitt/pass</span><b id="d-krav-pass">—</b><small>ditt snitt <i id="d-avg-val">0 k</i></small></div>
+                    <div id="ck-stats-dag" class="ck-stats ck-stats-dag" hidden>
+                        <div class="ck-st"><span>Dagsmål</span><b id="hd-mal">—</b><small id="hd-mal-s">&nbsp;</small></div>
+                        <div class="ck-st"><span>Kvar</span><b id="hd-kvar">—</b><small id="hd-kvar-s">idag</small></div>
+                        <div class="ck-st"><span>Per timme</span><b id="hd-tim">—</b><small id="hd-tim-s">resten av passet</small></div>
+                        <div class="ck-st"><span>Tid kvar</span><b id="hd-tid">—</b><small id="hd-tid-s">&nbsp;</small></div>
+                    </div>
+                    <div class="ck-stats ck-stats-man">
+                        <div class="ck-st"><span>Snitt/pass</span><b id="d-krav-pass">—</b><small>snitt <i id="d-avg-val">0 k</i></small></div>
                         <div class="ck-st"><span>Kvar</span><b id="d-kvar">0 k</b><small>till målet</small></div>
                         <div class="ck-st"><span>Prognos</span><b id="d-prog">0</b><small>månadens slut</small></div>
                         <div class="ck-st"><span>Pass kvar</span><b id="d-work-left">0</b><small>av <i id="d-work-total">0</i></small></div>
@@ -640,6 +658,7 @@
                             <div class="mx-3 mt-1 mb-2 relative flex flex-col flex-shrink-0 z-20 flex-1 min-h-0" id="dash-main-container">                                <div id="dash-inner-card" class="md-day-card relative w-full h-full flex flex-col">
                                     <div id="cyber-scanner-layer" class="cyber-scanner-overlay"></div>
 
+                                    <div id="ws" class="ws"></div>
                                     <div id="dash-standard-content" class="absolute inset-0 flex flex-col p-3 transition-all duration-300 transform origin-top opacity-100 scale-100 pointer-events-auto z-30">
                                         <div class="flex justify-between items-end pb-2 border-b border-outline-variant flex-shrink-0">
                                             <div class="flex flex-col">
@@ -783,6 +802,8 @@
                         </div>
                     </div>
 
+                    <!-- Månadens summa; verktygsraden nedan visas när dagar är markerade -->
+                    <div id="cal-sum" class="cal-sum"></div>
                     <!-- SYMBOL-VERKTYGSRAD (markera dag/dagar → registrera) -->
                     <div id="cal-symbol-bar" class="cal-symbol-bar">
                         <button onclick="calToSales()" id="cal-sales-btn" class="cal-sales-btn" title="Öppna dagsvyn">
@@ -943,7 +964,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=114"></script>
+    <script src="script.js?v=115"></script>
     <script>
     // ============================================================
     // SALESFLOW — Navigationscontroller

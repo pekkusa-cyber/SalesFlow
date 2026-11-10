@@ -1109,8 +1109,8 @@ function updateDash() {
             rPill.classList.remove('hidden');
             rPill.classList.toggle('is-on', useRelief);
             rPill.innerText = useRelief
-                ? `LÄTTAT MÅL −${Math.round(reliefRatio*100)}% · visa ordinarie`
-                : `ORDINARIE MÅL · visa lättat −${Math.round(reliefRatio*100)}%`;
+                ? `Lättat −${Math.round(reliefRatio*100)} %`
+                : `Visa lättat −${Math.round(reliefRatio*100)} %`;
             if (topSectionEl) topSectionEl.classList.add('has-relief');
         } else { rPill.classList.add('hidden'); if (topSectionEl) topSectionEl.classList.remove('has-relief'); }
     }
@@ -4276,6 +4276,7 @@ let currentEditId = null;
 function openNotesModal() {
     const m = document.getElementById('notes-modal');
     if(m) { m.classList.remove('hidden'); m.classList.replace('opacity-0', 'opacity-100'); }
+    try { renderNotes(); } catch(e){}
 }
 
 function closeNotesModal() {
@@ -4285,7 +4286,8 @@ function closeNotesModal() {
         modal.classList.add('hidden');
         currentEditId = null;
         const submitBtn = document.getElementById('note-submit-btn');
-        if(submitBtn) submitBtn.innerText = "SPARA ANTECKNING";
+        if(submitBtn) submitBtn.innerText = "Spara anteckning";
+        ntStangForm();
         ['note-name', 'note-phone', 'note-order', 'note-text', 'note-due', 'note-prio'].forEach(id => {
             if(document.getElementById(id)) document.getElementById(id).value = '';
         });
@@ -4396,8 +4398,8 @@ function addNote() {
     if(nameEl) nameEl.value = ''; if(phoneEl) phoneEl.value = ''; if(orderEl) orderEl.value = ''; 
     if(textEl) textEl.value = ''; if(dueEl) dueEl.value = ''; if(prioEl) prioEl.value = ''; 
     
-    closeNotesModal();
-    setTimeout(openSavedNotesModal, 300);
+    ntStangForm(); renderNotes();
+    showToast('✓', 'Anteckningen sparad', 1500);
 }
 
 function editNote(id) {
@@ -4414,10 +4416,8 @@ function editNote(id) {
     document.getElementById('note-prio').value = note.prio || '';
 
     currentEditId = id;
-    document.getElementById('note-submit-btn').innerText = "UPPDATERA ANTECKNING";
-    
-    closeSavedNotesModal();
-    setTimeout(openNotesModal, 300);
+    document.getElementById('note-submit-btn').innerText = "Spara ändringar";
+    ntOppnaForm(true);
 }
 
 function deleteNote(id) {
@@ -4430,60 +4430,61 @@ function deleteNote(id) {
     renderNotes();
 }
 
+// Anteckningslistan är huvudvyn: sök, filter, och kort per kund.
+let ntQ = '', ntF = 'alla';
+function ntDagarKvar(due){ if (!due) return null; const d = new Date(due + 'T00:00:00'); return Math.round((d - realToday) / 86400000); }
 function renderNotes() { 
     const c = document.getElementById('notes-list-container'); 
     if(!c) return;
-    
     localStorage.removeItem('sf_notes');
-    let cleanNotes = [];
-    try { cleanNotes = JSON.parse(localStorage.getItem('sf_notes_clean')) || []; } catch(e){}
-    
-    checkUrgentNotes(cleanNotes);
-    
-    if(cleanNotes.length === 0) { 
-        c.innerHTML = '<div class="h-full flex flex-col items-center justify-center p-4 mt-4"><span class="text-3xl mb-2 opacity-40">📝</span><p class="text-[10px] text-slate-400 font-bold text-center uppercase tracking-widest">Inga anteckningar</p></div>'; 
+    let alla = [];
+    try { alla = JSON.parse(localStorage.getItem('sf_notes_clean')) || []; } catch(e){}
+    checkUrgentNotes(alla);
+    const cnt = document.getElementById('nt-count');
+    if (cnt) cnt.innerText = alla.length ? `${alla.length} ${alla.length === 1 ? 'anteckning' : 'anteckningar'}` : 'Kunder & uppgifter';
+    const q = ntQ.trim().toLowerCase();
+    let lista = alla.filter(n => !q || [n.name, n.phone, n.order, n.text].some(v => String(v || '').toLowerCase().includes(q)));
+    if (ntF === 'prio') lista = lista.filter(n => n.prio === '1');
+    if (ntF === 'snart') lista = lista.filter(n => { const d = ntDagarKvar(n.due); return d !== null && d <= 7; });
+    lista.sort((a, b) => (a.prio ? +a.prio : 9) - (b.prio ? +b.prio : 9) || (ntDagarKvar(a.due) ?? 999) - (ntDagarKvar(b.due) ?? 999) || Number(b.id) - Number(a.id));
+    if (!lista.length) {
+        c.innerHTML = alla.length
+            ? `<div class="nt-tom"><b>Inget matchar</b><span>Prova en annan sökning eller ett annat filter.</span></div>`
+            : `<div class="nt-tom"><b>Inga anteckningar än</b><span>Tryck ＋ Ny för att spara en kund, eller skanna en lapp med kameran.</span></div>`;
         return;
     }
-
-    cleanNotes.sort((a, b) => {
-        const prioA = a.prio ? parseInt(a.prio) : 99; 
-        const prioB = b.prio ? parseInt(b.prio) : 99;
-        return prioA - prioB;
-    });
-
-    const prioIcons = { '1': '🔴 Prio 1', '2': '🟡 Prio 2', '3': '🔵 Prio 3' };
-
-    c.innerHTML = cleanNotes.map(note => {
-        let dueHtml = '';
-        if (note.due) {
-            const daysLeft = Math.ceil((new Date(note.due) - new Date()) / (1000 * 60 * 60 * 24));
-            const colorClass = daysLeft < 0 ? 'text-red-500 font-black' : (daysLeft <= 7 ? 'text-amber-500 font-bold' : 'text-slate-400');
-            dueHtml = `<span class="${colorClass}">⏳ ${escHtml(note.due)}</span>`;
-        }
-        
-        return `
-            <div class="p-3.5 bg-white border border-slate-200 rounded-xl flex flex-col gap-1.5 shadow-sm relative">
-                <div class="flex justify-between items-start">
-                    ${note.name ? `<div class="text-[10px] font-black uppercase text-[#0ea5e9] tracking-wider">${escHtml(note.name)}</div>` : '<div></div>'}
-                    <div class="flex gap-2">
-                        <button onclick="editNote(${Number(note.id)})" class="text-[10px] text-slate-300 hover:text-[#0ea5e9] transition-colors">✏️</button>
-                        <button onclick="deleteNote(${Number(note.id)})" class="text-[10px] text-slate-300 hover:text-red-500 transition-colors">🗑️</button>
-                    </div>
-                </div>
-                ${note.text ? `<div class="text-[11px] font-bold text-slate-700 leading-snug whitespace-pre-wrap">${escHtml(note.text)}</div>` : ''}
-                <div class="flex justify-between items-center text-[9px] font-black text-slate-400 mt-1 uppercase tracking-wide border-t border-slate-100 pt-2">
-                    <div class="flex flex-col gap-1">
-                        ${note.phone ? `<span>📞 ${escHtml(note.phone)}</span>` : ''}
-                        ${note.order ? `<span>📦 ${escHtml(note.order)}</span>` : ''}
-                    </div>
-                    <div class="flex flex-col items-end gap-1 text-right">
-                        ${note.prio && prioIcons[note.prio] ? `<span>${prioIcons[note.prio]}</span>` : ''}
-                        ${dueHtml}
-                    </div>
-                </div>
-            </div>`;
+    c.innerHTML = lista.map(n => {
+        const d = ntDagarKvar(n.due);
+        const due = d === null ? '' : `<i class="nt-tag ${d < 0 ? 'bad' : d <= 7 ? 'warn' : ''}">⏳ ${d < 0 ? Math.abs(d) + ' d sen' : d === 0 ? 'idag' : d === 1 ? 'imorgon' : 'om ' + d + ' d'}</i>`;
+        const tel = n.phone ? `<i class="nt-tag">📞 ${escHtml(n.phone)}</i>` : '';
+        const ord = n.order ? `<i class="nt-tag">📦 ${escHtml(n.order)}</i>` : '';
+        return `<div class="nt-card p${escHtml(n.prio || '0')}" onclick="editNote(${Number(n.id)})">
+            <div class="nt-card-top"><b>${escHtml(n.name || 'Utan namn')}</b>
+              <button class="nt-del" onclick="event.stopPropagation();deleteNote(${Number(n.id)})" aria-label="Ta bort"><span class="material-symbols-rounded">delete</span></button></div>
+            ${n.text ? `<p>${escHtml(n.text)}</p>` : ''}
+            ${tel || ord || due ? `<div class="nt-tags">${tel}${ord}${due}</div>` : ''}
+        </div>`;
     }).join('');
 }
+function ntSok(v){ ntQ = v || ''; renderNotes(); }
+function ntFilter(f){ ntF = f; document.querySelectorAll('#nt-filter button').forEach(b => b.classList.toggle('is-on', b.getAttribute('data-f') === f)); renderNotes(); }
+function ntPrio(p){ const s = document.getElementById('note-prio'); if (s) s.value = s.value === p ? '' : p; ntPrioRita(); }
+function ntPrioRita(){ const v = (document.getElementById('note-prio') || {}).value || ''; document.querySelectorAll('#nt-prio button').forEach(b => b.classList.toggle('is-on', b.getAttribute('data-p') === v)); }
+function ntDueRita(){ const v = (document.getElementById('note-due') || {}).value; const t = document.getElementById('nt-due-txt'); if (t) { if (v) { const d = new Date(v + 'T00:00:00'); t.innerText = `${d.getDate()} ${UI_MAN[d.getMonth()].slice(0,3)}`; } else t.innerText = 'Förfaller'; } const l = t && t.parentNode; if (l) l.classList.toggle('has', !!v); }
+function ntOppnaForm(andra){
+    const f = document.getElementById('nt-form'); if (!f) return;
+    const m = document.getElementById('notes-modal'); if (m && m.classList.contains('hidden')) openNotesModal();
+    const t = document.getElementById('nt-form-title'); if (t) t.innerText = andra ? 'Ändra anteckning' : 'Ny anteckning';
+    ntPrioRita(); ntDueRita(); f.classList.add('open');
+}
+function ntStangForm(){ const f = document.getElementById('nt-form'); if (f) f.classList.remove('open'); }
+function ntNy(){
+    currentEditId = null;
+    ['note-name','note-phone','note-order','note-text','note-due','note-prio'].forEach(id => { const e = document.getElementById(id); if (e) e.value = ''; });
+    const b = document.getElementById('note-submit-btn'); if (b) b.innerText = 'Spara anteckning';
+    ntOppnaForm(false);
+}
+Object.assign(window, { ntSok, ntFilter, ntPrio, ntDueRita, ntOppnaForm, ntStangForm, ntNy });
 
 function checkUrgentNotes(notes) {
     const penBtn = document.querySelector('[onclick="openNotesModal()"]') || document.getElementById('btn-notes');
@@ -4775,3 +4776,422 @@ document.addEventListener('click', (e) => {
 window.addEventListener('DOMContentLoaded', () => { bindFocusMode(); init(); });
 
 if ("serviceWorker" in navigator) { navigator.serviceWorker.register("sw.js").catch(e => {}); }
+
+// ============================================================
+//  GRÄNSSNITT 2026 — STARTSIDAN: DAG ELLER MÅNAD
+//  Mätaren överst visar antingen månaden (mot månadsmålet, med bonusnivåerna)
+//  eller en dag (mot dagsmålet, med boosten). Under veckoraden ligger en
+//  arbetsyta som byter innehåll med läget. Alla siffror kommer från samma
+//  funktioner som förut: dayTarget, boostFor, malVy, getBudgetForMonth.
+// ============================================================
+let hemLage = 'manad';
+try { hemLage = localStorage.getItem('sf_hemlage') === 'dag' ? 'dag' : 'manad'; } catch(e){}
+const UI_MAN = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+const UI_DAG = ['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'];
+const uiK = n => (Math.round(n / 100) / 10).toLocaleString('sv-SE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'k';
+const uiKr = n => Math.round(n).toLocaleString('sv-SE') + ' kr';
+const uiEsc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+function uiDatum(k){ const p = k.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+function hemDag(){ return activeK || getK(realToday); }
+
+function setHemLage(l){
+    hemLage = l === 'dag' ? 'dag' : 'manad';
+    try { localStorage.setItem('sf_hemlage', hemLage); } catch(e){}
+    updateDash();               // återställer månadsmätaren innan dagläget skriver över
+    ritaHem();
+}
+window.setHemLage = setHemLage;
+
+// Passets tider för en dag, i minuter från midnatt.
+function uiPass(k){
+    const q = db.q[k] || {};
+    if (!q.start) return null;
+    const t = s => { const p = String(s).split(':'); return (+p[0]) * 60 + (+p[1] || 0); };
+    const a = t(q.start), b = q.end ? t(q.end) : 19 * 60;
+    return { a, b, start: q.start.slice(0,5), slut: (q.end || '19:00').slice(0,5) };
+}
+function uiTidKvar(k){
+    const p = uiPass(k); if (!p) return null;
+    const d = uiDatum(k), nu = new Date();
+    if (d.getTime() !== realToday.getTime()) return d > realToday ? (p.b - p.a) : 0;
+    const m = nu.getHours() * 60 + nu.getMinutes();
+    return Math.max(0, p.b - Math.max(m, p.a));
+}
+
+function ritaHem(){
+    document.querySelectorAll('.hl-seg button').forEach(b => b.classList.toggle('is-on', b.getAttribute('data-hl') === hemLage));
+    document.body.classList.toggle('hl-dag', hemLage === 'dag');
+    const dagStats = document.getElementById('ck-stats-dag'), manStats = document.querySelector('.ck-stats-man');
+    if (dagStats) dagStats.hidden = hemLage !== 'dag';
+    if (manStats) manStats.hidden = hemLage === 'dag';
+    if (hemLage === 'dag') ritaHemMatareDag();
+    ritaArbetsyta();
+}
+window.ritaHem = ritaHem;
+
+function ritaHemMatareDag(){
+    const k = hemDag(), d = uiDatum(k), vy = malVy(k);
+    const set = (id, t) => { const e = document.getElementById(id); if (e) e.innerText = t; };
+    const lbl = document.getElementById('top-month-lbl');
+    if (lbl) lbl.innerText = `${UI_DAG[d.getDay()].toUpperCase()} ${d.getDate()} ${UI_MAN[d.getMonth()].toUpperCase()}`;
+    const rp = document.getElementById('d-relief-toggle'); if (rp) rp.classList.add('hidden');
+    const skala = vy.bas > 0 ? vy.bas + (vy.boost || 0) : 0;
+    const f = skala > 0 ? Math.min(1, vy.salt / skala) : 0;
+    set('h-main-val', uiK(vy.salt));
+    const of = document.querySelector('.ck-of');
+    if (of) of.classList.toggle('is-tom', !(vy.bas > 0));
+    set('d-budget-val', vy.bas > 0 ? uiKr(vy.bas) : '');
+    set('h-perc-val', vy.bas > 0 ? Math.round(vy.salt / vy.bas * 100) + '%' : '');
+    const st = document.getElementById('d-status');
+    if (st) {
+        const txt = !(vy.bas > 0) ? (vy.salt > 0 ? 'REGISTRERAT' : 'INGET MÅL') : vy.lage === 'jagar' ? 'JAGAR' : vy.lage === 'boost' ? 'BOOST' : 'KLART';
+        st.innerText = txt;
+        st.style.color = vy.lage === 'jagar' ? 'var(--ck-cy)' : vy.lage === 'boost' ? 'var(--ck-am)' : 'var(--ck-ok)';
+    }
+    set('g-max-lbl', skala > 0 ? Math.round(skala / 1000) : '');
+    const c = document.getElementById('h-circle-prog');
+    if (c) {
+        c.style.strokeDashoffset = 326.7 - f * 326.7 * 0.75;
+        const klar = vy.bas > 0 && vy.salt >= vy.bas;
+        c.style.stroke = klar ? 'var(--pos)' : 'var(--ck-cy)';
+    }
+    // streck vid dagsmålet när en boost ligger ovanpå
+    const g = document.getElementById('g-tiers');
+    if (g) {
+        let h = '';
+        if (vy.boost > 0 && skala > 0) {
+            const a = (135 + 270 * (vy.bas / skala)) * Math.PI / 180;
+            h = `<line class="g-tier" x1="${(65 + 47 * Math.cos(a)).toFixed(2)}" y1="${(65 + 47 * Math.sin(a)).toFixed(2)}" x2="${(65 + 57 * Math.cos(a)).toFixed(2)}" y2="${(65 + 57 * Math.sin(a)).toFixed(2)}"/>`;
+        }
+        g.innerHTML = h;
+    }
+    const tl = document.getElementById('g-tier-lbl');
+    if (tl) tl.innerHTML = vy.bas > 0
+        ? `<span class="in">Dagsmål <b>${uiK(vy.bas)}</b></span>` + (vy.boost > 0 ? `<span class="in">Boost <b>+${uiK(vy.boost)}</b></span>` : '')
+        : `<span>Ingen budget den här dagen</span>`;
+    // de fyra raderna för dagen
+    const tid = uiTidKvar(k), kvar = Math.max(0, vy.bas - vy.salt);
+    set('hd-mal', vy.bas > 0 ? uiK(vy.bas) : '—');
+    set('hd-mal-s', vy.boost > 0 ? `+${uiK(vy.boost)} boost` : (dashRelief ? 'lättat' : 'ordinarie'));
+    set('hd-kvar', vy.bas > 0 ? (kvar > 0 ? uiK(kvar) : '✓') : '—');
+    set('hd-kvar-s', vy.bas > 0 && kvar <= 0 ? `+${uiK(vy.salt - vy.bas)} över` : 'till dagsmålet');
+    set('hd-tim', tid && kvar > 0 ? Math.round(kvar / (tid / 60)).toLocaleString('sv-SE') : '—');
+    set('hd-tid', tid == null ? '—' : tid >= 60 ? `${Math.floor(tid / 60)} h ${String(tid % 60).padStart(2,'0')}` : `${tid} min`);
+    const p = uiPass(k); set('hd-tid-s', p ? `${p.start}–${p.slut}` : 'inget pass');
+}
+
+// ------------------------------------------------------------
+//  ARBETSYTAN under veckoraden
+// ------------------------------------------------------------
+function ritaArbetsyta(){
+    const ws = document.getElementById('ws'); if (!ws) return;
+    ws.innerHTML = hemLage === 'dag' ? arbetsytaDag() : arbetsytaManad();
+}
+
+const UI_STATUS = [
+    { t: 'Arbete', i: '💼' }, { t: 'Ledig', i: '🏠' }, { t: 'Semester', i: '✈️' },
+    { t: 'Sjuk', i: '🤒' }, { t: 'VAB', i: '👶' }, { t: 'Föräldraledig', i: '🍼', n: 'FL' }
+];
+function arbetsytaDag(){
+    const k = hemDag(), d = uiDatum(k), o = db.d[k] || {}, p = uiPass(k), vy = malVy(k);
+    const arIdag = d.getTime() === realToday.getTime();
+    // tidslinjen
+    let tl = '';
+    if (p) {
+        const nu = new Date(), m = nu.getHours() * 60 + nu.getMinutes();
+        const f = arIdag ? Math.max(0, Math.min(1, (m - p.a) / (p.b - p.a))) : (d < realToday ? 1 : 0);
+        tl = `<div class="ws-tl"><div class="ws-tl-bar"><i style="width:${(f*100).toFixed(1)}%"></i>${arIdag && f > 0 && f < 1 ? `<em style="left:${(f*100).toFixed(1)}%"></em>` : ''}</div>
+              <div class="ws-tl-lab"><span>${p.start}</span><span>${arIdag && f > 0 && f < 1 ? 'nu ' + String(nu.getHours()).padStart(2,'0') + ':' + String(nu.getMinutes()).padStart(2,'0') : ((p.b - p.a) / 60).toFixed(1).replace('.', ',') + ' h'}</span><span>${p.slut}</span></div></div>`;
+    } else {
+        tl = `<div class="ws-tl ws-tl-tom">Inget pass i schemat</div>`;
+    }
+    const aktiv = o.abs ? (o.abs.split(' ')[0]) : (o.st === 'Ledig' ? 'Ledig' : 'Arbete');
+    const chips = UI_STATUS.map(s => `<button class="ws-chip${aktiv === s.t ? ' is-on' : ''}" onclick="uiStatus('${s.t}')"><span>${s.i}</span>${s.n || s.t}</button>`).join('');
+    const franvaro = o.abs ? `<em class="ws-abs">${uiEsc(o.abs)}${o.abs_hours ? ' · ' + String(o.abs_hours).replace('.', ',') + ' h' : ''}</em>` : '';
+    return `<div class="ws-dag">
+      <div class="ws-head">
+        <div class="ws-title"><b>${UI_DAG[d.getDay()]} ${d.getDate()} ${UI_MAN[d.getMonth()]}</b><span>${arIdag ? 'Idag' : (d < realToday ? 'Avslutad' : 'Kommande')}${franvaro}</span></div>
+        <div class="ws-tools">
+          <button class="ws-tool" onclick="uiBoost()" title="Höj ribban">⚡</button>
+          <button class="ws-tool" onclick="uiEval()" title="Utvärdera passet">✎</button>
+          <button class="ws-tool" onclick="openFocusMode2()" title="Fokusläge">◎</button>
+        </div>
+      </div>
+      ${tl}
+      <div class="ws-reg">
+        <button class="ws-step" onclick="uiLagg(-500)" aria-label="Minska 500">−</button>
+        <button class="ws-amt" onclick="uiBelopp()"><b>${uiKr(vy.salt)}</b><span>tryck för att skriva belopp</span></button>
+        <button class="ws-step" onclick="uiLagg(500)" aria-label="Öka 500">+</button>
+      </div>
+      <div class="ws-quick">
+        <button onclick="uiLagg(1000)">+1 000</button><button onclick="uiLagg(2500)">+2 500</button><button onclick="uiLagg(5000)">+5 000</button>
+        <button onclick="document.getElementById('gm-camera-input').click()" title="Skanna GM-rapport">📷 GM</button>
+      </div>
+      <div class="ws-chips">${chips}</div>
+    </div>`;
+}
+
+function uiSattDag(){ const k = hemDag(); if (activeK !== k) activeK = k; return k; }
+function uiLagg(delta){
+    const k = uiSattDag(), o = db.d[k] || {};
+    const s = Math.max(0, (o.s || 0) + delta);
+    if (o.abs) pushMatrixSync(k, { s }); else pushMatrixSync(k, { s, st: 'Arbete', abs: null });
+    showToast(delta > 0 ? '⚡' : '↩︎', (delta > 0 ? '+' : '−') + uiKr(Math.abs(delta)) + ' · ' + uiKr(s), 1400);
+}
+function uiBelopp(){ uiSattDag(); openInlineNumpad(); }
+function uiStatus(t){ uiSattDag(); handleDashAction(t); }
+function uiBoost(){ addBoost(uiSattDag()); ritaHem(); }
+function uiEval(){ uiSattDag(); openEvalModal(); }
+Object.assign(window, { uiLagg, uiBelopp, uiStatus, uiBoost, uiEval });
+
+function arbetsytaManad(){
+    const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1, dim = new Date(cy, cm, 0).getDate();
+    let salt = 0, max = 1;
+    const dagar = [];
+    for (let d = 1; d <= dim; d++) {
+        const k = `${cy}-${cm}-${d}`, o = db.d[k] || {}, mal = dayTarget(k), dt = new Date(cy, cm-1, d);
+        salt += o.s || 0;
+        max = Math.max(max, o.s || 0, mal);
+        dagar.push({ d, k, s: o.s || 0, mal, abs: o.abs, fram: dt >= realToday, idag: dt.getTime() === realToday.getTime() });
+    }
+    const staplar = dagar.map(x => {
+        const h = x => Math.max(2, Math.round(x / max * 100));
+        let cls = 'f', hh = 3;
+        if (x.abs && !x.s) { cls = 'a'; hh = 10; }
+        else if (x.s > 0) { cls = x.mal > 0 && x.s >= x.mal ? 'h' : 'm'; hh = h(x.s); }
+        else if (x.fram && x.mal > 0) { cls = 'p'; hh = h(x.mal); }
+        const tick = x.mal > 0 ? `<em style="bottom:${h(x.mal)}%"></em>` : '';
+        return `<div class="ws-b${x.idag ? ' idag' : ''}" onclick="goToDayDash('${x.k}');setHemLage('dag')"><i class="${cls}" style="height:${hh}%"></i>${tick}</div>`;
+    }).join('');
+    // bonusstegen
+    const ratio = getMonthlyBonusReliefRatio(cy, cm), lattat = dashRelief && ratio > 0;
+    let steg = [];
+    try { steg = (lattat ? lonAdjustedTiers(cy, cm).tiers : lonTiersForMonth(cm)).filter(t => +t.min > 0).sort((a, b) => a.min - b.min); } catch(e){}
+    const stege = steg.map(t => {
+        const nadd = salt >= t.min;
+        return `<div class="ws-step-row${nadd ? ' is-in' : ''}"><span class="ws-pct">${t.pct} %</span><span class="ws-min">${uiKr(t.min)}</span><span class="ws-left">${nadd ? '✓ nådd' : uiK(t.min - salt) + ' kvar'}</span></div>`;
+    }).join('');
+    const bonusNu = (steg.filter(t => salt >= t.min).pop() || {}).pct;
+    return `<div class="ws-man">
+      <div class="ws-head">
+        <div class="ws-title"><b>${UI_MAN[cm-1][0].toUpperCase() + UI_MAN[cm-1].slice(1)} dag för dag</b><span>${uiKr(salt)} sålt · ${bonusNu ? bonusNu + ' % bonus nu' : 'under bonusnivå'}</span></div>
+        ${ratio > 0 ? `<button class="ws-relief${lattat ? ' is-on' : ''}" onclick="toggleReliefMode()">${lattat ? 'Lättat' : 'Ordinarie'} · −${Math.round(ratio * 100)} %</button>` : ''}
+      </div>
+      <div class="ws-bars">${staplar}</div>
+      <div class="ws-axis"><span>1</span><span>${Math.ceil(dim/2)}</span><span>${dim}</span></div>
+      <div class="ws-legend"><span><i class="h"></i>mål nått</span><span><i class="m"></i>under</span><span><i class="a"></i>frånvaro</span><span><i class="p"></i>kommande mål</span></div>
+      <div class="ws-ladder">${stege}</div>
+    </div>`;
+}
+
+// Kopplas in efter de befintliga ritfunktionerna, så allt som redan ritar om
+// startsidan också ritar om arbetsytan och dagmätaren.
+(function(){
+    const ud = updateDash;
+    updateDash = function(){ ud.apply(this, arguments); if (hemLage === 'dag' && viewMode === 'dash') ritaHemMatareDag(); };
+    const udv = updateDashboardView;
+    updateDashboardView = function(){ udv.apply(this, arguments); ritaHem(); };
+    const sd = selectDay;
+    selectDay = function(k, el, e){
+        sd.apply(this, arguments);
+        if (viewMode !== 'month' && !document.body.classList.contains('focus-mode-active')) {
+            if (activeK) { hemLage = 'dag'; try { localStorage.setItem('sf_hemlage', 'dag'); } catch(x){} }
+            updateDash(); ritaHem();
+        }
+    };
+})();
+setInterval(() => { if (viewMode === 'dash' && hemLage === 'dag' && !document.hidden) ritaHem(); }, 60000);
+
+// ============================================================
+//  GRÄNSSNITT 2026 — FRÅNVARO
+//  Visas som PERIODER (sammanhängande dagar med samma frånvaro), med en
+//  remsa över månaden överst. Läggs in i ett ark i tre steg: typ → barn →
+//  dagar. Allt skrivs med pushMatrixSync, precis som kalendern gör.
+// ============================================================
+const FV_TYPER = [
+    { t: 'Semester', i: '✈️', c: 'sem' }, { t: 'Sjuk', i: '🤒', c: 'sjuk' },
+    { t: 'VAB', i: '👶', c: 'vab', barn: true }, { t: 'Föräldraledig', i: '🍼', c: 'fl', barn: true },
+    { t: 'Tjänstledig', i: '🏢', c: 'tl' }
+];
+function fvTyp(abs){
+    if (!abs) return null;
+    if (abs.includes('Åtgärd')) return { t: 'Åtgärd krävs', i: '⚠️', c: 'atg' };
+    return FV_TYPER.find(x => abs.startsWith(x.t)) || { t: abs, i: '•', c: 'tl' };
+}
+const fvKort = d => `${d.getDate()} ${UI_MAN[d.getMonth()].slice(0,3)}`;
+let fvOppen = null;
+
+function fvPerioder(y, m){
+    const dim = new Date(y, m, 0).getDate(), ut = [];
+    let cur = null;
+    const stang = () => { if (cur) { ut.push(cur); cur = null; } };
+    for (let d = 1; d <= dim; d++) {
+        const k = `${y}-${m}-${d}`, o = db.d[k] || {};
+        if (!o.abs || o.abs === 'Ledig') { stang(); continue; }
+        if (cur && cur.abs === o.abs) { cur.dagar.push(k); continue; }
+        stang(); cur = { abs: o.abs, dagar: [k] };
+    }
+    stang();
+    // Perioder som fortsätter in i grannmånaden visar hela sin längd
+    const steg = (k, dir) => { const d = uiDatum(k); d.setDate(d.getDate() + dir); return getK(d); };
+    ut.forEach(p => {
+        let a = p.dagar[0], b = p.dagar[p.dagar.length - 1], fore = 0, efter = 0, x;
+        while ((db.d[x = steg(a, -1)] || {}).abs === p.abs && fore < 60) { a = x; fore++; }
+        while ((db.d[x = steg(b, 1)] || {}).abs === p.abs && efter < 60) { b = x; efter++; }
+        p.fran = a; p.till = b; p.ovrigt = fore + efter;
+    });
+    return ut;
+}
+
+renderAbsence = function(){
+    const pane = document.getElementById('pane-absence'); if (!pane) return;
+    const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1, dim = new Date(cy, cm, 0).getDate();
+    const per = fvPerioder(cy, cm);
+    // remsan
+    let remsa = '';
+    for (let d = 1; d <= dim; d++) {
+        const k = `${cy}-${cm}-${d}`, o = db.d[k] || {}, t = o.abs && o.abs !== 'Ledig' ? fvTyp(o.abs) : null;
+        const idag = new Date(cy, cm-1, d).getTime() === realToday.getTime();
+        remsa += `<i class="${t ? 'fv-' + t.c : ''}${idag ? ' idag' : ''}${o.abs_hours && !isWholeDayAbsence(k) ? ' del' : ''}"></i>`;
+    }
+    // summering
+    const sum = {}; per.forEach(p => { const t = fvTyp(p.abs).t; sum[t] = (sum[t] || 0) + p.dagar.length; });
+    const latt = bonusLattnad(cy, cm).dagar;
+    const sumHtml = Object.keys(sum).map(t => { const x = fvTyp(t); return `<span class="fv-sum-c fv-${x.c}-t">${x.i} ${t === 'Föräldraledig' ? 'FL' : t} <b>${sum[t]}</b></span>`; }).join('')
+        + (latt > 0 ? `<span class="fv-sum-c fv-latt">Lättnad <b>${latt} dgr</b></span>` : '');
+    // åtgärd krävs först, sedan perioderna
+    const atg = per.filter(p => fvTyp(p.abs).c === 'atg');
+    const vanliga = per.filter(p => fvTyp(p.abs).c !== 'atg');
+    const atgHtml = atg.length ? `<div class="fv-atg"><div><b>⚠️ ${atg.reduce((n, p) => n + p.dagar.length, 0)} dagar behöver en typ</b><span>${atg.map(p => fvKort(uiDatum(p.dagar[0])) + (p.dagar.length > 1 ? '–' + fvKort(uiDatum(p.dagar[p.dagar.length-1])) : '')).join(', ')}</span></div>
+        <button onclick="fvStart(${JSON.stringify(atg.flatMap(p => p.dagar)).replace(/"/g, '&quot;')})">Välj typ</button></div>` : '';
+    const kort = vanliga.map((p, i) => {
+        const t = fvTyp(p.abs), a = uiDatum(p.fran), b = uiDatum(p.till);
+        const langd = p.dagar.length + p.ovrigt;
+        const delar = p.dagar.filter(k => (db.d[k] || {}).abs_hours && !isWholeDayAbsence(k));
+        const timmar = delar.reduce((n, k) => n + (+db.d[k].abs_hours || 0), 0);
+        const ger = (t.c === 'sem' || t.c === 'fl') && p.dagar.some(k => lattnadPeriod(uiDatum(k)) >= LATTNAD_MIN_DAGAR);
+        const barn = p.abs.includes(' ') ? p.abs.split(' ').slice(1).join(' ') : '';
+        const id = p.dagar[0], oppen = fvOppen === id;
+        return `<div class="fv-card${oppen ? ' open' : ''}" onclick="fvToggla('${id}')">
+          <div class="fv-ico fv-${t.c}">${t.i}</div>
+          <div class="fv-main"><b>${t.t === 'Föräldraledig' ? 'Föräldraledig' : t.t}${barn ? ' · ' + uiEsc(barn) : ''}</b>
+            <span>${fvKort(a)}${p.fran !== p.till ? ' – ' + fvKort(b) : ''}${delar.length ? ' · ' + String(Math.round(timmar * 100) / 100).replace('.', ',') + ' h' : ''}</span>
+            <div class="fv-tags">${ger ? '<i class="ok">ger lättnad</i>' : ''}${p.ovrigt ? `<i>${p.ovrigt} dgr i grannmånad</i>` : ''}</div></div>
+          <div class="fv-n"><b>${p.dagar.length}</b><span>${p.dagar.length === 1 ? 'dag' : 'dagar'}</span></div>
+          <div class="fv-act" onclick="event.stopPropagation()">
+            <button onclick="fvStart(${JSON.stringify(p.dagar).replace(/"/g, '&quot;')})">Ändra</button>
+            <button onclick="goToDayDash('${p.dagar[0]}');setHemLage('dag')">Visa dag</button>
+            <button class="del" onclick="fvTaBort(this, ${JSON.stringify(p.dagar).replace(/"/g, '&quot;')})">Ta bort</button>
+          </div>
+        </div>`;
+    }).join('');
+    pane.innerHTML = `<div class="fv">
+        <div class="fv-remsa">${remsa}</div>
+        <div class="fv-axis"><span>1</span><span>${Math.ceil(dim/2)}</span><span>${dim}</span></div>
+        ${sumHtml ? `<div class="fv-sum">${sumHtml}</div>` : ''}
+        ${atgHtml}
+        <div class="fv-list">${kort || '<div class="fv-tom"><b>Ingen frånvaro i ' + UI_MAN[cm-1] + '</b><span>Lägg in semester, sjukdag, VAB eller föräldraledighet med knappen nedan.</span></div>'}</div>
+        <button class="fv-add" onclick="fvStart()"><span>＋</span> Lägg in frånvaro</button>
+    </div>`;
+};
+function fvToggla(id){ fvOppen = fvOppen === id ? null : id; renderAbsence(); }
+function fvTaBort(btn, dagar){
+    if (!btn.classList.contains('sure')) { btn.classList.add('sure'); btn.innerText = 'Säker?'; setTimeout(() => { btn.classList.remove('sure'); btn.innerText = 'Ta bort'; }, 3000); return; }
+    dagar.forEach(k => pushMatrixSync(k, { abs: null, st: 'Arbete', abs_hours: null }));
+    fvOppen = null; renderAbsence(); showToast('🗑️', 'Frånvaron borttagen', 1800);
+}
+
+// ---------------- inläggningsarket ----------------
+let fv = null;
+function fvStart(forval){
+    fv = { steg: 1, typ: null, barn: null, a: null, b: null, hel: true, tim: '', man: new Date(viewDate.getFullYear(), viewDate.getMonth(), 1) };
+    if (Array.isArray(forval) && forval.length) {
+        const s = forval.slice().sort((x, y) => uiDatum(x) - uiDatum(y));
+        fv.a = s[0]; fv.b = s[s.length - 1];
+        const o = db.d[s[0]] || {}, t = fvTyp(o.abs);
+        if (t && t.c !== 'atg') { fv.typ = t.t; if (o.abs.includes(' ')) fv.barn = o.abs.split(' ').slice(1).join(' '); }
+        fv.man = new Date(uiDatum(s[0]).getFullYear(), uiDatum(s[0]).getMonth(), 1);
+    }
+    let el = document.getElementById('fv-sheet');
+    if (!el) { el = document.createElement('div'); el.id = 'fv-sheet'; el.className = 'ui-sheet'; document.body.appendChild(el); el.addEventListener('click', e => { if (e.target === el) fvStang(); }); }
+    el.classList.add('open'); fvRita();
+}
+function fvStang(){ const el = document.getElementById('fv-sheet'); if (el) el.classList.remove('open'); fv = null; }
+function fvValjTyp(t){ fv.typ = t; fv.barn = null; fv.steg = FV_TYPER.find(x => x.t === t).barn ? 2 : 3; fvRita(); }
+function fvValjBarn(b){ fv.barn = b; fv.steg = 3; fvRita(); }
+function fvSteg(n){ fv.steg = n; fvRita(); }
+function fvMan(dir){ fv.man.setMonth(fv.man.getMonth() + dir); fvRita(); }
+function fvDag(k){
+    if (!fv.a || (fv.a && fv.b && fv.a !== fv.b)) { fv.a = k; fv.b = k; }
+    else { const x = uiDatum(fv.a), y = uiDatum(k); if (y < x) { fv.b = fv.a; fv.a = k; } else fv.b = k; }
+    fvRita();
+}
+function fvDagar(){
+    if (!fv.a) return [];
+    const ut = [], d = uiDatum(fv.a), slut = uiDatum(fv.b || fv.a);
+    while (d <= slut && ut.length < 120) { ut.push(getK(d)); d.setDate(d.getDate() + 1); }
+    return ut;
+}
+function fvRita(){
+    const el = document.getElementById('fv-sheet'); if (!el || !fv) return;
+    const prick = n => `<div class="fv-dots">${[1,2,3].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</div>`;
+    let body = '';
+    if (fv.steg === 1) {
+        body = `<h3>Vad gäller det?</h3><div class="fv-typer">${FV_TYPER.map(x => `<button class="fv-typ fv-${x.c}${fv.typ === x.t ? ' is-on' : ''}" onclick="fvValjTyp('${x.t}')"><span>${x.i}</span>${x.t}</button>`).join('')}</div>`;
+    } else if (fv.steg === 2) {
+        body = `<h3>Vem gäller det?</h3><div class="fv-barn">
+            <button onclick="fvValjBarn('Belma')"><span>👶</span>Belma</button>
+            <button onclick="fvValjBarn('Wilma')"><span>👧</span>Wilma</button></div>
+            <button class="fv-back" onclick="fvSteg(1)">‹ Byt typ</button>`;
+    } else {
+        const y = fv.man.getFullYear(), m = fv.man.getMonth() + 1, dim = new Date(y, m, 0).getDate();
+        const forsta = (new Date(y, m-1, 1).getDay() || 7) - 1;
+        const valda = new Set(fvDagar());
+        let cal = ['M','T','O','T','F','L','S'].map(x => `<span>${x}</span>`).join('') + '<i class="tom"></i>'.repeat(forsta);
+        for (let d = 1; d <= dim; d++) {
+            const k = `${y}-${m}-${d}`, o = db.d[k] || {}, t = o.abs && o.abs !== 'Ledig' ? fvTyp(o.abs) : null;
+            const cls = [valda.has(k) ? 'val' : '', k === fv.a ? 'start' : '', k === fv.b ? 'slut' : '', t ? 'har fv-' + t.c + '-d' : '', (db.q[k] || {}).start ? 'pass' : '', new Date(y, m-1, d).getTime() === realToday.getTime() ? 'idag' : ''].join(' ');
+            cal += `<button class="${cls}" onclick="fvDag('${k}')">${d}</button>`;
+        }
+        const n = valda.size, absStr = fv.typ + (fv.barn ? ' ' + fv.barn : '');
+        const t = FV_TYPER.find(x => x.t === fv.typ);
+        body = `<h3><span class="fv-ico fv-${t.c}">${t.i}</span> ${uiEsc(absStr)}</h3>
+          <div class="fv-calhead"><button onclick="fvMan(-1)">‹</button><b>${UI_MAN[m-1]} ${y}</b><button onclick="fvMan(1)">›</button></div>
+          <div class="fv-cal">${cal}</div>
+          <p class="fv-hint">${n ? `${n} ${n === 1 ? 'dag' : 'dagar'} · ${fvKort(uiDatum(fv.a))}${fv.a !== fv.b ? ' – ' + fvKort(uiDatum(fv.b)) : ''}` : 'Tryck första dagen, sedan sista.'}</p>
+          <div class="fv-hel"><button class="${fv.hel ? 'is-on' : ''}" onclick="fv.hel=true;fvRita()">Hel dag</button><button class="${!fv.hel ? 'is-on' : ''}" onclick="fv.hel=false;fvRita()">Del av dag</button>
+          ${fv.hel ? '' : `<input id="fv-tim" type="number" inputmode="decimal" min="0.25" max="12" step="0.25" placeholder="timmar" value="${uiEsc(fv.tim)}" oninput="fv.tim=this.value">`}</div>
+          <div class="fv-foot"><button class="fv-back" onclick="fvSteg(${t.barn ? 2 : 1})">‹ Tillbaka</button><button class="fv-save" ${n ? '' : 'disabled'} onclick="fvSpara()">Spara ${n ? n + (n === 1 ? ' dag' : ' dagar') : ''}</button></div>`;
+    }
+    el.innerHTML = `<div class="ui-panel"><div class="ui-grab"></div><div class="fv-top"><b>Lägg in frånvaro</b>${prick(fv.steg)}<button class="ui-x" onclick="fvStang()">✕</button></div>${body}</div>`;
+}
+function fvSpara(){
+    const dagar = fvDagar(); if (!dagar.length) return;
+    const absStr = fv.typ + (fv.barn ? ' ' + fv.barn : '');
+    const barnTyp = FV_TYPER.find(x => x.t === fv.typ).barn;
+    const tim = fv.hel ? null : (parseFloat(String(fv.tim).replace(',', '.')) || null);
+    dagar.forEach(k => pushMatrixSync(k, { abs: absStr, st: barnTyp ? 'Arbete' : fv.typ, abs_hours: tim, raw: '' }));
+    showToast('✓', `${absStr} · ${dagar.length} ${dagar.length === 1 ? 'dag' : 'dagar'}`, 2200);
+    fvStang(); renderAbsence();
+}
+Object.assign(window, { fvStart, fvStang, fvValjTyp, fvValjBarn, fvSteg, fvMan, fvDag, fvSpara, fvToggla, fvTaBort });
+
+// Sparade anteckningar är nu huvudvyn i anteckningarna – den gamla dialogen används inte.
+openSavedNotesModal = function(){ openNotesModal(); };
+window.openSavedNotesModal = openSavedNotesModal;
+
+// ============================================================
+//  GRÄNSSNITT 2026 — KALENDERN: månadens summa överst
+// ============================================================
+(function(){
+    const rc = renderCal;
+    renderCal = function(y, m){
+        rc.apply(this, arguments);
+        const el = document.getElementById('cal-sum'); if (!el) return;
+        const dim = new Date(y, m, 0).getDate();
+        let salt = 0, pass = 0, fr = 0;
+        for (let d = 1; d <= dim; d++) { const k = `${y}-${m}-${d}`, o = db.d[k] || {}; salt += o.s || 0; if (o.s > 0) pass++; if (o.abs && o.abs !== 'Ledig') fr++; }
+        const mal = getBudgetForMonth(y, m), r = getMonthlyBonusReliefRatio(y, m);
+        el.innerHTML = `<div><b>${uiK(salt)}</b><span>av ${uiK(mal)}</span></div><div><b>${pass}</b><span>pass sålt</span></div><div><b>${fr}</b><span>frånvaro</span></div><div><b>${r > 0 ? '−' + Math.round(r * 100) + ' %' : '—'}</b><span>lättnad</span></div>`;
+    };
+})();

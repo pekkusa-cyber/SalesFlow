@@ -117,21 +117,42 @@ function getBudgetForMonth(y, m) {
     return 240000;
 }
 
+// amount = null: ingen egen budget – målet följer månadens bonustrappa (12 %-nivån).
 function setGlobalBudget(amount) { 
     let cy = viewDate.getFullYear(); let cm = viewDate.getMonth() + 1;
     let mKey = `${cy}-${cm}`;
-    savedBudgets[mKey] = amount;
+    if (amount) savedBudgets[mKey] = amount; else delete savedBudgets[mKey];
     
     try { localStorage.setItem('sf_budgets', JSON.stringify(savedBudgets)); } catch(e){} 
-    db.b = amount; 
+    db.b = getBudgetForMonth(cy, cm); 
     
     if (sb) {
-        sb.from('monthly_budgets').upsert({ month_key: mKey, budget: amount }).then(({error}) => {
-            if(error) console.warn("Supabase budget fel:", error);
-        });
+        const q = amount ? sb.from('monthly_budgets').upsert({ month_key: mKey, budget: amount })
+                         : sb.from('monthly_budgets').delete().eq('month_key', mKey);
+        q.then(({error}) => { if(error) console.warn("Supabase budget fel:", error); });
     }
     
     calculateTimeline(); updateDash(); closeBudgetModal(); 
+}
+// Månadens val: trappans tre nivåer + "följ trappan". Förut fanns bara fasta
+// 180/240/350 000 – i november, där 12 % börjar på 340 000, fanns inget rätt val,
+// och ett tryck på 240 000 låste målet under bonusgränsen.
+function renderBudgetChoices(){
+    const box = document.getElementById('budget-choices'); if (!box) return;
+    const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1;
+    const lbl = document.getElementById('budget-month-lbl');
+    const MAN = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+    if (lbl) lbl.innerText = 'Månadsmål · ' + MAN[cm-1];
+    let steg = [];
+    try { if (!lonCfg) lonLoad(); steg = lonTiersForMonth(cm).filter(t => Number(t.min) > 0); } catch(e){}
+    const satt = savedBudgets[`${cy}-${cm}`] || null;
+    const kr = n => Number(n).toLocaleString('sv-SE') + ' kr';
+    const auto = Number((steg.find(t => Number(t.pct) === 12) || {}).min) || 240000;
+    let html = `<button onclick="setGlobalBudget(null)" class="md-budget-btn${!satt ? ' is-active' : ''}">Följ bonustrappan · ${kr(auto)}</button>`;
+    steg.forEach(t => {
+        html += `<button onclick="setGlobalBudget(${Number(t.min)})" class="md-budget-btn${satt === Number(t.min) ? ' is-active' : ''}">${t.pct} % · ${kr(t.min)}</button>`;
+    });
+    box.innerHTML = html;
 }
 
 function setTheme(themeName) { document.body.setAttribute('data-theme', themeName); localStorage.setItem('sf_theme', themeName); }
@@ -4559,6 +4580,7 @@ function openBudgetModal() {
     const fa = document.getElementById('focus-auto'); if (fa) fa.checked = focusAuto;
     const bs = document.getElementById('boost-step'); if (bs) bs.value = boostStep;
     const bh = document.getElementById('boost-step-hint'); if (bh) bh.innerText = `Ett tryck lägger på ${lonKr(boostStep)}.`;
+    renderBudgetChoices();
     const m = document.getElementById('budget-modal'); if(m) m.classList.remove('hidden');
 }
 function closeBudgetModal() { const m = document.getElementById('budget-modal'); if(m) m.classList.add('hidden'); }

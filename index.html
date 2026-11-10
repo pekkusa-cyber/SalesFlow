@@ -20,7 +20,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=110">
+    <link rel="stylesheet" href="style.css?v=111">
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
          målningen, innan Tailwind och Google Fonts laddats. Samma blå som
@@ -459,12 +459,10 @@
                 <span class="material-symbols-rounded">sync</span> Synkronisera data
             </button>
             <div class="md-divider"></div>
-            <p class="md-section-lbl text-center">Månadsmål</p>
-            <div class="flex flex-col gap-2">
-                <button onclick="setGlobalBudget(180000)" class="md-budget-btn">180 000 kr</button>
-                <button onclick="setGlobalBudget(240000)" class="md-budget-btn">240 000 kr</button>
-                <button onclick="setGlobalBudget(350000)" class="md-budget-btn">350 000 kr</button>
-            </div>
+            <p class="md-section-lbl text-center" id="budget-month-lbl">Månadsmål</p>
+            <!-- Knapparna byggs från månadens bonustrappa (renderBudgetChoices) – november
+                 har andra nivåer än oktober, och fasta 180/240/350 gick inte att välja rätt med. -->
+            <div id="budget-choices" class="flex flex-col gap-2"></div>
             <div class="md-divider"></div>
             <label class="md-toggle-row">
                 <span>🎯 Öppna fokusläget under passet</span>
@@ -940,7 +938,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=110"></script>
+    <script src="script.js?v=111"></script>
     <script>
     // ============================================================
     // SALESFLOW — Navigationscontroller

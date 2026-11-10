@@ -435,7 +435,7 @@ body #dash-abs-badge:not(.hidden) {
 .vp-cell {
   flex: 1; height: 58px; border-radius: 18px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background: linear-gradient(180deg, #ffffff 0%, #f6f8fc 100%);
+  background: var(--surface);
   border: 1px solid var(--outline-variant);
   box-shadow: 0 1px 1px rgba(60,64,67,.05), 0 2px 5px rgba(60,64,67,.10), 0 5px 12px -4px rgba(60,64,67,.10), inset 0 1px 0 rgba(255,255,255,.75);
   color: var(--on-surface);
@@ -737,7 +737,7 @@ body #dash-abs-badge:not(.hidden) {
 
 .md-theme-btn { padding: 10px; border-radius: 12px; border: 1px solid; font-family: 'Google Sans', sans-serif; font-size: 11px; font-weight: 700; transition: all .2s; }
 .md-theme-btn:active { transform: scale(0.94); }
-.md-theme-light { background: #ffffff; border-color: var(--outline); color: var(--on-surface); }
+.md-theme-light { background: var(--surface); border-color: var(--outline); color: var(--on-surface); }
 .md-theme-dark { background: #1f1f1f; border-color: #3c4043; color: #e8eaed; }
 .md-theme-rustic { background: #f5f0e8; border-color: #d6ccb8; color: #5c4a37; }
 
@@ -909,7 +909,7 @@ body #dash-abs-badge:not(.hidden) {
   border-radius: 18px;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  background: linear-gradient(180deg, #ffffff 0%, #f6f8fc 100%);
+  background: var(--surface);
   border: 1px solid var(--outline-variant);
   box-shadow: 0 1px 1px rgba(60,64,67,.05), 0 2px 5px rgba(60,64,67,.10), 0 5px 12px -4px rgba(60,64,67,.10), inset 0 1px 0 rgba(255,255,255,.75);
   color: var(--on-surface);
@@ -1138,7 +1138,7 @@ button.bg-rose-500, button.bg-rose-600 { background: var(--g-red) !important; co
 
 /* --- Glass dialog surface --- */
 .md-dialog {
-  background: rgba(255, 255, 255, 0.9) !important;
+  background: var(--surface) !important;
   backdrop-filter: blur(14px) saturate(160%) !important;
   -webkit-backdrop-filter: blur(14px) saturate(160%) !important;
   border: 1px solid rgba(255, 255, 255, 0.55) !important;
@@ -1197,7 +1197,7 @@ button.bg-rose-500, button.bg-rose-600 { background: var(--g-red) !important; co
   backdrop-filter: blur(4px);
   transition: transform .2s var(--ease-emp), background-color .2s !important;
 }
-.md-icon-btn:hover { background: rgba(255, 255, 255, 0.85) !important; transform: scale(1.04); }
+.md-icon-btn:hover { background: var(--surface) !important; transform: scale(1.04); }
 .md-icon-btn:active { transform: scale(0.92); }
 
 /* ============================================================
@@ -1211,7 +1211,7 @@ button.bg-rose-500, button.bg-rose-600 { background: var(--g-red) !important; co
   font-size: 13.5px !important;
   font-family: 'Google Sans', 'Roboto', sans-serif !important;
   font-weight: 500 !important;
-  color: #202124 !important;
+  color: var(--on-surface) !important;
   outline: none;
   transition: all .22s var(--ease-emp);
   backdrop-filter: blur(4px);
@@ -1223,11 +1223,11 @@ button.bg-rose-500, button.bg-rose-600 { background: var(--g-red) !important; co
 }
 .md-input:hover {
   border-color: rgba(95, 99, 104, 0.6) !important;
-  background: rgba(255, 255, 255, 0.80) !important;
+  background: var(--surface) !important;
 }
 .md-input:focus {
   border-color: var(--g-blue) !important;
-  background: #ffffff !important;
+  background: var(--surface) !important;
   box-shadow:
     0 0 0 4px rgba(26, 115, 232, 0.12),
     inset 0 1px 0 rgba(255,255,255,0.6) !important;
@@ -1416,7 +1416,7 @@ textarea.md-input { line-height: 1.5; }
 .md-prose {
   font-size: 13.5px !important;
   line-height: 1.65 !important;
-  color: #202124;
+  color: var(--on-surface);
 }
 .md-prose h2, .md-prose h3 {
   font-family: 'Google Sans', sans-serif;
@@ -1448,7 +1448,7 @@ textarea.md-input { line-height: 1.5; }
 
 /* Confirm box: glassy */
 .md-confirm-box {
-  background: rgba(255,255,255,0.85) !important;
+  background: var(--surface) !important;
   backdrop-filter: blur(3px) saturate(180%);
   border: 1px solid rgba(255,255,255,0.55) !important;
   border-radius: 28px !important;
@@ -1475,7 +1475,7 @@ textarea.md-input { line-height: 1.5; }
   -webkit-backdrop-filter: blur(3px) !important;
 }
 .md-dialog {
-  background: #ffffff !important;
+  background: var(--surface) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   border: 1px solid rgba(232, 234, 237, 0.95) !important;
@@ -1486,8 +1486,8 @@ textarea.md-input { line-height: 1.5; }
     0 4px 12px -6px rgba(15,23,42,0.06) !important;
 }
 .md-dialog .md-form-card {
-  background: #f8fafd !important;
-  border: 1px solid #ebedf0 !important;
+  background: var(--surface-1) !important;
+  border: 1px solid var(--outline-variant) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   border-radius: 16px !important;
@@ -1495,7 +1495,7 @@ textarea.md-input { line-height: 1.5; }
   box-shadow: none !important;
 }
 .md-dialog .md-input {
-  background: #ffffff !important;
+  background: var(--surface) !important;
   border-color: #e0e3e7 !important;
   border-width: 1px !important;
   border-radius: 12px !important;
@@ -1510,8 +1510,8 @@ textarea.md-input { line-height: 1.5; }
 }
 .md-dialog .md-btn-tonal,
 .md-dialog .md-btn-outlined {
-  background: #f1f3f4 !important;
-  border: 1px solid #e8eaed !important;
+  background: var(--surface-2) !important;
+  border: 1px solid var(--outline-variant) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -1520,17 +1520,17 @@ textarea.md-input { line-height: 1.5; }
   border: none !important;
   backdrop-filter: none !important;
 }
-.md-dialog .md-icon-btn:hover { background: #f1f3f4 !important; }
+.md-dialog .md-icon-btn:hover { background: var(--surface-2) !important; }
 .md-dialog .md-budget-btn {
-  background: #fafbfd !important;
-  border: 1px solid #ebedf0 !important;
+  background: var(--surface-1) !important;
+  border: 1px solid var(--outline-variant) !important;
 }
 .md-dialog .md-stat-card {
   backdrop-filter: none !important;
 }
 .md-dialog .md-row-card { backdrop-filter: none !important; }
 .md-confirm-box {
-  background: #ffffff !important;
+  background: var(--surface) !important;
   backdrop-filter: none !important;
   border: 1px solid rgba(218, 220, 224, 0.7) !important;
   box-shadow:
@@ -1560,7 +1560,7 @@ body.variant-a .md-scrim {
   -webkit-backdrop-filter: blur(2px) !important;
 }
 body.variant-a .md-dialog {
-  background: #ffffff !important;
+  background: var(--surface) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   border: 1px solid rgba(218, 220, 224, 0.85) !important;
@@ -1579,11 +1579,11 @@ body.variant-a .md-icon-btn {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
-body.variant-a .md-form-card { background: #f8fafd !important; border: 1px solid #e8eaed !important; }
-body.variant-a .md-input { background: #ffffff !important; border-color: #dadce0 !important; }
-body.variant-a .md-btn-tonal, body.variant-a .md-btn-outlined { background: #f1f3f4 !important; border: 1px solid #e8eaed !important; }
-body.variant-a .md-icon-btn { background: #f8fafd !important; border: 1px solid #e8eaed !important; }
-body.variant-a .md-budget-btn { background: #f8fafd !important; border: 1px solid #e8eaed !important; }
+body.variant-a .md-form-card { background: var(--surface-1) !important; border: 1px solid var(--outline-variant) !important; }
+body.variant-a .md-input { background: var(--surface) !important; border-color: var(--outline-variant) !important; }
+body.variant-a .md-btn-tonal, body.variant-a .md-btn-outlined { background: var(--surface-2) !important; border: 1px solid var(--outline-variant) !important; }
+body.variant-a .md-icon-btn { background: var(--surface-1) !important; border: 1px solid var(--outline-variant) !important; }
+body.variant-a .md-budget-btn { background: var(--surface-1) !important; border: 1px solid var(--outline-variant) !important; }
 
 /* === VARIANT B: LIGHT GLASS (subtle blur, mostly white) === */
 body.variant-b .md-scrim {
@@ -1591,7 +1591,7 @@ body.variant-b .md-scrim {
   backdrop-filter: blur(3px) !important;
 }
 body.variant-b .md-dialog {
-  background: rgba(255, 255, 255, 0.94) !important;
+  background: var(--surface) !important;
   backdrop-filter: blur(7px) saturate(140%) !important;
   -webkit-backdrop-filter: blur(7px) saturate(140%) !important;
   border: 1px solid rgba(255,255,255,0.85) !important;
@@ -1602,7 +1602,7 @@ body.variant-b .md-dialog {
     inset 0 1px 0 rgba(255,255,255,0.95) !important;
 }
 body.variant-b .md-form-card { background: rgba(255,255,255,0.70) !important; border: 1px solid rgba(218,220,224,0.55) !important; }
-body.variant-b .md-input { background: rgba(255,255,255,0.80) !important; }
+body.variant-b .md-input { background: var(--surface) !important; }
 
 /* === VARIANT C: WHITE WITH ACCENT BAR (Google rainbow accent on top) === */
 body.variant-c .md-scrim {
@@ -1610,10 +1610,10 @@ body.variant-c .md-scrim {
   backdrop-filter: blur(2px) !important;
 }
 body.variant-c .md-dialog {
-  background: #ffffff !important;
+  background: var(--surface) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  border: 1px solid #ebedf0 !important;
+  border: 1px solid var(--outline-variant) !important;
   border-radius: 24px !important;
   padding: 22px !important;
   box-shadow:
@@ -1639,11 +1639,11 @@ body.variant-c .md-icon-btn {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
-body.variant-c .md-form-card { background: #fafbfd !important; border: 1px solid #ebedf0 !important; border-radius: 18px !important; }
-body.variant-c .md-input { background: #ffffff !important; border-color: #dadce0 !important; border-radius: 12px !important; }
-body.variant-c .md-btn-tonal, body.variant-c .md-btn-outlined { background: #f6f8fb !important; border: 1px solid #ebedf0 !important; }
+body.variant-c .md-form-card { background: var(--surface-1) !important; border: 1px solid var(--outline-variant) !important; border-radius: 18px !important; }
+body.variant-c .md-input { background: var(--surface) !important; border-color: var(--outline-variant) !important; border-radius: 12px !important; }
+body.variant-c .md-btn-tonal, body.variant-c .md-btn-outlined { background: #f6f8fb !important; border: 1px solid var(--outline-variant) !important; }
 body.variant-c .md-icon-btn { background: transparent !important; border: none !important; }
-body.variant-c .md-budget-btn { background: #fafbfd !important; border: 1px solid #ebedf0 !important; border-radius: 14px !important; }
+body.variant-c .md-budget-btn { background: var(--surface-1) !important; border: 1px solid var(--outline-variant) !important; border-radius: 14px !important; }
 
 /* ============================================================
    NAV V2 — bottenmeny, helvy-sheets, symbolrader, helskärms-notes
@@ -1796,7 +1796,7 @@ body.focus-mode-active .focus-info { display:flex; align-items:center; gap:10px;
 .focus-info .fi-main { font-size:13px; font-weight:900; color:var(--g-blue); text-transform:uppercase; letter-spacing:.02em; flex-shrink:0; }
 .focus-info .fi-meta { font-size:11px; font-weight:700; color:var(--on-surface-variant); margin-left:auto; text-align:right; line-height:1.2; }
 /* Frånvaro detalj-rutor per dag */
-.abs-stat-box { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; background:#fff; border:1px solid var(--outline-variant); border-radius:14px; padding:8px 6px; min-height:54px; }
+.abs-stat-box { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; background:var(--surface); border:1px solid var(--outline-variant); border-radius:14px; padding:8px 6px; min-height:54px; }
 .abs-stat-lbl { font-size:7.5px; font-weight:900; color:var(--on-surface-variant); text-transform:uppercase; letter-spacing:.12em; }
 .abs-stat-val { font-size:14px; font-weight:900; color:var(--on-surface); line-height:1.05; }
 .abs-stat-fk { background:var(--g-blue-soft); border-color:color-mix(in srgb, var(--g-blue) 25%, transparent); }
@@ -1807,7 +1807,7 @@ body.focus-mode-active .focus-info { display:flex; align-items:center; gap:10px;
 /* Frånvaro – sammanfattning som dragspel */
 .abs-sum-wrap { display:flex; flex-direction:column; gap:8px; padding:10px 12px; }
 .abs-sum-title { font-size:8px; font-weight:900; color:var(--on-surface-variant); text-transform:uppercase; letter-spacing:.16em; padding:0 2px 2px; }
-.abs-type { background:#fff; border:1px solid var(--outline-variant); border-radius:18px; box-shadow:var(--elev-1); overflow:hidden; }
+.abs-type { background:var(--surface); border:1px solid var(--outline-variant); border-radius:18px; box-shadow:var(--elev-1); overflow:hidden; }
 .abs-type-head { width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:13px 14px; }
 .abs-type-name { font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.02em; text-align:left; min-width:0; }
 .abs-type-right { display:flex; align-items:center; gap:6px; flex-shrink:0; }
@@ -2041,7 +2041,7 @@ body.sheet-instant .bottom-section { transition: none !important; }
     flex:1; border:none; background:transparent; color:rgba(255,255,255,.82);
     font-size:13px; font-weight:600; padding:7px 0; border-radius:10px;
 }
-.lon-seg-oncard button.active { background:#fff; color:var(--g-blue-deep); }
+.lon-seg-oncard button.active { background:var(--surface); color:var(--g-blue-deep); }
 
 /* Menyn får aldrig klippa kortet */
 .lon-sheet-content { padding-bottom:120px !important; }
@@ -2482,7 +2482,7 @@ body.focus-mode-on .app-bottom-nav { display: none; }
 .fm-keys .fm-c { background: rgba(255,255,255,.06); border-color: rgba(255,138,128,.34); color: #ffb3ab; }
 .fm-keys .fm-alt .material-symbols-rounded { font-size: 20px; }
 .fm-save {
-    flex-shrink: 0; padding: 13px; border-radius: 16px; background: #fff; color: var(--g-blue-deep);
+    flex-shrink: 0; padding: 13px; border-radius: 16px; background: var(--surface); color: var(--g-blue-deep);
     font-family: 'Google Sans', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: .02em;
     box-shadow: var(--elev-2); transition: transform .15s var(--ease-emp), opacity .2s;
 }

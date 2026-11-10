@@ -1042,6 +1042,29 @@ function kollaFirande(k, lage){
     return Date.now() < firarTill;
 }
 
+// Bonusnivåerna som streck på månadsmätaren, och som rad under den. Mätaren
+// går till målet (100 %), så nivåer ovanför målet syns bara i raden.
+function ritaBonusnivaer(y, m, mal, lattat){
+    const g = document.getElementById('g-tiers'), rad = document.getElementById('g-tier-lbl');
+    if (!g && !rad) return;
+    let steg = [];
+    try {
+        if (!lonCfg) lonLoad();
+        steg = (lattat && typeof lonAdjustedTiers === 'function') ? lonAdjustedTiers(y, m).tiers : lonTiersForMonth(m);
+        steg = steg.filter(t => Number(t.min) > 0).sort((a, b) => a.min - b.min);
+    } catch(e){ steg = []; }
+    const k = n => Math.round(n / 1000) + 'k';
+    let streck = '';
+    steg.forEach(t => {
+        const f = mal > 0 ? t.min / mal : 2;
+        if (f > 1.001 || f <= 0) return;
+        const a = (135 + 270 * f) * Math.PI / 180, c = Math.cos(a), s2 = Math.sin(a);
+        streck += `<line x1="${(65 + 47 * c).toFixed(2)}" y1="${(65 + 47 * s2).toFixed(2)}" x2="${(65 + 57 * c).toFixed(2)}" y2="${(65 + 57 * s2).toFixed(2)}" class="g-tier"/>`;
+    });
+    if (g) g.innerHTML = streck;
+    if (rad) rad.innerHTML = steg.map(t => `<span${t.min <= mal * 1.001 ? ' class="in"' : ''}>${t.pct} % <b>${k(t.min)}</b></span>`).join('');
+}
+
 // Snitt per dag med försäljning, för en hel månad.
 function snittPerPass(y, m){
     const dim = new Date(y, m, 0).getDate(); let sum = 0, n = 0;
@@ -1096,10 +1119,15 @@ function updateDash() {
     const maxK = Math.round(effBudget / 1000); const maxLbl = document.getElementById('g-max-lbl'); if (maxLbl) maxLbl.innerText = maxK;
     // En decimal, som dagskortet – annars stod samma mål som "12 k" här och "11.7 k" där.
     const tgtEl = document.getElementById('d-today-target'); if(tgtEl) tgtEl.innerText = effTarget > 0 ? (effTarget/1000).toFixed(1) + " k" : "0 k";
-    const avgEl = document.getElementById('d-avg-val'); if(avgEl) avgEl.innerText = Math.round(avg/1000) + " k"; 
+    const avgEl = document.getElementById('d-avg-val'); if(avgEl) avgEl.innerText = (avg/1000).toFixed(1) + " k"; 
+    // Snitt/pass som KRÄVS: det som återstår av målet delat på passen som är kvar
+    // (dagens pass räknas med). Dagens krav syns redan i dagkortets mätare.
+    const kravEl = document.getElementById('d-krav-pass');
+    if (kravEl) kravEl.innerText = tS >= effBudget && effBudget > 0 ? "✓" : (rW > 0 ? ((effBudget - tS) / rW / 1000).toFixed(1) + " k" : "—");
+    ritaBonusnivaer(cy, cm, effBudget, useRelief);
     const mainValEl = document.getElementById('h-main-val'); if(mainValEl) mainValEl.innerText = (tS/1000).toFixed(1) + " k";
-    const leftEl = document.getElementById('d-work-left'); if(leftEl) leftEl.innerText = `${rW} Pass Kvar`;
-    const totEl = document.getElementById('d-work-total'); if(totEl) totEl.innerText = `${tP} Totalt`; 
+    const leftEl = document.getElementById('d-work-left'); if(leftEl) leftEl.innerText = `${rW}`;
+    const totEl = document.getElementById('d-work-total'); if(totEl) totEl.innerText = `${tP}`; 
     const kvarEl = document.getElementById('d-kvar'); if(kvarEl) kvarEl.innerText = Math.max(0, Math.round((effBudget - tS)/1000)) + " k";
     
     const hCirc = document.getElementById('h-circle-prog'); 
@@ -1108,8 +1136,8 @@ function updateDash() {
     if(hCirc) {
         const isTopReached = tS >= effBudget && effBudget > 0;
         hCirc.style.strokeDashoffset = 326.7 - ((Math.min(effPerc, 100) / 100) * (326.7 * 0.75));
-        hCirc.style.stroke = isTopReached ? 'var(--pos)' : 'var(--neg)';
-        hCirc.style.filter = isTopReached ? 'drop-shadow(0 0 8px rgba(16,185,129,0.6))' : 'drop-shadow(0 0 8px rgba(244,63,94,0.6))';
+        hCirc.style.stroke = isTopReached ? 'var(--pos)' : 'var(--ck-cy, var(--neg))';
+        hCirc.style.filter = isTopReached ? 'drop-shadow(0 0 8px rgba(61,220,151,0.6))' : 'drop-shadow(0 0 7px rgba(70,208,239,0.55))';
     }
     
     const progStr = Math.round(prognos/1000); 
@@ -3262,7 +3290,18 @@ function lonRecalc(){
     const k = lonKey(); const prev = lonMonthly[k] || {};
     lonMonthly[k] = { ...prev, avdrag: lonAvdrag||0 };
     lonSaveMonthly();
+    try { ritaLonStapel(); } catch(e){}
 }
+// Cockpit: lönen som en stapel – allt som kommer in och dras av, i proportion.
+function ritaLonStapel(){
+    const el = document.getElementById('lon-stack'); if (!el) return;
+    const tal = id => { const t = (document.getElementById(id) || {}).innerText || ''; const v = parseFloat(t.replace(/[^\d,-]/g,'').replace('−','-').replace(',','.')); return isFinite(v) ? Math.abs(v) : 0; };
+    const brutto = tal('lon-gross'), bonus = tal('lon-bonus-out'), ob = tal('lon-ob-out'), franv = tal('lon-franvaro-out'), skatt = tal('lon-tax');
+    const lon = Math.max(0, brutto - bonus - ob + franv);
+    const delar = [['lon', lon], ['bonus', bonus], ['ob', ob], ['franv', franv], ['skatt', skatt]].filter(d => d[1] > 0);
+    el.innerHTML = delar.map(d => `<i class="s-${d[0]}" style="flex:${Math.round(d[1])}"></i>`).join('');
+}
+window.ritaLonStapel = ritaLonStapel;
 function lonBonusPct(sales){
     const y = lonViewDate.getFullYear(), mo = lonViewDate.getMonth()+1;
     const { tiers } = lonAdjustedTiers(y, mo);

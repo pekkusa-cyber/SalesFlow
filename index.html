@@ -20,7 +20,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=112">
+    <link rel="stylesheet" href="style.css?v=113">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="cockpit.css?v=113">
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
          målningen, innan Tailwind och Google Fonts laddats. Samma blå som
@@ -575,47 +577,39 @@
                     <span class="material-symbols-rounded">smart_toy</span>
                 </button>
 
-                <div id="top-monthly-ui" class="flex flex-col w-full h-full justify-center px-4 py-2 transition-opacity duration-300">
-                    <div class="budget-header" onclick="openSummaryModal('month')">
-                        <p class="budget-label">
-                            <span id="top-month-lbl">MÅNAD</span>
-                            <span class="material-symbols-rounded text-[14px] opacity-80">insights</span>
-                        </p>
-                        <p id="d-budget-val" class="budget-val">240 000 kr</p>
+                <!-- COCKPIT: en mätare med bonusnivåerna inritade, fyra tal under.
+                     Alla id:n som script.js skriver till finns kvar. -->
+                <div id="top-monthly-ui" class="ck-hud">
+                    <div class="ck-head budget-header" onclick="openSummaryModal('month')">
+                        <span id="top-month-lbl" class="ck-month">MÅNAD</span>
+                        <span class="material-symbols-rounded ck-head-ico">insights</span>
                     </div>
                     <button id="d-relief-toggle" class="relief-pill hidden" onclick="toggleReliefMode()"></button>
 
-                    <div class="gauge-layout">
-                        <div class="side-col">
-                            <p class="micro-lbl">Dagens krav</p>
-                            <p id="d-today-target" class="val-display pop-highlight">0 k</p>
-                            <div class="status-pill pill-blue"><span id="d-work-left">0 pass kvar</span></div>
+                    <div class="ck-gauge gauge-container">
+                        <svg viewBox="0 0 130 130" aria-hidden="true">
+                            <circle class="g-bg" cx="65" cy="65" r="52" stroke-dasharray="245 326.7" transform="rotate(135 65 65)"></circle>
+                            <circle class="g-marks" cx="65" cy="65" r="44" stroke-dasharray="1 18" transform="rotate(135 65 65)"></circle>
+                            <circle id="h-circle-prog" class="g-prog" cx="65" cy="65" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"></circle>
+                            <g id="g-tiers"></g>
+                        </svg>
+                        <div class="ck-center">
+                            <span id="h-main-val" class="ck-big">0 k</span>
+                            <span class="ck-of">AV <span id="d-budget-val">240 000 kr</span> · <span id="h-perc-val">0%</span></span>
+                            <span id="d-status" class="ck-status">LADDAR</span>
                         </div>
-                        <div class="gauge-container">
-                            <span class="g-label-0">0</span>
-                            <svg viewBox="0 0 130 130">
-                                <circle class="g-bg" cx="65" cy="65" r="52" stroke-dasharray="245 326.7" transform="rotate(135 65 65)"></circle>
-                                <circle class="g-marks" cx="65" cy="65" r="44" stroke-dasharray="1 18" transform="rotate(135 65 65)"></circle>
-                                <circle id="h-circle-prog" class="g-prog" cx="65" cy="65" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7"></circle>
-                            </svg>
-                            <div class="absolute inset-0 flex flex-col items-center justify-center pt-0.5">
-                                <span id="h-main-val" class="text-[20px] font-black tracking-tighter text-white">0 k</span>
-                                <span id="h-perc-val" class="text-[10px] font-bold text-white/90">0%</span>
-                            </div>
-                            <span id="g-max-lbl" class="g-label-240">240</span>
-                        </div>
-                        <div class="side-col">
-                            <p class="micro-lbl">Kvar till mål</p>
-                            <p id="d-kvar" class="val-display pop-highlight">0 k</p>
-                            <div class="status-pill pill-blue"><span id="d-work-total">0 totalt</span></div>
-                        </div>
+                        <span class="g-label-0">0</span>
+                        <span id="g-max-lbl" class="g-label-240">240</span>
                     </div>
+                    <div id="g-tier-lbl" class="ck-tiers"></div>
 
-                    <div class="meta-row">
-                        <div class="meta-cell"><p class="meta-lbl">Snitt / Pass</p><p id="d-avg-val" class="meta-val text-google-blue">0 k</p></div>
-                        <div class="meta-cell border-left"><p class="meta-lbl">Prognos</p><p id="d-prog" class="meta-val text-white">0</p></div>
-                        <div class="meta-cell border-left"><p class="meta-lbl">Status</p><p id="d-status" class="meta-val text-white text-[12px]">LADDAR</p></div>
+                    <div class="ck-stats">
+                        <div class="ck-st"><span>Snitt/pass</span><b id="d-krav-pass">—</b><small>ditt snitt <i id="d-avg-val">0 k</i></small></div>
+                        <div class="ck-st"><span>Kvar</span><b id="d-kvar">0 k</b><small>till målet</small></div>
+                        <div class="ck-st"><span>Prognos</span><b id="d-prog">0</b><small>månadens slut</small></div>
+                        <div class="ck-st"><span>Pass kvar</span><b id="d-work-left">0</b><small>av <i id="d-work-total">0</i></small></div>
                     </div>
+                    <p id="d-today-target" hidden></p>
 
                     <div id="top-info-bar" class="md-info-bar">
                          <span id="top-info-text" class="md-info-text">LADDAR INFO...</span>
@@ -865,6 +859,7 @@
                             <span class="lon-net-lbl">Beräknad lön efter skatt</span>
                             <span id="lon-net" class="lon-net-val">0 kr</span>
                             <span id="lon-period-sub" class="lon-period-sub"></span>
+                            <div id="lon-stack" class="ck-stack" aria-hidden="true"></div>
                             <div class="lon-result-rows">
                                 <div class="lon-rrow"><span>🟡 Skatt</span><span id="lon-tax">0 kr</span></div>
                                 <div class="lon-rrow"><span>Lön före skatt (brutto)</span><span id="lon-gross">0 kr</span></div>
@@ -938,7 +933,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=112"></script>
+    <script src="script.js?v=113"></script>
     <script>
     // ============================================================
     // SALESFLOW — Navigationscontroller

@@ -4675,6 +4675,7 @@ function openBudgetModal() {
     const bs = document.getElementById('boost-step'); if (bs) bs.value = boostStep;
     const bh = document.getElementById('boost-step-hint'); if (bh) bh.innerText = `Ett tryck lägger på ${lonKr(boostStep)}.`;
     renderBudgetChoices();
+    if (window.ckTemaRita) window.ckTemaRita();
     const m = document.getElementById('budget-modal'); if(m) m.classList.remove('hidden');
 }
 function closeBudgetModal() { const m = document.getElementById('budget-modal'); if(m) m.classList.add('hidden'); }

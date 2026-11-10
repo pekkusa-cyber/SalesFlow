@@ -8,7 +8,7 @@
     "androidScheme": "https"
   },
   "android": {
-    "backgroundColor": "#0d47a1"
+    "backgroundColor": "#f2f4f8"
   },
   "plugins": {
     "SystemBars": { "insetsHandling": "css" },

@@ -1,0 +1,153 @@
+/* ============================================================
+   SalesFlow — REN
+   Sista lagret. Tre principer:
+   1. Inget får klippas: startsidan scrollar naturligt i stället för fasta höjder.
+   2. Ett professionellt typsnitt (Geist) för text och siffror, inga spärrade versaler.
+   3. Mindre plotter: ikoner i stället för emojis, färre ramar, mer luft.
+   ============================================================ */
+:root, html[data-ck="dark"] {
+  --f-ui: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+  --f-num: 'Geist', 'Inter', system-ui, sans-serif;
+  --f-mono: 'Geist', 'Inter', system-ui, sans-serif;
+  --nav-h: 66px;
+  --ck-bg: #f6f7f6; --ck-bg2: #f6f7f6;
+}
+html[data-ck="dark"] { --ck-bg: #0c0e0d; --ck-bg2: #0c0e0d; }
+body, button, input, textarea, select { font-family: var(--f-ui) !important; }
+body { font-feature-settings: "tnum" 1, "ss01" 1; letter-spacing: -.005em; }
+
+/* versaler bort överallt i appens etiketter */
+.ck-st span, .ck-month, .ck-status, .ck-of, .cal-sum span, .sheet-subtitle, .ws-title span, .vp-name,
+.nt-count, .nt-f span, .lon-net-lbl, .md-info-text, .weekday-label, .abs-sum-title, .md-section-lbl, .fv-axis, .ws-axis, .ws-legend {
+  text-transform: none !important; letter-spacing: 0 !important;
+}
+#top-month-lbl, #d-status, .vp-name, #dash-status-text, .ws-abs { text-transform: lowercase !important; }
+#top-month-lbl::first-letter, #d-status::first-letter, .vp-name::first-letter, .ws-abs::first-letter { text-transform: uppercase; }
+html body .sheet-subtitle { text-transform: lowercase !important; }
+html body .sheet-subtitle::first-letter { text-transform: uppercase; }
+
+/* stora tal: Geist, tät och tung */
+.ck-big, .ck-st b, .ws-amt b, .lon-net-val, .nt-title, .sheet-title, .md-dialog-title, .fv-n b, .cal-sum b, .vp-date, .ws-pct, .ws-min, .md-stat-val {
+  font-family: var(--f-num) !important; letter-spacing: -.035em !important; font-feature-settings: "tnum" 1;
+}
+
+/* ============================================================
+   1. STARTSIDAN SCROLLAR
+   ============================================================ */
+html, body { height: auto !important; min-height: 100%; overflow-x: hidden !important; overflow-y: auto !important; }
+html body #app-shell { height: auto !important; min-height: 100dvh; }
+html body .content-locker { height: auto !important; padding-top: 0 !important; background: var(--ck-bg) !important; }
+html body .top-section, html body .top-section.has-relief, body.hl-dag .top-section, body.hl-dag .top-section.has-relief {
+  height: auto !important; min-height: 0 !important; margin: 10px 10px 0 !important; flex: none !important;
+}
+html body .ck-hud { height: auto !important; padding: 12px 14px 12px !important; }
+html body .bottom-section { height: auto !important; flex: none !important; overflow: visible !important;
+  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 20px) !important; }
+html body #bottom-standard-views, html body #container-dash-views, html body #pane-dash { height: auto !important; overflow: visible !important; flex: none !important; }
+html body #dash-main-container { flex: none !important; height: auto !important; margin: 14px 14px 0 !important; }
+html body #dash-inner-card { height: auto !important; }
+html body .ws { position: relative !important; inset: auto !important; }
+html body .ws-dag, html body .ws-man { height: auto !important; gap: 12px !important; overflow: visible !important; }
+html body .ws-bars { flex: none !important; height: 150px !important; }
+html body #dash-inline-numpad { position: fixed !important; inset: auto 10px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 10px) 10px !important; height: 330px; z-index: 9400 !important; }
+/* korta skärmar fick tidigare krympt allt — behövs inte när sidan scrollar */
+@media (max-height: 820px) {
+  html body .ck-gauge.gauge-container { width: 176px !important; height: 150px !important; }
+  html body .ck-gauge svg, html body .ck-center { width: 176px !important; height: 176px !important; }
+  html body .ck-big { font-size: 38px !important; }
+}
+
+/* ============================================================
+   2. HEROKORTET — lugnare
+   ============================================================ */
+html body .top-section { border-radius: 30px 30px 0 0 !important; }
+html body #slide-curr { border-radius: 0 0 30px 30px !important; padding: 4px 12px 14px !important; gap: 6px !important; }
+html body .ck-month { font: 600 14px var(--f-ui) !important; color: #e6f3ea !important; opacity: 1 !important; }
+html body .ck-head-ico { display: none !important; }
+html body .hl-row { margin-top: 10px !important; }
+html body .ck-gauge.gauge-container { width: 176px; height: 150px; margin-top: 6px !important; }
+html body .ck-gauge svg, html body .ck-center { width: 176px; height: 176px; }
+html body .ck-gauge .g-marks, html body .ck-gauge .g-label-0, html body .ck-gauge .g-label-240 { display: none !important; }
+html body .ck-big { font: 700 40px/1 var(--f-num) !important; }
+html body .ck-of { font: 500 12px var(--f-ui) !important; margin-top: 6px !important; }
+html body .ck-status { font: 600 11px var(--f-ui) !important; padding: 4px 10px !important; border-radius: 20px !important; margin-top: 8px !important; }
+html body .ck-tiers { font: 500 12px var(--f-ui) !important; gap: 14px !important; margin-top: 2px !important; }
+html body .ck-stats { margin-top: 12px !important; border-radius: 18px !important; }
+html body .ck-st { border: 0 !important; padding: 10px 2px !important; }
+html body .ck-st span { font: 500 11px var(--f-ui) !important; }
+html body .ck-st b { font: 700 18px/1.15 var(--f-num) !important; margin-top: 4px !important; }
+html body .ck-st small { font: 400 10.5px var(--f-ui) !important; margin-top: 2px !important; }
+html body .md-info-bar { margin-top: 10px !important; border-radius: 14px !important; border: 0 !important; }
+html body .md-info-text { font: 500 12px var(--f-ui) !important; }
+html body .relief-pill { font: 600 11px var(--f-ui) !important; border-radius: 20px !important; padding: 5px 11px !important; letter-spacing: 0 !important; }
+
+/* veckodagar: rena rutor, färgprick för frånvaro */
+html body #slide-curr .vp-cell { height: 60px !important; border-radius: 16px !important; border: 0 !important; gap: 2px !important; }
+html body #slide-curr .vp-cell.type-unplanned { border: 0 !important; background: transparent !important; }
+html body #slide-curr .vp-cell .vp-name { font: 500 10.5px var(--f-ui) !important; }
+html body #slide-curr .vp-cell .vp-date { font: 700 18px/1 var(--f-num) !important; }
+html body #slide-curr .vp-cell .vp-val { font: 500 10.5px var(--f-ui) !important; min-height: 12px; }
+.vp-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #c9d4cc; }
+.vp-dot-vab { background: #f2c36b; } .vp-dot-fl { background: #b9a6ff; } .vp-dot-atg { background: #ff9b6b; }
+.vp-dot-sjuk { background: #ff9b8e; } .vp-dot-sem { background: #6fd3c4; } .vp-dot-tl { background: #b8c2cc; } .vp-dot-ledig { background: transparent; }
+
+/* ============================================================
+   3. ARBETSYTAN
+   ============================================================ */
+html body .ws-title b { font: 700 20px/1.15 var(--f-num) !important; letter-spacing: -.03em !important; }
+html body .ws-title span { font: 500 12.5px var(--f-ui) !important; color: var(--ck-mu) !important; margin-top: 3px !important; }
+html body .ws-abs { font: 600 11.5px var(--f-ui) !important; padding: 3px 9px !important; border-radius: 20px !important; }
+html body .ws-tool { width: 40px !important; height: 40px !important; border-radius: 50% !important; border: 1px solid var(--ck-line) !important; box-shadow: none !important; color: var(--ck-tx) !important; }
+html body .ws-tool .material-symbols-rounded { font-size: 20px; }
+html body .ws-tl-tom { display: none !important; }
+html body .ws-tl { border-radius: 16px !important; box-shadow: none !important; }
+html body .ws-tl-lab { font: 500 11px var(--f-ui) !important; }
+html body .ws-amt { min-height: 92px !important; box-shadow: 0 1px 2px rgba(0,0,0,.04) !important; }
+html body .ws-amt b { font: 700 32px/1 var(--f-num) !important; }
+html body .ws-amt span { font: 500 12.5px var(--f-ui) !important; }
+html body .ws-quick { gap: 8px !important; }
+html body .ws-quick button { height: 48px !important; font: 600 14px var(--f-num) !important; box-shadow: none !important; }
+html body .ws-quick button:last-child { font: 600 13px var(--f-ui) !important; }
+html body .ws-chips { gap: 8px !important; }
+html body .ws-chip { height: 42px !important; padding: 0 16px 0 12px !important; font: 600 13px var(--f-ui) !important; gap: 6px !important; }
+html body .ws-chip .material-symbols-rounded { font-size: 19px !important; }
+html body .ws-step-row .ws-pct { font: 700 16px var(--f-num) !important; }
+html body .ws-step-row .ws-left, html body .ws-legend, html body .ws-axis { font-family: var(--f-ui) !important; }
+html body .ws-relief { font: 600 11.5px var(--f-ui) !important; border-radius: 20px !important; }
+
+/* ============================================================
+   4. MENYN — ren rad, inga upphöjda knappar
+   ============================================================ */
+html body #app-bottom-nav { padding: 6px 4px calc(env(safe-area-inset-bottom, 0px) + 6px) !important; align-items: center !important; }
+html body #app-bottom-nav .bn-item { gap: 3px !important; padding: 4px 0 !important; color: var(--ck-dim) !important; }
+html body #app-bottom-nav .bn-item .bn-ic,
+html body #app-bottom-nav .bn-item.bn-home .bn-ic, html body #app-bottom-nav .bn-item.bn-home.is-active .bn-ic {
+  width: 56px !important; height: 30px !important; margin: 0 !important; border-radius: 15px !important;
+  display: grid !important; place-items: center; font-size: 22px !important;
+  background: transparent !important; color: inherit !important; box-shadow: none !important;
+}
+html body #app-bottom-nav .bn-item .bn-lbl { font: 500 11px var(--f-ui) !important; }
+html body #app-bottom-nav .bn-item.bn-home { color: var(--ck-dim) !important; }
+html body #app-bottom-nav .bn-item.is-active, html body #app-bottom-nav .bn-item.bn-home.is-active { color: var(--ck-tx) !important; }
+html body #app-bottom-nav .bn-item.is-active .bn-ic, html body #app-bottom-nav .bn-item.bn-home.is-active .bn-ic {
+  background: color-mix(in srgb, #2f8a5a 16%, transparent) !important; color: #2f8a5a !important;
+  font-variation-settings: 'FILL' 1 !important;
+}
+html[data-ck="dark"] body #app-bottom-nav .bn-item.is-active .bn-ic { color: #8fe0a9 !important; background: rgba(143,224,169,.14) !important; }
+html body #app-bottom-nav .bn-item.is-active .bn-lbl { font-weight: 700 !important; }
+
+/* ============================================================
+   5. UNDERSIDORNA — luft under sista raden så inget hamnar bakom menyn
+   ============================================================ */
+html body #pane-absence, html body #pane-month { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 28px) !important; }
+html body #sheet-lon .lon-sheet-content, body.sheet-full #sheet-lon .lon-sheet-content { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 28px) !important; }
+html body .nt-list { padding-bottom: 24px !important; }
+html body .sheet-title { font: 700 26px/1.1 var(--f-num) !important; }
+html body .sheet-subtitle { font: 500 13px var(--f-ui) !important; }
+html body .fv-sum-c, html body .fv-main > span, html body .fv-n span, html body .fv-atg span, html body .fv-hint, html body .nt-tag, html body .nt-count { font-family: var(--f-ui) !important; }
+html body .fv-sum-c { border-radius: 20px !important; }
+html body .fv-remsa { height: 30px !important; }
+html body .fv-add { margin-top: 6px !important; }
+html body .md-dialog-title { font-weight: 700 !important; }
+html body #pane-dash { position: relative !important; inset: auto !important; display: flex !important; }
+html body #container-dash-views, html body #bottom-standard-views { min-height: 0 !important; }

@@ -4890,8 +4890,8 @@ function ritaArbetsyta(){
 }
 
 const UI_STATUS = [
-    { t: 'Arbete', i: '💼' }, { t: 'Ledig', i: '🏠' }, { t: 'Semester', i: '✈️' },
-    { t: 'Sjuk', i: '🤒' }, { t: 'VAB', i: '👶' }, { t: 'Föräldraledig', i: '🍼', n: 'FL' }
+    { t: 'Arbete', i: 'work' }, { t: 'Ledig', i: 'weekend' }, { t: 'Semester', i: 'beach_access' },
+    { t: 'Sjuk', i: 'sick' }, { t: 'VAB', i: 'child_care' }, { t: 'Föräldraledig', i: 'stroller', n: 'Föräldraledig' }
 ];
 function arbetsytaDag(){
     const k = hemDag(), d = uiDatum(k), o = db.d[k] || {}, p = uiPass(k), vy = malVy(k);
@@ -4907,15 +4907,15 @@ function arbetsytaDag(){
         tl = `<div class="ws-tl ws-tl-tom">Inget pass i schemat</div>`;
     }
     const aktiv = o.abs ? (o.abs.split(' ')[0]) : (o.st === 'Ledig' ? 'Ledig' : 'Arbete');
-    const chips = UI_STATUS.map(s => `<button class="ws-chip${aktiv === s.t ? ' is-on' : ''}" onclick="uiStatus('${s.t}')"><span>${s.i}</span>${s.n || s.t}</button>`).join('');
+    const chips = UI_STATUS.map(s => `<button class="ws-chip${aktiv === s.t ? ' is-on' : ''}" onclick="uiStatus('${s.t}')"><span class="material-symbols-rounded">${s.i}</span>${s.n || s.t}</button>`).join('');
     const franvaro = o.abs ? `<em class="ws-abs">${uiEsc(o.abs)}${o.abs_hours ? ' · ' + String(o.abs_hours).replace('.', ',') + ' h' : ''}</em>` : '';
     return `<div class="ws-dag">
       <div class="ws-head">
         <div class="ws-title"><b>${UI_DAG[d.getDay()]} ${d.getDate()} ${UI_MAN[d.getMonth()]}</b><span>${arIdag ? 'Idag' : (d < realToday ? 'Avslutad' : 'Kommande')}${franvaro}</span></div>
         <div class="ws-tools">
-          <button class="ws-tool" onclick="uiBoost()" title="Höj ribban">⚡</button>
-          <button class="ws-tool" onclick="uiEval()" title="Utvärdera passet">✎</button>
-          <button class="ws-tool" onclick="openFocusMode2()" title="Fokusläge">◎</button>
+          <button class="ws-tool" onclick="uiBoost()" title="Höj ribban"><span class="material-symbols-rounded">bolt</span></button>
+          <button class="ws-tool" onclick="uiEval()" title="Utvärdera passet"><span class="material-symbols-rounded">rate_review</span></button>
+          <button class="ws-tool" onclick="openFocusMode2()" title="Fokusläge"><span class="material-symbols-rounded">center_focus_strong</span></button>
         </div>
       </div>
       ${tl}
@@ -5259,4 +5259,27 @@ window.sfFest = sfFest;
         } catch(e){}
         return ut;
     };
+})();
+
+
+// ============================================================
+// Veckoraden: emojis byts mot små färgprickar (lugnare, mer professionellt).
+// Körs efter varje omritning av raden.
+// ============================================================
+(function(){
+    const el = document.getElementById('slide-curr'); if (!el) return;
+    const KARTA = [['👶', 'vab'], ['🍼', 'fl'], ['⚠️', 'atg'], ['⚠', 'atg'], ['🤒', 'sjuk'], ['✈️', 'sem'], ['✈', 'sem'], ['🏠', 'ledig'], ['🏢', 'tl']];
+    let pa = false;
+    const stada = () => {
+        if (pa) return; pa = true;
+        el.querySelectorAll('.vp-val').forEach(v => {
+            const t = (v.textContent || '').trim();
+            if (!t || /[0-9A-Za-zÅÄÖåäö]/.test(t)) return;
+            const typ = (KARTA.find(([e]) => t.includes(e)) || [null, 'annat'])[1];
+            v.innerHTML = `<i class="vp-dot vp-dot-${typ}"></i>`;
+        });
+        pa = false;
+    };
+    new MutationObserver(stada).observe(el, { childList: true, subtree: true });
+    stada();
 })();

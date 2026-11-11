@@ -46,7 +46,7 @@
           if (t) { cls += ' ab f-' + t; inner = `<span class="fk-lab">${ic(AB[t][0])}${AB[t][1]}</span>`; if (s > 0) inner += `<span class="fk-val">${kk(s)}</span>`; }
           else if (s > 0) { const ok = dm > 0 && s >= dm; inner = `<span class="fk-val ${dm > 0 ? (ok ? 'ok' : 'lag') : ''}">${kk(s)}</span>${dm > 0 ? `<i class="fk-bar"><em class="${ok ? 'ok' : ''}" style="width:${Math.min(100, s / dm * 100)}%"></em></i>` : ''}`; }
           else if (o.st === 'Ledig' || o.abs === 'Ledig' || (!q.start && !s)) { cls += ' ledig'; inner = `<span class="fk-lab">Ledig</span>`; }
-          else if (q.start) inner = `<span class="fk-val p">${String(q.start).slice(0, 5)}</span>`;
+          else if (q.start) inner = `<span class="fk-tm">${String(q.start).slice(0, 5)}</span>${q.end ? `<span class="fk-tm e">${String(q.end).slice(0, 5)}</span>` : ''}`;
           if (stanger(k, q) && !t) inner += `<span class="fk-key">${ic('key')}</span>`;
           if (d.getTime() === realToday.getTime()) cls += ' idag';
           if (val.has(k)) cls += ' val';
@@ -136,7 +136,7 @@
       <div class="fk-acts">
         <button class="pri" data-a="salj">${ic('add')}<span>Registrera sälj</span></button>
         <button data-a="franv">${ic('event_busy')}<span>${t ? 'Ändra frånvaro' : 'Frånvaro'}</span></button>
-        <button data-a="ledig">${ic(o.st === 'Ledig' || o.abs === 'Ledig' ? 'work' : 'weekend')}<span>${o.st === 'Ledig' || o.abs === 'Ledig' ? 'Arbete' : 'Ledig'}</span></button>
+        <button data-a="${t ? 'ta' : 'ledig'}">${ic(t ? 'delete' : (o.st === 'Ledig' || o.abs === 'Ledig' ? 'work' : 'weekend'))}<span>${t ? 'Ta bort frånvaro' : (o.st === 'Ledig' || o.abs === 'Ledig' ? 'Arbete' : 'Ledig')}</span></button>
         <button data-a="oppna">${ic('open_in_new')}<span>Öppna dagen</span></button>
       </div></div>`;
     el.onclick = e => {
@@ -145,6 +145,7 @@
       const a = b.dataset.a; stang();
       if (a === 'salj') { activeK = k; setTimeout(() => window.fxReg && window.fxReg('salj'), 150); }
       else if (a === 'franv') { setTimeout(() => fvStart(t ? franvPeriod(k) : [k]), 150); }
+      else if (a === 'ta') { franvPeriod(k).length > 1 && t ? pushMatrixSync(k, { abs: null, st: 'Arbete', abs_hours: null }) : pushMatrixSync(k, { abs: null, st: 'Arbete', abs_hours: null }); }
       else if (a === 'ledig') { const ar = o.st === 'Ledig' || o.abs === 'Ledig'; pushMatrixSync(k, ar ? { abs: null, st: 'Arbete' } : { abs: 'Ledig', st: 'Ledig' }); }
       else if (a === 'oppna') { goToDayDash(k); setHemLage('dag'); }
     };
@@ -161,6 +162,7 @@
     return ut;
   }
 
+  window.fkDag = oppnaDag;
   // ---------- koppla in ----------
   const rc = window.renderCal;
   window.renderCal = renderCal = function (y, m) { const r = rc.apply(this, arguments); try { rita(y, m); } catch (e) { console.error(e); } return r; };

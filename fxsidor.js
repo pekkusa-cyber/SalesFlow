@@ -65,46 +65,29 @@
     const pane = $('pane-absence'); if (!pane) return;
     const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1, dim = new Date(cy, cm, 0).getDate();
     const per = fvPerioder(cy, cm);
-    let remsa = '';
+    const bl = bonusLattnad(cy, cm), mal0 = getBudgetForMonth(cy, cm);
+    const mal = bl.ratio > 0 ? Math.round(mal0 * (1 - bl.ratio)) : mal0;
+    const sum = {}; let atgN = 0, atgDagar = [];
+    per.forEach(p => { const t = typAv(p.abs); if (t.c === 'atg') { atgN += p.dagar.length; atgDagar = atgDagar.concat(p.dagar); } else sum[t.c] = (sum[t.c] || 0) + p.dagar.length; });
+    const tot = Object.values(sum).reduce((a, b) => a + b, 0) + atgN;
+    // månadskalender
+    const forsta = (new Date(cy, cm - 1, 1).getDay() + 6) % 7;
+    let cal = 'MTOTFLS'.split('').map(x => `<span>${x}</span>`).join('') + '<i></i>'.repeat(forsta);
     for (let d = 1; d <= dim; d++) {
       const k = `${cy}-${cm}-${d}`, o = db.d[k] || {}, t = o.abs && o.abs !== 'Ledig' ? typAv(o.abs) : null;
       const idag = new Date(cy, cm - 1, d).getTime() === realToday.getTime();
-      remsa += `<i class="${t ? 'f-' + t.c : ''}${idag ? ' idag' : ''}${o.abs_hours && !isWholeDayAbsence(k) ? ' del' : ''}" title="${d}"></i>`;
+      cal += `<button class="${t ? 'f-' + t.c : ''}${idag ? ' idag' : ''}${o.abs === 'Ledig' ? ' ledig' : ''}" style="animation-delay:${d * 12}ms" onclick="fkDag('${k}')">${t ? ic(t.i) : ''}<b>${d}</b></button>`;
     }
-    const sum = {}; per.forEach(p => { const t = typAv(p.abs); if (t.c !== 'atg') sum[t.c] = (sum[t.c] || 0) + p.dagar.length; });
-    const latt = bonusLattnad(cy, cm).dagar, ratio = bonusLattnad(cy, cm).ratio;
-    const atg = per.filter(p => typAv(p.abs).c === 'atg');
-    const vanl = per.filter(p => typAv(p.abs).c !== 'atg');
-    const tot = Object.values(sum).reduce((a, b) => a + b, 0);
-    const chips = Object.keys(sum).map(c => `<span class="fp-chip f-${c}">${ic(TYP[c].i)}${c === 'fl' ? 'FL' : TYP[c].n}<b>${sum[c]}</b></span>`).join('');
-    const atgHtml = atg.length ? `<button class="fp-atg" onclick="fvStart(${JSON.stringify(atg.flatMap(p => p.dagar)).replace(/"/g, '&quot;')})">${ic('error')}<div><b>${atg.reduce((n, p) => n + p.dagar.length, 0)} dagar saknar typ</b><small>${atg.map(p => intervall(uiDatum(p.dagar[0]), uiDatum(p.dagar[p.dagar.length - 1]))).join(', ')}</small></div><span>Välj typ</span></button>` : '';
-    const rader = vanl.map(p => {
-      const t = typAv(p.abs), a = uiDatum(p.fran), b = uiDatum(p.till);
-      const delar = p.dagar.filter(k => (db.d[k] || {}).abs_hours && !isWholeDayAbsence(k));
-      const tim = delar.reduce((n, k) => n + (+db.d[k].abs_hours || 0), 0);
-      const ger = (t.c === 'sem' || t.c === 'fl') && p.dagar.some(k => lattnadPeriod(uiDatum(k)) >= LATTNAD_MIN_DAGAR);
-      const barn = p.abs.includes(' ') ? p.abs.split(' ').slice(1).join(' ') : '';
-      const id = p.dagar[0], oppen = fvOppen === id;
-      const dag = JSON.stringify(p.dagar).replace(/"/g, '&quot;');
-      return `<div class="fp-row${oppen ? ' open' : ''}" onclick="fvToggla('${id}')">
-        <span class="fp-ic f-${t.c}">${ic(t.i)}</span>
-        <div class="fp-t"><b>${t.n}${barn ? ' · ' + uiEsc(barn) : ''}</b><small>${intervall(a, b)}${delar.length ? ' · ' + String(Math.round(tim * 100) / 100).replace('.', ',') + ' h' : ''}${ger ? ' · <em>ger lättnad</em>' : ''}${p.ovrigt ? ' · ' + p.ovrigt + ' i grannmånad' : ''}</small></div>
-        <div class="fp-n"><b>${p.dagar.length}</b><small>${p.dagar.length === 1 ? 'dag' : 'dgr'}</small></div>
-        <div class="fp-act" onclick="event.stopPropagation()">
-          <button onclick="fvStart(${dag})">${ic('edit')}Ändra</button>
-          <button onclick="goToDayDash('${p.dagar[0]}');setHemLage('dag')">${ic('today')}Visa dag</button>
-          <button class="del" onclick="fvTaBort(this, ${dag})">${ic('delete')}Ta bort</button>
-        </div></div>`;
-    }).join('');
+    const tiles = Object.keys(sum).map(c => `<div class="fp-tile f-${c}">${ic(TYP[c].i)}<span>${TYP[c].n}</span><b>${sum[c]}</b></div>`).join('')
+      + (atgN ? `<button class="fp-tile f-atg" onclick="fvStart(${JSON.stringify(atgDagar).replace(/"/g, '&quot;')})">${ic('error')}<span>Saknar typ</span><b>${atgN}</b><small>Tryck för att välja</small></button>` : '');
     pane.innerHTML = `<div class="fp">
-      <div class="fp-sum"><div><b>${tot}</b><span>${tot === 1 ? 'dag frånvaro' : 'dagar frånvaro'}</span></div><div><b>${latt}</b><span>lättnadsdagar</span></div><div><b>${ratio > 0 ? '−' + Math.round(ratio * 100) + ' %' : '—'}</b><span>lägre bonusmål</span></div></div>
-      <div class="fp-remsa">${remsa}</div>
-      <div class="fp-ax"><span>1</span><span>${Math.ceil(dim / 2)}</span><span>${dim}</span></div>
-      ${chips ? `<div class="fp-chips">${chips}</div>` : ''}
-      ${atgHtml}
-      <div class="fp-list">${rader || `<div class="fp-tom">${ic('event_available')}<b>Ingen frånvaro i ${UI_MAN[cm - 1]}</b><small>Lägg in semester, sjukdag, VAB eller föräldraledighet nedan.</small></div>`}</div>
+      <section class="fp-hero"><div><span>Borta i ${UI_MAN[cm - 1]}</span><b>${tot} ${tot === 1 ? 'dag' : 'dagar'}</b><small>${bl.ratio > 0 ? `bonusmålet sänks ${Math.round(bl.ratio * 100)} % till ${mal.toLocaleString('sv-SE')} kr` : 'påverkar inte bonusmålet'}</small></div>
+        <div class="r"><span>Lättnad</span><b>${bl.dagar} ${bl.dagar === 1 ? 'dag' : 'dagar'}</b></div></section>
+      <section class="fp-cal">${cal}</section>
+      ${tiles ? `<section class="fp-tiles">${tiles}</section>` : `<p class="fp-tom">Ingen frånvaro i ${UI_MAN[cm - 1]}. Tryck på en dag för att lägga in.</p>`}
       <button class="fp-add" onclick="fvStart()">${ic('add')}Lägg in frånvaro</button>
     </div>`;
+    pane.classList.remove('kompakt'); if (pane.scrollHeight > pane.clientHeight + 1) pane.classList.add('kompakt');
   };
 
   // flödet: allt på en skärm
@@ -165,10 +148,23 @@
   };
   Object.assign(window, { fvStart, fvValjTyp, fvValjBarn, fvRita });
 
+  // ---------- modaler som inte ska scrolla: anpassa tills allt får plats ----------
+  function anpassa(id) {
+    const m = $(id); if (!m) return;
+    const kor = () => {
+      const d = m.querySelector('.md-dialog'); if (!d || m.classList.contains('hidden')) return;
+      d.classList.remove('fm1', 'fm2', 'fm3'); d.scrollTop = 0;
+      for (const f of ['fm1', 'fm2', 'fm3']) { if (d.scrollHeight <= d.clientHeight + 1) break; d.classList.add(f); }
+    };
+    new MutationObserver(() => { setTimeout(kor, 80); setTimeout(kor, 450); }).observe(m, { attributes: true, attributeFilter: ['class'] });
+  }
+  window.fxAnpassa = anpassa;
+
   // ---------- starta ----------
   function start() {
     ['sheet-month', 'sheet-lon', 'notes-modal', 'budget-modal', 'summary-modal', 'lon-settings-modal', 'coach-main-modal', 'focus-mode', 'nt-form', 'lon-confirm-modal', 'child-select-modal', 'eval-modal']
       .forEach(bevaka);
+    ['summary-modal', 'budget-modal'].forEach(anpassa);
     try { if (typeof viewMode !== 'undefined' && viewMode === 'absence') renderAbsence(); } catch (e) {}
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

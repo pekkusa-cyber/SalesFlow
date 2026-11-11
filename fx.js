@@ -244,15 +244,17 @@
     const html = dag ? idag(k, m) : manadVy(m);
     const vyId = (dag ? 'd' : 'm') + k + viewDate.getMonth();
     const v = $('fx-view');
+    const igen = vyId === vy0; v.classList.toggle('nt', igen);
     v.innerHTML = html;
     if (vyId !== vy0) { v.classList.remove('in'); void v.offsetWidth; v.classList.add('in'); vy0 = vyId; }
     const big = $('fx-big'); if (big) rakna(big, +big.dataset.v || 0);
     document.querySelectorAll('.fx-fill').forEach(f => { const w = f.dataset.w; requestAnimationFrame(() => { f.style.width = w + '%'; }); });
+    document.querySelectorAll('.fx-rc').forEach(c => { const d = c.dataset.d; requestAnimationFrame(() => { c.style.strokeDasharray = d; }); });
     document.querySelectorAll('.fx-bar i').forEach(f => { const h = f.dataset.h; requestAnimationFrame(() => { f.style.height = h + '%'; }); });
     // anpassa tills allt får plats – ingen scroll på Idag och Månad
     const sc = $('fx-scroll');
-    sc.classList.remove('fit1', 'fit2', 'fit3'); sc.scrollTop = 0;
-    for (const f of ['fit1', 'fit2', 'fit3']) { if (sc.scrollHeight <= sc.clientHeight + 1) break; sc.classList.add(f); }
+    sc.classList.remove('fit1', 'fit2', 'fit3', 'fit4'); sc.scrollTop = 0;
+    for (const f of ['fit1', 'fit2', 'fit3', 'fit4']) { if (sc.scrollHeight <= sc.clientHeight + 1) break; sc.classList.add(f); }
     $('fx-cta').querySelector('.fx-cta-t').textContent = dag && !arIdag ? `Registrera ${d.getDate()} ${MAN[d.getMonth()].slice(0, 3)}` : 'Registrera försäljning';
     aktiv();
   }
@@ -275,52 +277,63 @@
     return `<div class="fx-week">${h}</div>`;
   }
 
+  // ---------- dubbelringen: blå = sålt av målet, gul = hur långt tiden gått ----------
+  const RY = 62, CY = 2 * Math.PI * RY, RI = 48, CI = 2 * Math.PI * RI;
+  function ringar(fs, fp, klar) {
+    const a = Math.max(0, Math.min(1, fs)), b = Math.max(0, Math.min(1, fp));
+    return `<svg viewBox="0 0 150 150" aria-hidden="true">
+      <circle cx="75" cy="75" r="${RY}" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="12"/>
+      <circle class="fx-rc" data-d="${(CY * a).toFixed(1)} ${CY.toFixed(1)}" cx="75" cy="75" r="${RY}" fill="none" stroke="${klar ? '#3fcf8e' : '#5b7cff'}" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 999" transform="rotate(-90 75 75)"/>
+      <circle cx="75" cy="75" r="${RI}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="6"/>
+      <circle class="fx-rc" data-d="${(CI * b).toFixed(1)} ${CI.toFixed(1)}" cx="75" cy="75" r="${RI}" fill="none" stroke="#f2c36b" stroke-width="6" stroke-linecap="round" stroke-dasharray="0 999" transform="rotate(-90 75 75)"/>
+    </svg>`;
+  }
+  const hm = min => Math.floor(min / 60) + ' h ' + String(Math.round(min % 60)).padStart(2, '0') + ' min';
+
   function idag(k, m) {
     const v = malVy(k), o = db.d[k] || {}, p = uiPass(k), tid = uiTidKvar(k), d = dateOf(k);
     const arIdag = d.getTime() === realToday.getTime();
-    const kvar = Math.max(0, v.bas - v.salt), mal = v.bas > 0;
-    const pct = mal ? Math.min(100, v.salt / v.bas * 100) : 0;
-    // status
-    let pill = '', pc = '';
-    if (o.abs) { pill = String(o.abs).split(' ')[0] === 'Åtgärd' ? 'Åtgärd krävs' : String(o.abs).split(' ')[0]; pc = 'am'; }
-    else if (!mal) { pill = v.salt > 0 ? 'Registrerat' : (p ? 'Inget mål' : 'Ledig'); pc = 'gr'; }
-    else if (v.salt >= v.bas) { pill = v.lage === 'boost' ? 'Boost' : 'Klart'; pc = 'ok'; }
-    else { pill = `${Math.round(pct)} %`; pc = 'ac'; }
-    // tidslinje
-    let tl = '';
-    if (o.abs) tl = `<div class="fx-abs">${ic('event_busy')}<span>${esc(o.abs)}${o.abs_hours ? ' · ' + String(o.abs_hours).replace('.', ',') + ' h' : ''}</span></div>`;
-    else if (p || mal) {
-      const nu = new Date(), mm = nu.getHours() * 60 + nu.getMinutes();
-      const f = p ? (arIdag ? Math.max(0, Math.min(1, (mm - p.a) / (p.b - p.a))) : (d < realToday ? 1 : 0)) : 0;
-      tl = `<div class="fx-track"><i class="fx-fill${v.salt >= v.bas && mal ? ' ok' : ''}" data-w="${pct.toFixed(1)}"></i>${arIdag && f > 0 && f < 1 ? `<em style="left:${(f * 100).toFixed(1)}%"></em>` : ''}</div>`
-        + (p ? `<div class="fx-tl"><span>${p.start}</span><span>${arIdag && f > 0 && f < 1 ? 'nu ' + String(nu.getHours()).padStart(2, '0') + ':' + String(nu.getMinutes()).padStart(2, '0') : ((p.b - p.a) / 60).toFixed(1).replace('.', ',') + ' h pass'}</span><span>${p.slut}</span></div>` : '');
-    } else tl = `<div class="fx-abs fx-tom">${ic('event_available')}<span>Inget pass i schemat</span></div>`;
-    const perTim = tid > 0 && kvar > 0 ? kr(kvar / (tid / 60)) : '—';
-    const tidS = tid ? Math.floor(tid / 60) + ' h ' + String(tid % 60).padStart(2, '0') : '—';
-    const kvarS = !mal ? '—' : kvar > 0 ? kr(kvar) : '+' + kr(v.salt - v.bas);
-    // smart rad
-    let tips = '';
-    if (mal && arIdag && tid > 0 && kvar > 0) tips = `<b>${kr(kvar / (tid / 60))} kr/tim</b> resten av passet når dagsmålet.`;
-    else if (mal && v.salt >= v.bas && m.nasta && m.kravNasta) tips = `Snyggt! <b>${kk(m.kravNasta)} per pass</b> ger ${m.nasta.pct} % bonus.`;
-    else if (m.nasta && m.kravNasta) tips = `<b>${kk(m.kravNasta)} per pass</b> resten av månaden ger ${m.nasta.pct} % bonus.`;
+    const mal = v.bas > 0, kvar = Math.max(0, v.bas - v.salt);
+    const fs = mal ? v.salt / v.bas : 0;
+    let fp = 0;
+    if (p) { const nu = new Date(), mm = nu.getHours() * 60 + nu.getMinutes(); fp = arIdag ? Math.max(0, Math.min(1, (mm - p.a) / (p.b - p.a))) : (d < realToday ? 1 : 0); }
+    const klar = mal && v.salt >= v.bas;
+    // status och mening
+    let pill = '', pc = '', verd = '';
+    if (o.abs) { const t = String(o.abs).split(' ')[0]; pill = t === 'Åtgärd' ? 'Saknar typ' : t; pc = 'am'; verd = `<b>${esc(o.abs)}</b>${o.abs_hours ? ' · ' + String(o.abs_hours).replace('.', ',') + ' h' : ''} · ingen försäljning väntas.`; }
+    else if (!mal) { pill = v.salt > 0 ? 'Registrerat' : (p ? 'Inget mål' : 'Ledig'); pc = 'gr'; verd = p ? 'Inget dagsmål är satt för dagen.' : 'Inget pass i schemat.'; }
+    else if (klar) { pill = 'Klart'; pc = 'ok'; verd = `<b>Dagsmålet nått</b>${v.salt > v.bas ? ' · ' + kr(v.salt - v.bas) + ' kr över' : ''}.${m.nasta && m.kravNasta ? `<span class="l2">${kk(m.kravNasta)} per pass ger ${m.nasta.pct} % bonus.</span>` : ''}`; }
+    else {
+      pill = Math.round(fs * 100) + ' %'; pc = 'ac';
+      if (p && arIdag) {
+        const diff = v.salt - v.bas * fp;
+        verd = diff >= 0 ? `Du ligger <b>${kr(diff)} kr före</b> tempot.` : `Du ligger <b class="bad">${kr(-diff)} kr efter</b> tempot.`;
+        if (tid > 0) verd += `<span class="l2">Krävs ${kr(kvar / (tid / 60))} kr i timmen · ${hm(tid)} kvar.</span>`;
+      } else verd = `<b>${Math.round(fs * 100)} %</b> av dagsmålet · ${kr(kvar)} kr kvar.`;
+    }
     const L = lon();
     const bonusV = m.nu && !m.nasta ? `${m.nu.pct} %` : m.nasta ? `${m.nasta.pct} %` : '—';
-    const bonusS = m.nu && !m.nasta ? 'högsta nivån nådd' : m.nasta ? `${kk(m.nasta.min - m.salt)} kvar` : 'inga nivåer';
+    const bonusS = m.nu && !m.nasta ? 'högsta nivån' : m.nasta ? `${kk(m.nasta.min - m.salt)} kvar` : 'inga nivåer';
     const lonS = (L.lbl.match(/(januari|februari|mars|april|maj|juni|juli|augusti|september|oktober|november|december)/i) || [])[0];
     return `
       ${veckorad(k)}
-      <section class="fx-hero2">
-        <div class="fx-hh"><span class="fx-lbl">${arIdag ? 'Sålt idag' : 'Sålt ' + DAG[d.getDay()].toLowerCase()}</span>${o.abs ? '' : `<span class="fx-pill ${pc}">${esc(pill)}</span>`}</div>
-        <div class="fx-big"><b id="fx-big" data-v="${v.salt}">${kr(v.salt)}</b><em>kr</em></div>
-        <div class="fx-sub">${mal ? `av ${kr(v.bas)}${v.boost ? ' + ' + kk(v.boost) + ' boost' : ''}` : 'Inget dagsmål'}</div>
-        ${tl}
-        <div class="fx-met3"><div><span>Kvar</span><b>${kvarS}</b></div><div><span>Per timme</span><b>${perTim}</b></div><div><span>Tid kvar</span><b>${tidS}</b></div></div>
+      <section class="fx-hero3">
+        <div class="fx-h3t"><span>${arIdag ? 'Sålt idag' : 'Sålt ' + DAG[d.getDay()].toLowerCase()}</span><span class="fx-pill ${pc}">${esc(pill)}</span></div>
+        <div class="fx-h3m">
+          <div class="fx-rg">${ringar(fs, fp, klar)}<div class="c"><b id="fx-big" data-v="${v.salt}">${kr(v.salt)}</b><small>${mal ? 'av ' + kr(v.bas) + ' kr' : 'inget dagsmål'}</small></div></div>
+          <div class="fx-info">
+            <div><span><i style="background:${klar ? '#3fcf8e' : '#5b7cff'}"></i>Sålt</span><b>${mal ? Math.round(fs * 100) + ' %' : '—'}</b></div>
+            <div><span><i style="background:#f2c36b"></i>Passet</span><b>${p ? Math.round(fp * 100) + ' %' : '—'}</b></div>
+            <div><span>Kvar</span><b>${mal ? (kvar > 0 ? kr(kvar) + ' kr' : '✓') : '—'}</b></div>
+          </div>
+        </div>
+        <div class="fx-verd">${verd}</div>
       </section>
-      ${tips ? `<p class="fx-tips">${ic('lightbulb')}<span>${tips}</span></p>` : ''}
+      <section class="fx-quick"><button onclick="uiLagg(1000)">+1 000</button><button onclick="uiLagg(2500)">+2 500</button><button onclick="uiLagg(5000)">+5 000</button></section>
       <section class="fx-tiles">
-        <button class="fx-tile t-mint" onclick="setHemLage('manad')">${ic('trending_up')}<span>${stor(MAN[m.cm - 1])}</span><b>${kk(m.salt)}</b><small>${m.mal > 0 ? Math.round(m.salt / m.mal * 100) + ' % av ' + kk(m.mal) : ''}</small><i class="fx-mini"><em style="width:${m.mal > 0 ? Math.min(100, m.salt / m.mal * 100) : 0}%"></em></i></button>
-        <button class="fx-tile t-sand" onclick="setHemLage('manad')">${ic('workspace_premium')}<span>${m.nu && !m.nasta ? 'Bonus' : 'Nästa bonus'}</span><b>${bonusV}</b><small>${bonusS}</small><i class="fx-steps">${m.steg.map(t => `<em class="${m.salt >= t.min ? 'on' : ''}"></em>`).join('')}</i></button>
-        <button class="fx-tile t-lav" onclick="navTo('lon')">${ic('payments')}<span>Lön</span><b>${L.net || '—'}</b><small>${lonS ? '25 ' + lonS.slice(0, 3).toLowerCase() : 'kommande'}</small><i class="fx-mini"></i></button>
+        <button class="fx-tile t-mint" onclick="setHemLage('manad')">${ic('trending_up')}<span>${stor(MAN[m.cm - 1])}</span><b>${kk(m.salt)}</b><small>${m.mal > 0 ? Math.round(m.salt / m.mal * 100) + ' % av ' + kk(m.mal) : ''}</small></button>
+        <button class="fx-tile t-sand" onclick="setHemLage('manad')">${ic('workspace_premium')}<span>${m.nu && !m.nasta ? 'Bonus' : 'Nästa bonus'}</span><b>${bonusV}</b><small>${bonusS}</small></button>
+        <button class="fx-tile t-lav" onclick="navTo('lon')">${ic('payments')}<span>Lön</span><b>${L.net || '—'}</b><small>${lonS ? '25 ' + lonS.slice(0, 3).toLowerCase() : 'kommande'}</small></button>
       </section>`;
   }
 
@@ -333,24 +346,33 @@
       else if (x.fram && x.mal > 0) { c = 'p'; h = Math.max(4, x.mal / max * 100); }
       return `<button class="${c}${x.idag ? ' idag' : ''}" onclick="fxDag('${x.k}')" aria-label="${x.d}"><i data-h="${h.toFixed(1)}"></i></button>`;
     }).join('');
-    const pct = m.mal > 0 ? Math.round(m.salt / m.mal * 100) : 0;
+    const fs = m.mal > 0 ? m.salt / m.mal : 0, klar = m.mal > 0 && m.salt >= m.mal;
+    const isNu = m.cy === realToday.getFullYear() && m.cm === realToday.getMonth() + 1;
+    const fp = isNu ? Math.min(1, (realToday.getDate() - 1 + new Date().getHours() / 24) / m.dim) : (new Date(m.cy, m.cm - 1, 1) < realToday ? 1 : 0);
     const ifas = m.prognos >= m.mal;
-    let sub = '';
-    if (m.salt >= m.mal && m.mal > 0) sub = `Målet nått · <b>${m.nasta ? kk(m.nasta.min - m.salt) + ' till ' + m.nasta.pct + ' %' : 'högsta nivån'}</b>`;
-    else if (m.krav != null) sub = `<b>${kk(m.krav)} per pass</b> räcker till målet`;
-    else sub = `${pct} % av målet`;
+    let verd = '';
+    if (klar) verd = `<b>Månadsmålet nått</b> · ${m.nasta ? kk(m.nasta.min - m.salt) + ' till ' + m.nasta.pct + ' % bonus' : 'högsta bonusnivån'}.`;
+    else if (isNu) {
+      const diff = m.salt - m.mal * fp;
+      verd = diff >= 0 ? `Du ligger <b>${kk(diff)} före</b> månadens tempo.` : `Du ligger <b class="bad">${kk(-diff)} efter</b> månadens tempo.`;
+      if (m.krav != null) verd += `<span class="l2">Krävs ${kk(m.krav)} per pass · prognos ${kk(m.prognos)} ${ifas ? '(i fas)' : '(efter)'}.</span>`;
+    } else verd = `<b>${Math.round(fs * 100)} %</b> av månadsmålet · prognos ${kk(m.prognos)}.`;
     const tiers = m.steg.map(t => {
       const f = Math.min(100, m.salt / t.min * 100), nadd = m.salt >= t.min;
       return `<div class="fx-tr${nadd ? ' nadd' : ''}"><b>${t.pct} %</b><span class="fx-tmin">${kk(t.min)}</span><div class="fx-tb"><i class="fx-fill" data-w="${f.toFixed(1)}"></i></div><small>${nadd ? 'Nådd' : kk(t.min - m.salt) + ' kvar'}</small></div>`;
     }).join('');
     return `
-      <section class="fx-hero2">
-        <div class="fx-hh"><span class="fx-lbl">Sålt i ${MAN[m.cm - 1]}</span><div class="fx-mnav"><button onclick="fxMan(-1)" aria-label="Förra månaden">${ic('chevron_left')}</button><button onclick="fxMan(1)" aria-label="Nästa månad">${ic('chevron_right')}</button></div></div>
-        <div class="fx-big"><b id="fx-big" data-v="${m.salt}">${kr(m.salt)}</b><em>kr</em></div>
-        <div class="fx-sub">${pct} % av ${kr(m.mal)}${m.salt >= m.mal && m.mal > 0 ? ' · ' + sub : ''}</div>
-        <div class="fx-track"><i class="fx-fill${ifas ? '' : ' efter'}${m.salt >= m.mal && m.mal > 0 ? ' ok' : ''}" data-w="${Math.min(100, pct)}"></i>${m.mal > 0 ? `<em class="prog" style="left:${Math.min(100, m.prognos / m.mal * 100).toFixed(1)}%"></em>` : ''}</div>
-        <div class="fx-tl"><span class="${ifas ? 'okt' : 'eft'}">${ifas ? 'I fas' : 'Efter'}</span><span>${m.krav ? 'krävs <b>' + kk(m.krav) + '</b>/pass · ' : ''}prognos ${kk(m.prognos)}</span></div>
-        <div class="fx-met3"><div><span>Pass kvar</span><b>${m.rW} av ${m.tP}</b></div><div><span>Snitt/pass</span><b>${m.avg ? kk(m.avg) : '—'}</b></div><div><span>Frånvaro</span><b>${m.frv} ${m.frv === 1 ? 'dag' : 'dgr'}</b></div></div>
+      <section class="fx-hero3">
+        <div class="fx-h3t"><span>Sålt i ${MAN[m.cm - 1]}</span><div class="fx-mnav"><button onclick="fxMan(-1)" aria-label="Förra månaden">${ic('chevron_left')}</button><button onclick="fxMan(1)" aria-label="Nästa månad">${ic('chevron_right')}</button></div></div>
+        <div class="fx-h3m">
+          <div class="fx-rg">${ringar(fs, fp, klar)}<div class="c"><b id="fx-big" data-v="${m.salt}">${kr(m.salt)}</b><small>av ${kr(m.mal)} kr</small></div></div>
+          <div class="fx-info">
+            <div><span><i style="background:${klar ? '#3fcf8e' : '#5b7cff'}"></i>Sålt</span><b>${Math.round(fs * 100)} %</b></div>
+            <div><span><i style="background:#f2c36b"></i>Månaden</span><b>${Math.round(fp * 100)} %</b></div>
+            <div><span>Kvar</span><b>${klar ? '✓' : kk(Math.max(0, m.mal - m.salt))}</b></div>
+          </div>
+        </div>
+        <div class="fx-verd">${verd}</div>
       </section>
       <section class="fx-box">
         <div class="fx-bh"><b>Dag för dag</b><span><i class="h"></i>nått<i class="m"></i>under<i class="a"></i>frånvaro</span></div>
@@ -360,7 +382,11 @@
         <div class="fx-bh"><b>Bonusnivåer</b>${m.ratio > 0 ? `<button onclick="toggleReliefMode()">${m.lattat ? 'Lättat −' + Math.round(m.ratio * 100) + ' %' : 'Visa lättat −' + Math.round(m.ratio * 100) + ' %'}</button>` : ''}</div>
         <div class="fx-tiers">${tiers || '<p class="fx-note">Inga bonusnivåer för månaden.</p>'}</div>
       </section>
-`;
+      <section class="fx-tiles">
+        <div class="fx-tile t-mint">${ic('event_repeat')}<span>Pass kvar</span><b>${m.rW}</b><small>av ${m.tP}</small></div>
+        <div class="fx-tile t-sand">${ic('speed')}<span>Snitt/pass</span><b>${m.avg ? kk(m.avg) : '—'}</b><small>${m.krav ? 'krävs ' + kk(m.krav) : 'avslutade'}</small></div>
+        <div class="fx-tile t-lav">${ic('event_busy')}<span>Frånvaro</span><b>${m.frv}</b><small>${m.frv === 1 ? 'dag' : 'dagar'}</small></div>
+      </section>`;
   }
 
   // ---------- ark ----------

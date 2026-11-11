@@ -4511,9 +4511,9 @@ function toggleSummaryView() {
     const insights = document.getElementById('summary-insights-view');
     const title = document.getElementById('summary-modal-title');
     if (currentSummaryView === 'stats') {
-        stats.classList.add('hidden'); insights.classList.remove('hidden'); currentSummaryView = 'insights'; title.innerText = "INSIKTER";
+        stats.classList.add('hidden'); insights.classList.remove('hidden'); currentSummaryView = 'insights'; title.innerText = "Insikter";
     } else {
-        insights.classList.add('hidden'); stats.classList.remove('hidden'); currentSummaryView = 'stats'; title.innerText = "SAMMANFATTNING";
+        insights.classList.add('hidden'); stats.classList.remove('hidden'); currentSummaryView = 'stats'; title.innerText = "Sammanfattning";
     }
 }
 
@@ -4653,7 +4653,7 @@ function calculateSummaryStats() {
 
 function openSummaryModal(mode) { 
     calculateSummaryStats(); currentSummaryView = 'stats';
-    document.getElementById('summary-stats-view').classList.remove('hidden'); document.getElementById('summary-insights-view').classList.add('hidden'); document.getElementById('summary-modal-title').innerText = "SAMMANFATTNING";
+    document.getElementById('summary-stats-view').classList.remove('hidden'); document.getElementById('summary-insights-view').classList.add('hidden'); document.getElementById('summary-modal-title').innerText = "Sammanfattning";
     const m = document.getElementById('summary-modal'); if(m) { m.classList.remove('hidden'); setTimeout(() => m.classList.remove('opacity-0'), 10); } 
 }
 

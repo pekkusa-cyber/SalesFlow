@@ -449,3 +449,59 @@ html body #budget-modal .lon-version { margin-top: 10px !important; }
 .fp-row { padding: 7px 12px 7px 8px; }
 .fp-add { position: sticky; bottom: 0; box-shadow: 0 -12px 18px -6px var(--fx-bg); }
 .fp-list { padding-bottom: 4px; }
+
+/* ---- v134: automatisk anpassning så Idag/Månad aldrig scrollar ---- */
+.fx-scroll { overflow-y: hidden; }
+.fx-scroll.fit1 #fx-view { gap: 9px; }
+.fx-scroll.fit1 .fx-tips { display: none; }
+.fx-scroll.fit1 .fx-hero2 .fx-big b { font-size: 40px; }
+.fx-scroll.fit1 .fx-hero2 { padding: 11px 14px 10px; }
+.fx-scroll.fit1 .fx-met3 { margin-top: 9px; padding-top: 8px; }
+.fx-scroll.fit2 .fx-tile > .material-symbols-rounded { display: none; }
+.fx-scroll.fit2 .fx-wd { padding: 3px 0 4px !important; }
+.fx-scroll.fit2 .fx-wd b { font-size: 15px; }
+.fx-scroll.fit2 .fx-box .fx-bar { height: 44px; }
+.fx-scroll.fit2 .fx-hero2 .fx-track { margin-top: 9px; }
+.fx-scroll.fit3 .fx-tile small, .fx-scroll.fit3 .fx-tile .fx-mini, .fx-scroll.fit3 .fx-tile .fx-steps { display: none; }
+.fx-scroll.fit3 .fx-hero2 .fx-big b { font-size: 34px; }
+.fx-scroll.fit3 .fx-hero2 .fx-sub { font-size: 12.5px; }
+.fx-scroll.fit3 .fx-box .fx-bh { margin-bottom: 4px; }
+
+/* ---- lönen: påminnelsen flyter ovanför menyn i stället för att ta plats ---- */
+html body #sheet-lon #lon-reminder:not(.hidden) {
+  position: fixed !important; left: 14px; right: 14px; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 10px); z-index: 9200;
+  margin: 0 !important; padding: 10px 14px 10px 40px !important; border-radius: 14px !important;
+  background: var(--fx-ink) !important; color: var(--fx-on-ink) !important; border: 0 !important;
+  font: 500 12.5px/1.35 var(--f-ui) !important; box-shadow: 0 14px 30px -14px rgba(0,0,0,.5);
+  display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  animation: fxIn .4s cubic-bezier(.2,.8,.2,1) both;
+}
+html body #sheet-lon #lon-reminder:not(.hidden)::before { content: "receipt_long"; font-family: 'Material Symbols Rounded'; position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 19px; color: var(--fx-am); }
+html body #sheet-lon #lon-reminder * { color: inherit !important; }
+html body #sheet-lon #lon-reminder .fx-emo { display: none; }
+html body #sheet-lon:has(#lon-reminder:not(.hidden)) .lon-sheet-content { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 70px) !important; }
+html body .lon-result-card { padding: 12px 16px !important; }
+html body .lon-tier-goal { margin: 4px 0 2px !important; }
+html body .lon-rrow { padding: 1px 0 !important; }
+
+/* ---- sammanfattningen i Fokus-stil ---- */
+html body #summary-modal .md-dialog-header { padding-bottom: 8px !important; }
+html body #summary-modal .md-stat-card { border-radius: 18px !important; border: 1px solid transparent !important; padding: 12px 14px !important; text-align: left !important; align-items: flex-start !important; }
+html body #summary-modal .md-stat-blue { background: var(--p-blue) !important; border-color: var(--p-blue2) !important; }
+html body #summary-modal .md-stat-yellow { background: var(--p-sand) !important; border-color: var(--p-sand2) !important; }
+html body #summary-modal .md-stat-green { background: var(--p-mint) !important; border-color: var(--p-mint2) !important; }
+html body #summary-modal .md-stat-red { background: color-mix(in srgb, #e5646e 9%, var(--fx-card)) !important; border-color: color-mix(in srgb, #e5646e 20%, transparent) !important; }
+html body #summary-modal .md-stat-card * { text-align: left !important; }
+html body #summary-modal .md-stat-lbl, html body #summary-modal [class*="stat-lbl"] { font: 550 12px var(--f-ui) !important; color: var(--fx-mu) !important; text-transform: none !important; letter-spacing: 0 !important; }
+html body #summary-modal .md-stat-val { font: 700 26px/1.1 var(--f-ui) !important; letter-spacing: -.045em !important; }
+html body #summary-modal .md-stat-blue .md-stat-val { color: var(--c-blue) !important; } html body #summary-modal .md-stat-yellow .md-stat-val { color: var(--c-sand) !important; }
+html body #summary-modal .md-stat-green .md-stat-val { color: var(--c-mint) !important; } html body #summary-modal .md-stat-red .md-stat-val { color: #d8513f !important; }
+html body #summary-modal .md-row-card { background: var(--fx-card) !important; border: 1px solid var(--fx-line) !important; border-radius: 16px !important; padding: 12px 14px !important; }
+html body #summary-modal .md-row-card * { color: var(--fx-tx) !important; }
+html body #summary-modal .md-row-card [class*="title"] { font: 600 14px var(--f-ui) !important; }
+html body #summary-modal .md-row-card [class*="sub"], html body #summary-modal .md-row-card small { font: 500 12px var(--f-ui) !important; color: var(--fx-mu) !important; }
+html body #summary-modal .md-row-card [class*="val"] { font: 700 18px var(--f-ui) !important; color: var(--c-blue) !important; }
+html body #summary-modal .md-section-lbl { font: 600 13px var(--f-ui) !important; color: var(--fx-mu) !important; margin: 14px 2px 6px !important; }
+html body #summary-modal .abs-sum-row, html body #summary-modal [class*="abs-reason"] { border-radius: 12px !important; }
+html body #summary-modal #sum-abs-list > *, html body #summary-modal .sum-abs-row { background: var(--fx-card) !important; border: 1px solid var(--fx-line) !important; border-radius: 12px !important; text-transform: none !important; font: 600 13px var(--f-ui) !important; }
+html body #summary-modal * { text-transform: none !important; letter-spacing: -.005em !important; }

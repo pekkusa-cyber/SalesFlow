@@ -249,6 +249,10 @@
     const big = $('fx-big'); if (big) rakna(big, +big.dataset.v || 0);
     document.querySelectorAll('.fx-fill').forEach(f => { const w = f.dataset.w; requestAnimationFrame(() => { f.style.width = w + '%'; }); });
     document.querySelectorAll('.fx-bar i').forEach(f => { const h = f.dataset.h; requestAnimationFrame(() => { f.style.height = h + '%'; }); });
+    // anpassa tills allt får plats – ingen scroll på Idag och Månad
+    const sc = $('fx-scroll');
+    sc.classList.remove('fit1', 'fit2', 'fit3'); sc.scrollTop = 0;
+    for (const f of ['fit1', 'fit2', 'fit3']) { if (sc.scrollHeight <= sc.clientHeight + 1) break; sc.classList.add(f); }
     $('fx-cta').querySelector('.fx-cta-t').textContent = dag && !arIdag ? `Registrera ${d.getDate()} ${MAN[d.getMonth()].slice(0, 3)}` : 'Registrera försäljning';
     aktiv();
   }

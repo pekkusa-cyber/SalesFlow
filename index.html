@@ -20,9 +20,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=115">
+    <link rel="stylesheet" href="style.css?v=116">
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="ui.css?v=115">
+    <link rel="stylesheet" href="ui.css?v=116">
+    <link rel="stylesheet" href="premium.css?v=116">
     <script>try{var v=localStorage.getItem('sf_ck')||'ljust';document.documentElement.setAttribute('data-ck',(v==='mork'||(v==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches))?'dark':'light');}catch(e){}</script>
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
@@ -465,7 +466,11 @@
     <!-- INSTÄLLNINGAR -->
     <div id="budget-modal" class="md-scrim fixed inset-0 z-[15000] hidden flex items-center justify-center p-4">
         <div class="md-dialog w-[320px]">
-            <p class="md-section-lbl text-center">Inställningar</p>
+            <div class="md-dialog-header">
+                <h2 class="md-dialog-title">Inställningar</h2>
+                <button onclick="closeBudgetModal()" class="md-icon-btn" aria-label="Stäng"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <p class="md-section-lbl">Data</p>
             <button id="sync-btn" onclick="syncData()" class="md-btn-filled w-full md-btn-icon-text" data-testid="sync-data">
                 <span class="material-symbols-rounded">sync</span> Synkronisera data
             </button>
@@ -964,7 +969,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=115"></script>
+    <script src="script.js?v=116"></script>
     <script>
     // ============================================================
     // SALESFLOW — Navigationscontroller
@@ -985,6 +990,10 @@
         const _navArrow   = window.navArrow;
         const _openNotes  = window.openNotesModal;
         const _closeNotes = window.closeNotesModal;
+
+        // Vyerna är helskärmssidor: lägg dem direkt i <body> så att inget i
+        // startsidans layout (höjder, overflow) kan klämma dem.
+        [sheetMonth, sheetAbsence, sheetLon].forEach(function(el){ if (el && el.parentNode !== body) body.appendChild(el); });
 
         function activeSheet() {
             if (sheetMonth.classList.contains('is-open'))   return sheetMonth;
@@ -1038,11 +1047,10 @@
                 return;
             }
 
-            // Lön: behåller slide-animation, render i nästa frame för mjuk start
+            // Lön: alltid helvy, render i nästa frame för mjuk start
             body.classList.remove('sheet-instant');
-            body.classList.add('sheet-open');
-            if (goFull) { body.classList.add('sheet-full'); target.classList.add('is-full'); }
-            else { body.classList.remove('sheet-full'); target.classList.remove('is-full'); }
+            body.classList.add('sheet-open', 'sheet-full');
+            target.classList.add('is-full');
             target.classList.add('is-open');
             target.style.transform = '';
             setActiveNav(which);
@@ -1051,7 +1059,7 @@
             requestAnimationFrame(function(){
                 if (typeof window.renderLonSheet === 'function') window.renderLonSheet();
                 body.classList.add('sheet-open');
-                if (goFull) { body.classList.add('sheet-full'); target.classList.add('is-full'); }
+                body.classList.add('sheet-full'); target.classList.add('is-full');
                 target.classList.add('is-open');
                 updateNavSheetState();
             });
@@ -1119,11 +1127,11 @@
                 else { openSheet(target, { full: true }); }
                 return;
             }
-            // Lön: behåller mini → hel → toggle
+            // Lön: helvy, ett tryck till stänger
             if (target === 'lon') {
                 if (notesOpen() && _closeNotes) _closeNotes();
-                if (activeSheet() === sheetLon) { isFull() ? collapseSheet() : expandSheet(); }
-                else { openSheet('lon', { forcePeek: true }); }
+                if (activeSheet() === sheetLon) closeSheet();
+                else openSheet('lon', { full: true });
                 return;
             }
             if (notesOpen() && _closeNotes) _closeNotes();
@@ -1163,19 +1171,19 @@
             if (sn && !sn.classList.contains('hidden')) { if (typeof window.closeSavedNotesModal === 'function') window.closeSavedNotesModal(); return; }
             if (document.body.classList.contains('focus-mode-active')) { if (typeof window.closeFocusMode === 'function') window.closeFocusMode(true); return; }
             if (notesOpen()) { window.closeNotesModal(); return; }
-            if (activeSheet()) { isFull() ? collapseSheet() : closeSheet(); }
+            if (activeSheet()) closeSheet();
         });
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 if (typeof window.lonSettingsOpen === 'function' && window.lonSettingsOpen()) { window.closeLonSettings(); return; }
                 if (notesOpen()) { window.closeNotesModal(); return; }
-                if (activeSheet()) { isFull() ? collapseSheet() : closeSheet(); }
+                if (activeSheet()) closeSheet();
             }
         });
 
         // ---------- Gest: drag i strecket / titelytan ----------
         function attachGesture(sheetEl) {
-            const noMini = (sheetEl === sheetMonth || sheetEl === sheetAbsence); // Kalender/Frånvaro: ingen mini
+            const noMini = true; // inga minivyer: drag nedåt stänger
             const grips = [ sheetEl.querySelector('.sheet-handle'), sheetEl.querySelector('.sheet-title-area') ];
             let startY = 0, startX = 0, dy = 0, dx = 0, dragging = false, moved = false;
             function start(e) {
@@ -1200,7 +1208,7 @@
                 dragging = false;
                 sheetEl.style.transition = '';
                 sheetEl.style.transform = '';
-                if (!moved) { if (noMini) closeSheet(); else { isFull() ? collapseSheet() : expandSheet(); } return; }   // tap = toggla / stäng
+                if (!moved) return;   // tap på rubriken gör inget
                 if (Math.abs(dy) <= Math.abs(dx)) return;                              // horisontellt = ignorera
                 if (dy < -40) { if (!isFull() && !noMini) expandSheet(); }
                 else if (dy > 60) { if (noMini) closeSheet(); else { isFull() ? collapseSheet() : closeSheet(); } }

@@ -1,0 +1,350 @@
+/* ============================================================
+   SalesFlow — PREMIUM
+   Sista lagret, laddas efter ui.css. Tre saker:
+   1. Alla vyer är helskärmssidor (kalender, frånvaro, lön, inställningar,
+      sammanfattning, coach, löneinställningar, frånvaroflödet, anteckningsformuläret).
+      Inga halva ark längre.
+   2. Ett knappsystem: svart huvudknapp, vit sekundärknapp, runda ikonknappar.
+   3. Lugnare typografi: Inter för all text, Sora bara för stora tal.
+   ============================================================ */
+
+:root {
+  --ck-bg:     #f5f6f8;
+  --ck-bg2:    #f5f6f8;
+  --ck-panel2: #fbfbfc;
+  --ck-raise:  #eceef2;
+  --ck-line:   #e8ebf0;
+  --ck-line2:  #dde1e8;
+  --ck-tx:     #0e1116;
+  --ck-mu:     #5f6775;
+  --ck-dim:    #9299a6;
+  --ck-shadow: 0 1px 2px rgba(14,17,22,.04), 0 10px 30px -18px rgba(14,17,22,.22);
+  --ck-head:   radial-gradient(120% 75% at 50% -20%, #e3edf9 0%, #eef2f8 50%, var(--ck-bg) 100%);
+  --ease-out:  cubic-bezier(.2,.8,.2,1);
+  --page-pad:  20px;
+}
+html[data-ck="dark"] {
+  --ck-bg:     #0b0d11;
+  --ck-bg2:    #0b0d11;
+  --ck-panel:  #14171d;
+  --ck-panel2: #181c23;
+  --ck-raise:  #1f242c;
+  --ck-line:   #22272f;
+  --ck-line2:  #2c323c;
+  --ck-shadow: 0 1px 0 rgba(255,255,255,.03) inset, 0 12px 30px -16px rgba(0,0,0,.8);
+}
+:root, html[data-ck="dark"] {
+  --f-mono: 'Inter', system-ui, -apple-system, sans-serif;
+  --nav-h: 86px;
+}
+body { -webkit-font-smoothing: antialiased; font-feature-settings: "tnum" 1, "cv11" 1; }
+
+/* versaletiketter: mindre spärrade, lugnare */
+.ck-month, .ck-st span, .cal-sum span, .sheet-subtitle, .nt-count, .nt-f span,
+.ws-title span, .abs-sum-title, .lon-net-lbl, .md-info-text, .ck-status, .ck-of, .weekday-label {
+  letter-spacing: .06em !important;
+}
+.ck-month { font-weight: 600 !important; font-size: 11.5px !important; color: var(--ck-tx) !important; opacity: .8; }
+
+/* ============================================================
+   1. HELSKÄRMSSIDOR
+   ============================================================ */
+@keyframes sfPageIn { from { opacity: 0; transform: translate3d(0, 14px, 0); } to { opacity: 1; transform: none; } }
+@keyframes sfFade   { from { opacity: 0; } to { opacity: 1; } }
+
+/* --- kalender, frånvaro, lön: flyttas till <body> av navigeringen --- */
+html body .sf-sheet {
+  position: fixed !important; inset: 0 !important; z-index: 9000 !important;
+  border-radius: 0 !important; border: 0 !important; box-shadow: none !important;
+  background: var(--ck-bg) !important;
+  padding-top: env(safe-area-inset-top, 0px) !important;
+  padding-bottom: 0 !important;
+}
+html body .sf-sheet.is-open .sheet-content,
+html body .sf-sheet.is-open .cal-sum { animation: sfPageIn .3s var(--ease-out) both; }
+html body .sheet-handle { display: none !important; }
+html body .sheet-header {
+  background: transparent !important; border: 0 !important;
+  padding: 14px 12px 8px !important; min-height: 64px;
+}
+html body .sheet-title { font: 800 24px/1.1 var(--f-num) !important; letter-spacing: -.035em !important; }
+html body .sheet-subtitle { font: 500 12px var(--f-ui) !important; color: var(--ck-mu) !important; margin-top: 3px; text-transform: none; }
+html body .sheet-nav-btn, html body .lon-nav-arrow {
+  width: 42px !important; height: 42px !important; border-radius: 50% !important;
+  background: var(--ck-panel) !important; border: 1px solid var(--ck-line) !important;
+  box-shadow: var(--ck-shadow) !important; color: var(--ck-tx) !important;
+  display: grid !important; place-items: center !important;
+}
+/* Kalender/Frånvaro-växeln dubblerar menyn – visas bara i fokusläget där den behövs */
+body:not(.focus-mode-active) .cal-seg-bar { display: none !important; }
+html body #pane-month { padding: 6px 12px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 6px) !important; }
+html body #pane-absence { padding: 8px var(--page-pad) calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 10px) !important; }
+html body #sheet-lon .lon-sheet-content,
+body.sheet-full #sheet-lon .lon-sheet-content {
+  padding: 4px 16px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 16px) !important;
+  overflow-y: auto !important;
+}
+html body .cal-sum { margin: 4px 14px 2px !important; border-radius: 18px !important; box-shadow: var(--ck-shadow); }
+html body .cal-sum div { padding: 10px 2px !important; }
+html body .cal-sum b { font-size: 16px !important; }
+
+/* --- dialoger som blir sidor --- */
+#budget-modal, #summary-modal, #coach-main-modal, #coach-history-modal, #coach-read-modal,
+#lon-settings-modal, #saved-notes-modal, #red-thread-modal, #eval-modal { --pg: 1; }
+html body #budget-modal.md-scrim, html body #summary-modal.md-scrim, html body #coach-main-modal.md-scrim,
+html body #coach-history-modal.md-scrim, html body #coach-read-modal.md-scrim, html body #lon-settings-modal.md-scrim,
+html body #saved-notes-modal.md-scrim, html body #red-thread-modal.md-scrim, html body #eval-modal.md-scrim {
+  padding: 0 !important; align-items: stretch !important; justify-content: stretch !important;
+  background: var(--ck-bg) !important; backdrop-filter: none !important;
+}
+html body #budget-modal > .md-dialog, html body #summary-modal > .md-dialog, html body #coach-main-modal > .md-dialog,
+html body #coach-history-modal > .md-dialog, html body #coach-read-modal > .md-dialog, html body #lon-settings-modal > .md-dialog,
+html body #saved-notes-modal > .md-dialog, html body #red-thread-modal > .md-dialog, html body #eval-modal > .md-dialog {
+  width: 100% !important; max-width: none !important; height: 100% !important; max-height: none !important;
+  margin: 0 !important; border-radius: 0 !important; border: 0 !important; box-shadow: none !important;
+  background: var(--ck-bg) !important; transform: none !important;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) var(--page-pad) calc(env(safe-area-inset-bottom, 0px) + 28px) !important;
+  overflow-y: auto !important; overflow-x: hidden !important;
+  display: flex !important; flex-direction: column !important; gap: 0;
+  animation: sfPageIn .32s var(--ease-out) both;
+}
+html body .md-scrim > .md-dialog.md-dialog::before { display: none !important; }
+html body #budget-modal > .md-dialog::before, html body #summary-modal > .md-dialog::before,
+html body #coach-main-modal > .md-dialog::before, html body #coach-history-modal > .md-dialog::before,
+html body #coach-read-modal > .md-dialog::before, html body #lon-settings-modal > .md-dialog::before,
+html body #saved-notes-modal > .md-dialog::before, html body #red-thread-modal > .md-dialog::before,
+html body #eval-modal > .md-dialog::before { display: none !important; }
+/* inre delar som hade egen höjd/scroll följer sidan */
+html body #coach-main-modal .md-dialog > *:not(.md-dialog-header),
+html body #saved-notes-modal .md-dialog > *:not(.md-dialog-header) { max-height: none !important; }
+html body #saved-notes-modal #notes-list-gammal, html body #coach-history-modal .overflow-y-auto { padding-left: 0 !important; padding-right: 0 !important; }
+
+/* sidhuvud: stor rubrik, rund stängknapp, ligger kvar överst */
+html body .md-dialog-header, html body .pg-head {
+  position: sticky; top: calc(-10px - env(safe-area-inset-top, 0px)); z-index: 5;
+  display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 12px;
+  margin: 0 calc(-1 * var(--page-pad)) 6px !important; padding: 12px var(--page-pad) 14px !important;
+  background: var(--ck-bg) !important; border: 0 !important;
+}
+html body .md-dialog-title, html body .pg-head h2 {
+  font: 800 28px/1.1 var(--f-num) !important; letter-spacing: -.04em !important; color: var(--ck-tx) !important; margin: 0;
+}
+html body .md-dialog-title .material-symbols-rounded { display: none !important; }
+html body .md-dialog-body { padding: 0 !important; }
+
+/* --- frånvaroflödet och anteckningsformuläret som sidor --- */
+html body .ui-sheet, html body .nt-form { background: var(--ck-bg) !important; align-items: stretch !important; }
+html body .ui-panel, html body .nt-form-panel {
+  max-width: none !important; max-height: none !important; height: 100% !important; border-radius: 0 !important;
+  background: var(--ck-bg) !important; box-shadow: none !important;
+  padding: calc(env(safe-area-inset-top, 0px) + 18px) var(--page-pad) calc(env(safe-area-inset-bottom, 0px) + 22px) !important;
+  display: flex; flex-direction: column; transform: translate3d(0, 14px, 0) !important; opacity: 0;
+  transition: transform .32s var(--ease-out), opacity .2s !important;
+}
+html body .ui-sheet.open .ui-panel, html body .nt-form.open .nt-form-panel { transform: none !important; opacity: 1; }
+html body .ui-grab { display: none !important; }
+html body .fv-top b, html body .nt-form-top b { font: 800 26px/1.1 var(--f-num) !important; letter-spacing: -.04em !important; }
+html body .ui-panel h3 { font: 700 18px var(--f-ui) !important; letter-spacing: -.01em !important; margin: 14px 0 14px !important; color: var(--ck-mu); }
+html body .fv-foot { margin-top: auto !important; padding-top: 14px; }
+html body .fv-typ { height: 84px !important; border-radius: 22px !important; box-shadow: var(--ck-shadow); }
+html body .fv-barn button { height: 150px !important; border-radius: 26px !important; box-shadow: var(--ck-shadow); }
+html body .fv-cal { gap: 6px !important; }
+html body .fv-cal button { border-radius: 14px !important; }
+html body .nt-fields { flex: 1; }
+html body .nt-f:has(textarea) { flex: 1; }
+html body .nt-f textarea { flex: 1; min-height: 160px !important; }
+html body .nt-save { margin-top: auto; }
+
+/* ============================================================
+   2. KNAPPAR
+   ============================================================ */
+.sf-press, html body .md-btn-filled, html body .md-btn-tonal, html body .md-btn-outlined, html body .md-btn-text,
+html body .md-icon-btn, html body .md-budget-btn, .nt-new, .nt-save, .fv-save, .fv-add, .abs-register-btn,
+.ws-tool, .ws-step, .ws-amt, .ws-quick button, .ws-chip, .ck-themes button, .hl-seg button, .fv-typ, .fv-barn button,
+.nt-filter button, .sheet-nav-btn, .lon-nav-arrow, .md-header-icon, .fv-atg button, .fv-act button {
+  transition: transform .14s var(--ease-out), background-color .2s, color .2s, box-shadow .2s !important;
+  -webkit-tap-highlight-color: transparent;
+}
+html body .md-btn-filled:active, html body .md-btn-tonal:active, html body .md-btn-outlined:active, html body .md-budget-btn:active,
+.nt-new:active, .nt-save:active, .fv-save:active, .fv-add:active, .abs-register-btn:active, .ck-themes button:active,
+.fv-typ:active, .fv-barn button:active, .sheet-nav-btn:active, .lon-nav-arrow:active, .md-header-icon:active,
+html body .md-icon-btn:active, .fv-atg button:active, .fv-act button:active { transform: scale(.97) !important; }
+
+/* huvudknapp: svart (ljust tema) / ljus (mörkt tema), aldrig versaler */
+html body .md-btn-filled, html body .nt-save, html body .fv-save, html body .fv-add, html body .abs-register-btn, html body .nt-new {
+  background: var(--ck-tx) !important; color: var(--ck-bg) !important; border: 0 !important;
+  border-radius: 18px !important; min-height: 54px; padding: 0 20px;
+  font: 600 15px var(--f-ui) !important; letter-spacing: -.005em !important; text-transform: none !important;
+  box-shadow: 0 14px 28px -18px rgba(14,17,22,.7) !important;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+html body .nt-new { min-height: 44px; border-radius: 22px !important; padding: 0 18px; }
+html body .md-btn-filled .material-symbols-rounded { font-size: 20px; }
+html body .md-btn-filled:disabled, html body .fv-save:disabled { opacity: .35 !important; box-shadow: none !important; }
+
+/* sekundär: vit med hårfin kant */
+html body .md-btn-tonal, html body .md-btn-outlined {
+  background: var(--ck-panel) !important; color: var(--ck-tx) !important; border: 1px solid var(--ck-line) !important;
+  border-radius: 18px !important; min-height: 52px; padding: 0 18px;
+  font: 600 15px var(--f-ui) !important; letter-spacing: -.005em !important; text-transform: none !important;
+  box-shadow: var(--ck-shadow) !important;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+html body .md-btn-tonal-red { border-radius: 18px !important; min-height: 52px; text-transform: none !important; font: 600 15px var(--f-ui) !important; }
+html body .md-btn-text { font: 600 14px var(--f-ui) !important; text-transform: none !important; letter-spacing: 0 !important; color: var(--ck-mu) !important; }
+
+/* ikonknappar: runda */
+html body .md-icon-btn, html body .ui-x {
+  width: 42px !important; height: 42px !important; border-radius: 50% !important;
+  background: var(--ck-panel) !important; color: var(--ck-tx) !important; border: 1px solid var(--ck-line) !important;
+  box-shadow: var(--ck-shadow) !important; display: grid !important; place-items: center !important; flex-shrink: 0;
+}
+html body .md-icon-btn .material-symbols-rounded { font-size: 21px !important; }
+html body .md-header-icon {
+  width: 42px !important; height: 42px !important; border-radius: 50% !important; top: 12px !important;
+  background: var(--ck-panel) !important; border: 1px solid var(--ck-line) !important; color: var(--ck-tx) !important;
+  box-shadow: var(--ck-shadow) !important;
+}
+html body .md-header-icon-left { left: 16px !important; } html body .md-header-icon-right { right: 16px !important; }
+
+/* val i listform (månadsmål) */
+html body .md-budget-btn {
+  min-height: 56px; border-radius: 18px !important; background: var(--ck-panel) !important;
+  border: 1px solid var(--ck-line) !important; box-shadow: none !important; color: var(--ck-tx) !important;
+  font: 600 15px var(--f-ui) !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+html body .md-budget-btn.is-active { background: var(--ck-tx) !important; color: var(--ck-bg) !important; border-color: var(--ck-tx) !important; }
+
+/* segmentväljare */
+html body .ck-themes, html body .hl-seg { background: var(--ck-raise) !important; border-radius: 16px !important; padding: 4px !important; gap: 4px !important; border: 0 !important; }
+html body .ck-themes button { background: transparent !important; border: 0 !important; border-radius: 12px !important; min-height: 42px; font: 600 13.5px var(--f-ui) !important; color: var(--ck-mu) !important; }
+html body .ck-themes button.is-active { background: var(--ck-panel) !important; color: var(--ck-tx) !important; box-shadow: var(--ck-shadow) !important; }
+html body .hl-seg { border-radius: 12px !important; padding: 3px !important; }
+html body .hl-seg button { border-radius: 9px !important; padding: 6px 16px !important; font: 600 12.5px var(--f-ui) !important; }
+
+/* ============================================================
+   INSTÄLLNINGAR — grupperad lista
+   ============================================================ */
+html body #budget-modal .md-section-lbl, html body .md-section-lbl {
+  text-align: left !important; text-transform: none !important; letter-spacing: 0 !important;
+  font: 600 13px var(--f-ui) !important; color: var(--ck-mu) !important; margin: 22px 4px 10px !important;
+}
+html body #budget-modal .md-divider { display: none !important; }
+html body #budget-modal #budget-choices { gap: 8px !important; }
+html body .md-toggle-row {
+  display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 14px;
+  background: var(--ck-panel) !important; border: 1px solid var(--ck-line) !important; border-radius: 18px !important;
+  padding: 14px 16px !important; margin-top: 10px; font: 600 14.5px var(--f-ui) !important; color: var(--ck-tx) !important;
+}
+html body .md-toggle-row input[type="checkbox"] {
+  -webkit-appearance: none; appearance: none; flex-shrink: 0; position: relative; cursor: pointer;
+  width: 50px; height: 30px; border-radius: 15px; background: var(--ck-line2) !important; border: 0 !important;
+  transition: background .2s; margin: 0;
+}
+html body .md-toggle-row input[type="checkbox"]::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%;
+  background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.2); transition: transform .22s var(--ease-out);
+}
+html body .md-toggle-row input[type="checkbox"]:checked { background: var(--ck-ok) !important; }
+html body .md-toggle-row input[type="checkbox"]:checked::after { transform: translateX(20px); }
+html body .lon-hint { font: 400 12.5px/1.45 var(--f-ui) !important; color: var(--ck-mu) !important; margin: 8px 6px 0 !important; }
+html body #budget-modal .md-input, html body .md-input {
+  min-height: 52px; border-radius: 16px !important; background: var(--ck-panel) !important; border: 1px solid var(--ck-line) !important;
+  padding: 0 16px !important; font: 600 16px var(--f-num) !important;
+}
+html body .lon-version { margin-top: 26px !important; text-align: center; font: 500 12px var(--f-ui) !important; color: var(--ck-dim) !important; }
+html body #budget-modal .md-btn-text { display: none !important; }
+
+/* löneinställningarnas expanderbara grupper */
+html body .lon-details { background: var(--ck-panel) !important; border: 1px solid var(--ck-line) !important; border-radius: 20px !important; padding: 4px 16px !important; margin-bottom: 10px !important; box-shadow: none !important; }
+html body .lon-details summary { font: 700 15px var(--f-ui) !important; padding: 14px 0 !important; color: var(--ck-tx) !important; text-transform: none !important; letter-spacing: 0 !important; }
+
+/* ============================================================
+   STARTSIDAN — mer luft, mjukare kort
+   ============================================================ */
+html body .ck-stats { border-radius: 20px !important; background: var(--ck-panel) !important; border-color: var(--ck-line) !important; }
+html body .ck-st b { font-size: 18px !important; }
+html body .md-info-bar { border-radius: 14px !important; }
+html body #slide-curr .vp-cell { border-radius: 18px !important; border-color: var(--ck-line) !important; }
+html body .ws-tl, html body .ws-bars, html body .ws-axis, html body .ws-step-row { border-color: var(--ck-line) !important; }
+html body .ws-tl { border-radius: 18px !important; box-shadow: var(--ck-shadow); }
+html body .ws-tool { width: 42px !important; height: 42px !important; border-radius: 50% !important; box-shadow: var(--ck-shadow); }
+html body .ws-step { border-radius: 22px !important; box-shadow: var(--ck-shadow); font-weight: 400 !important; }
+html body .ws-amt { border-radius: 24px !important; box-shadow: 0 18px 34px -20px rgba(14,17,22,.8); }
+html body .ws-amt span { text-transform: none; letter-spacing: 0 !important; font: 500 11px var(--f-ui) !important; }
+html body .ws-quick button { background: var(--ck-panel) !important; color: var(--ck-tx) !important; border: 1px solid var(--ck-line) !important; border-radius: 16px !important; height: 44px !important; box-shadow: var(--ck-shadow); font: 700 14px var(--f-num) !important; }
+html body .ws-quick button:last-child { font: 600 13px var(--f-ui) !important; }
+html body .ws-chip { border-radius: 16px !important; height: 54px !important; gap: 3px !important; font: 600 10px var(--f-ui) !important; }
+html body .ws-chip span { font-size: 17px !important; }
+html body .ws-step-row { border-radius: 14px !important; }
+@media (max-height: 820px) {
+  html body .ws-quick button { height: 38px !important; }
+  html body .ws-chip { height: 46px !important; }
+  html body .ws-tool { width: 36px !important; height: 36px !important; }
+  html body .md-header-icon { width: 38px !important; height: 38px !important; top: 10px !important; }
+}
+
+/* menyn */
+html body #app-bottom-nav { border-radius: 26px !important; border-color: var(--ck-line) !important; box-shadow: 0 18px 40px -22px rgba(14,17,22,.45), 0 1px 2px rgba(14,17,22,.05) !important; }
+html body #app-bottom-nav .bn-item.is-active { background: var(--ck-tx) !important; color: var(--ck-bg) !important; }
+html body #app-bottom-nav .bn-item.is-active .bn-ic { color: inherit !important; }
+
+/* kalendern: tunna färgade streck i stället för tjocka block */
+html body #d-cal .day-cell { border-radius: 14px !important; }
+html body #d-cal .day-cell.type-absent::after, html body #d-cal .day-cell.type-semester::after,
+html body #d-cal .day-cell[class*="bg-split"]::after { left: 22% !important; right: 22% !important; bottom: 5px !important; height: 3px !important; border-radius: 2px !important; }
+
+/* kort i undersidorna */
+html body .fv-card, html body .nt-card, html body .lon-result-card, html body .abs-type { border-radius: 22px !important; }
+html body .nt-card { border-left-width: 1px !important; position: relative; padding-left: 18px !important; }
+html body .nt-card::before { content: ""; position: absolute; left: 8px; top: 14px; bottom: 14px; width: 3px; border-radius: 2px; background: var(--ck-line2); }
+html body .nt-card.p1::before { background: var(--ck-bad); } html body .nt-card.p2::before { background: var(--ck-am); } html body .nt-card.p3::before { background: var(--ck-cy); }
+html body .nt-title { font-size: 32px !important; }
+html body .nt-search { height: 50px !important; border-radius: 16px !important; box-shadow: var(--ck-shadow); }
+html body .nt-filter button { border-radius: 20px !important; padding: 8px 14px !important; }
+
+/* små bekräftelser förblir kort, men centrerade och luftiga */
+html body #confirm-box, html body .md-confirm-box { border-radius: 24px !important; box-shadow: 0 30px 60px -30px rgba(0,0,0,.5) !important; }
+
+/* ============================================================
+   3. FIRANDE — konfetti när dagsmålet eller en bonusnivå nås
+   ============================================================ */
+#sf-fest { position: fixed; inset: 0; z-index: 70000; pointer-events: none; }
+#sf-fest-pill {
+  position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 18px); z-index: 70001; pointer-events: none;
+  transform: translate(-50%, -30px) scale(.9); opacity: 0;
+  background: var(--ck-tx); color: var(--ck-bg); padding: 14px 22px; border-radius: 22px;
+  font: 700 15px var(--f-ui); white-space: nowrap; box-shadow: 0 20px 40px -20px rgba(0,0,0,.6);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  transition: transform .5s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+}
+#sf-fest-pill small { font: 500 12px var(--f-ui); opacity: .7; }
+#sf-fest-pill.on { transform: translate(-50%, 0) scale(1); opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  html body .sf-sheet.is-open .sheet-content, html body .md-dialog { animation: none !important; }
+}
+
+/* formulärsidor täcker menyn helt */
+body:has(.nt-form.open) #app-bottom-nav, body:has(.ui-sheet.open) #app-bottom-nav { display: none !important; }
+html body .md-dialog-title { text-transform: none !important; }
+html body .md-btn-tonal-blue {
+  background: var(--ck-tx) !important; color: var(--ck-bg) !important; border: 0 !important; border-radius: 18px !important;
+  min-height: 52px; font: 600 15px var(--f-ui) !important; text-transform: none !important; letter-spacing: 0 !important;
+}
+html body .lon-input { min-height: 50px; border-radius: 14px !important; background: var(--ck-panel) !important; border: 1px solid var(--ck-line) !important; padding: 0 14px !important; font: 600 15px var(--f-ui) !important; }
+html body .lon-upload-btn { background: var(--ck-panel2) !important; }
+html body .ws-reg { max-height: 150px !important; }
+
+/* lönen: nästa nivå och bonusavdrag syns i båda temana */
+html body .lon-tier-goal { background: var(--ck-panel2) !important; border: 1px solid var(--ck-line) !important; border-radius: 16px !important; padding: 12px 14px !important; margin: 10px 0 6px !important; }
+html body .lon-tier-goal .ltg-head { color: var(--ck-mu) !important; font: 600 11px var(--f-ui) !important; letter-spacing: .04em !important; }
+html body .lon-tier-goal .ltg-row { color: var(--ck-tx) !important; font: 600 13px var(--f-ui) !important; }
+html body .lon-tier-goal .ltg-relief { color: var(--ck-ok) !important; }
+html body .lon-tier-goal .ltg-foot { color: var(--ck-dim) !important; font: 500 11.5px var(--f-ui) !important; }
+html body .lon-seg-oncard { background: var(--ck-raise) !important; border-radius: 14px !important; padding: 4px !important; gap: 4px !important; }
+html body .lon-seg-oncard button { background: transparent !important; color: var(--ck-mu) !important; border: 0 !important; border-radius: 10px !important; min-height: 38px; font: 600 13px var(--f-ui) !important; box-shadow: none !important; }
+html body .lon-seg-oncard button.active { background: var(--ck-panel) !important; color: var(--ck-tx) !important; box-shadow: var(--ck-shadow) !important; }
+html body .lon-card-avdrag-lbl { color: var(--ck-mu) !important; font: 600 12px var(--f-ui) !important; letter-spacing: .02em !important; text-transform: none !important; }
+html body #summary-modal-title { text-transform: lowercase !important; }
+html body #summary-modal-title::first-letter { text-transform: uppercase; }
+@media (max-width: 380px) { html body .md-dialog-title { font-size: 24px !important; } }

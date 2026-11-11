@@ -1031,6 +1031,7 @@ function kollaFirande(k, lage){
     malForra[k] = lage;
     if (forra === 'jagar' && lage !== 'jagar'){
         firarTill = Date.now() + 1600;   // det gröna fasta skenet ska hinna registreras
+        if (typeof sfFest === 'function') { const v = malVy(k); sfFest('Dagsmålet klart', v.salt > 0 ? uiKr(v.salt) + ' idag' : ''); }
         if (firarTimer) clearTimeout(firarTimer);
         // Rita om när firandet är över, annars står vyn kvar i festläge.
         firarTimer = setTimeout(() => {
@@ -5193,5 +5194,67 @@ window.openSavedNotesModal = openSavedNotesModal;
         for (let d = 1; d <= dim; d++) { const k = `${y}-${m}-${d}`, o = db.d[k] || {}; salt += o.s || 0; if (o.s > 0) pass++; if (o.abs && o.abs !== 'Ledig') fr++; }
         const mal = getBudgetForMonth(y, m), r = getMonthlyBonusReliefRatio(y, m);
         el.innerHTML = `<div><b>${uiK(salt)}</b><span>av ${uiK(mal)}</span></div><div><b>${pass}</b><span>pass sålt</span></div><div><b>${fr}</b><span>frånvaro</span></div><div><b>${r > 0 ? '−' + Math.round(r * 100) + ' %' : '—'}</b><span>lättnad</span></div>`;
+    };
+})();
+
+
+// ============================================================
+// FIRANDE — konfetti och en svart bricka när dagsmålet nås (via kollaFirande)
+// eller när månadens försäljning passerar en ny bonusnivå. Bara vid själva
+// övergången efter en registrering, aldrig när man bläddrar.
+// ============================================================
+function sfFest(rubrik, under){
+    try { if (navigator.vibrate) navigator.vibrate([14, 60, 22]); } catch(e){}
+    let pill = document.getElementById('sf-fest-pill');
+    if (!pill){ pill = document.createElement('div'); pill.id = 'sf-fest-pill'; document.body.appendChild(pill); }
+    pill.innerHTML = '<span>🎉 ' + escHtml(rubrik) + '</span>' + (under ? '<small>' + escHtml(under) + '</small>' : '');
+    requestAnimationFrame(() => pill.classList.add('on'));
+    clearTimeout(sfFest._t); sfFest._t = setTimeout(() => pill.classList.remove('on'), 2600);
+    if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const c = document.createElement('canvas'); c.id = 'sf-fest';
+    const dpr = Math.min(2, window.devicePixelRatio || 1), W = innerWidth, H = innerHeight;
+    c.width = W * dpr; c.height = H * dpr; c.style.width = W + 'px'; c.style.height = H + 'px';
+    document.body.appendChild(c);
+    const x = c.getContext('2d'); x.scale(dpr, dpr);
+    const farg = ['#0e1116', '#0b84c6', '#c78600', '#0d9b6a', '#e3434a', '#6a56cf', '#f4b89a'];
+    const bitar = Array.from({ length: 110 }, (_, i) => ({
+        x: W / 2 + (Math.random() - .5) * 60, y: H * .32,
+        vx: (Math.random() - .5) * 11, vy: -Math.random() * 12 - 4,
+        r: Math.random() * Math.PI, vr: (Math.random() - .5) * .35,
+        w: 5 + Math.random() * 6, h: 8 + Math.random() * 8, f: farg[i % farg.length]
+    }));
+    const t0 = performance.now();
+    (function ram(t){
+        const dt = t - t0; x.clearRect(0, 0, W, H);
+        bitar.forEach(b => {
+            b.vy += .32; b.vx *= .985; b.x += b.vx; b.y += b.vy; b.r += b.vr;
+            x.save(); x.translate(b.x, b.y); x.rotate(b.r); x.globalAlpha = Math.max(0, 1 - dt / 2200);
+            x.fillStyle = b.f; x.fillRect(-b.w / 2, -b.h / 2, b.w, b.h * Math.abs(Math.cos(b.r * 2))); x.restore();
+        });
+        if (dt < 2200) requestAnimationFrame(ram); else c.remove();
+    })(t0);
+}
+window.sfFest = sfFest;
+
+(function(){
+    const _push = window.pushMatrixSync;
+    if (typeof _push !== 'function') return;
+    const manadSalt = (y, m) => { const dim = new Date(y, m, 0).getDate(); let s = 0; for (let d = 1; d <= dim; d++) s += (db.d[`${y}-${m}-${d}`] || {}).s || 0; return s; };
+    const niva = (y, m, salt) => {
+        let steg = [];
+        try { if (!lonCfg) lonLoad(); steg = (lonAdjustedTiers(y, m).tiers || []).filter(t => Number(t.min) > 0); } catch(e){ return null; }
+        let bast = null; steg.forEach(t => { if (salt >= t.min && (!bast || t.pct > bast.pct)) bast = t; }); return bast;
+    };
+    window.pushMatrixSync = pushMatrixSync = function(k, o){
+        const del = String(k).split('-').map(Number), y = del[0], m = del[1];
+        const fore = y && m ? niva(y, m, manadSalt(y, m)) : null;
+        const ut = _push.apply(this, arguments);
+        try {
+            if (y && m && o && o.s !== undefined){
+                const efter = niva(y, m, manadSalt(y, m));
+                if (efter && (!fore || efter.pct > fore.pct)) setTimeout(() => sfFest('Ny bonusnivå: ' + efter.pct + ' %', UI_MAN[m - 1] + ' · ' + uiKr(manadSalt(y, m))), 400);
+            }
+        } catch(e){}
+        return ut;
     };
 })();

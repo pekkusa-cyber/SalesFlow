@@ -348,3 +348,11 @@ html body .lon-card-avdrag-lbl { color: var(--ck-mu) !important; font: 600 12px 
 html body #summary-modal-title { text-transform: lowercase !important; }
 html body #summary-modal-title::first-letter { text-transform: uppercase; }
 @media (max-width: 380px) { html body .md-dialog-title { font-size: 24px !important; } }
+
+/* månadsläget: bonusstegen som tre rutor i rad, så inget klipps mot menyn */
+html body .ws-ladder { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 6px !important; flex-shrink: 0; }
+html body .ws-step-row { display: flex !important; flex-direction: column; align-items: center; gap: 1px !important; padding: 9px 4px !important; border-radius: 16px !important; text-align: center; }
+html body .ws-step-row .ws-pct { font-size: 15px !important; }
+html body .ws-step-row .ws-min { font: 600 12px var(--f-num) !important; white-space: nowrap; }
+html body .ws-step-row .ws-left { font: 500 10.5px var(--f-ui) !important; white-space: nowrap; }
+html body .ws-man { min-height: 0; overflow: hidden; }

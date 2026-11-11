@@ -37,7 +37,7 @@
       <button class="fx-cta" id="fx-cta">${ic('add')}<span class="fx-cta-t">Registrera försäljning</span></button>
       <nav class="fx-nav" id="fx-nav" aria-label="Meny">
         <button data-n="idag">${ic('today')}<span>Idag</span></button>
-        <button data-n="manad">${ic('bar_chart')}<span>Månad</span></button>
+        <button data-n="franv">${ic('event_busy')}<span>Frånvaro</span></button>
         <button data-n="kal">${ic('calendar_month')}<span>Kalender</span></button>
         <button data-n="lon">${ic('payments')}<span>Lön</span></button>
         <button data-n="mer">${ic('more_horiz')}<span>Mer</span></button>
@@ -126,12 +126,12 @@
     // svep på veckoraden byter vecka, svep på sidan byter dag/månad
     let sx = 0, sy = 0, start = null;
     const view = $('fx-scroll');
-    view.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; start = e.target; }, { passive: true });
-    view.addEventListener('touchend', e => {
+    view.addEventListener('touchstart', e => { if (!e.touches || !e.touches[0]) return; sx = e.touches[0].clientX; sy = e.touches[0].clientY; start = e.target; }, { passive: true });
+    view.addEventListener('touchend', e => { if (!e.changedTouches || !e.changedTouches[0]) return;
       const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
       if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-      if (start && start.closest && start.closest('.fx-week')) return flyttaDag(dx < 0 ? 7 : -7);
-      if (hemLage === 'dag') flyttaDag(dx < 0 ? 1 : -1); else flyttaManad(dx < 0 ? 1 : -1);
+      if (start && start.closest && start.closest('.fx-flip')) return window.fxVand();
+      if (start && start.closest && start.closest('.fx-slot')) return window.fxSlot();
     }, { passive: true });
     // menyn följer vilken sida som är öppen
     const obs = new MutationObserver(aktiv);
@@ -145,19 +145,20 @@
   }
   function navigera(n) {
     if (n === 'idag') { stangSidor(); gaIdag(); $('fx-scroll').scrollTo({ top: 0, behavior: 'smooth' }); }
-    else if (n === 'manad') { stangSidor(); if (hemLage !== 'manad') setHemLage('manad'); else schema(); $('fx-scroll').scrollTo({ top: 0, behavior: 'smooth' }); }
+    else if (n === 'franv') { if (!$('sheet-absence').classList.contains('is-open')) navTo('absence'); }
     else if (n === 'kal') { if (!$('sheet-month').classList.contains('is-open')) navTo('month'); }
     else if (n === 'lon') { if (!$('sheet-lon').classList.contains('is-open')) navTo('lon'); }
     else if (n === 'mer') { oppnaArk($('fx-mer')); }
     aktiv();
   }
   function aktiv() {
-    let n = hemLage === 'dag' ? 'idag' : 'manad';
+    let n = 'idag';
     if ($('sheet-month') && $('sheet-month').classList.contains('is-open')) n = 'kal';
     else if ($('sheet-lon') && $('sheet-lon').classList.contains('is-open')) n = 'lon';
-    else if (($('sheet-absence') && $('sheet-absence').classList.contains('is-open')) || ($('notes-modal') && !$('notes-modal').classList.contains('hidden'))) n = 'mer';
+    else if ($('sheet-absence') && $('sheet-absence').classList.contains('is-open')) n = 'franv';
+    else if ($('notes-modal') && !$('notes-modal').classList.contains('hidden')) n = 'mer';
     document.querySelectorAll('#fx-nav button').forEach(b => b.classList.toggle('on', b.dataset.n === n));
-    document.body.classList.toggle('fx-sida', n === 'kal' || n === 'lon' || n === 'mer');
+    document.body.classList.toggle('fx-sida', n !== 'idag');
   }
   function gaIdag() { const k = keyOf(realToday); goToDayDash(k); setHemLage('dag'); }
   function flyttaDag(steg) { const d = dateOf(hemDag()); d.setDate(d.getDate() + steg); goToDayDash(keyOf(d)); if (hemLage !== 'dag') setHemLage('dag'); }
@@ -222,39 +223,41 @@
 
   // ---------- räkna upp tal ----------
   let forra = null;
-  function rakna(el, till) {
+  function rakna(el, till, fmt) {
+    fmt = fmt || kr;
     if (!el) return;
     const fran = forra == null ? till * 0.6 : forra; forra = till;
-    if (fran === till || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = kr(till); return; }
+    if (fran === till || matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = fmt(till); return; }
     const t0 = performance.now();
-    (function s(t) { const f = Math.min(1, (t - t0) / 600), e = 1 - Math.pow(1 - f, 3); el.textContent = kr(fran + (till - fran) * e); if (f < 1) requestAnimationFrame(s); })(t0);
+    (function s(t) { const f = Math.min(1, (t - t0) / 600), e = 1 - Math.pow(1 - f, 3); el.textContent = fmt(fran + (till - fran) * e); if (f < 1) requestAnimationFrame(s); })(t0);
   }
 
   // ---------- rita ----------
   let vy0 = '';
   function rita() {
     if (!$('fx') || typeof db === 'undefined' || !db.d) return;
-    const dag = hemLage === 'dag', k = hemDag(), d = dateOf(k);
+    const dag = true, k = hemDag(), d = dateOf(k);
     const arIdag = d.getTime() === realToday.getTime();
     $('fx-date').innerHTML = dag
       ? `<small>${arIdag ? 'Idag' : (d < realToday ? 'Tidigare' : 'Kommande')}</small><b>${DAG[d.getDay()]} ${d.getDate()} ${MAN[d.getMonth()]}</b>`
       : `<small>Månaden</small><b>${stor(MAN[viewDate.getMonth()])} ${viewDate.getFullYear()}</b>`;
     $('fx-date').classList.toggle('borta', dag && !arIdag);
     const m = manad();
-    const html = dag ? idag(k, m) : manadVy(m);
+    const html = idag(k, m);
     const vyId = (dag ? 'd' : 'm') + k + viewDate.getMonth();
     const v = $('fx-view');
     const igen = vyId === vy0; v.classList.toggle('nt', igen);
     v.innerHTML = html;
     if (vyId !== vy0) { v.classList.remove('in'); void v.offsetWidth; v.classList.add('in'); vy0 = vyId; }
-    const big = $('fx-big'); if (big) rakna(big, +big.dataset.v || 0);
+    const big = $('fx-big'); if (big) rakna(big, +big.dataset.v || 0, n => Math.round(n) + ' %');
     document.querySelectorAll('.fx-fill').forEach(f => { const w = f.dataset.w; requestAnimationFrame(() => { f.style.width = w + '%'; }); });
     document.querySelectorAll('.fx-rc').forEach(c => { const d = c.dataset.d; requestAnimationFrame(() => { c.style.strokeDasharray = d; }); });
     document.querySelectorAll('.fx-bar i').forEach(f => { const h = f.dataset.h; requestAnimationFrame(() => { f.style.height = h + '%'; }); });
     // anpassa tills allt får plats – ingen scroll på Idag och Månad
     const sc = $('fx-scroll');
     sc.classList.remove('fit1', 'fit2', 'fit3', 'fit4', 'fit5'); sc.scrollTop = 0;
-    for (const f of ['fit1', 'fit2', 'fit3', 'fit4', 'fit5']) { if (sc.scrollHeight <= sc.clientHeight + 1) break; sc.classList.add(f); }
+    const over = () => sc.scrollHeight > sc.clientHeight + 1 || [...document.querySelectorAll('#fx .fx-face')].some(f => f.scrollHeight > f.clientHeight + 1);
+    for (const f of ['fit1', 'fit2', 'fit3', 'fit4', 'fit5']) { if (!over()) break; sc.classList.add(f); }
     $('fx-cta').querySelector('.fx-cta-t').textContent = dag && !arIdag ? `Registrera ${d.getDate()} ${MAN[d.getMonth()].slice(0, 3)}` : 'Registrera försäljning';
     aktiv();
   }
@@ -277,27 +280,18 @@
     return `<div class="fx-week">${h}</div>`;
   }
 
-  // ---------- tre mätare: tempo (vänster), sålt + tid (mitten), höger efter vy ----------
-  const GREEN = '#0f9d62', GOLD = '#c9a227', AMBER = '#d9a441', BLUE = '#2c55f5';
-  const gp = (r, a) => { const t = a * Math.PI / 180; return [40 + r * Math.sin(t), 40 - r * Math.cos(t)]; };
+  // ---------- mätarna: röd → guld → grön efter framsteg, streck för tempot ----------
+  const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t));
+  const RED = [216, 81, 63], AMB = [214, 160, 40], GRN = [15, 157, 98];
+  const farg = f => { f = Math.max(0, Math.min(1, f || 0)); const c = f < .5 ? mix(RED, AMB, f * 2) : mix(AMB, GRN, (f - .5) * 2); return `rgb(${c.join(',')})`; };
+  const gp = (r, a) => { const t = a * Math.PI / 180; return [50 + r * Math.sin(t), 50 - r * Math.cos(t)]; };
   const garc = (r, a0, a1) => { const p0 = gp(r, a0), p1 = gp(r, a1); return `M${p0[0].toFixed(2)} ${p0[1].toFixed(2)} A${r} ${r} 0 ${Math.abs(a1 - a0) > 180 ? 1 : 0} ${a1 > a0 ? 1 : 0} ${p1[0].toFixed(2)} ${p1[1].toFixed(2)}`; };
-  function sgauge(kind, v, col) {
-    let fill = '';
-    if (kind === 'div') {
-      if (Math.abs(v) > .01) fill += `<path class="fx-rc" data-d="100 100" pathLength="100" d="${garc(32, 0, Math.max(-1, Math.min(1, v)) * 135)}" fill="none" stroke="${col}" stroke-width="8" stroke-linecap="round" stroke-dasharray="0 100"/>`;
-      const a = gp(38, 0), b = gp(26, 0);
-      fill += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="var(--hr-tx)" stroke-width="2" stroke-linecap="round"/>`;
-    } else if (v > .005) fill = `<path class="fx-rc" data-d="100 100" pathLength="100" d="${garc(32, -135, -135 + 270 * Math.min(1, v))}" fill="none" stroke="${col}" stroke-width="8" stroke-linecap="round" stroke-dasharray="0 100"/>`;
-    return `<svg viewBox="0 0 80 80" aria-hidden="true"><path d="${garc(32, -135, 135)}" fill="none" stroke="var(--hr-track)" stroke-width="8" stroke-linecap="round"/>${fill}</svg>`;
-  }
-  const RY = 62, CY = 2 * Math.PI * RY, RI = 49, CI = 2 * Math.PI * RI;
-  function bigring(fs, fp) {
-    const a = Math.max(0, Math.min(1, fs)), b = Math.max(0, Math.min(1, fp));
-    return `<svg viewBox="0 0 148 148" aria-hidden="true"><defs><linearGradient id="fxg1" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#0b8a55"/><stop offset="1" stop-color="#3fc98a"/></linearGradient><linearGradient id="fxg2" x1="0" x2="1"><stop offset="0" stop-color="#b8901a"/><stop offset="1" stop-color="#e8c85a"/></linearGradient></defs>
-      <circle cx="74" cy="74" r="${RY}" fill="none" stroke="var(--hr-track)" stroke-width="13"/>
-      <circle class="fx-rc" data-d="${(CY * a).toFixed(1)} ${CY.toFixed(1)}" cx="74" cy="74" r="${RY}" fill="none" stroke="url(#fxg1)" stroke-width="13" stroke-linecap="round" stroke-dasharray="0 999" transform="rotate(-90 74 74)"/>
-      <circle cx="74" cy="74" r="${RI}" fill="none" stroke="var(--hr-track2)" stroke-width="6"/>
-      <circle class="fx-rc" data-d="${(CI * b).toFixed(1)} ${CI.toFixed(1)}" cx="74" cy="74" r="${RI}" fill="none" stroke="url(#fxg2)" stroke-width="6" stroke-linecap="round" stroke-dasharray="0 999" transform="rotate(-90 74 74)"/></svg>`;
+  function matare(f, tick, sw) {
+    const r = 41, fc = Math.max(0, Math.min(1, f || 0));
+    let s = `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="${garc(r, -135, 135)}" fill="none" stroke="var(--hr-track)" stroke-width="${sw}" stroke-linecap="round"/>`;
+    if (fc > .004) s += `<path class="fx-rc" data-d="100 100" pathLength="100" d="${garc(r, -135, -135 + 270 * fc)}" fill="none" stroke="${farg(f)}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="0 100"/>`;
+    if (tick != null) { const a = -135 + 270 * Math.max(0, Math.min(1, tick)), p0 = gp(r - sw / 2 - 3, a), p1 = gp(r + sw / 2 + 3, a); s += `<line class="fx-tick" x1="${p0[0].toFixed(2)}" y1="${p0[1].toFixed(2)}" x2="${p1[0].toFixed(2)}" y2="${p1[1].toFixed(2)}" stroke="var(--hr-tx)" stroke-width="2.8" stroke-linecap="round"/>`; }
+    return s + '</svg>';
   }
   const erf = x => { const s = x < 0 ? -1 : 1; x = Math.abs(x); const t = 1 / (1 + .3275911 * x); return s * (1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-x * x)); };
   function chansAtt(m, mal) {
@@ -311,8 +305,11 @@
     return Math.max(0, Math.min(1, .5 * (1 + erf(z / Math.SQRT2))));
   }
   const hm = min => Math.floor(min / 60) + ' h ' + String(Math.round(min % 60)).padStart(2, '0') + ' min';
-  const sidoG = (g, c, l, e, am) => `<div class="fx-sg"><div class="g">${g}<div class="c">${c}</div></div><div class="lb">${l}<em${am ? ' class="am"' : ''}>${e}</em></div></div>`;
-  const rad = (typ, txt) => `<p><i class="${typ === 'k' ? 'k' : 'm'}">${typ === 'k' ? 'Kan nå' : 'Måste'}</i><span>${txt}</span></p>`;
+  const pc = x => Math.round(x * 100) + ' %';
+  const chip = (txt, typ) => `<span class="fx-chip ${typ}">${txt}</span>`;
+  const kol = (cls, rubrik, varde, g, inne, under) => `<div class="fx-k ${cls}"><div class="t"><span>${rubrik}</span><b>${varde}</b></div><div class="g">${g}<div class="c">${inne}</div></div><div class="u">${under}</div></div>`;
+  const rad = (typ, txt) => `<p><i class="${typ}">${typ === 'k' ? 'Kan nå' : 'Måste'}</i><span>${txt}</span></p>`;
+  let vand = false, slot = false;
 
   function idag(k, m) {
     const v = malVy(k), o = db.d[k] || {}, p = uiPass(k), tid = uiTidKvar(k), d = dateOf(k);
@@ -320,112 +317,97 @@
     const mal = v.bas > 0, kvar = Math.max(0, v.bas - v.salt);
     const fs = mal ? v.salt / v.bas : 0, klar = mal && v.salt >= v.bas;
     const nu = new Date(), mm = nu.getHours() * 60 + nu.getMinutes();
-    let fp = 0;
-    if (p) fp = arIdag ? Math.max(0, Math.min(1, (mm - p.a) / (p.b - p.a))) : (d < realToday ? 1 : 0);
+    let fp = null;
+    if (p) fp = arIdag ? Math.max(0, Math.min(1, (mm - p.a) / (p.b - p.a))) : (d < realToday ? 1 : null);
     const speed = (p && arIdag && mm - p.a > 15) ? v.salt / ((mm - p.a) / 60) : null;
     const proj = (speed != null && tid > 0) ? v.salt + speed * (tid / 60) : null;
-    // vänster mätare: tempo mot tiden
-    let tg, tc, tl, te, tam = false, pill, pc;
-    if (o.abs) { pill = String(o.abs).split(' ')[0] === 'Åtgärd' ? 'Saknar typ' : String(o.abs).split(' ')[0]; pc = 'am'; tg = sgauge('div', 0, GREEN); tc = '<b>—</b><small>frånvaro</small>'; tl = 'Tempo'; te = 'ingen försäljning'; }
-    else if (!mal || !p) { pill = v.salt > 0 ? 'Registrerat' : (p ? 'Inget mål' : 'Ledig'); pc = 'gr'; tg = sgauge('div', 0, GREEN); tc = '<b>—</b><small>tempo</small>'; tl = 'Tempo'; te = mal ? 'inget pass' : 'inget mål'; }
-    else {
-      const diff = v.salt - v.bas * fp, vv = diff / (v.bas * .25);
-      const fas = diff >= -v.bas * .03;
-      tg = sgauge('div', vv, fas ? GREEN : AMBER); tam = !fas;
-      tc = `<b>${diff >= 0 ? '+' : '−'}${kk(Math.abs(diff))}</b><small>vs tid</small>`;
-      tl = 'Tempo'; te = klar ? 'före' : fas ? (diff > v.bas * .03 ? 'före' : 'i fas') : 'efter';
-      pill = klar ? 'Klart' : (fas ? 'I fas' : 'Efter'); pc = klar || fas ? 'ok' : 'am';
-      if (!arIdag) { te = d < realToday ? 'resultat' : 'kommande'; pill = klar ? 'Klart' : (d < realToday ? 'Missat' : 'Kommande'); pc = klar ? 'ok' : 'gr'; }
-    }
-    // höger mätare: snitt per pass kvar
-    let rg;
-    if (m.mal > 0 && m.salt >= m.mal) rg = sidoG(sgauge('p', 1, GOLD), '<b>✓</b><small>mål nått</small>', 'Månadsmål', m.nasta ? `${kk(m.nasta.min - m.salt)} till ${m.nasta.pct} %` : 'högsta nivån');
-    else if (m.krav != null) { const r = m.avg ? m.avg / m.krav : 0; rg = sidoG(sgauge('p', r, r >= 1 ? GREEN : AMBER), `<b>${kk(m.krav)}</b><small>per pass</small>`, 'Snitt/pass kvar', m.avg ? `ditt ${kk(m.avg)}` : '—', r < 1); }
-    else rg = sidoG(sgauge('p', 0, GREEN), '<b>—</b>', 'Snitt/pass kvar', 'inga pass kvar');
-    // texten: vad du kan nå och vad du måste göra
+    // månadens tempo: var du borde vara just nu
+    const isNu = m.cy === realToday.getFullYear() && m.cm === realToday.getMonth() + 1;
+    const mfp = isNu ? Math.min(1, (realToday.getDate() - 1 + nu.getHours() / 24) / m.dim) : (new Date(m.cy, m.cm - 1, 1) < realToday ? 1 : 0);
+    const mf = m.mal > 0 ? m.salt / m.mal : 0, mklar = m.mal > 0 && m.salt >= m.mal;
+    const mdiff = m.salt - m.mal * mfp, mfas = mdiff >= -m.mal * .02;
+    // ---- framsidan ----
+    const dagKol = o.abs
+      ? kol('sid', 'Idag', String(o.abs).split(' ')[0], matare(0, null, 9), '<b>—</b>', `<small>${esc(String(o.abs).split(' ')[0] === 'Åtgärd' ? 'saknar typ' : 'frånvaro')}</small>`)
+      : !mal ? kol('sid', 'Dagsmål', '—', matare(0, null, 9), '<b>—</b>', `<small>${v.salt > 0 ? kr(v.salt) + ' kr' : (p ? 'inget mål' : 'ledig')}</small>`)
+      : kol('sid', 'Dagsmål', kk(v.bas), matare(fs, fp, 9), `<b>${pc(fs)}</b>`, `<small>${kr(v.salt)} kr</small>`);
+    const manKol = kol('main', 'Månadsmål', `${kr(m.mal)} kr`, matare(mf, isNu ? mfp : null, 8),
+      `<b id="fx-big" data-v="${Math.round(mf * 100)}">${pc(mf)}</b><small>${kr(m.salt)} kr</small>`,
+      mklar ? chip('Målet nått', 'ok') : isNu ? chip(`${mfas ? 'I fas' : 'Efter'} ${mdiff >= 0 ? '+' : '−'}${kk(Math.abs(mdiff))}`, mfas ? 'ok' : 'am') : '');
+    let krKol;
+    if (mklar) krKol = kol('sid', 'Krävs/pass', '✓', matare(1, null, 9), '<b>✓</b>', chip('Mål nått', 'ok'));
+    else if (m.krav != null) { const r = m.avg ? m.avg / m.krav : 0; krKol = kol('sid', 'Krävs/pass', kk(m.krav), matare(r, null, 9), `<b>${pc(Math.min(r, 9.99))}</b>`, chip(r >= 1 ? 'I fas' : 'Efter', r >= 1 ? 'ok' : 'am')); }
+    else krKol = kol('sid', 'Krävs/pass', '—', matare(0, null, 9), '<b>—</b>', '<small>inga pass kvar</small>');
     let kan, mast;
-    if (o.abs) { kan = `Ingen försäljning väntas, du är registrerad som <b>${esc(o.abs)}</b>.`; mast = 'Inget att göra idag.'; }
-    else if (klar) { kan = `<b>${kr(v.salt)} kr</b> · ${Math.round(fs * 100)} % av dagsmålet.`; mast = m.nasta && m.kravNasta ? `<b>${kk(m.kravNasta)} per pass</b> för ${m.nasta.pct} % bonus.` : 'Målet är nått, bra jobbat.'; }
-    else if (mal && proj != null) { kan = `<b>${kk(proj)}</b> om du håller farten (${Math.round(proj / v.bas * 100)} % av målet).`; mast = tid > 0 ? `<b>${kr(kvar / (tid / 60))} kr/tim</b> i ${hm(tid)}. Du säljer ${kr(speed)} nu.` : `<b>${kr(kvar)} kr</b> kvar.`; }
+    if (o.abs) { kan = `Ingen försäljning väntas, du är registrerad som <b>${esc(o.abs)}</b>.`; mast = m.krav ? `<b>${kk(m.krav)} per pass</b> resten av månaden.` : 'Inget att göra idag.'; }
+    else if (klar) { kan = `<b>${kr(v.salt)} kr</b> · ${pc(fs)} av dagsmålet.`; mast = m.nasta && m.kravNasta ? `<b>${kk(m.kravNasta)} per pass</b> för ${m.nasta.pct} % bonus.` : 'Målet är nått, bra jobbat.'; }
+    else if (mal && proj != null) { kan = `<b>${kk(proj)}</b> idag om du håller farten (${Math.round(proj / v.bas * 100)} %).`; mast = tid > 0 ? `<b>${kr(kvar / (tid / 60))} kr/tim</b> i ${hm(tid)}. Du säljer ${kr(speed)} nu.` : `<b>${kr(kvar)} kr</b> kvar.`; }
     else if (mal) { kan = `Dagsmålet är <b>${kr(v.bas)} kr</b>.`; mast = `<b>${kr(kvar)} kr</b> kvar för att nå det.`; }
-    else { kan = 'Inget dagsmål den här dagen.'; mast = m.krav ? `<b>${kk(m.krav)} per pass</b> resten av månaden.` : 'Inget att göra.'; }
-    const L = lon();
+    else { kan = `Prognos för månaden <b>${kk(m.prognos)}</b>.`; mast = m.krav ? `<b>${kk(m.krav)} per pass</b> resten av månaden.` : 'Inget att göra.'; }
+    // ---- baksidan: månaden ----
+    const vs = new Date(d); vs.setDate(vs.getDate() - ((vs.getDay() + 6) % 7));
+    let vSalt = 0, vMal = 0, vGatt = 0;
+    for (let i = 0; i < 7; i++) {
+      const dd = new Date(vs); dd.setDate(vs.getDate() + i); const kk2 = keyOf(dd), t = dayTarget(kk2) || 0;
+      vSalt += (db.d[kk2] || {}).s || 0; vMal += t;
+      if (dd < realToday) vGatt += t; else if (dd.getTime() === realToday.getTime()) vGatt += t * (fp == null ? 0 : fp);
+    }
+    const vf = vMal > 0 ? vSalt / vMal : 0;
+    const veckaKol = vMal > 0 ? kol('sid', 'Veckan', kk(vMal), matare(vf, vGatt / vMal, 9), `<b>${pc(vf)}</b>`, `<small>${kr(vSalt)} kr</small>`) : kol('sid', 'Veckan', '—', matare(0, null, 9), '<b>—</b>', '<small>inga mål</small>');
+    const pf = m.mal > 0 ? m.prognos / m.mal : 0, reach = m.steg.filter(t => m.prognos >= t.min).pop();
+    const progKol = kol('main', 'Prognos', `${kr(m.prognos)} kr`, matare(pf, null, 8), `<b>${pc(pf)}</b><small>av ${kk(m.mal)}</small>`, reach ? chip(`räcker till ${reach.pct} %`, 'gold') : chip('under bonusnivå', 'am'));
+    const ch = chansAtt(m, m.mal);
+    const chansKol = ch == null ? kol('sid', 'Chans', '—', matare(0, null, 9), '<b>—</b>', '') : kol('sid', 'Chans', 'målet', matare(ch, null, 9), `<b>${pc(ch)}</b>`, chip(ch >= .66 ? 'Trolig' : ch >= .33 ? 'Möjlig' : 'Svår', ch >= .66 ? 'ok' : ch >= .33 ? 'gold' : 'am'));
+    let mkan, mmast;
+    if (mklar) { mkan = `Redan <b>${kk(m.salt)}</b>, prognos ${kk(m.prognos)}.`; mmast = m.nasta && m.kravNasta ? `<b>${kk(m.kravNasta)} per pass</b> för ${m.nasta.pct} % bonus.` : 'Du är på högsta nivån.'; }
+    else if (isNu) { mkan = `Prognos <b>${kk(m.prognos)}</b> · ${reach ? `räcker till <b>${reach.pct} % bonus</b>` : 'under bonusnivå'}.`; mmast = m.nasta && m.kravNasta ? `<b>${kk(m.kravNasta)} per pass</b> i ${m.rW} pass för ${m.nasta.pct} % bonus.` : (m.krav ? `<b>${kk(m.krav)} per pass</b> för målet.` : 'Inga pass kvar.'); }
+    else { mkan = `Slutade på <b>${kk(m.salt)}</b> (${pc(mf)} av målet).`; mmast = m.nu ? `Bonusnivå: <b>${m.nu.pct} %</b>.` : 'Ingen bonusnivå nådd.'; }
+    // ---- rutor ----
+    let np = null;
+    for (let i = 1, dd = new Date(realToday); i <= 21; i++) { dd.setDate(dd.getDate() + 1); const k2 = keyOf(dd), q = db.q[k2] || {}, o2 = db.d[k2] || {}; if (q.start && !o2.abs && o2.st !== 'Ledig') { np = { k: k2, d: new Date(dd), q, mal: dayTarget(k2) }; break; } }
     const bonusV = m.nu && !m.nasta ? `${m.nu.pct} %` : m.nasta ? `${m.nasta.pct} %` : '—';
     const bonusS = m.nu && !m.nasta ? 'högsta nivån' : m.nasta ? `${kk(m.nasta.min - m.salt)} kvar` : 'inga nivåer';
-    const lonS = (L.lbl.match(/(januari|februari|mars|april|maj|juni|juli|augusti|september|oktober|november|december)/i) || [])[0];
+    // ---- bonusstegen ----
+    const satt = (typeof savedBudgets !== 'undefined' && savedBudgets[`${m.cy}-${m.cm}`]) || null;
+    const topT = Math.max(1, ...m.steg.map(t => t.min), m.mal), skala = topT * 1.06, pos = x => Math.max(0, Math.min(100, x / skala * 100));
+    const nod = m.steg.map(t => {
+      const ok = m.salt >= t.min, vald = satt ? Number(satt) === Number(t.min) : t.pct === 12;
+      return `<button class="nd${ok ? ' ok' : ''}${vald ? ' vald' : ''}" style="left:${pos(t.min).toFixed(1)}%" onclick="fxBonus(${Number(t.min)})" aria-label="${t.pct} procent bonus"><b>${t.pct} %</b><i>${ok ? ic('check') : vald ? ic('flag') : ''}</i><small>${kk(t.min)}</small></button>`;
+    }).join('');
+    const vnr = (() => { const t = new Date(d); t.setDate(t.getDate() + 3 - ((t.getDay() + 6) % 7)); const j = new Date(t.getFullYear(), 0, 4); return 1 + Math.round(((t - j) / 864e5 - 3 + ((j.getDay() + 6) % 7)) / 7); })();
     return `
-      <section class="fx-hero4">
-        <div class="fx-ht"><span>${arIdag ? 'Sålt idag' : 'Sålt ' + DAG[d.getDay()].toLowerCase()}</span><span class="fx-pill2 ${pc}">${esc(pill)}</span></div>
-        <div class="fx-gz">
-          ${sidoG(tg, tc, tl, te, tam)}
-          <div class="fx-bigring${klar ? ' klar' : ''}">${bigring(fs, fp)}<div class="c"><b id="fx-big" data-v="${v.salt}">${kr(v.salt)}</b><small>${mal ? 'av ' + kr(v.bas) + ' kr' : 'inget dagsmål'}</small>${mal ? `<i>${Math.round(fs * 100)} %</i>` : ''}</div></div>
-          ${rg}
+      <section class="fx-flip" id="fx-flip">
+        <div class="fx-card3${vand ? ' vand' : ''}">
+          <div class="fx-face fram">
+            <div class="fx-fh"><span>${arIdag ? 'Idag' : DAG[d.getDay()] + ' ' + d.getDate() + ' ' + MAN[d.getMonth()].slice(0, 3)} och månaden</span><button class="fx-dots" onclick="fxVand()" aria-label="Vänd till månaden"><i class="on"></i><i></i></button></div>
+            <div class="fx-g3">${dagKol}${manKol}${krKol}</div>
+            <div class="fx-say">${rad('k', kan)}${rad('m', mast)}</div>
+          </div>
+          <div class="fx-face bak">
+            <div class="fx-fh"><span>${stor(MAN[m.cm - 1])} · prognos</span><button class="fx-dots" onclick="fxVand()" aria-label="Vänd tillbaka"><i></i><i class="on"></i></button></div>
+            <div class="fx-g3">${veckaKol}${progKol}${chansKol}</div>
+            <div class="fx-say">${rad('k', mkan)}${rad('m', mmast)}</div>
+          </div>
         </div>
-        <div class="fx-say">${rad('k', kan)}${rad('m', mast)}</div>
       </section>
       <section class="fx-t3">
-        <button class="fx-t g" onclick="setHemLage('manad')"><span>${stor(MAN[m.cm - 1])}</span><b>${kk(m.salt)}</b><small>${m.mal > 0 ? Math.round(m.salt / m.mal * 100) + ' % av ' + kk(m.mal) : ''}</small></button>
-        <button class="fx-t k" onclick="setHemLage('manad')"><span>${m.nu && !m.nasta ? 'Bonus' : 'Nästa bonus'}</span><b>${bonusV}</b><small>${bonusS}</small></button>
-        <button class="fx-t b" onclick="navTo('lon')"><span>Lön</span><b>${L.net || '—'}</b><small>${lonS ? '25 ' + lonS.slice(0, 3).toLowerCase() : 'kommande'}</small></button>
+        <div class="fx-t g"><span>Prognos</span><b>${kk(m.prognos)}</b><small>${m.mal > 0 ? pc(pf) + ' av målet' : ''}</small></div>
+        <button class="fx-t k" onclick="fxSlot(true)"><span>${m.nu && !m.nasta ? 'Bonus' : 'Nästa bonus'}</span><b>${bonusV}</b><small>${bonusS}</small></button>
+        ${np ? `<button class="fx-t b" onclick="fxDag('${np.k}')"><span>Nästa pass</span><b>${DAG[np.d.getDay()].slice(0, 3)} ${np.d.getDate()}</b><small>mål ${np.mal ? kk(np.mal) : '—'} · ${String(np.q.start).slice(0, 5)}</small></button>` : `<div class="fx-t b"><span>Nästa pass</span><b>—</b><small>inget i schemat</small></div>`}
       </section>
-      ${veckorad(k)}`;
-  }
-
-  function manadVy(m) {
-    const max = Math.max(1, ...m.dagar.map(x => Math.max(x.s, x.mal)));
-    const bars = m.dagar.map(x => {
-      let c = 'f', h = 2;
-      if (x.abs && !x.s) { c = 'a'; h = 6; }
-      else if (x.s > 0) { c = x.mal > 0 && x.s >= x.mal ? 'h' : 'm'; h = Math.max(4, x.s / max * 100); }
-      else if (x.fram && x.mal > 0) { c = 'p'; h = Math.max(4, x.mal / max * 100); }
-      return `<button class="${c}${x.idag ? ' idag' : ''}" onclick="fxDag('${x.k}')" aria-label="${x.d}"><i data-h="${h.toFixed(1)}"></i></button>`;
-    }).join('');
-    const fs = m.mal > 0 ? m.salt / m.mal : 0, klar = m.mal > 0 && m.salt >= m.mal;
-    const isNu = m.cy === realToday.getFullYear() && m.cm === realToday.getMonth() + 1;
-    const fp = isNu ? Math.min(1, (realToday.getDate() - 1 + new Date().getHours() / 24) / m.dim) : (new Date(m.cy, m.cm - 1, 1) < realToday ? 1 : 0);
-    // vänster: tempo mot månadens gång
-    const diff = m.salt - m.mal * fp, fas = diff >= -m.mal * .02;
-    const tg = sgauge('div', m.mal > 0 ? diff / (m.mal * .2) : 0, fas ? GREEN : AMBER);
-    const tc = `<b>${diff >= 0 ? '+' : '−'}${kk(Math.abs(diff))}</b><small>vs tid</small>`;
-    // höger: prognos och chans
-    const ch = chansAtt(m, m.mal);
-    const chCol = ch == null ? GREEN : ch >= .66 ? GREEN : ch >= .33 ? GOLD : AMBER;
-    const rg = ch == null ? sidoG(sgauge('p', 0, GREEN), '<b>—</b>', 'Prognos', '—') : sidoG(sgauge('p', ch, chCol), `<b>${Math.round(ch * 100)} %</b><small>chans</small>`, `Prognos ${kk(m.prognos)}`, `${Math.round(m.prognos / m.mal * 100)} % av målet`, ch < .33);
-    const reach = m.steg.filter(t => m.prognos >= t.min).pop();
-    let kan, mast;
-    if (klar) { kan = `Redan <b>${kk(m.salt)}</b>, prognos ${kk(m.prognos)}.`; mast = m.nasta && m.kravNasta ? `<b>${kk(m.kravNasta)} per pass</b> för ${m.nasta.pct} % bonus.` : 'Du är på högsta nivån.'; }
-    else if (isNu) {
-      kan = `Prognos <b>${kk(m.prognos)}</b> · ${reach ? `räcker till <b>${reach.pct} % bonus</b>` : (m.steg[0] ? `under ${m.steg[0].pct} %-nivån` : 'under målet')}.`;
-      mast = m.nasta && m.kravNasta ? `<b>${kk(m.kravNasta)} per pass</b> i ${m.rW} pass för ${m.nasta.pct} % bonus.` : (m.krav ? `<b>${kk(m.krav)} per pass</b> för månadsmålet.` : 'Inga pass kvar.');
-    } else { kan = `Slutade på <b>${kk(m.salt)}</b> (${Math.round(fs * 100)} % av målet).`; mast = m.nu ? `Bonusnivå: <b>${m.nu.pct} %</b>.` : 'Ingen bonusnivå nådd.'; }
-    const pill = klar ? 'Klart' : (fas ? 'I fas' : 'Efter'), pc = klar || fas ? 'ok' : 'am';
-    // bonusstege
-    const topT = Math.max(1, ...m.steg.map(t => t.min), m.mal), scale = topT * 1.08, pos = x => Math.max(0, Math.min(100, x / scale * 100));
-    let nxt = true;
-    const nod = m.steg.map(t => {
-      const ok = m.salt >= t.min; let cls = ok ? 'ok' : (nxt ? 'nx' : ''); if (!ok) nxt = false;
-      return `<div class="nd ${cls}" style="left:${pos(t.min).toFixed(1)}%"><b>${t.pct} %</b><i>${ok ? ic('check') : cls === 'nx' ? ic('star') : ''}</i></div><div class="nl" style="left:${pos(t.min).toFixed(1)}%"><em>${kk(t.min)}</em>${ok ? 'nådd' : cls === 'nx' ? kk(t.min - m.salt) + ' kvar' : ''}</div>`;
-    }).join('');
-    return `
-      <section class="fx-hero4 mo">
-        <div class="fx-ht"><span>Sålt i ${MAN[m.cm - 1]}</span><div class="fx-hr"><span class="fx-pill2 ${pc}">${pill}</span><div class="fx-mnav"><button onclick="fxMan(-1)" aria-label="Förra månaden">${ic('chevron_left')}</button><button onclick="fxMan(1)" aria-label="Nästa månad">${ic('chevron_right')}</button></div></div></div>
-        <div class="fx-gz">
-          ${sidoG(tg, tc, 'Tempo', klar ? 'före' : fas ? 'i fas' : 'efter', !fas && !klar)}
-          <div class="fx-bigring${klar ? ' klar' : ''}">${bigring(fs, fp)}<div class="c"><b id="fx-big" data-v="${m.salt}">${kr(m.salt)}</b><small>av ${kr(m.mal)} kr</small><i>${Math.round(fs * 100)} %</i></div></div>
-          ${rg}
-        </div>
-        <div class="fx-say">${rad('k', kan)}${rad('m', mast)}</div>
-      </section>
-      <section class="fx-box">
-        <div class="fx-bh"><b>Dag för dag</b><span><i class="h"></i>nått<i class="m"></i>under<i class="a"></i>frånvaro</span></div>
-        <div class="fx-bar">${m.avg ? `<div class="fx-avg" style="bottom:${Math.min(100, m.avg / max * 100).toFixed(1)}%"><span>snitt ${kk(m.avg)}</span></div>` : ''}${bars}</div>
-        <div class="fx-ax"><span>1</span><span>8</span><span>15</span><span>22</span><span>${m.dim}</span></div>
-      </section>
-      <section class="fx-box">
-        <div class="fx-bh"><b>Bonussystem</b>${m.ratio > 0 ? `<button onclick="toggleReliefMode()">${m.lattat ? 'Lättat −' + Math.round(m.ratio * 100) + ' %' : 'Visa lättat −' + Math.round(m.ratio * 100) + ' %'}</button>` : `<span class="gold">${ic('workspace_premium')}</span>`}</div>
-        <div class="fx-ladder"><div class="lt"><i class="lf fx-fill${klar ? ' ok' : ''}" data-w="${pos(m.salt).toFixed(1)}"></i>${m.prognos > m.salt ? `<em class="pg" style="left:${pos(m.prognos).toFixed(1)}%"></em>` : ''}${nod}</div></div>
+      <section class="fx-slot${slot ? ' b' : ''}" id="fx-slot">
+        <button class="fx-slh" onclick="fxSlot()"><span class="a">Vecka ${vnr}</span><span class="b">Bonussystem · tryck för att välja mål</span><i class="dots"><em></em><em></em></i></button>
+        <div class="fx-sltr"><div class="p">${veckorad(k)}</div><div class="p"><div class="fx-lad"><div class="lt"><i class="lf fx-fill" data-w="${pos(m.salt).toFixed(1)}"></i>${nod}</div></div></div></div>
       </section>`;
   }
+  window.fxVand = function () { vand = !vand; const c = document.querySelector('#fx .fx-card3'); if (c) c.classList.toggle('vand', vand); try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
+  window.fxSlot = function (till) { slot = typeof till === 'boolean' ? till : !slot; const s = $('fx-slot'); if (s) s.classList.toggle('b', slot); };
+  window.fxBonus = function (min) {
+    const key = `${viewDate.getFullYear()}-${viewDate.getMonth() + 1}`;
+    const satt = typeof savedBudgets !== 'undefined' ? savedBudgets[key] : null;
+    if (Number(satt) === Number(min)) { setGlobalBudget(null); showToast('✓', 'Målet följer bonustrappan', 1800); }
+    else { setGlobalBudget(min); showToast('✓', 'Månadsmål ' + Number(min).toLocaleString('sv-SE') + ' kr', 1800); }
+  };
 
   // ---------- ark ----------
   function oppnaArk(s) { s.classList.add('open'); document.body.classList.add('fx-ark'); try { sfPushHist && sfPushHist(); } catch (e) {} }
@@ -476,7 +458,7 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden) schema(); });
   setInterval(schema, 60000);
   document.documentElement.classList.add('fx-on');
-  bygg(); schema();
+  bygg(); try { if (typeof hemLage !== 'undefined' && hemLage !== 'dag') setHemLage('dag'); } catch (e) {} schema();
   window.addEventListener('load', schema);
   setTimeout(schema, 900);
 })();

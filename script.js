@@ -4920,9 +4920,11 @@ function arbetsytaDag(){
       </div>
       ${tl}
       <div class="ws-reg">
-        <button class="ws-step" onclick="uiLagg(-500)" aria-label="Minska 500">−</button>
-        <button class="ws-amt" onclick="uiBelopp()"><b>${uiKr(vy.salt)}</b><span>tryck för att skriva belopp</span></button>
-        <button class="ws-step" onclick="uiLagg(500)" aria-label="Öka 500">+</button>
+        <button class="ws-amt" onclick="uiBelopp()"><b>${uiKr(vy.salt)}</b><span>${vy.bas > 0 ? (vy.salt < vy.bas ? uiKr(vy.bas - vy.salt).replace(' kr', '') + ' kvar · tryck för belopp' : 'Dagsmålet nått · tryck för belopp') : 'Tryck för att skriva belopp'}</span></button>
+        <div class="ws-pm">
+          <button class="ws-step" onclick="uiLagg(-500)" aria-label="Minska 500">−</button>
+          <button class="ws-step ws-add" onclick="uiLagg(500)" aria-label="Öka 500">+</button>
+        </div>
       </div>
       <div class="ws-quick">
         <button onclick="uiLagg(1000)">+1 000</button><button onclick="uiLagg(2500)">+2 500</button><button onclick="uiLagg(5000)">+5 000</button>

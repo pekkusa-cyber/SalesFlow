@@ -1040,3 +1040,6 @@ html body #sf-toast { top: calc(env(safe-area-inset-top, 0px) + 70px) !important
 /* statusraden: samma ljusa ton som appen (förut blå) */
 html body #status-bar-tint { background: #f7f9f6 !important; }
 html[data-ck="dark"] body #status-bar-tint { background: #0b0e12 !important; }
+/* v173: ingen blå botten bakom statusraden (edge-to-edge) */
+html, html body, html body #app-shell, html body .content-locker { background: #f7f9f6 !important; }
+html[data-ck="dark"], html[data-ck="dark"] body, html[data-ck="dark"] body #app-shell, html[data-ck="dark"] body .content-locker { background: #0b0e12 !important; }

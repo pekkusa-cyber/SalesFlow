@@ -1043,3 +1043,55 @@ html[data-ck="dark"] body #status-bar-tint { background: #0b0e12 !important; }
 /* v173: ingen blå botten bakom statusraden (edge-to-edge) */
 html, html body, html body #app-shell, html body .content-locker { background: #f7f9f6 !important; }
 html[data-ck="dark"], html[data-ck="dark"] body, html[data-ck="dark"] body #app-shell, html[data-ck="dark"] body .content-locker { background: #0b0e12 !important; }
+
+/* ===== v175: dagrutor. Veckoraden = A (mjuka brickor), kalendern = C (färgfält) ===== */
+/* markeringar i hörnen: orange prick = ändrad sluttid, guldnyckel = stänger. Aldrig över texten. */
+html body .dc.chg::after { content: "" !important; font-family: inherit !important; width: 7px; height: 7px; border-radius: 50%; background: #e08a0b; position: absolute; top: 5px !important; right: 5px !important; bottom: auto !important; left: auto !important; box-shadow: 0 0 0 2px var(--fx-card); }
+html body .dc.key::before { top: 4px !important; left: 4px !important; bottom: auto !important; right: auto !important; font-size: 11px !important; }
+html body .dc.chg .st > span { color: inherit; }
+html body .dc.chg .st > small { color: #d98a0b !important; font-weight: 650 !important; }
+html[data-ck="dark"] body .dc.chg .st > small { color: #f2a93b !important; }
+html[data-ck="dark"] body .dc.chg::after { background: #f2a93b; }
+
+/* --- A: veckoraden --- */
+#fx .fx-wd2.dc { --tn: transparent; border: 0 !important; overflow: hidden;
+  background: linear-gradient(180deg, var(--fx-card) 22%, color-mix(in srgb, var(--tn) 17%, var(--fx-card))) !important;
+  box-shadow: 0 1px 2px rgba(20,30,20,.06), 0 6px 14px -8px rgba(20,30,20,.24) !important; }
+html[data-ck="dark"] #fx .fx-wd2.dc { background: linear-gradient(180deg, var(--fx-card) 22%, color-mix(in srgb, var(--tn) 22%, var(--fx-card))) !important; box-shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 16px -10px rgba(0,0,0,.7) !important; }
+#fx .fx-wd2.dc.ok { --tn: #0f9d62; } #fx .fx-wd2.dc.miss { --tn: #d8513f; } #fx .fx-wd2.dc.nu { --tn: #2f5bff; }
+#fx .fx-wd2.dc.f-vab { --tn: #c98a12; } #fx .fx-wd2.dc.f-fl { --tn: #7c4fd6; } #fx .fx-wd2.dc.f-sjuk { --tn: #d8513f; }
+#fx .fx-wd2.dc.f-sem { --tn: #0b8f9c; } #fx .fx-wd2.dc.f-tl { --tn: #6b7280; } #fx .fx-wd2.dc.f-atg { --tn: #e07a2c; }
+#fx .fx-wd2.dc.off { background: transparent !important; box-shadow: none !important; border: 1px dashed var(--fx-line2) !important; }
+#fx .fx-wd2.dc .st .material-symbols-rounded { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 15px !important; background: var(--fx-card); box-shadow: 0 1px 3px rgba(0,0,0,.1); margin-bottom: 2px; }
+#fx .fx-wd2.dc .st .bar { background: color-mix(in srgb, currentColor 18%, transparent); }
+#fx .fx-wd2.dc.idag { box-shadow: 0 0 0 2px var(--fx-ac), 0 8px 18px -8px var(--fx-ac) !important; }
+html[data-ck] #fx .fx-wd2.dc.on, #fx .fx-wd2.dc.on { background: var(--fx-ink) !important; box-shadow: 0 8px 18px -8px rgba(0,0,0,.5) !important; }
+#fx .fx-wd2.dc.on .st .material-symbols-rounded { background: color-mix(in srgb, var(--fx-on-ink) 14%, transparent); box-shadow: none; }
+#fx .fx-wd2.dc.on.chg::after { box-shadow: 0 0 0 2px var(--fx-ink); }
+
+/* --- C: kalendern --- */
+html body #fk .fk-d.dc { --g1: transparent; --g2: transparent; border: 0 !important; margin: 2px; border-radius: 11px; overflow: hidden; color: #fff;
+  background: linear-gradient(160deg, var(--g1), var(--g2)) !important; box-shadow: 0 6px 12px -9px var(--g2); }
+html body #fk .fk-d.dc.ok { --g1: #25b878; --g2: #0c8a55; } html body #fk .fk-d.dc.miss { --g1: #e7705f; --g2: #c4432f; }
+html body #fk .fk-d.dc.nu { --g1: #4f78ff; --g2: #2447d6; }
+html body #fk .fk-d.dc.f-vab { --g1: #e4ad3f; --g2: #b67a0e; } html body #fk .fk-d.dc.f-fl { --g1: #9b74ec; --g2: #6a3fc9; }
+html body #fk .fk-d.dc.f-sjuk { --g1: #e7705f; --g2: #b9402d; } html body #fk .fk-d.dc.f-sem { --g1: #27b3be; --g2: #0b7f8a; }
+html body #fk .fk-d.dc.f-tl { --g1: #8a919b; --g2: #626973; } html body #fk .fk-d.dc.f-atg { --g1: #f0954a; --g2: #cf6418; }
+html body #fk .fk-d.dc:is(.ok,.miss,.nu,.ab) .fk-n, html body #fk .fk-d.dc:is(.ok,.miss,.nu,.ab) .st, html body #fk .fk-d.dc:is(.ok,.miss,.nu,.ab) .st * { color: #fff !important; }
+html body #fk .fk-d.dc:is(.ok,.miss,.nu,.ab) .st small { opacity: .85; }
+html body #fk .fk-d.dc:is(.ok,.miss,.nu,.ab) .fk-n { font-weight: 800; }
+html body #fk .fk-d.dc .st .bar { background: rgba(255,255,255,.3); } html body #fk .fk-d.dc .st .bar em { background: #fff; }
+html body #fk .fk-d.dc:is(.ok,.miss,.nu,.ab).key::before { color: #ffe08a; }
+html body #fk .fk-d.dc:is(.ok,.miss,.nu,.ab).chg::after { box-shadow: 0 0 0 2px rgba(255,255,255,.9); }
+html body #fk .fk-d.dc.plan { background: var(--fx-card) !important; color: var(--fx-tx); box-shadow: 0 1px 2px rgba(20,30,20,.06), 0 4px 10px -7px rgba(20,30,20,.25); }
+html[data-ck="dark"] body #fk .fk-d.dc.plan { box-shadow: 0 1px 2px rgba(0,0,0,.4); }
+html body #fk .fk-d.dc.plan .st > span { color: var(--fx-tx); font-weight: 700; }
+html body #fk .fk-d.dc.plan.past { opacity: .55; }
+html body #fk .fk-d.dc.off { background: transparent !important; box-shadow: none; border: 1px solid var(--fx-line) !important; color: var(--fx-dim); }
+html body #fk .fk-d.dc.idag { box-shadow: 0 0 0 2px var(--fx-bg), 0 0 0 4px var(--fx-tx) !important; z-index: 1; }
+html body #fk .fk-d.dc.idag .fk-n { background: none !important; }
+html body #fk .fk-d.dc.plan.idag .fk-n, html body #fk .fk-d.dc.off.idag .fk-n { color: var(--fx-tx) !important; }
+html body #fk .fk-d.dc.val { background: var(--fx-ink) !important; box-shadow: none !important; }
+html body #fk .fk-d.dc.val * { color: var(--fx-on-ink) !important; }
+.fx-leg i.chg { background: #e08a0b !important; }
+html[data-ck="dark"] .fx-leg i.chg { background: #f2a93b !important; }

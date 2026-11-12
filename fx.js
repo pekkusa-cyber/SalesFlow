@@ -409,7 +409,7 @@
     const vnr = (() => { const t = new Date(d); t.setDate(t.getDate() + 3 - ((t.getDay() + 6) % 7)); const j = new Date(t.getFullYear(), 0, 4); return 1 + Math.round(((t - j) / 864e5 - 3 + ((j.getDay() + 6) % 7)) / 7); })();
     const vald = m.steg.find(t => satt ? Number(satt) === Number(t.min) : t.pct === 12) || m.nasta || m.nu;
     const w = veckorad(k);
-    const legend = `<div class="fx-leg"><span><i class="ok"></i>nått</span><span><i class="miss"></i>ej nått</span><span><i class="vab"></i>VAB</span><span><i class="fl"></i>FL</span><span>${ic('swap_horiz')}ändrad tid</span><span>${ic('key')}stänger</span></div>`;
+    const legend = `<div class="fx-leg"><span><i class="ok"></i>nått</span><span><i class="miss"></i>ej nått</span><span><i class="vab"></i>VAB</span><span><i class="fl"></i>FL</span><span><i class="chg"></i>ändrad tid</span><span>${ic('key')}stänger</span></div>`;
     return `
       <section class="fx-hero5">
         <div class="fx-g3">${dagKol}${manKol}${krKol}</div>

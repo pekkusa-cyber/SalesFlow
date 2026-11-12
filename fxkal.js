@@ -43,11 +43,8 @@
         const t = typ(o.abs), s = o.s || 0, dm = dayTarget(k), framtid = d >= realToday;
         let cls = ut ? 'ut' : '', inner = '';
         if (!ut) {
-          if (t) { cls += ' ab f-' + t; inner = `<span class="fk-lab">${ic(AB[t][0])}${AB[t][1]}</span>`; if (s > 0) inner += `<span class="fk-val">${kk(s)}</span>`; }
-          else if (s > 0) { const ok = dm > 0 && s >= dm; inner = `<span class="fk-val ${dm > 0 ? (ok ? 'ok' : 'lag') : ''}">${kk(s)}</span>${dm > 0 ? `<i class="fk-bar"><em class="${ok ? 'ok' : ''}" style="width:${Math.min(100, s / dm * 100)}%"></em></i>` : ''}`; }
-          else if (o.st === 'Ledig' || o.abs === 'Ledig' || (!q.start && !s)) { cls += ' ledig'; inner = `<span class="fk-lab">Ledig</span>`; }
-          else if (q.start) inner = `<span class="fk-tm">${String(q.start).slice(0, 5)}</span>${q.end ? `<span class="fk-tm e">${String(q.end).slice(0, 5)}</span>` : ''}`;
-          if (stanger(k, q) && !t) inner += `<span class="fk-key">${ic('key')}</span>`;
+          const info = window.fxDagInfo ? window.fxDagInfo(k, false) : { cls: '', st: '' };
+          cls += ' dc ' + info.cls; inner = `<div class="st">${info.st}</div>`;
           if (d.getTime() === realToday.getTime()) cls += ' idag';
           if (val.has(k)) cls += ' val';
         }

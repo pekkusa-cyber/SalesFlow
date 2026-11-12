@@ -130,8 +130,7 @@
     view.addEventListener('touchend', e => { if (!e.changedTouches || !e.changedTouches[0]) return;
       const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
       if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-      if (start && start.closest && start.closest('.fx-flip')) return window.fxVand();
-      if (start && start.closest && start.closest('.fx-slot')) return window.fxSlot();
+      if (start && start.closest && start.closest('.fx-wkf')) return window.fxVecka(dx < 0 ? 1 : -1);
     }, { passive: true });
     // menyn följer vilken sida som är öppen
     const obs = new MutationObserver(aktiv);
@@ -262,23 +261,56 @@
     aktiv();
   }
 
+  // ---------- gemensam dag-info (veckoraden och kalendern) ----------
+  let nsKey = -1, nsCache = {};
+  function normSlut(dow) {
+    const n = Object.keys(db.q).length; if (n !== nsKey) { nsKey = n; nsCache = {}; }
+    if (dow in nsCache) return nsCache[dow];
+    const c = {};
+    for (const k2 in db.q) { const e = (db.q[k2] || {}).end; if (!e || dateOf(k2).getDay() !== dow) continue; const x = String(e).slice(0, 5); if (x === '19:30' || x === '16:30') continue; c[x] = (c[x] || 0) + 1; }
+    let best = null, mx = 0; for (const x in c) if (c[x] > mx) { mx = c[x]; best = x; }
+    return (nsCache[dow] = best);
+  }
+  const stangn = (k, q) => { if (!q || !q.end) return false; const dw = dateOf(k).getDay(), e = String(q.end).slice(0, 5); return (dw === 0 || dw === 6) ? e === '16:30' : e === '19:30'; };
+  const andrad = (k, q) => { if (!q || !q.end || stangn(k, q)) return false; const nrm = normSlut(dateOf(k).getDay()); return !!nrm && String(q.end).slice(0, 5) !== nrm; };
+  const ABL = { vab: ['child_care', 'VAB'], fl: ['stroller', 'FL'], sjuk: ['sick', 'Sjuk'], sem: ['beach_access', 'Sem'], tl: ['work_off', 'TL'], atg: ['error', 'Typ?'] };
+  function dagInfo(k, full) {
+    const o = db.d[k] || {}, q = db.q[k] || {}, s = o.s || 0, mal = dayTarget(k), d = dateOf(k);
+    const idag = d.getTime() === realToday.getTime();
+    let cls = '', st = '';
+    if (o.abs && o.abs !== 'Ledig') {
+      let c = 'tl'; try { const t = fvTyp(o.abs); c = t ? t.c : 'tl'; } catch (e) {}
+      const L = ABL[c] || ['event_busy', 'Frånv.'];
+      const barn = o.abs.includes(' ') && (c === 'vab' || c === 'fl') ? o.abs.split(' ').slice(1).join(' ') : '';
+      cls = 'ab f-' + c; st = `${ic(L[0])}<span>${L[1]}</span>${full && barn ? `<small>${esc(barn)}</small>` : ''}${s > 0 ? `<small>${kk(s)}</small>` : ''}`;
+    } else if (s > 0) {
+      const ok = mal > 0 && s >= mal;
+      cls = mal > 0 ? (ok ? 'ok' : (idag ? 'nu' : 'miss')) : 'ok';
+      st = `<b>${kk(s)}</b>${full && idag && !ok ? '<small>pågår</small>' : ''}${mal > 0 ? `<i class="bar"><em style="width:${Math.min(100, s / mal * 100).toFixed(0)}%"></em></i>` : ''}`;
+    } else if (o.st === 'Ledig' || o.abs === 'Ledig' || !q.start) { cls = 'off'; st = '<span>Ledig</span>'; }
+    else { cls = d < realToday ? 'plan past' : 'plan'; st = `<span>${String(q.start).slice(0, 5)}</span>${q.end ? `<small>${String(q.end).slice(0, 5)}</small>` : ''}`; }
+    if (q.start && !(o.abs && o.abs !== 'Ledig')) { if (stangn(k, q)) cls += ' key'; if (andrad(k, q)) cls += ' chg'; }
+    return { cls, st };
+  }
+  window.fxDagInfo = dagInfo;
+  let vOff = 0, vKey = null;
+  window.fxVecka = n => { vOff += n; schema(); };
   function veckorad(valt) {
-    const start = new Date(dateOf(valt)); const dow = (start.getDay() + 6) % 7; start.setDate(start.getDate() - dow);
-    let h = '';
+    if (vKey !== valt) { vKey = valt; vOff = 0; }
+    const start = dateOf(valt); start.setDate(start.getDate() - ((start.getDay() + 6) % 7) + vOff * 7);
+    let h = '', sum = 0;
     for (let i = 0; i < 7; i++) {
       const dd = new Date(start); dd.setDate(start.getDate() + i);
-      const k = keyOf(dd), o = db.d[k] || {}, q = db.q[k] || {}, s = o.s || 0, mal = dayTarget(k);
-      let mark = '<i class="fx-ln"></i>', cls = '';
-      if (o.abs) { mark = `<i class="fx-pt t-${String(o.abs).split(' ')[0].toLowerCase()}"></i>`; cls = 'ab'; }
-      else if (s > 0 && mal > 0) mark = `<i class="fx-ln"><em class="${s >= mal ? 'ok' : 'lag'}" style="width:${Math.min(100, s / mal * 100)}%"></em></i>`;
-      else if (s > 0) mark = `<i class="fx-ln"><em class="ok" style="width:100%"></em></i>`;
-      else if (!q.start || o.st === 'Ledig') cls = 'ledig';
-      if (dd.getTime() === realToday.getTime()) cls += ' idag';
-      if (k === valt) cls += ' on';
-      h += `<button class="fx-wd ${cls}" onclick="fxDag('${k}')"><span>${KORT[dd.getDay()]}</span><b>${dd.getDate()}</b>${mark}</button>`;
+      const k = keyOf(dd), info = dagInfo(k, true); sum += (db.d[k] || {}).s || 0;
+      let cls = info.cls; if (dd.getTime() === realToday.getTime()) cls += ' idag'; if (k === valt) cls += ' on';
+      h += `<button class="fx-wd2 dc ${cls}" onclick="fxDag('${k}')"><span class="n">${KORT[dd.getDay()]}</span><span class="dt">${dd.getDate()}</span><div class="st">${info.st}</div></button>`;
     }
-    return `<div class="fx-week">${h}</div>`;
+    const slut = new Date(start); slut.setDate(start.getDate() + 6);
+    const t = new Date(start); t.setDate(t.getDate() + 3); const j = new Date(t.getFullYear(), 0, 4); const vnr = 1 + Math.round(((t - j) / 864e5 - 3 + ((j.getDay() + 6) % 7)) / 7);
+    const head = `<div class="fx-wkh"><div><b>Vecka ${vnr}</b><small>${start.getDate()} ${MAN[start.getMonth()].slice(0, 3)}–${slut.getDate()} ${MAN[slut.getMonth()].slice(0, 3)}${sum ? ' · ' + kk(sum) + ' sålt' : ''}</small></div><div class="nb"><button onclick="fxVecka(-1)" aria-label="Förra veckan">${ic('chevron_left')}</button><button onclick="fxVecka(1)" aria-label="Nästa vecka">${ic('chevron_right')}</button></div></div>`;
+    return { head, days: `<div class="fx-days">${h}</div>` };
   }
+
 
   // ---------- mätarna: röd → guld → grön efter framsteg, streck för tempot ----------
   const mix = (a, b, t) => a.map((x, i) => Math.round(x + (b[i] - x) * t));
@@ -375,33 +407,31 @@
       return `<button class="nd${ok ? ' ok' : ''}${vald ? ' vald' : ''}" style="left:${pos(t.min).toFixed(1)}%" onclick="fxBonus(${Number(t.min)})" aria-label="${t.pct} procent bonus"><b>${t.pct} %</b><i>${ok ? ic('check') : vald ? ic('flag') : ''}</i><small>${kk(t.min)}</small></button>`;
     }).join('');
     const vnr = (() => { const t = new Date(d); t.setDate(t.getDate() + 3 - ((t.getDay() + 6) % 7)); const j = new Date(t.getFullYear(), 0, 4); return 1 + Math.round(((t - j) / 864e5 - 3 + ((j.getDay() + 6) % 7)) / 7); })();
+    const vald = m.steg.find(t => satt ? Number(satt) === Number(t.min) : t.pct === 12) || m.nasta || m.nu;
+    const w = veckorad(k);
+    const legend = `<div class="fx-leg"><span><i class="ok"></i>nått</span><span><i class="miss"></i>ej nått</span><span><i class="vab"></i>VAB</span><span><i class="fl"></i>FL</span><span>${ic('swap_horiz')}ändrad tid</span><span>${ic('key')}stänger</span></div>`;
     return `
-      <section class="fx-flip" id="fx-flip">
-        <div class="fx-card3${vand ? ' vand' : ''}">
-          <div class="fx-face fram">
-            <div class="fx-fh"><span>${arIdag ? 'Idag' : DAG[d.getDay()] + ' ' + d.getDate() + ' ' + MAN[d.getMonth()].slice(0, 3)} och månaden</span><button class="fx-dots" onclick="fxVand()" aria-label="Vänd till månaden"><i class="on"></i><i></i></button></div>
-            <div class="fx-g3">${dagKol}${manKol}${krKol}</div>
-            <div class="fx-say">${rad('k', kan)}${rad('m', mast)}</div>
-          </div>
-          <div class="fx-face bak">
-            <div class="fx-fh"><span>${stor(MAN[m.cm - 1])} · prognos</span><button class="fx-dots" onclick="fxVand()" aria-label="Vänd tillbaka"><i></i><i class="on"></i></button></div>
-            <div class="fx-g3">${veckaKol}${progKol}${chansKol}</div>
-            <div class="fx-say">${rad('k', mkan)}${rad('m', mmast)}</div>
-          </div>
+      <section class="fx-hero5">
+        <div class="fx-g3">${dagKol}${manKol}${krKol}</div>
+        <div class="fx-tl3">
+          <button class="tl bon${slot ? ' on' : ''}" onclick="fxSlot()"><span>${ic('workspace_premium')}Vald bonus</span><b>${vald ? vald.pct + ' %' : '—'}</b><small>${vald ? kk(vald.min) + ' · ' + (m.salt >= vald.min ? 'nådd' : kk(vald.min - m.salt) + ' kvar') : 'inga nivåer'}</small></button>
+          <div class="tl prog"><span>${ic('trending_up')}Prognos</span><b>${kk(m.prognos)}</b><small>${m.mal > 0 ? pc(pf) : ''}${reach ? ' · räcker till ' + reach.pct + ' %' : ' · under bonusnivå'}</small></div>
+          ${np ? `<button class="tl pass" onclick="fxDag('${np.k}')"><span>${ic('event')}Nästa pass</span><b>${DAG[np.d.getDay()].slice(0, 3)} ${np.d.getDate()} ${MAN[np.d.getMonth()].slice(0, 3)}</b><small><b>${String(np.q.start).slice(0, 5)}–${String(np.q.end || '').slice(0, 5)}</b><br>mål ${np.mal ? kr(np.mal) + ' kr' : '—'}</small></button>` : `<div class="tl pass"><span>${ic('event')}Nästa pass</span><b>—</b><small>inget i schemat</small></div>`}
         </div>
       </section>
-      <section class="fx-t3">
-        <div class="fx-t g"><span>Prognos</span><b>${kk(m.prognos)}</b><small>${m.mal > 0 ? pc(pf) + ' av målet' : ''}</small></div>
-        <button class="fx-t k" onclick="fxSlot(true)"><span>${m.nu && !m.nasta ? 'Bonus' : 'Nästa bonus'}</span><b>${bonusV}</b><small>${bonusS}</small></button>
-        ${np ? `<button class="fx-t b" onclick="fxDag('${np.k}')"><span>Nästa pass</span><b>${DAG[np.d.getDay()].slice(0, 3)} ${np.d.getDate()}</b><small>mål ${np.mal ? kk(np.mal) : '—'} · ${String(np.q.start).slice(0, 5)}</small></button>` : `<div class="fx-t b"><span>Nästa pass</span><b>—</b><small>inget i schemat</small></div>`}
-      </section>
-      <section class="fx-slot${slot ? ' b' : ''}" id="fx-slot">
-        <button class="fx-slh" onclick="fxSlot()"><span class="a">Vecka ${vnr}</span><span class="b">Bonussystem · tryck för att välja mål</span><i class="dots"><em></em><em></em></i></button>
-        <div class="fx-sltr"><div class="p">${veckorad(k)}</div><div class="p"><div class="fx-lad"><div class="lt"><i class="lf fx-fill" data-w="${pos(m.salt).toFixed(1)}"></i>${nod}</div></div></div></div>
+      <section class="fx-wk2${slot ? ' b' : ''}" id="fx-slot">
+        <div class="fx-wkin">
+          <div class="fx-wkf">${w.head}${w.days}${legend}</div>
+          <div class="fx-wkb">
+            <div class="fx-wkh"><div><b class="gold">Välj bonusnivå</b><small>tryck på en nivå</small></div><div class="nb"><button onclick="fxSlot(false)" aria-label="Tillbaka till veckan">${ic('close')}</button></div></div>
+            <div class="fx-lad"><div class="lt"><i class="lf fx-fill" data-w="${pos(m.salt).toFixed(1)}"></i>${nod}</div></div>
+            <div class="fx-ladf"><span>Sålt ${kr(m.salt)} kr</span><span>Mål: <b>${vald ? vald.pct + ' % · ' + kk(vald.min) : kk(m.mal)}</b></span></div>
+          </div>
+        </div>
       </section>`;
   }
   window.fxVand = function () { vand = !vand; const c = document.querySelector('#fx .fx-card3'); if (c) c.classList.toggle('vand', vand); try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
-  window.fxSlot = function (till) { slot = typeof till === 'boolean' ? till : !slot; const s = $('fx-slot'); if (s) s.classList.toggle('b', slot); };
+  window.fxSlot = function (till) { slot = typeof till === 'boolean' ? till : !slot; const s = $('fx-slot'); if (s) s.classList.toggle('b', slot); const t = document.querySelector('#fx .tl.bon'); if (t) t.classList.toggle('on', slot); try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
   window.fxBonus = function (min) {
     const key = `${viewDate.getFullYear()}-${viewDate.getMonth() + 1}`;
     const satt = typeof savedBudgets !== 'undefined' ? savedBudgets[key] : null;

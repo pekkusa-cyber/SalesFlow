@@ -1,4 +1,4 @@
-const CACHE_NAME = "salesflow-v39"; // Bumpas vid varje släpp som byter cachade filer. Aktiveringssteget nedan
+const CACHE_NAME = "salesflow-v40"; // Bumpas vid varje släpp som byter cachade filer. Aktiveringssteget nedan
 // raderar alla cachar som inte matchar namnet.
 const URLS_TO_CACHE = [
   "/SalesFlow/",
@@ -187,7 +187,7 @@ self.addEventListener("fetch", event => {
   // Ögonblicksbilden är ingen riktig fil – den ska aldrig ut på nätet.
   if (event.request.url.includes(SNAP_URL)) return;
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: "no-cache" })
       .then(response => {
         // Om vi har internet och får en bra fil tillbaka, uppdatera cachen i bakgrunden
         if (response && response.status === 200 && response.type === 'basic') {

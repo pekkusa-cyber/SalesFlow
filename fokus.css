@@ -689,7 +689,7 @@ html body .md-dialog.fm1 .md-row-card { padding: 8px 12px !important; margin: 0 
 html body #summary-modal .md-dialog.fm1 .md-btn-filled { display: none !important; }
 html body .md-dialog.fm2 .md-stat-val { font-size: 21px !important; } html body .md-dialog.fm2 .md-toggle-row { padding: 8px 12px !important; margin-top: 4px !important; }
 html body #budget-modal .md-dialog.fm2 .md-budget-btn { min-height: 38px !important; } html body #budget-modal .md-dialog.fm2 .ck-themes button { min-height: 34px !important; }
-html body .md-dialog.fm3 #sum-bestweek-container, html body .md-dialog.fm3 #sum-boost-row { display: none !important; } html body #budget-modal .md-dialog.fm3 .lon-version { display: none; }
+html body .md-dialog.fm3 #sum-bestweek-container, html body .md-dialog.fm3 #sum-boost-row { display: none !important; }
 #fx .fx-quick button { background: var(--fx-card) !important; border: 1px solid var(--fx-line) !important; color: var(--fx-tx) !important; }
 .fp-cal > span { text-align: center; font: 500 10px var(--f-ui); color: var(--fx-dim); }
 html body #summary-modal-title, html body #summary-modal .md-dialog-title { text-transform: none !important; }

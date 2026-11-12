@@ -1095,3 +1095,23 @@ html body #fk .fk-d.dc.val { background: var(--fx-ink) !important; box-shadow: n
 html body #fk .fk-d.dc.val * { color: var(--fx-on-ink) !important; }
 .fx-leg i.chg { background: #e08a0b !important; }
 html[data-ck="dark"] .fx-leg i.chg { background: #f2a93b !important; }
+
+/* ===== v177: kalendern får veckoradens mjuka brickor i stället för starka färgfält ===== */
+html body #fk .fk-d.dc.dc { --tn: transparent; }
+html body #fk .fk-d.dc.dc.ok { --tn: #0f9d62; } html body #fk .fk-d.dc.dc.miss { --tn: #d8513f; } html body #fk .fk-d.dc.dc.nu { --tn: #2f5bff; }
+html body #fk .fk-d.dc.dc.f-vab { --tn: #c98a12; } html body #fk .fk-d.dc.dc.f-fl { --tn: #7c4fd6; } html body #fk .fk-d.dc.dc.f-sjuk { --tn: #d8513f; }
+html body #fk .fk-d.dc.dc.f-sem { --tn: #0b8f9c; } html body #fk .fk-d.dc.dc.f-tl { --tn: #6b7280; } html body #fk .fk-d.dc.dc.f-atg { --tn: #e07a2c; }
+html body #fk .fk-d.dc.dc:is(.ok,.miss,.nu,.ab) {
+  background: linear-gradient(180deg, var(--fx-card) 22%, color-mix(in srgb, var(--tn) 17%, var(--fx-card))) !important;
+  box-shadow: 0 1px 2px rgba(20,30,20,.06), 0 4px 10px -7px rgba(20,30,20,.25); }
+html[data-ck="dark"] body #fk .fk-d.dc.dc:is(.ok,.miss,.nu,.ab) {
+  background: linear-gradient(180deg, var(--fx-card) 22%, color-mix(in srgb, var(--tn) 24%, var(--fx-card))) !important; box-shadow: 0 1px 2px rgba(0,0,0,.4); }
+html body #fk .fk-d.dc.dc:is(.ok,.miss,.nu,.ab) .fk-n { color: var(--fx-tx) !important; font-weight: 700; }
+html body #fk .fk-d.dc.dc:is(.ok,.miss,.nu,.ab) .st, html body #fk .fk-d.dc.dc:is(.ok,.miss,.nu,.ab) .st * { color: color-mix(in srgb, var(--tn) 82%, #000) !important; }
+html[data-ck="dark"] body #fk .fk-d.dc.dc:is(.ok,.miss,.nu,.ab) .st, html[data-ck="dark"] body #fk .fk-d.dc.dc:is(.ok,.miss,.nu,.ab) .st * { color: color-mix(in srgb, var(--tn) 70%, #fff) !important; }
+html body #fk .fk-d.dc.dc:is(.ok,.miss,.nu,.ab) .st small { opacity: 1; color: var(--fx-mu) !important; }
+html body #fk .fk-d.dc.dc .st .bar { background: color-mix(in srgb, var(--tn) 20%, transparent); } html body #fk .fk-d.dc.dc .st .bar em { background: var(--tn); }
+html body #fk .fk-d.dc.dc:is(.ok,.miss,.nu,.ab).key::before { color: #c9a227; }
+html body #fk .fk-d.dc.dc:is(.ok,.miss,.nu,.ab).chg::after { box-shadow: 0 0 0 2px var(--fx-card); }
+html body #fk .fk-d.dc.dc.val { background: var(--fx-ink) !important; }
+html body #fk .fk-d.dc.dc.val .fk-n, html body #fk .fk-d.dc.dc.val .st, html body #fk .fk-d.dc.dc.val .st * { color: var(--fx-on-ink) !important; }

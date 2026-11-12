@@ -1037,3 +1037,6 @@ html body #sf-toast { top: calc(env(safe-area-inset-top, 0px) + 70px) !important
 .fx-scroll.fit4 .fx-wkh small { display: none; } .fx-scroll.fit4 #fx .fx-wd2, #fx .fx-scroll.fit4 .fx-wd2 { height: 70px; }
 .fx-scroll.fit5 .fx-wkh { display: none; }
 .dc.chg::after { top: auto !important; right: auto !important; bottom: 3px; left: 4px; }
+/* statusraden: samma ljusa ton som appen (förut blå) */
+html body #status-bar-tint { background: #f7f9f6 !important; }
+html[data-ck="dark"] body #status-bar-tint { background: #0b0e12 !important; }

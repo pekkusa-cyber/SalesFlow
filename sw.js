@@ -1,4 +1,4 @@
-const CACHE_NAME = "salesflow-v34"; // Bumpas vid varje släpp som byter cachade filer. Aktiveringssteget nedan
+const CACHE_NAME = "salesflow-v35"; // Bumpas vid varje släpp som byter cachade filer. Aktiveringssteget nedan
 // raderar alla cachar som inte matchar namnet.
 const URLS_TO_CACHE = [
   "/SalesFlow/",

@@ -1198,3 +1198,31 @@ html[data-ck="dark"] .fq-grid button.har { background: linear-gradient(180deg, v
 html body #summary-modal .md-stat-card, html body #summary-modal [class*="stat"] { box-shadow: 0 1px 2px rgba(20,30,60,.05), 0 6px 14px -10px rgba(30,60,140,.3); }
 .fq-grid button.har.f-sem { --tn: #0b8f9c; } .fq-grid button.har.f-sjuk { --tn: #d8513f; } .fq-grid button.har.f-vab { --tn: #c98a12; } .fq-grid button.har.f-fl { --tn: #7c4fd6; } .fq-grid button.har:is(.f-tl,.f-atg) { --tn: #e07a2c; }
 html[data-ck="dark"] { --fx-bgimg: radial-gradient(120% 40% at 100% 0%, rgba(70,110,220,.16), transparent 60%), radial-gradient(90% 40% at 0% 100%, rgba(201,162,39,.06), transparent 60%), #0b0e12; }
+
+/* ===== v179: lugnare startsida, djupblått herokort ===== */
+/* gemensamt: färre färger, marinblått i stället för svart, lugna märken, mer luft */
+:root { --fx-navy: #1c2f5e; }
+#fx .fx-tl3 .tl.bon { background: linear-gradient(160deg, #24407e, #182c5a) !important; }
+html[data-ck="dark"] #fx .fx-tl3 .tl.bon { background: linear-gradient(160deg, #1d3266, #121f42) !important; }
+#fx .fx-wd2.dc.on, html[data-ck] #fx .fx-wd2.dc.on { background: linear-gradient(160deg, #24407e, #182c5a) !important; }
+#fx .fx-wd2.dc.on .n, #fx .fx-wd2.dc.on .dt, #fx .fx-wd2.dc.on .st, #fx .fx-wd2.dc.on .st * { color: #fff !important; }
+.fx-chip.am, .fx-chip.ok { background: transparent !important; padding: 2px 4px !important; font-weight: 600 !important; }
+.fx-chip.am { color: #b0561d !important; } .fx-chip.ok { color: #0c7a4b !important; }
+.fx-chip.am::before { content: "↘ "; } .fx-chip.ok::before { content: "↗ "; }
+#fx .fx-tl3 .tl.prog > b, #fx .fx-tl3 .tl.pass > b { color: var(--hr-tx) !important; }
+.fx-leg { display: none !important; }
+.fx-nav button.on::before { background: #3a5fe6 !important; }
+:root:not([data-ck="dark"]) { --hr-grad: linear-gradient(160deg, #3358c4 0%, #2747a6 55%, #1e3a8c 100%); --hr-bd: #2a4cae; --hr-tx: #ffffff; --hr-mu: #c4d3fb;
+  --hr-line: rgba(255,255,255,.14); --hr-track: rgba(255,255,255,.18); --hr-track2: rgba(255,255,255,.12); --hr-panel: rgba(255,255,255,.12); --hr-glow: rgba(232,200,90,.18);
+  --hr-shadow: 0 26px 44px -26px rgba(30,60,160,.7); }
+:root:not([data-ck="dark"]) #fx .fx-tl3 .tl.bon { background: linear-gradient(160deg, #142757, #0e1d44) !important; }
+:root:not([data-ck="dark"]) .fx-chip.am { color: #ffc49a !important; } :root:not([data-ck="dark"]) .fx-chip.ok { color: #8ff0c0 !important; }
+:root { --hr-glow: transparent; } html[data-ck="dark"] { --hr-glow: transparent; }
+/* läsbarhet på det djupblå kortet (ljust tema) */
+:root:not([data-ck="dark"]) .fp-hero small { color: #c4d3fb !important; }
+:root:not([data-ck="dark"]) body .lon-result-card { --ck-ok: #8ff0c0; --ck-am: #ffd27a; --ck-bad: #ffb3a6; --fx-ok: #8ff0c0; }
+:root:not([data-ck="dark"]) body .lon-result-card :is(.text-green-600,.text-green-700,.lon-ok,[style*="0c7a4b"]) { color: #8ff0c0 !important; }
+:root:not([data-ck="dark"]) body #coach-main-modal .md-form-card .md-section-lbl .material-symbols-rounded { color: #c4d3fb !important; }
+:root:not([data-ck="dark"]) body #coach-main-modal .md-form-card .md-btn-filled { background: #ffffff !important; color: #2747a6 !important; box-shadow: 0 10px 22px -14px rgba(0,0,0,.5) !important; }
+:root:not([data-ck="dark"]) body #coach-main-modal .md-input:focus { color: var(--fx-tx) !important; }
+:root:not([data-ck="dark"]) body .lon-result-card #lon-bonus-out { color: #ffd27a !important; }

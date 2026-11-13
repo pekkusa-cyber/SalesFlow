@@ -1115,3 +1115,86 @@ html body #fk .fk-d.dc.dc:is(.ok,.miss,.nu,.ab).key::before { color: #c9a227; }
 html body #fk .fk-d.dc.dc:is(.ok,.miss,.nu,.ab).chg::after { box-shadow: 0 0 0 2px var(--fx-card); }
 html body #fk .fk-d.dc.dc.val { background: var(--fx-ink) !important; }
 html body #fk .fk-d.dc.dc.val .fk-n, html body #fk .fk-d.dc.dc.val .st, html body #fk .fk-d.dc.dc.val .st * { color: var(--fx-on-ink) !important; }
+
+/* ===== v178: blått herokort, blå accenter, mjukare bakgrund, ny frånvaro och säljcoach ===== */
+/* herokortet: blått (förtroende). Mätarna behåller röd → guld → grön. */
+:root {
+  --hr-grad: linear-gradient(160deg, #e8f0fd 0%, #d8e5fb 55%, #c8dbf8 100%);
+  --hr-bd: #bfd2f3; --hr-tx: #0b1a36; --hr-mu: #43597f; --hr-line: rgba(30,70,160,.14);
+  --hr-track: rgba(30,70,160,.12); --hr-track2: rgba(30,70,160,.09); --hr-panel: rgba(255,255,255,.58); --hr-glow: rgba(201,162,39,.2);
+  --hr-shadow: 0 22px 40px -30px rgba(30,80,200,.55);
+  --ac-soft: color-mix(in srgb, #2f5bff 9%, var(--fx-card));
+}
+html[data-ck="dark"] {
+  --hr-grad: linear-gradient(160deg, #15264a 0%, #11203f 55%, #0d1a33 100%);
+  --hr-bd: #243b6c; --hr-tx: #eaf1ff; --hr-mu: #9fb5e4; --hr-line: rgba(255,255,255,.1);
+  --hr-track: rgba(255,255,255,.1); --hr-track2: rgba(255,255,255,.07); --hr-panel: rgba(255,255,255,.07); --hr-glow: rgba(201,162,39,.16);
+  --hr-shadow: 0 22px 40px -30px rgba(0,0,0,.8);
+  --ac-soft: color-mix(in srgb, #7f9bff 12%, var(--fx-card));
+}
+.fx-hero5, .fx-hero4 { box-shadow: var(--hr-shadow) !important; }
+html body .lon-result-card, .fp-hero { box-shadow: var(--hr-shadow) !important; }
+.fp-hero small { color: #2447d6 !important; } html[data-ck="dark"] .fp-hero small { color: #9db3ff !important; }
+
+/* bakgrunden: ingen kritvit yta. Ton väljs med klass på <html> (dimblå) */
+html:not([data-ck="dark"]) { --fx-bg: #edf1f6; --fx-card: #f8fafd; --fx-line: #e1e6ee; --fx-line2: #d5dce6;
+  --fx-bgimg: radial-gradient(120% 40% at 100% 0%, rgba(70,120,230,.13), transparent 60%), radial-gradient(90% 40% at 0% 100%, rgba(201,162,39,.07), transparent 60%), #edf1f6; }
+html:not([data-ck="dark"]) { --ck-bg: var(--fx-bg); --ck-bg2: var(--fx-bg); --ck-panel: var(--fx-card); --ck-panel2: var(--fx-card); --ck-glass: var(--fx-card); --ck-head: var(--fx-bg); --ck-focus: var(--fx-bg); --ck-veil: var(--fx-bg); }
+html:not([data-ck="dark"]), html:not([data-ck="dark"]) body, html:not([data-ck="dark"]) body #app-shell, html:not([data-ck="dark"]) body .content-locker, html:not([data-ck="dark"]) body #status-bar-tint { background: var(--fx-bg) !important; }
+
+/* blå accenter i resten av appen */
+#fx .fx-top button .material-symbols-rounded { color: #2447d6; }
+html[data-ck="dark"] #fx .fx-top button .material-symbols-rounded { color: #9db3ff; }
+html body .fk-sum > div, html body .fk-stat, html body .fk-kpi > div { background: linear-gradient(180deg, var(--fx-card) 30%, var(--ac-soft)) !important; border-color: transparent !important; box-shadow: 0 1px 2px rgba(20,30,60,.05), 0 6px 14px -10px rgba(30,60,140,.35); }
+.fx-nav button.on { color: #2447d6 !important; } html[data-ck="dark"] .fx-nav button.on { color: #9db3ff !important; }
+
+/* frånvaro: samma mjuka brickor som veckoraden och kalendern */
+.fp-cal { border: 0 !important; box-shadow: 0 1px 2px rgba(20,30,60,.05), 0 10px 22px -16px rgba(30,60,140,.35); gap: 4px !important; padding: 10px !important; }
+.fp-cal button { --tn: transparent; height: 34px !important; border-radius: 11px !important; flex-direction: column; gap: 0 !important; color: var(--fx-tx) !important; }
+.fp-cal button b { font: 650 12.5px var(--f-ui) !important; order: -1; }
+.fp-cal button .material-symbols-rounded { font-size: 12px !important; color: var(--tn); }
+.fp-cal button[class*="f-"] { background: linear-gradient(180deg, var(--fx-card) 15%, color-mix(in srgb, var(--tn) 20%, var(--fx-card))) !important; box-shadow: 0 1px 2px rgba(20,30,20,.06), 0 4px 10px -7px rgba(20,30,20,.3); }
+html[data-ck="dark"] .fp-cal button[class*="f-"] { background: linear-gradient(180deg, var(--fx-card) 15%, color-mix(in srgb, var(--tn) 28%, var(--fx-card))) !important; box-shadow: 0 1px 2px rgba(0,0,0,.4); }
+.fp-cal button.f-vab { --tn: #c98a12; } .fp-cal button.f-fl { --tn: #7c4fd6; } .fp-cal button.f-sjuk { --tn: #d8513f; } .fp-cal button.f-sem { --tn: #0b8f9c; } .fp-cal button.f-tl { --tn: #6b7280; } .fp-cal button.f-atg { --tn: #e07a2c; }
+.fp-cal button:not([class*="f-"]) b { color: var(--fx-mu); font-weight: 500 !important; }
+.fp-cal button.idag { box-shadow: 0 0 0 2px var(--fx-ac) !important; }
+.fp-tile { --tn: #6b7280; border: 0 !important; background: linear-gradient(180deg, var(--fx-card) 30%, color-mix(in srgb, var(--tn) 13%, var(--fx-card))) !important; box-shadow: 0 1px 2px rgba(20,30,20,.06), 0 8px 18px -12px rgba(20,30,20,.3); padding: 9px 11px !important; }
+html[data-ck="dark"] .fp-tile { background: linear-gradient(180deg, var(--fx-card) 30%, color-mix(in srgb, var(--tn) 22%, var(--fx-card))) !important; box-shadow: 0 1px 2px rgba(0,0,0,.4); }
+.fp-tile.f-vab { --tn: #c98a12; } .fp-tile.f-fl { --tn: #7c4fd6; } .fp-tile.f-sjuk { --tn: #d8513f; } .fp-tile.f-sem { --tn: #0b8f9c; } .fp-tile.f-atg { --tn: #e07a2c; }
+.fp-tile .material-symbols-rounded { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--fx-card); box-shadow: 0 1px 3px rgba(0,0,0,.1); font-size: 15px !important; color: var(--tn) !important; margin-bottom: 4px !important; }
+.fp-tile b { color: var(--tn) !important; }
+
+/* säljcoach */
+html body #coach-main-modal .md-dialog-title .material-symbols-rounded { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; background: var(--hr-grad); color: #2447d6 !important; font-size: 20px; box-shadow: 0 6px 14px -8px rgba(30,80,200,.6); }
+html[data-ck="dark"] body #coach-main-modal .md-dialog-title .material-symbols-rounded { color: #9db3ff !important; }
+html body #coach-main-modal .md-dialog-header-bar { border-bottom: 0 !important; }
+html body #coach-main-modal .md-form-card { background: var(--hr-grad) !important; border: 1px solid var(--hr-bd) !important; border-radius: 24px !important; box-shadow: var(--hr-shadow) !important; display: flex; flex-direction: column; gap: 10px; }
+html body #coach-main-modal .md-form-card .md-section-lbl { color: var(--hr-tx) !important; font: 700 16px var(--f-ui) !important; letter-spacing: -.01em; text-transform: none !important; margin-bottom: 2px; }
+html body #coach-main-modal .md-form-card .md-section-lbl .material-symbols-rounded { color: #2447d6 !important; font-size: 19px !important; }
+html[data-ck="dark"] body #coach-main-modal .md-form-card .md-section-lbl .material-symbols-rounded { color: #9db3ff !important; }
+html body #coach-main-modal .md-input { background: var(--hr-panel) !important; border: 1px solid var(--hr-line) !important; border-radius: 14px !important; color: var(--hr-tx) !important; box-shadow: none !important; }
+html body #coach-main-modal .md-input::placeholder { color: var(--hr-mu) !important; opacity: .85; }
+html body #coach-main-modal .md-input:focus { border-color: #2f5bff !important; background: var(--fx-card) !important; outline: none; }
+html body #coach-main-modal .md-btn-outlined { background: var(--fx-card) !important; border: 0 !important; border-radius: 18px !important; box-shadow: 0 1px 2px rgba(20,30,60,.05), 0 8px 18px -12px rgba(30,60,140,.35) !important; color: var(--fx-tx) !important; height: 54px; }
+html body #coach-main-modal .md-btn-outlined .material-symbols-rounded { color: #2447d6; }
+html[data-ck="dark"] body #coach-main-modal .md-btn-outlined .material-symbols-rounded { color: #9db3ff; }
+
+/* ===== v178b: lugnare färger överallt ===== */
+/* knappblå en aning mjukare */
+:root { --fx-ac: #3a5fe6; --fx-ac-soft: #e8eefc; }
+/* frånvaroflödet: tonade ikoner och mjuka rutor i stället för helfärgade */
+.fq-typer button { --tn: #6b7280; border: 0 !important; background: linear-gradient(180deg, var(--fx-card) 35%, color-mix(in srgb, var(--tn) 12%, var(--fx-card))) !important; box-shadow: 0 1px 2px rgba(20,30,60,.05), 0 6px 14px -10px rgba(30,60,140,.35); }
+.fq-typer .f-sem { --tn: #0b8f9c; } .fq-typer .f-sjuk { --tn: #d8513f; } .fq-typer .f-vab { --tn: #c98a12; } .fq-typer .f-fl { --tn: #7c4fd6; } .fq-typer .f-tl { --tn: #6b7280; }
+.fq-typer button .material-symbols-rounded { background: color-mix(in srgb, var(--tn) 16%, var(--fx-card)) !important; color: var(--tn) !important; font-variation-settings: 'FILL' 1; }
+.fq-typer button.on { box-shadow: 0 0 0 2px var(--tn), 0 6px 14px -8px var(--tn) !important; }
+.fq-cal { border: 0 !important; box-shadow: 0 1px 2px rgba(20,30,60,.05), 0 10px 22px -16px rgba(30,60,140,.35); }
+.fq-grid button.har { --tn: #6b7280; color: var(--fx-tx) !important; background: linear-gradient(180deg, var(--fx-card) 15%, color-mix(in srgb, var(--tn) 22%, var(--fx-card))) !important; box-shadow: 0 1px 2px rgba(20,30,20,.06); }
+.fq-grid .f-sem { --tn: #0b8f9c; } .fq-grid .f-sjuk { --tn: #d8513f; } .fq-grid .f-vab { --tn: #c98a12; } .fq-grid .f-fl { --tn: #7c4fd6; } .fq-grid .f-tl, .fq-grid .f-atg { --tn: #e07a2c; }
+.fq-grid button.start, .fq-grid button.slut { background: var(--fx-ac) !important; color: #fff !important; }
+.fq-grid button.val { background: var(--fx-ac-soft) !important; color: var(--fx-ac) !important; }
+html[data-ck="dark"] .fq-typer button .material-symbols-rounded { background: color-mix(in srgb, var(--tn) 24%, var(--fx-card)) !important; }
+html[data-ck="dark"] .fq-grid button.har { background: linear-gradient(180deg, var(--fx-card) 15%, color-mix(in srgb, var(--tn) 30%, var(--fx-card))) !important; }
+/* sammanfattningen: mjukare rutor */
+html body #summary-modal .md-stat-card, html body #summary-modal [class*="stat"] { box-shadow: 0 1px 2px rgba(20,30,60,.05), 0 6px 14px -10px rgba(30,60,140,.3); }
+.fq-grid button.har.f-sem { --tn: #0b8f9c; } .fq-grid button.har.f-sjuk { --tn: #d8513f; } .fq-grid button.har.f-vab { --tn: #c98a12; } .fq-grid button.har.f-fl { --tn: #7c4fd6; } .fq-grid button.har:is(.f-tl,.f-atg) { --tn: #e07a2c; }
+html[data-ck="dark"] { --fx-bgimg: radial-gradient(120% 40% at 100% 0%, rgba(70,110,220,.16), transparent 60%), radial-gradient(90% 40% at 0% 100%, rgba(201,162,39,.06), transparent 60%), #0b0e12; }

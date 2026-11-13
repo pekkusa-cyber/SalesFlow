@@ -1226,3 +1226,32 @@ html[data-ck="dark"] #fx .fx-tl3 .tl.bon { background: linear-gradient(160deg, #
 :root:not([data-ck="dark"]) body #coach-main-modal .md-form-card .md-btn-filled { background: #ffffff !important; color: #2747a6 !important; box-shadow: 0 10px 22px -14px rgba(0,0,0,.5) !important; }
 :root:not([data-ck="dark"]) body #coach-main-modal .md-input:focus { color: var(--fx-tx) !important; }
 :root:not([data-ck="dark"]) body .lon-result-card #lon-bonus-out { color: #ffd27a !important; }
+
+/* ===== v180: något mörkare bakgrund, tydligt markerade dagar ===== */
+html:not([data-ck="dark"]) { --fx-bg: #e5eaf1; --fx-card: #f3f6fa; --fx-line: #d9e0e9; --fx-line2: #ccd4df;
+  --fx-bgimg: radial-gradient(120% 40% at 100% 0%, rgba(70,120,230,.12), transparent 60%), radial-gradient(90% 40% at 0% 100%, rgba(201,162,39,.06), transparent 60%), #e5eaf1; }
+/* öppnad dag: blå ram, lyft och blå ton */
+html body #fk .fk-d.dc.dag-oppen, .fp-cal button.dag-oppen { box-shadow: 0 0 0 3px #3a5fe6, 0 10px 20px -8px rgba(58,95,230,.65) !important; transform: scale(1.06); z-index: 2; position: relative; }
+html body #fk .fk-d.dc.dag-oppen { background: linear-gradient(180deg, var(--fx-card) 20%, color-mix(in srgb, #3a5fe6 18%, var(--fx-card))) !important; }
+.fp-cal button.dag-oppen { background: color-mix(in srgb, #3a5fe6 16%, var(--fx-card)) !important; }
+html[data-ck="dark"] body #fk .fk-d.dc.dag-oppen, html[data-ck="dark"] .fp-cal button.dag-oppen { box-shadow: 0 0 0 3px #7f9bff, 0 10px 20px -8px rgba(127,155,255,.6) !important; }
+html body #fk .fk-d, .fp-cal button { transition: transform .15s, box-shadow .15s; }
+/* flera markerade dagar: helblå med bock */
+html body #fk .fk-d.dc.dc.val { background: linear-gradient(160deg, #4a6ff0, #2f52d6) !important; box-shadow: 0 8px 16px -8px rgba(47,82,214,.8) !important; }
+html body #fk .fk-d.dc.dc.val .fk-n, html body #fk .fk-d.dc.dc.val .st, html body #fk .fk-d.dc.dc.val .st * { color: #fff !important; }
+html body #fk .fk-d.dc.dc.val::after { content: "check" !important; font-family: 'Material Symbols Rounded' !important; font-size: 11px; font-weight: 700; width: 15px; height: 15px; border-radius: 50%; background: #fff; color: #2f52d6; display: grid; place-items: center; position: absolute; top: 3px !important; right: 3px !important; left: auto !important; bottom: auto !important; box-shadow: none !important; line-height: 1; }
+html body #fk .fk-d.dc.dc.val.key::before { color: #ffe08a; }
+/* frånvaroflödet: tydligare valt intervall */
+.fq-grid button.val { background: color-mix(in srgb, #3a5fe6 24%, var(--fx-card)) !important; color: #2447d6 !important; font-weight: 700 !important; }
+html[data-ck="dark"] .fq-grid button.val { background: color-mix(in srgb, #7f9bff 30%, var(--fx-card)) !important; color: #fff !important; }
+.fq-grid button.start, .fq-grid button.slut { box-shadow: 0 6px 14px -6px rgba(58,95,230,.8); font-weight: 750 !important; }
+/* öppnad dag = helblå, som markerade dagar */
+html body #fk .fk-d.dc.dag-oppen, .fp-cal button.dag-oppen { background: linear-gradient(160deg, #4a6ff0, #2f52d6) !important; box-shadow: 0 0 0 2px var(--fx-card), 0 0 0 4px #3a5fe6, 0 10px 20px -6px rgba(47,82,214,.7) !important; }
+html body #fk .fk-d.dc.dag-oppen .fk-n, html body #fk .fk-d.dc.dag-oppen .st, html body #fk .fk-d.dc.dag-oppen .st *, .fp-cal button.dag-oppen, .fp-cal button.dag-oppen * { color: #fff !important; }
+html body #fk .fk-d.dc.dc.val::after { content: none !important; display: none !important; }
+.fq-grid button.val:is(.start,.slut) { background: linear-gradient(160deg, #4a6ff0, #2f52d6) !important; color: #fff !important; }
+html body #fk .fk-d.dc.dc.dc.dag-oppen { background: linear-gradient(160deg, #4a6ff0, #2f52d6) !important; box-shadow: 0 0 0 2px var(--fx-card), 0 0 0 4px #3a5fe6, 0 10px 20px -6px rgba(47,82,214,.7) !important; }
+html body #fk .fk-d.dc.dc.dc.dag-oppen .fk-n, html body #fk .fk-d.dc.dc.dc.dag-oppen .st, html body #fk .fk-d.dc.dc.dc.dag-oppen .st * { color: #fff !important; }
+html body .fk-acts button.pri { background: linear-gradient(160deg, #4a6ff0, #2f52d6) !important; color: #fff !important; border: 0 !important; }
+html body .fk-acts button.pri * { color: #fff !important; }
+html body .fk-acts button.pri .material-symbols-rounded { background: rgba(255,255,255,.18) !important; }

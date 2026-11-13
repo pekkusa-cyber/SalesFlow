@@ -147,7 +147,14 @@
       else if (a === 'oppna') { goToDayDash(k); setHemLage('dag'); }
     };
     requestAnimationFrame(() => el.classList.add('open'));
-    function stang() { el.classList.remove('open'); }
+    markera(k);
+    function stang() { el.classList.remove('open'); markera(null); }
+  }
+  // tydlig markering av den öppnade dagen i kalendern och i frånvarovyn
+  function markera(k) {
+    document.querySelectorAll('.dag-oppen').forEach(e => e.classList.remove('dag-oppen'));
+    if (!k) return;
+    document.querySelectorAll(`#fk .fk-d[data-k="${k}"], .fp-cal button[onclick*="'${k}'"]`).forEach(e => e.classList.add('dag-oppen'));
   }
   // hela frånvaroperioden runt en dag (för "Ändra frånvaro")
   function franvPeriod(k) {

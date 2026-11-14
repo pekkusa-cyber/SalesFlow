@@ -50,13 +50,15 @@ jobs:
         id: keys
         env:
           KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_DEL1: ${{ secrets.ANDROID_KEYSTORE_BASE64_DEL1 }}
         run: |
           if [ -z "$KS" ]; then
             echo "ok=false" >> "$GITHUB_OUTPUT"
             echo "::warning title=Signeringsnyckel saknas::Lägg till repo-secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS och ANDROID_KEY_PASSWORD. Bygget kontrolleras men ingen Release skapas."
           else
             # Tåligt mot vanliga kopieringsfel: mellanslag, radbrytningar, citattecken och rubrik som följt med.
-            CLEAN=$(printf '%s' "$KS" | sed 's/ANDROID_KEYSTORE_BASE64//g' | tr -cd 'A-Za-z0-9+/=')
+            # Nyckeln kan ligga i en secret (ANDROID_KEYSTORE_BASE64) eller delad i två (…_DEL1 = första delen, ANDROID_KEYSTORE_BASE64 = resten).
+            CLEAN=$(printf '%s%s' "$KS_DEL1" "$KS" | sed 's/ANDROID_KEYSTORE_BASE64//g' | tr -cd 'A-Za-z0-9+/=')
             echo "Nyckelvärdets längd efter rensning: ${#CLEAN} tecken (förväntat: 3520). Börjar med: ${CLEAN:0:4}. Slutar med: ${CLEAN: -4}"
             if ! printf '%s' "$CLEAN" | base64 -d > "$RUNNER_TEMP/release.keystore"; then
               echo "::error title=ANDROID_KEYSTORE_BASE64 är fel::Värdet går inte att läsa. Rätt värde är en enda rad på 3520 tecken som börjar med MIIK och slutar med A==. Kopiera hela raden på nytt."

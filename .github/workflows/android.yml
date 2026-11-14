@@ -55,7 +55,13 @@ jobs:
             echo "ok=false" >> "$GITHUB_OUTPUT"
             echo "::warning title=Signeringsnyckel saknas::Lägg till repo-secrets ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS och ANDROID_KEY_PASSWORD. Bygget kontrolleras men ingen Release skapas."
           else
-            echo "$KS" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            # Tåligt mot vanliga kopieringsfel: mellanslag, radbrytningar, citattecken och rubrik som följt med.
+            CLEAN=$(printf '%s' "$KS" | sed 's/ANDROID_KEYSTORE_BASE64//g' | tr -cd 'A-Za-z0-9+/=')
+            echo "Nyckelvärdets längd efter rensning: ${#CLEAN} tecken (förväntat: 3520). Börjar med: ${CLEAN:0:4}. Slutar med: ${CLEAN: -4}"
+            if ! printf '%s' "$CLEAN" | base64 -d > "$RUNNER_TEMP/release.keystore"; then
+              echo "::error title=ANDROID_KEYSTORE_BASE64 är fel::Värdet går inte att läsa. Rätt värde är en enda rad på 3520 tecken som börjar med MIIK och slutar med A==. Kopiera hela raden på nytt."
+              exit 1
+            fi
             echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
             echo "ok=true" >> "$GITHUB_OUTPUT"
           fi

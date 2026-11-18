@@ -252,14 +252,25 @@
     document.querySelectorAll('.fx-fill').forEach(f => { const w = f.dataset.w; requestAnimationFrame(() => { f.style.width = w + '%'; }); });
     document.querySelectorAll('.fx-rc').forEach(c => { const d = c.dataset.d; requestAnimationFrame(() => { c.style.strokeDasharray = d; }); });
     document.querySelectorAll('.fx-bar i').forEach(f => { const h = f.dataset.h; requestAnimationFrame(() => { f.style.height = h + '%'; }); });
-    // anpassa tills allt får plats – ingen scroll på Idag och Månad
-    const sc = $('fx-scroll');
-    sc.classList.remove('fit1', 'fit2', 'fit3', 'fit4', 'fit5'); sc.scrollTop = 0;
-    const over = () => sc.scrollHeight > sc.clientHeight + 1 || [...document.querySelectorAll('#fx .fx-face')].some(f => f.scrollHeight > f.clientHeight + 1);
-    for (const f of ['fit1', 'fit2', 'fit3', 'fit4', 'fit5']) { if (!over()) break; sc.classList.add(f); }
+    passa();
     $('fx-cta').querySelector('.fx-cta-t').textContent = dag && !arIdag ? `Registrera ${d.getDate()} ${MAN[d.getMonth()].slice(0, 3)}` : 'Registrera försäljning';
     aktiv();
   }
+
+  // anpassa tills allt får plats – ingen scroll på Idag och Månad.
+  // Körs om när fönstret ändrar storlek (tangentbord som öppnas och stängs, rotation).
+  function passa() {
+    const sc = $('fx-scroll'); if (!sc || !sc.clientHeight) return;
+    sc.classList.remove('fit1', 'fit2', 'fit3', 'fit4', 'fit5'); sc.scrollTop = 0;
+    const over = () => sc.scrollHeight > sc.clientHeight + 1 || [...document.querySelectorAll('#fx .fx-face')].some(f => f.scrollHeight > f.clientHeight + 1);
+    for (const f of ['fit1', 'fit2', 'fit3', 'fit4', 'fit5']) { if (!over()) break; sc.classList.add(f); }
+  }
+  let passaTimer = null;
+  const passaSen = () => { clearTimeout(passaTimer); passaTimer = setTimeout(passa, 120); };
+  window.addEventListener('resize', passaSen);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', passaSen);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) passaSen(); });
+  window.fxPassa = passa;
 
   // ---------- gemensam dag-info (veckoraden och kalendern) ----------
   let nsKey = -1, nsCache = {};

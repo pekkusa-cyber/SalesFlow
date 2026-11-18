@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="ui.css?v=116">
     <link rel="stylesheet" href="premium.css?v=118">
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="fokus.css?v=181">
+    <link rel="stylesheet" href="fokus.css?v=182">
     <script>try{var v=localStorage.getItem('sf_ck')||'ljust';document.documentElement.setAttribute('data-ck',(v==='mork'||(v==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches))?'dark':'light');}catch(e){}</script>
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
@@ -465,47 +465,43 @@
         </div>
     </div>
 
-    <!-- INSTÄLLNINGAR -->
+    <!-- INSTÄLLNINGAR: en sida utan scroll -->
     <div id="budget-modal" class="md-scrim fixed inset-0 z-[15000] hidden flex items-center justify-center p-4">
-        <div class="md-dialog w-[320px]">
+        <div class="md-dialog w-[320px] st">
             <div class="md-dialog-header">
                 <h2 class="md-dialog-title">Inställningar</h2>
                 <button onclick="closeBudgetModal()" class="md-icon-btn" aria-label="Stäng"><span class="material-symbols-rounded">close</span></button>
             </div>
-            <p class="md-section-lbl">Data</p>
             <button id="sync-btn" onclick="syncData()" class="md-btn-filled w-full md-btn-icon-text" data-testid="sync-data">
                 <span class="material-symbols-rounded">sync</span> Synkronisera data
             </button>
-            <div class="md-divider"></div>
-            <p class="md-section-lbl text-center" id="budget-month-lbl">Månadsmål</p>
+            <p class="md-section-lbl" id="budget-month-lbl">Månadsmål</p>
             <!-- Knapparna byggs från månadens bonustrappa (renderBudgetChoices) – november
                  har andra nivåer än oktober, och fasta 180/240/350 gick inte att välja rätt med. -->
-            <div id="budget-choices" class="flex flex-col gap-2"></div>
+            <div id="budget-choices"></div>
             <div id="bonus-egen" class="be"></div>
-            <div class="md-divider"></div>
-            <p class="md-section-lbl text-center">Utseende</p>
+            <p class="md-section-lbl">Utseende</p>
             <div class="ck-themes">
                 <button data-ck-val="ljust" onclick="setCkTheme('ljust')">☀️ Ljust</button>
                 <button data-ck-val="mork" onclick="setCkTheme('mork')">🌙 Mörkt</button>
                 <button data-ck-val="auto" onclick="setCkTheme('auto')">📱 Telefonen</button>
             </div>
-            <div class="md-divider"></div>
-            <label class="md-toggle-row">
-                <span>🎯 Öppna fokusläget under passet</span>
-                <input id="focus-auto" type="checkbox" onchange="setFocusAuto(this.checked)">
-            </label>
-            <p class="lon-hint" style="margin-top:2px">Slår på sig 15 minuter före passets start.</p>
-            <label class="md-toggle-row">
-                <span>📲 Snabbnotis med dagens mål</span>
-                <input id="snabb-notis" type="checkbox" onchange="setSnabbNotis(this.checked)">
-            </label>
-            <p class="lon-hint" style="margin-top:2px">Ligger kvar i notisfältet och på låsskärmen. Knappen registrerar 1 000 kr utan att appen öppnas.</p>
-            <div class="md-divider"></div>
-            <p class="md-section-lbl text-center">Boost per tryck</p>
-            <input id="boost-step" type="number" inputmode="numeric" step="500" class="md-input" onchange="setBoostStep(this.value)" placeholder="3000">
-            <p id="boost-step-hint" class="lon-hint" style="margin-top:4px"></p>
+            <div class="st-rader">
+                <label class="md-toggle-row">
+                    <span>🎯 Fokusläge under passet</span>
+                    <input id="focus-auto" type="checkbox" onchange="setFocusAuto(this.checked)">
+                </label>
+                <label class="md-toggle-row">
+                    <span>📲 Snabbnotis med dagens mål</span>
+                    <input id="snabb-notis" type="checkbox" onchange="setSnabbNotis(this.checked)">
+                </label>
+                <div class="md-toggle-row st-boost">
+                    <span>Boost per tryck</span>
+                    <input id="boost-step" type="number" inputmode="numeric" step="500" class="md-input" onchange="setBoostStep(this.value)" placeholder="3000">
+                </div>
+            </div>
+            <p id="boost-step-hint" class="lon-hint" hidden></p>
             <p id="app-version" class="lon-version">SalesFlow</p>
-            <button onclick="closeBudgetModal()" class="md-btn-text mt-1">Stäng</button>
         </div>
     </div>
 
@@ -972,10 +968,11 @@
         </div>
     </div>
 
-    <script src="script.js?v=181"></script>
-    <script src="fx.js?v=181"></script>
+    <script src="script.js?v=182"></script>
+    <script src="fx.js?v=182"></script>
     <script src="fxsidor.js?v=181"></script>
     <script src="fxkal.js?v=180"></script>
+    <script src="fxangra.js?v=182"></script>
     <script>
     // ============================================================
     // SALESFLOW — Navigationscontroller

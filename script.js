@@ -148,9 +148,9 @@ function renderBudgetChoices(){
     const satt = savedBudgets[`${cy}-${cm}`] || null;
     const kr = n => Number(n).toLocaleString('sv-SE') + ' kr';
     const auto = Number((steg.find(t => Number(t.pct) === 12) || {}).min) || 240000;
-    let html = `<button onclick="setGlobalBudget(null)" class="md-budget-btn${!satt ? ' is-active' : ''}">Följ bonustrappan · ${kr(auto)}</button>`;
+    let html = `<button onclick="setGlobalBudget(null)" class="md-budget-btn${!satt ? ' is-active' : ''}">Trappan · ${kr(auto)}</button>`;
     steg.forEach(t => {
-        html += `<button onclick="setGlobalBudget(${Number(t.min)})" class="md-budget-btn${satt === Number(t.min) ? ' is-active' : ''}">${t.pct} % · ${kr(t.min)}${t.egen ? ' · överenskommen' : ''}</button>`;
+        html += `<button onclick="setGlobalBudget(${Number(t.min)})" class="md-budget-btn${satt === Number(t.min) ? ' is-active' : ''}">${t.pct} % · ${kr(t.min)}${t.egen ? ' · egen' : ''}</button>`;
     });
     box.innerHTML = html;
     try { renderBonusEgen(); } catch(e){ console.warn(e); }
@@ -168,14 +168,18 @@ function renderBonusEgen(){
     box.innerHTML = `
       <p class="md-section-lbl be-rubrik">Bonus för ${MAN[cm-1]}</p>
       <div class="be-kort">
-        <div class="be-rad"><div><b>Lättat mål</b><small>${harL ? `Du har satt ${egenL} %. Appen räknade ${autoPct} %.` : `Appen räknar ${autoPct} % utifrån din frånvaro.`}</small></div></div>
-        <div class="be-seg"><button class="${harL ? '' : 'on'}" onclick="setLattnadPct(null)">Auto · ${autoPct} %</button><button class="${harL ? 'on' : ''}" onclick="document.getElementById('be-lpct').focus()">Egen</button></div>
-        <div class="be-in"><input id="be-lpct" type="number" inputmode="decimal" min="0" max="90" step="1" placeholder="t.ex. 15" value="${harL ? egenL : ''}"><span>%</span><button onclick="setLattnadPct(document.getElementById('be-lpct').value)">Spara</button></div>
-      </div>
-      <div class="be-kort">
-        <div class="be-rad"><div><b>Överenskommen nivå</b><small>${niva ? `${niva.pct} % från ${niva.min.toLocaleString('sv-SE')} kr gäller i ${MAN[cm-1]}.` : 'Om du och chefen kommit överens om en egen nivå för just den här månaden.'}</small></div></div>
-        <div class="be-in tva"><input id="be-nmin" type="number" inputmode="numeric" step="1000" placeholder="Belopp, t.ex. 200000" value="${niva ? niva.min : ''}"><input id="be-npct" type="number" inputmode="decimal" step="0.5" placeholder="%" value="${niva ? niva.pct : ''}"><span>%</span></div>
-        <div class="be-knappar"><button class="pri" onclick="setEgenNiva(document.getElementById('be-nmin').value, document.getElementById('be-npct').value)">${niva ? 'Uppdatera nivå' : 'Spara nivå'}</button>${niva ? '<button onclick="setEgenNiva(null)">Ta bort</button>' : ''}</div>
+        <div class="be-rad">
+          <div class="be-t"><b>Lättat mål</b><small>${harL ? `Eget val · appen räknade ${autoPct} %` : `Auto · ${autoPct} % av din frånvaro`}</small></div>
+          <div class="be-in"><input id="be-lpct" type="number" inputmode="decimal" min="0" max="90" step="1" placeholder="${autoPct}" value="${harL ? egenL : ''}" aria-label="Lättat mål i procent"><span>%</span>
+            <button class="pri" onclick="setLattnadPct(document.getElementById('be-lpct').value)" aria-label="Spara lättat mål">${'✓'}</button>
+            ${harL ? `<button onclick="setLattnadPct(null)" aria-label="Auto">Auto</button>` : ''}</div>
+        </div>
+        <div class="be-rad">
+          <div class="be-t"><b>Egen nivå</b><small>${niva ? `${niva.pct} % från ${niva.min.toLocaleString('sv-SE')} kr` : 'Överenskommen med chefen'}</small></div>
+          <div class="be-in"><input id="be-nmin" type="number" inputmode="numeric" step="1000" placeholder="kr" value="${niva ? niva.min : ''}" aria-label="Belopp"><input id="be-npct" class="liten" type="number" inputmode="decimal" step="0.5" placeholder="%" value="${niva ? niva.pct : ''}" aria-label="Procent"><span>%</span>
+            <button class="pri" onclick="setEgenNiva(document.getElementById('be-nmin').value, document.getElementById('be-npct').value)" aria-label="Spara nivå">✓</button>
+            ${niva ? `<button onclick="setEgenNiva(null)" aria-label="Ta bort nivå">✕</button>` : ''}</div>
+        </div>
       </div>`;
 }
 function bonusEgenUppdatera(){

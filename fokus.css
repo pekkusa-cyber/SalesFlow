@@ -1292,3 +1292,61 @@ html body #sf-boot .boot-bar span { background: #ffffff !important; }
 .be-in button, .be-knappar button { height: 42px; padding: 0 16px; border-radius: 12px; border: 0; font: 650 14px var(--f-ui); background: var(--fx-bg); color: var(--fx-tx); }
 .be-in button, .be-knappar button.pri { background: linear-gradient(160deg, #4a6ff0, #2f52d6); color: #fff; }
 .be-knappar { display: flex; gap: 8px; } .be-knappar button.pri { flex: 1; }
+
+/* ===== v182: inställningar på en sida, utan scroll ===== */
+html body #budget-modal .st { display: flex !important; flex-direction: column; gap: 6px !important; overflow: hidden !important; }
+html body #budget-modal .st .md-dialog-header { margin: 0 !important; min-height: 44px; padding-bottom: 0 !important; }
+html body #budget-modal .st .md-btn-filled { min-height: 44px !important; height: 44px; flex-shrink: 0; }
+html body #budget-modal .st .md-section-lbl { margin: 8px 4px 0 !important; font-size: 12px !important; line-height: 1.2; }
+html body #budget-modal .st #budget-choices { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px !important; }
+html body #budget-modal .st #budget-choices > :first-child { grid-column: auto !important; }
+html body #budget-modal .st .md-budget-btn { min-height: 38px !important; font-size: 12.5px !important; line-height: 1.15; padding: 4px 8px !important; }
+html body #budget-modal .st .ck-themes { margin: 0 !important; }
+html body #budget-modal .st .ck-themes button { min-height: 36px !important; }
+html body #budget-modal .st .st-rader { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+html body #budget-modal .st .md-toggle-row { padding: 8px 12px !important; margin: 0 !important; min-height: 44px; font-size: 13.5px; }
+html body #budget-modal .st .st-boost .md-input { width: 100px !important; height: 32px !important; min-height: 0 !important; padding: 0 10px !important; text-align: right; font-size: 14px !important; margin: 0 !important; }
+html body #budget-modal .st .lon-version { margin: 2px 0 0 !important; font-size: 11px !important; }
+/* bonus för månaden: kompakt */
+html body #budget-modal .be { margin: 0 !important; gap: 0 !important; }
+html body #budget-modal .be .be-rubrik { margin: 8px 4px 6px !important; }
+html body #budget-modal .be-kort { padding: 4px 12px !important; gap: 0 !important; border-radius: 16px; }
+html body #budget-modal .be-rad { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px; }
+html body #budget-modal .be-rad + .be-rad { border-top: 1px solid var(--fx-line); }
+html body #budget-modal .be-t { min-width: 0; flex: 1; }
+html body #budget-modal .be-t b { font: 650 13.5px var(--f-ui); display: block; white-space: nowrap; }
+html body #budget-modal .be-t small { font: 500 11px var(--f-ui); color: var(--fx-mu); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+html body #budget-modal .be-in { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+html body #budget-modal .be-in input { width: 58px; flex: none; height: 34px; padding: 0 6px; border-radius: 10px; text-align: right; font: 600 14px var(--f-ui); }
+html body #budget-modal .be-in input#be-nmin { width: 78px; }
+html body #budget-modal .be-in input.liten { width: 42px; }
+html body #budget-modal .be-in span { font: 600 12.5px var(--f-ui); }
+html body #budget-modal .be-in button { height: 34px; min-width: 34px; padding: 0 8px; border-radius: 10px; font: 700 13px var(--f-ui); }
+/* anpassning om skärmen är riktigt liten */
+html body #budget-modal .md-dialog.st.fm1 { gap: 4px !important; }
+html body #budget-modal .md-dialog.st.fm1 .md-section-lbl { margin-top: 4px !important; }
+html body #budget-modal .md-dialog.st.fm1 .be-rad { min-height: 46px; }
+html body #budget-modal .md-dialog.st.fm1 .md-toggle-row { min-height: 40px; padding: 6px 12px !important; }
+html body #budget-modal .md-dialog.st.fm2 .md-budget-btn { min-height: 34px !important; }
+html body #budget-modal .md-dialog.st.fm2 .md-btn-filled { min-height: 38px !important; height: 38px; }
+html body #budget-modal .md-dialog.st.fm2 .be-rad { min-height: 42px; }
+html body #budget-modal .md-dialog.st.fm2 .md-toggle-row { min-height: 36px; padding: 4px 12px !important; }
+html body #budget-modal .md-dialog.st.fm2 .md-dialog-header { min-height: 38px; }
+html body #budget-modal .md-dialog.st.fm3 .lon-version { display: none !important; }
+html body #budget-modal .md-dialog.st.fm3 .ck-themes button { min-height: 32px !important; }
+html body #budget-modal .md-budget-btn.is-active { background: linear-gradient(160deg, #4a6ff0, #2f52d6) !important; color: #fff !important; border-color: transparent !important; box-shadow: 0 8px 16px -10px rgba(47,82,214,.8) !important; }
+html body #budget-modal .be-t small { max-width: 100%; }
+
+/* ===== v182: Ångra ===== */
+#sf-undo { position: fixed; left: 20px; right: 20px; bottom: calc(var(--nav-h, 70px) + env(safe-area-inset-bottom, 0px) + 12px); height: 54px; z-index: 60000; transform: translateY(16px); opacity: 0; pointer-events: none;
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 0 9px 0 18px; border-radius: 18px;
+  background: linear-gradient(160deg, #24407e, #182c5a); color: #fff; font: 600 14.5px var(--f-ui, system-ui); box-shadow: 0 14px 28px -12px rgba(15,30,90,.6); }
+#sf-undo.klar .u-b { display: none; } #sf-undo.klar .u-t { color: #ffd27a; }
+#sf-undo.in { animation: undoIn .28s cubic-bezier(.2,.9,.3,1.1) forwards; pointer-events: auto; }
+#sf-undo.ut { animation: undoUt .22s ease forwards; pointer-events: none; }
+#sf-undo .u-t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#sf-undo .u-b { height: 38px; padding: 0 18px; border: 0; border-radius: 11px; background: rgba(255,255,255,.16); color: #ffd27a; font: 700 13.5px var(--f-ui, system-ui); }
+#sf-undo .u-b:active { background: rgba(255,255,255,.28); }
+@keyframes undoIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes undoUt { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { #sf-undo.in, #sf-undo.ut { animation-duration: .01s; } }

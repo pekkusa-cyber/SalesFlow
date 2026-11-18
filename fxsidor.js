@@ -66,7 +66,8 @@
     const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1, dim = new Date(cy, cm, 0).getDate();
     const per = fvPerioder(cy, cm);
     const bl = bonusLattnad(cy, cm), mal0 = getBudgetForMonth(cy, cm);
-    const mal = bl.ratio > 0 ? Math.round(mal0 * (1 - bl.ratio)) : mal0;
+    const egen = window.lonEgenNiva ? window.lonEgenNiva(cy, cm) : null, egenMal = egen && egen.min === mal0;
+    const mal = bl.ratio > 0 && !egenMal ? Math.round(mal0 * (1 - bl.ratio)) : mal0;
     const sum = {}; let atgN = 0, atgDagar = [];
     per.forEach(p => { const t = typAv(p.abs); if (t.c === 'atg') { atgN += p.dagar.length; atgDagar = atgDagar.concat(p.dagar); } else sum[t.c] = (sum[t.c] || 0) + p.dagar.length; });
     const tot = Object.values(sum).reduce((a, b) => a + b, 0) + atgN;
@@ -81,7 +82,7 @@
     const tiles = Object.keys(sum).map(c => `<div class="fp-tile f-${c}">${ic(TYP[c].i)}<span>${TYP[c].n}</span><b>${sum[c]}</b></div>`).join('')
       + (atgN ? `<button class="fp-tile f-atg" onclick="fvStart(${JSON.stringify(atgDagar).replace(/"/g, '&quot;')})">${ic('error')}<span>Saknar typ</span><b>${atgN}</b><small>Tryck för att välja</small></button>` : '');
     pane.innerHTML = `<div class="fp">
-      <section class="fp-hero"><div><span>Borta i ${UI_MAN[cm - 1]}</span><b>${tot} ${tot === 1 ? 'dag' : 'dagar'}</b><small>${bl.ratio > 0 ? `bonusmålet sänks ${Math.round(bl.ratio * 100)} % till ${mal.toLocaleString('sv-SE')} kr` : 'påverkar inte bonusmålet'}</small></div>
+      <section class="fp-hero"><div><span>Borta i ${UI_MAN[cm - 1]}</span><b>${tot} ${tot === 1 ? 'dag' : 'dagar'}</b><small>${egenMal ? `överenskommen nivå: ${egen.pct} % från ${mal.toLocaleString('sv-SE')} kr` : bl.ratio > 0 ? `bonusmålet sänks ${Math.round(bl.ratio * 100)} %${bl.manuell ? ' (eget val)' : ''} till ${mal.toLocaleString('sv-SE')} kr` : 'påverkar inte bonusmålet'}</small></div>
         <div class="r"><span>Lättnad</span><b>${bl.dagar} ${bl.dagar === 1 ? 'dag' : 'dagar'}</b></div></section>
       <section class="fp-cal">${cal}</section>
       ${tiles ? `<section class="fp-tiles">${tiles}</section>` : `<p class="fp-tom">Ingen frånvaro i ${UI_MAN[cm - 1]}. Tryck på en dag för att lägga in.</p>`}

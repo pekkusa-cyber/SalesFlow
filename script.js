@@ -110,7 +110,7 @@ function getBudgetForMonth(y, m) {
     if (satt) return satt;
     try {
         if (lonCfg){
-            const steg = lonTiersForMonth(m).find(t => Number(t.pct) === 12);
+            const steg = lonTiersForMonth(m, y).find(t => Number(t.pct) === 12);
             if (steg && Number(steg.min) > 0) return Number(steg.min);
         }
     } catch(e){}
@@ -144,16 +144,79 @@ function renderBudgetChoices(){
     const MAN = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
     if (lbl) lbl.innerText = 'Månadsmål · ' + MAN[cm-1];
     let steg = [];
-    try { if (!lonCfg) lonLoad(); steg = lonTiersForMonth(cm).filter(t => Number(t.min) > 0); } catch(e){}
+    try { if (!lonCfg) lonLoad(); steg = lonTiersForMonth(cm, cy).filter(t => Number(t.min) > 0); } catch(e){}
     const satt = savedBudgets[`${cy}-${cm}`] || null;
     const kr = n => Number(n).toLocaleString('sv-SE') + ' kr';
     const auto = Number((steg.find(t => Number(t.pct) === 12) || {}).min) || 240000;
     let html = `<button onclick="setGlobalBudget(null)" class="md-budget-btn${!satt ? ' is-active' : ''}">Följ bonustrappan · ${kr(auto)}</button>`;
     steg.forEach(t => {
-        html += `<button onclick="setGlobalBudget(${Number(t.min)})" class="md-budget-btn${satt === Number(t.min) ? ' is-active' : ''}">${t.pct} % · ${kr(t.min)}</button>`;
+        html += `<button onclick="setGlobalBudget(${Number(t.min)})" class="md-budget-btn${satt === Number(t.min) ? ' is-active' : ''}">${t.pct} % · ${kr(t.min)}${t.egen ? ' · överenskommen' : ''}</button>`;
     });
     box.innerHTML = html;
+    try { renderBonusEgen(); } catch(e){ console.warn(e); }
 }
+
+// Inställningar → "Bonus för <månad>": egen lättnad i procent och egen överenskommen nivå.
+function renderBonusEgen(){
+    const box = document.getElementById('bonus-egen'); if (!box) return;
+    if (!lonCfg) lonLoad();
+    const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1, nyckel = `${cy}-${cm}`;
+    const MAN = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+    const bl = bonusLattnad(cy, cm), autoPct = Math.round((bl.autoRatio || 0) * 100);
+    const egenL = lonCfg.lattnadPct ? lonCfg.lattnadPct[nyckel] : undefined, harL = typeof egenL === 'number';
+    const niva = lonEgenNiva(cy, cm);
+    box.innerHTML = `
+      <p class="md-section-lbl be-rubrik">Bonus för ${MAN[cm-1]}</p>
+      <div class="be-kort">
+        <div class="be-rad"><div><b>Lättat mål</b><small>${harL ? `Du har satt ${egenL} %. Appen räknade ${autoPct} %.` : `Appen räknar ${autoPct} % utifrån din frånvaro.`}</small></div></div>
+        <div class="be-seg"><button class="${harL ? '' : 'on'}" onclick="setLattnadPct(null)">Auto · ${autoPct} %</button><button class="${harL ? 'on' : ''}" onclick="document.getElementById('be-lpct').focus()">Egen</button></div>
+        <div class="be-in"><input id="be-lpct" type="number" inputmode="decimal" min="0" max="90" step="1" placeholder="t.ex. 15" value="${harL ? egenL : ''}"><span>%</span><button onclick="setLattnadPct(document.getElementById('be-lpct').value)">Spara</button></div>
+      </div>
+      <div class="be-kort">
+        <div class="be-rad"><div><b>Överenskommen nivå</b><small>${niva ? `${niva.pct} % från ${niva.min.toLocaleString('sv-SE')} kr gäller i ${MAN[cm-1]}.` : 'Om du och chefen kommit överens om en egen nivå för just den här månaden.'}</small></div></div>
+        <div class="be-in tva"><input id="be-nmin" type="number" inputmode="numeric" step="1000" placeholder="Belopp, t.ex. 200000" value="${niva ? niva.min : ''}"><input id="be-npct" type="number" inputmode="decimal" step="0.5" placeholder="%" value="${niva ? niva.pct : ''}"><span>%</span></div>
+        <div class="be-knappar"><button class="pri" onclick="setEgenNiva(document.getElementById('be-nmin').value, document.getElementById('be-npct').value)">${niva ? 'Uppdatera nivå' : 'Spara nivå'}</button>${niva ? '<button onclick="setEgenNiva(null)">Ta bort</button>' : ''}</div>
+      </div>`;
+}
+function bonusEgenUppdatera(){
+    lonSaveCfg();
+    const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1;
+    db.b = getBudgetForMonth(cy, cm);
+    try { calculateTimeline(); } catch(e){}
+    try { updateDash(); } catch(e){}
+    try { if (typeof renderAbsence === 'function' && viewMode === 'absence') renderAbsence(); } catch(e){}
+    try { if (typeof lonRender === 'function') lonRender(); } catch(e){}
+    renderBudgetChoices();
+}
+function setLattnadPct(v){
+    if (!lonCfg) lonLoad();
+    const nyckel = `${viewDate.getFullYear()}-${viewDate.getMonth() + 1}`;
+    lonCfg.lattnadPct = lonCfg.lattnadPct || {};
+    const n = v === null || v === '' ? NaN : parseFloat(String(v).replace(',', '.'));
+    if (isNaN(n)) { delete lonCfg.lattnadPct[nyckel]; showToast('🔄', 'Lättnaden räknas automatiskt igen'); }
+    else { lonCfg.lattnadPct[nyckel] = Math.max(0, Math.min(90, Math.round(n * 10) / 10)); showToast('✅', `Lättat mål: ${lonCfg.lattnadPct[nyckel]} %`); }
+    bonusEgenUppdatera();
+}
+function setEgenNiva(min, pct){
+    if (!lonCfg) lonLoad();
+    const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1, nyckel = `${cy}-${cm}`;
+    lonCfg.egenNiva = lonCfg.egenNiva || {};
+    const a = parseNum(min), p = parseNum(pct);
+    if (min === null || !(a > 0) || !(p > 0)) {
+        if (min !== null) { showToast('⚠️', 'Fyll i både belopp och procent'); return; }
+        const gammal = lonCfg.egenNiva[nyckel]; delete lonCfg.egenNiva[nyckel];
+        if (gammal && savedBudgets[nyckel] === +gammal.min) { delete savedBudgets[nyckel]; try { localStorage.setItem('sf_budgets', JSON.stringify(savedBudgets)); } catch(e){} if (sb) sb.from('monthly_budgets').delete().eq('month_key', nyckel).then(()=>{}); }
+        showToast('🗑️', 'Egna nivån borttagen'); bonusEgenUppdatera(); return;
+    }
+    lonCfg.egenNiva[nyckel] = { min: Math.round(a), pct: p };
+    // den överenskomna nivån blir månadens mål
+    savedBudgets[nyckel] = Math.round(a);
+    try { localStorage.setItem('sf_budgets', JSON.stringify(savedBudgets)); } catch(e){}
+    if (sb) sb.from('monthly_budgets').upsert({ month_key: nyckel, budget: Math.round(a) }).then(({error}) => { if (error) console.warn('Supabase budget fel:', error); });
+    showToast('🤝', `${p} % från ${Math.round(a).toLocaleString('sv-SE')} kr gäller i månaden`);
+    bonusEgenUppdatera();
+}
+window.setLattnadPct = setLattnadPct; window.setEgenNiva = setEgenNiva; window.renderBonusEgen = renderBonusEgen;
 
 function setTheme(themeName) { document.body.setAttribute('data-theme', themeName); localStorage.setItem('sf_theme', themeName); }
 
@@ -1051,7 +1114,7 @@ function ritaBonusnivaer(y, m, mal, lattat){
     let steg = [];
     try {
         if (!lonCfg) lonLoad();
-        steg = (lattat && typeof lonAdjustedTiers === 'function') ? lonAdjustedTiers(y, m).tiers : lonTiersForMonth(m);
+        steg = (lattat && typeof lonAdjustedTiers === 'function') ? lonAdjustedTiers(y, m).tiers : lonTiersForMonth(m, y);
         steg = steg.filter(t => Number(t.min) > 0).sort((a, b) => a.min - b.min);
     } catch(e){ steg = []; }
     const k = n => Math.round(n / 1000) + 'k';
@@ -2997,10 +3060,29 @@ function lonTax(g){
     const n=a.length, s=(a[n-1][1]-a[n-2][1])/(a[n-1][0]-a[n-2][0]); return Math.max(0, a[n-1][1]+(g-a[n-1][0])*s);
 }
 // Vilken trappa gäller för arbetsmånaden (nov/dec kan ha egna, annars default)
-function lonTiersForMonth(mo){
+function lonTiersForMonth(mo, y){
     const custom = lonCfg.bonusTiersByMonth && lonCfg.bonusTiersByMonth[mo];
-    return (Array.isArray(custom) && custom.length) ? custom : lonCfg.bonusTiers;
+    const bas = (Array.isArray(custom) && custom.length) ? custom : lonCfg.bonusTiers;
+    return y ? medEgenNiva(bas, y, mo) : bas;
 }
+// Egen bonusnivå som du och chefen kommit överens om för en viss månad,
+// t.ex. "12 % redan vid 200 000" en månad med mycket VAB. Sparas i lönsinställningarna.
+function lonEgenNiva(y, mo){
+    const e = lonCfg && lonCfg.egenNiva && lonCfg.egenNiva[`${y}-${mo}`];
+    return (e && +e.min > 0 && +e.pct > 0) ? { min: +e.min, pct: +e.pct } : null;
+}
+// Lägger in den egna nivån i trappan: ersätter steget med samma procent och
+// tar bort steg som inte längre går ihop (lägre procent på högre belopp och tvärtom).
+function medEgenNiva(tiers, y, mo){
+    const e = lonEgenNiva(y, mo); if (!e) return tiers;
+    const ut = tiers.filter(t => +t.pct !== e.pct && !(+t.pct < e.pct && +t.min >= e.min) && !(+t.pct > e.pct && +t.min <= e.min))
+        .map(t => ({ ...t }));
+    ut.push({ min: e.min, max: null, pct: e.pct, egen: true });
+    ut.sort((a, b) => a.min - b.min);
+    ut.forEach((t, i) => { if (+t.min > 0) t.max = ut[i + 1] ? ut[i + 1].min : null; });
+    return ut;
+}
+window.lonEgenNiva = lonEgenNiva;
 // Andel av månaden borta på semester eller föräldraledig (alla kalenderdagar, inte bara vardagar)
 // – används för att lätta bonuströsklarna proportionerligt.
 // Lättnad räknas: hela dagar (semester/föräldraledig) alltid automatiskt.
@@ -3041,7 +3123,10 @@ function bonusLattnad(y, m){
     for (let d=1; d<=dim; d++){
         if (lattnadPeriod(new Date(y, m-1, d)) >= LATTNAD_MIN_DAGAR) dagar += 1;
     }
-    return { dagar, dim, ratio: dim > 0 ? dagar / dim : 0 };
+    const auto = dim > 0 ? dagar / dim : 0;
+    const egen = lonCfg && lonCfg.lattnadPct ? lonCfg.lattnadPct[`${y}-${m}`] : undefined;
+    if (typeof egen === 'number' && egen >= 0) return { dagar, dim, ratio: Math.min(0.9, egen / 100), manuell: true, autoRatio: auto };
+    return { dagar, dim, ratio: auto, manuell: false, autoRatio: auto };
 }
 
 function getMonthlyBonusReliefRatio(y, m){ return bonusLattnad(y, m).ratio; }
@@ -3056,9 +3141,9 @@ window.setDayReliefManual = setDayReliefManual;
 function lonAdjustedTiers(y, mo){
     const base = lonTiersForMonth(mo);
     const { dagar, dim, ratio } = bonusLattnad(y, mo);
-    if (ratio <= 0) return { tiers: base, ratio: 0, dagar, dim };
+    if (ratio <= 0) return { tiers: medEgenNiva(base, y, mo), ratio: 0, dagar, dim };
     const adj = base.map(t => ({ min: Math.round(t.min * (1-ratio)), max: (t.max==null ? null : Math.round(t.max * (1-ratio))), pct: t.pct }));
-    return { tiers: adj, ratio, dagar, dim };
+    return { tiers: medEgenNiva(adj, y, mo), ratio, dagar, dim };
 }
 // ============================================================
 //  BONUSKORRIGERING — när ARBETSGIVAREN betalat fel
@@ -3314,7 +3399,7 @@ function lonBonusPct(sales){
 function lonRenderTierGoal(sales, reliefInfo){
     const el = document.getElementById('lon-tier-goal'); if(!el) return;
     const y = lonViewDate.getFullYear(), mo = lonViewDate.getMonth()+1;
-    const baseTiers = lonTiersForMonth(mo);
+    const baseTiers = lonTiersForMonth(mo, y);
     const nextBase = baseTiers.find(t => sales < t.min);
     if (!nextBase){ el.classList.add('hidden'); return; }
     const ratio = reliefInfo ? reliefInfo.ratio : 0;
@@ -4969,7 +5054,7 @@ function arbetsytaManad(){
     // bonusstegen
     const ratio = getMonthlyBonusReliefRatio(cy, cm), lattat = dashRelief && ratio > 0;
     let steg = [];
-    try { steg = (lattat ? lonAdjustedTiers(cy, cm).tiers : lonTiersForMonth(cm)).filter(t => +t.min > 0).sort((a, b) => a.min - b.min); } catch(e){}
+    try { steg = (lattat ? lonAdjustedTiers(cy, cm).tiers : lonTiersForMonth(cm, cy)).filter(t => +t.min > 0).sort((a, b) => a.min - b.min); } catch(e){}
     const stege = steg.map(t => {
         const nadd = salt >= t.min;
         return `<div class="ws-step-row${nadd ? ' is-in' : ''}"><span class="ws-pct">${t.pct} %</span><span class="ws-min">${uiKr(t.min)}</span><span class="ws-left">${nadd ? '✓ nådd' : uiK(t.min - salt) + ' kvar'}</span></div>`;

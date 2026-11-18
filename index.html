@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="ui.css?v=116">
     <link rel="stylesheet" href="premium.css?v=118">
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="fokus.css?v=180">
+    <link rel="stylesheet" href="fokus.css?v=181">
     <script>try{var v=localStorage.getItem('sf_ck')||'ljust';document.documentElement.setAttribute('data-ck',(v==='mork'||(v==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches))?'dark':'light');}catch(e){}</script>
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
@@ -131,7 +131,7 @@
 
     <!-- LADDSKÄRM — tas bort i init() när datan är på plats -->
     <div id="sf-boot">
-        <svg class="boot-mark" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <svg class="boot-mark" viewBox="49 96 270 270" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M 65.5 244.3 L 145.4 176.7 L 203.8 213.5 L 289.8 139.8" fill="none" stroke="#ffffff"
                   stroke-width="26.1" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>
             <g fill="#ffffff">
@@ -481,6 +481,7 @@
             <!-- Knapparna byggs från månadens bonustrappa (renderBudgetChoices) – november
                  har andra nivåer än oktober, och fasta 180/240/350 gick inte att välja rätt med. -->
             <div id="budget-choices" class="flex flex-col gap-2"></div>
+            <div id="bonus-egen" class="be"></div>
             <div class="md-divider"></div>
             <p class="md-section-lbl text-center">Utseende</p>
             <div class="ck-themes">
@@ -971,9 +972,9 @@
         </div>
     </div>
 
-    <script src="script.js?v=180"></script>
-    <script src="fx.js?v=175"></script>
-    <script src="fxsidor.js?v=150"></script>
+    <script src="script.js?v=181"></script>
+    <script src="fx.js?v=181"></script>
+    <script src="fxsidor.js?v=181"></script>
     <script src="fxkal.js?v=180"></script>
     <script>
     // ============================================================

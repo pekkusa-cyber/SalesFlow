@@ -1255,3 +1255,40 @@ html body #fk .fk-d.dc.dc.dc.dag-oppen .fk-n, html body #fk .fk-d.dc.dc.dc.dag-o
 html body .fk-acts button.pri { background: linear-gradient(160deg, #4a6ff0, #2f52d6) !important; color: #fff !important; border: 0 !important; }
 html body .fk-acts button.pri * { color: #fff !important; }
 html body .fk-acts button.pri .material-symbols-rounded { background: rgba(255,255,255,.18) !important; }
+
+/* ===== v181 ===== */
+/* veckodagar och kalender: ingen prick eller nyckel i hörnen. Markeringen sitter vid sluttiden. */
+html body .dc.chg::after, html body .dc.key::before { display: none !important; content: none !important; }
+html body .dc.chg .st > small::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #e08a0b; margin-right: 3px; vertical-align: 1px; }
+html[data-ck="dark"] body .dc.chg .st > small::before { background: #f2a93b; }
+html body .dc.key .st > small::after { content: "key"; font-family: 'Material Symbols Rounded'; font-variation-settings: 'FILL' 1; font-size: 10px; line-height: 1; color: #c9a227; margin-left: 2px; vertical-align: -1px; }
+html body #fx .fx-wd2.on .st > small::before { background: #ffc46b; } html body #fx .fx-wd2.on.key .st > small::after { color: #ffe08a; }
+
+/* månadsmålet: tydligare rubrik */
+.fx-k.main .t span { font-size: 13px !important; font-weight: 600 !important; letter-spacing: .01em; }
+.fx-k.main .t b { font-size: 22px !important; font-weight: 750 !important; letter-spacing: -.035em; margin-top: 1px; }
+.fx-scroll.fit3 .fx-k.main .t b, .fx-scroll.fit4 .fx-k.main .t b, .fx-scroll.fit5 .fx-k.main .t b { font-size: 19px !important; }
+
+/* laddskärmen: samma blå som herokortet, vit logga */
+html body #sf-boot { background: linear-gradient(160deg, #3358c4 0%, #2747a6 55%, #1e3a8c 100%) !important; }
+html[data-ck="dark"] body #sf-boot { background: linear-gradient(160deg, #15264a 0%, #11203f 55%, #0d1a33 100%) !important; }
+html body #sf-boot .boot-name { color: #ffffff !important; opacity: 1; }
+html body #sf-boot .boot-bar { background: rgba(255,255,255,.2) !important; }
+html body #sf-boot .boot-bar span { background: #ffffff !important; }
+
+/* inställningar: bonus för månaden */
+.be { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.be .be-rubrik { text-align: left !important; margin: 10px 2px 0 !important; }
+.be-kort { background: var(--fx-card); border-radius: 18px; padding: 13px 14px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 2px rgba(20,30,60,.05), 0 8px 18px -14px rgba(30,60,140,.35); }
+.be-rad b { display: block; font: 650 14.5px var(--f-ui); color: var(--fx-tx); }
+.be-rad small { display: block; font: 500 12.5px/1.4 var(--f-ui); color: var(--fx-mu); margin-top: 2px; }
+.be-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--fx-bg); border-radius: 12px; padding: 3px; }
+.be-seg button { height: 36px; border: 0; border-radius: 10px; background: transparent; font: 600 13px var(--f-ui); color: var(--fx-mu); }
+.be-seg button.on { background: var(--fx-card); color: var(--fx-tx); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.be-in { display: flex; align-items: center; gap: 8px; }
+.be-in input { flex: 1; min-width: 0; height: 42px; border-radius: 12px; border: 1px solid var(--fx-line); background: var(--fx-bg); padding: 0 12px; font: 600 15px var(--f-ui); color: var(--fx-tx); }
+.be-in.tva input:last-of-type { flex: 0 0 72px; }
+.be-in span { font: 600 14px var(--f-ui); color: var(--fx-mu); }
+.be-in button, .be-knappar button { height: 42px; padding: 0 16px; border-radius: 12px; border: 0; font: 650 14px var(--f-ui); background: var(--fx-bg); color: var(--fx-tx); }
+.be-in button, .be-knappar button.pri { background: linear-gradient(160deg, #4a6ff0, #2f52d6); color: #fff; }
+.be-knappar { display: flex; gap: 8px; } .be-knappar button.pri { flex: 1; }

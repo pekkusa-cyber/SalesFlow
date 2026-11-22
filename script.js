@@ -3299,17 +3299,25 @@ function lonRecalc(){
     let obOut = obTot, franvOut = franvTot, bonusOut = bonus, semOut = semTillagg, fromFacit = false;
 
     // FACIT: om månaden har en uppladdad lönespec → visa specens faktiska siffror rakt av (ingen härledning, ingen kompoundering)
+    // Rimligt = ett månadsbelopp. Årets totaler (t.ex. "Bruttolön total/år") är mångdubbelt
+    // större och har tidigare lästs in som brutto – då kastades hela specen. Nu används
+    // de fält som är rimliga, och resten räknas fram ur dem.
     const facit = lonRensaOB((lonMonthly[lonKey()] || {}).cal_lonespec);
-    if (facit && facit.brutto != null && facit.skatt != null && +facit.brutto > 5000
-        && +facit.brutto > brutto * 0.5 && +facit.brutto < brutto * 2) {   // rimlighetskoll → skydd mot felläst års-/fel belopp
+    const tak = Math.max(manadslon, 20000) * 4, rimlig = v => v != null && isFinite(+v) && Math.abs(+v) > 0 && Math.abs(+v) < tak;
+    let appBonus = bonus;
+    if (facit && (rimlig(facit.brutto) || rimlig(facit.netto))) {
         const Hf = lonTimlon((facit.manadslon && +facit.manadslon > 10000 && +facit.manadslon < 60000) ? +facit.manadslon : manadslon);
-        brutto = Math.round(+facit.brutto);
-        skatt = Math.round(Math.abs(+facit.skatt));
-        netto = (facit.netto != null && +facit.netto > 0) ? Math.round(+facit.netto) : (brutto - skatt);
-        // Bonus räknas alltid av appen (försäljning × trappa) – den är redan exakt utifrån dina egna siffror.
-        // Facit gäller bara sådant appen annars måste GISSA (brutto/skatt/netto/OB/frånvaro), inte bonus.
-        if (facit.ob50 != null || facit.ob100 != null) obOut = Math.round((+(facit.ob50 || 0)) * Hf * 0.5 + (+(facit.ob100 || 0)) * Hf);
-        if (facit.franvaro_avdrag_kr != null) franvOut = Math.round(Math.abs(+facit.franvaro_avdrag_kr));
+        const fs = rimlig(facit.skatt) ? Math.round(Math.abs(+facit.skatt)) : null;
+        if (rimlig(facit.brutto)) brutto = Math.round(+facit.brutto);
+        else if (rimlig(facit.netto) && fs != null) brutto = Math.round(+facit.netto) + fs;
+        skatt = fs != null ? fs : lonTax(brutto);
+        netto = rimlig(facit.netto) ? Math.round(+facit.netto) : (brutto - skatt);
+        // OB: "1 och 1" är multiplikatorn på OB-raden, aldrig timmar – lästes fel förut
+        const obFel = +facit.ob50 === 1 && +facit.ob100 === 1;
+        if (!obFel && (facit.ob50 != null || facit.ob100 != null)) obOut = Math.round((+(facit.ob50 || 0)) * Hf * 0.5 + (+(facit.ob100 || 0)) * Hf);
+        if (rimlig(facit.franvaro_avdrag_kr)) franvOut = Math.round(Math.abs(+facit.franvaro_avdrag_kr));
+        // Bonusen som faktiskt betalades ut. Appens egen uträkning visas bredvid om den skiljer.
+        if (rimlig(facit.bonus)) bonusOut = Math.round(+facit.bonus);
         fromFacit = true;
     }
 
@@ -3353,7 +3361,11 @@ function lonRecalc(){
     }
     const avEl = document.getElementById('lon-bonus-sub');
     const reliefInfo = lonAdjustedTiers(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
-    if (avEl){ let t = sales>0 ? ` ${pct}% av ${lonKr(sales)}` : ''; if((lonAvdrag||0)>0) t += ` − ${lonAvdrag}%`; if (reliefInfo.ratio>0) t += ` · trösklar lättade ${Math.round(reliefInfo.ratio*100)}% · ${reliefInfo.dagar} av ${reliefInfo.dim} dagar`; avEl.innerText = t; }
+    if (avEl){
+        let t = sales>0 ? ` ${pct}% av ${lonKr(sales)}` : ''; if((lonAvdrag||0)>0) t += ` − ${lonAvdrag}%`; if (reliefInfo.ratio>0) t += ` · trösklar lättade ${Math.round(reliefInfo.ratio*100)}% · ${reliefInfo.dagar} av ${reliefInfo.dim} dagar`;
+        if (fromFacit && appBonus > 0 && Math.abs(bonusOut - Math.round(appBonus)) > 100) t = ` enligt lönespec · appen räknade ${lonKr(Math.round(appBonus))} (${pct}% av ${lonKr(sales)})`;
+        avEl.innerText = t;
+    }
     lonRenderTierGoal(sales, reliefInfo);
 
     // Felaktigt utbetald bonus: appens siffra står kvar som den riktiga. Raden
@@ -3654,6 +3666,37 @@ function lonRenderHistory(){
     }).join('');
 }
 
+// Specar som lästes fel av den gamla läsaren (årets brutto som månadens, OB "1 och 1",
+// netto saknas) läses om en gång från den sparade bilden och kalibreras om.
+let lonOmlasning = false;
+function lonSpecSerFelUt(s){
+    if (!s) return false;
+    const tak = Math.max((lonCfg && lonCfg.manadslon) || 30000, 20000) * 4;
+    return s.brutto == null || +s.brutto > tak || s.netto == null || (+s.ob50 === 1 && +s.ob100 === 1);
+}
+async function lonLasOmFelaSpecar(){
+    if (lonOmlasning || typeof sb === 'undefined' || !sb) return;
+    lonOmlasning = true;
+    const fixade = [];
+    try {
+        const keys = Object.keys(lonMonthly || {}).filter(k => /^\d{4}-\d{1,2}$/.test(k)).filter(k => {
+            const m = lonMonthly[k];
+            return m && m.cal_lonespec && m.file_lonespec && m.file_lonespec.data && !m.omlast_v2 && lonSpecSerFelUt(m.cal_lonespec);
+        });
+        for (const k of keys) {
+            try {
+                const r = await sb.functions.invoke('scan-payslip', { body: { image_base64: lonMonthly[k].file_lonespec.data, kind: 'lonespec' } });
+                const d = r && r.data;
+                lonMonthly[k].omlast_v2 = true;          // försök bara en gång per spec
+                if (r.error || !d || d.error || (d.brutto == null && d.netto == null)) { lonSaveMonthly(); continue; }
+                lonApplyCalibration(d, k, 'lonespec');
+                fixade.push(k);
+            } catch(e){}
+        }
+    } finally { lonOmlasning = false; }
+    if (fixade.length) showToast('🔧', `Lönespec lästes om och rättades: ${fixade.map(lonMonthLabel).join(', ')}`, 5000);
+}
+window.lonLasOmFelaSpecar = lonLasOmFelaSpecar;
 async function lonSyncRemote(){
     if (typeof sb === 'undefined' || !sb) return;
     if (lonSynkPagar) return lonSynkPagar;
@@ -3679,6 +3722,7 @@ async function lonSyncRemote(){
                 // Bonustrappan styr startsidans mål i månader utan egen budget.
                 if (typeof updateDash === 'function') updateDash();
             }
+            setTimeout(lonLasOmFelaSpecar, 1500);
         } catch(e){}
         finally { lonSynkPagar = null; }
     })();

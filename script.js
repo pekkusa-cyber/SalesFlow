@@ -169,7 +169,7 @@ function renderBonusEgen(){
       <p class="md-section-lbl be-rubrik">Bonus för ${MAN[cm-1]}</p>
       <div class="be-kort">
         <div class="be-rad">
-          <div class="be-t"><b>Lättat mål</b><small>${harL ? `Eget val · appen räknade ${autoPct} %` : `Auto · ${autoPct} % av din frånvaro`}</small></div>
+          <div class="be-t"><b>Lättat mål</b><small class="be-regel">${harL ? `Eget val · auto ${autoPct} %` : `Auto ${autoPct} %`} · <button class="${bl.regel === 'vecka' ? 'on' : ''}" onclick="setLattnadRegel('vecka')">per vecka</button><button class="${bl.regel === 'dag' ? 'on' : ''}" onclick="setLattnadRegel('dag')">per dag</button></small></div>
           <div class="be-in"><input id="be-lpct" type="number" inputmode="decimal" min="0" max="90" step="1" placeholder="${autoPct}" value="${harL ? egenL : ''}" aria-label="Lättat mål i procent"><span>%</span>
             <button class="pri" onclick="setLattnadPct(document.getElementById('be-lpct').value)" aria-label="Spara lättat mål">${'✓'}</button>
             ${harL ? `<button onclick="setLattnadPct(null)" aria-label="Auto">Auto</button>` : ''}</div>
@@ -201,6 +201,13 @@ function setLattnadPct(v){
     else { lonCfg.lattnadPct[nyckel] = Math.max(0, Math.min(90, Math.round(n * 10) / 10)); showToast('✅', `Lättat mål: ${lonCfg.lattnadPct[nyckel]} %`); }
     bonusEgenUppdatera();
 }
+function setLattnadRegel(r){
+    if (!lonCfg) lonLoad();
+    lonCfg.lattnadRegel = r === 'dag' ? 'dag' : 'vecka';
+    showToast('✅', r === 'dag' ? 'Lättnad räknas per dag av månaden' : 'Lättnad räknas 25 % per veckas ledighet');
+    bonusEgenUppdatera();
+}
+window.setLattnadRegel = setLattnadRegel;
 function setEgenNiva(min, pct){
     if (!lonCfg) lonLoad();
     const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1, nyckel = `${cy}-${cm}`;
@@ -2814,10 +2821,43 @@ function getMonthAbsenceBreakdown(y, m){
         items.push({ k, d, reason, whole, hours: h });
         if (reason === 'Åtgärd krävs') continue;          // ingen lön påverkas
         if (reason.includes('Semester')) continue;        // semester hanteras som semestertillägg
-        if (whole){ if (!reason.includes('Sjuk')) wholeDays++; }  // sjuk = egna regler (sjuklön/karens)
+        if (whole){ if (!reason.includes('Sjuk')) { const v = franvDagVikt(k); items[items.length-1].vikt = v; wholeDays += v; } }  // sjuk = egna regler (sjuklön/karens)
         else hours += h;
     }
-    return { items, wholeDays, hours: Math.round(hours*100)/100 };
+    return { items, wholeDays: Math.round(wholeDays), hours: Math.round(hours*100)/100 };
+}
+// Arbetsgivaren drar bara för dagar du hade PASS (verifierat mot oktober 2026:
+// 7 dagar dragna, inte 9 kalenderdagar). En frånvarodag väger därför:
+//  1 – dagen hade ett pass i schemat (eller ett pass som ersatts av frånvaro med tid)
+//  0 – schemat är känt för dagen och där fanns inget pass (ledig dag)
+//  ~0,7 – dagen ligger i ett heldagsblock i Quinyx där passen inte längre syns;
+//        då används hur många pass per dag du brukar ha (senaste åtta veckorna).
+function harPass(k){
+    const q = db.q[k];
+    return !!(q && (q.start || q.work_h > 0 || q.ledig_h > 0)) || !!schedMemory[k];
+}
+function franvDagVikt(k){
+    if (harPass(k)) return 1;
+    const q = db.q[k], p = String(k).split('-'), dt = new Date(+p[0], +p[1]-1, +p[2]);
+    const kant = typeof schemaTackning !== 'undefined' && schemaTackning && dt >= schemaTackning.min && dt <= schemaTackning.max;
+    if (kant && !(q && q.ledigHeldag)) return 0;
+    return passPerDag(dt);
+}
+const passPerDagCache = {};
+function passPerDag(dt){
+    const nyckel = dt.getFullYear() + '-' + dt.getMonth() + '-' + Object.keys(db.q).length;
+    if (nyckel in passPerDagCache) return passPerDagCache[nyckel];
+    let pass = 0, kanda = 0;
+    for (let i = 1; i <= 56; i++){
+        const d = new Date(dt.getFullYear(), dt.getMonth(), 1); d.setDate(d.getDate() - i);
+        const k = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`, q = db.q[k];
+        if (q && q.ledigHeldag) continue;            // frånvaroblock säger inget om vanliga veckor
+        const kant = typeof schemaTackning !== 'undefined' && schemaTackning && d >= schemaTackning.min && d <= schemaTackning.max;
+        if (!kant && !schedMemory[k]) continue;
+        kanda++; if (harPass(k)) pass++;
+    }
+    const v = kanda >= 14 ? pass / kanda : 5 / 7;   // för lite underlag: fem dagar i veckan
+    return (passPerDagCache[nyckel] = v);
 }
 function getMonthlyFranvaroWholeDays(y, m){ return getMonthAbsenceBreakdown(y, m).wholeDays; }
 function getMonthlyFranvaroHours(y, m){ return getMonthAbsenceBreakdown(y, m).hours; }
@@ -3121,16 +3161,25 @@ function lattnadPeriod(dt){
     while (arLattnadsdag(e) && n < 400) { n++; e.setDate(e.getDate()+1); }
     return n;
 }
+// Lättnaden kan räknas på två sätt (Inställningar → Bonus för månaden):
+//  'vecka' – 25 % per hel veckas ledighet. En sammanhängande ledighet avrundas till hela
+//            veckor: 26–31 okt (6 dagar) = 1 vecka = 25 %. Standard tills vidare.
+//  'dag'   – andel av månadens dagar (6 av 31 = 19 %), som appen räknade förut.
+const LATTNAD_PER_VECKA = 0.25;
+function lattnadRegel(){ return (lonCfg && lonCfg.lattnadRegel === 'dag') ? 'dag' : 'vecka'; }
 function bonusLattnad(y, m){
     const dim = new Date(y, m, 0).getDate();
-    let dagar = 0;
-    for (let d=1; d<=dim; d++){
-        if (lattnadPeriod(new Date(y, m-1, d)) >= LATTNAD_MIN_DAGAR) dagar += 1;
+    let dagar = 0, veckor = 0, lopp = 0;
+    for (let d=1; d<=dim+1; d++){
+        const med = d <= dim && lattnadPeriod(new Date(y, m-1, d)) >= LATTNAD_MIN_DAGAR;
+        if (med) { dagar += 1; lopp += 1; }
+        else if (lopp) { veckor += Math.round(lopp / 7); lopp = 0; }
     }
-    const auto = dim > 0 ? dagar / dim : 0;
+    const regel = lattnadRegel();
+    const auto = regel === 'vecka' ? Math.min(1, veckor * LATTNAD_PER_VECKA) : (dim > 0 ? dagar / dim : 0);
     const egen = lonCfg && lonCfg.lattnadPct ? lonCfg.lattnadPct[`${y}-${m}`] : undefined;
-    if (typeof egen === 'number' && egen >= 0) return { dagar, dim, ratio: Math.min(0.9, egen / 100), manuell: true, autoRatio: auto };
-    return { dagar, dim, ratio: auto, manuell: false, autoRatio: auto };
+    if (typeof egen === 'number' && egen >= 0) return { dagar, dim, veckor, regel, ratio: Math.min(0.9, egen / 100), manuell: true, autoRatio: auto };
+    return { dagar, dim, veckor, regel, ratio: auto, manuell: false, autoRatio: auto };
 }
 
 function getMonthlyBonusReliefRatio(y, m){ return bonusLattnad(y, m).ratio; }
@@ -3144,10 +3193,10 @@ window.setDayReliefManual = setDayReliefManual;
 // Trösklar justerade för hur många dagar man varit borta (semester+föräldraledig) den månaden
 function lonAdjustedTiers(y, mo){
     const base = lonTiersForMonth(mo);
-    const { dagar, dim, ratio } = bonusLattnad(y, mo);
-    if (ratio <= 0) return { tiers: medEgenNiva(base, y, mo), ratio: 0, dagar, dim };
+    const { dagar, dim, ratio, veckor, regel, manuell } = bonusLattnad(y, mo);
+    if (ratio <= 0) return { tiers: medEgenNiva(base, y, mo), ratio: 0, dagar, dim, veckor, regel, manuell };
     const adj = base.map(t => ({ min: Math.round(t.min * (1-ratio)), max: (t.max==null ? null : Math.round(t.max * (1-ratio))), pct: t.pct }));
-    return { tiers: medEgenNiva(adj, y, mo), ratio, dagar, dim };
+    return { tiers: medEgenNiva(adj, y, mo), ratio, dagar, dim, veckor, regel, manuell };
 }
 // ============================================================
 //  BONUSKORRIGERING — när ARBETSGIVAREN betalat fel
@@ -3362,7 +3411,7 @@ function lonRecalc(){
     const avEl = document.getElementById('lon-bonus-sub');
     const reliefInfo = lonAdjustedTiers(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
     if (avEl){
-        let t = sales>0 ? ` ${pct}% av ${lonKr(sales)}` : ''; if((lonAvdrag||0)>0) t += ` − ${lonAvdrag}%`; if (reliefInfo.ratio>0) t += ` · trösklar lättade ${Math.round(reliefInfo.ratio*100)}% · ${reliefInfo.dagar} av ${reliefInfo.dim} dagar`;
+        let t = sales>0 ? ` ${pct}% av ${lonKr(sales)}` : ''; if((lonAvdrag||0)>0) t += ` − ${lonAvdrag}%`; if (reliefInfo.ratio>0) t += ` · trösklar lättade ${Math.round(reliefInfo.ratio*100)}% · ` + (reliefInfo.manuell ? 'eget val' : reliefInfo.regel === 'vecka' ? `${reliefInfo.veckor} ${reliefInfo.veckor === 1 ? 'vecka' : 'veckor'} ledig` : `${reliefInfo.dagar} av ${reliefInfo.dim} dagar`);
         if (fromFacit && appBonus > 0 && Math.abs(bonusOut - Math.round(appBonus)) > 100) t = ` enligt lönespec · appen räknade ${lonKr(Math.round(appBonus))} (${pct}% av ${lonKr(sales)})`;
         avEl.innerText = t;
     }

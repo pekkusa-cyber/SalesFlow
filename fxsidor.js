@@ -83,7 +83,7 @@
       + (atgN ? `<button class="fp-tile f-atg" onclick="fvStart(${JSON.stringify(atgDagar).replace(/"/g, '&quot;')})">${ic('error')}<span>Saknar typ</span><b>${atgN}</b><small>Tryck för att välja</small></button>` : '');
     pane.innerHTML = `<div class="fp">
       <section class="fp-hero"><div><span>Borta i ${UI_MAN[cm - 1]}</span><b>${tot} ${tot === 1 ? 'dag' : 'dagar'}</b><small>${egenMal ? `överenskommen nivå: ${egen.pct} % från ${mal.toLocaleString('sv-SE')} kr` : bl.ratio > 0 ? `bonusmålet sänks ${Math.round(bl.ratio * 100)} %${bl.manuell ? ' (eget val)' : ''} till ${mal.toLocaleString('sv-SE')} kr` : 'påverkar inte bonusmålet'}</small></div>
-        <div class="r"><span>Lättnad</span><b>${bl.dagar} ${bl.dagar === 1 ? 'dag' : 'dagar'}</b></div></section>
+        <div class="r"><span>Lättnad</span><b>${bl.manuell ? Math.round(bl.ratio * 100) + ' %' : bl.regel === 'vecka' ? `${bl.veckor} ${bl.veckor === 1 ? 'vecka' : 'veckor'}` : `${bl.dagar} ${bl.dagar === 1 ? 'dag' : 'dagar'}`}</b></div></section>
       <section class="fp-cal">${cal}</section>
       ${tiles ? `<section class="fp-tiles">${tiles}</section>` : `<p class="fp-tom">Ingen frånvaro i ${UI_MAN[cm - 1]}. Tryck på en dag för att lägga in.</p>`}
       <button class="fp-add" onclick="fvStart()">${ic('add')}Lägg in frånvaro</button>

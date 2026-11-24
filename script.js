@@ -4164,6 +4164,28 @@ async function setPassNotis(pa){
 }
 window.setPassNotis = setPassNotis;
 
+// Testknapp: skickar en riktig notis om 10 sekunder och säger hur många påminnelser som är planerade.
+async function testaPassNotis(ev){
+    if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+    const LN = await passNotisForbered();
+    if (!LN){ showToast('⚠️', 'Påminnelser finns i Android-appen', 2600); return; }
+    if (!(await passNotisTillstand(true))){ showToast('🔕', 'Notiser är avstängda för appen. Slå på dem i telefonens inställningar.', 4500); return; }
+    const exakt = await exaktaAlarmOk();
+    // samma lista som planeras: pass som ännu inte börjat, inte frånvaro eller ledig
+    const planerade = kommandePass(new Date()); let nasta = '';
+    if (planerade.length){
+        const d = planerade[0].at, dag = ['sön','mån','tis','ons','tors','fre','lör'][d.getDay()];
+        nasta = `${dag} ${d.getDate()}/${d.getMonth()+1} kl ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+    try {
+        await LN.schedule({ notifications: [{ id: 4712, title: 'Test: dags att stämpla in', body: 'Så här ser påminnelsen ut 10 minuter före ett pass.', channelId: 'sf-pass',
+            smallIcon: 'ic_stat_notify', schedule: { at: new Date(Date.now() + 10000), allowWhileIdle: true }, isExactNotification: exakt, isExactMandatory: false }] });
+    } catch(e){ showToast('⚠️', 'Testet kunde inte skickas', 3000); return; }
+    const rad = !passNotisPa ? 'Påminnelsen är avstängd just nu.' : planerade.length ? `${planerade.length} påminnelser planerade, nästa ${nasta}.` : 'Inga pass planerade ännu.';
+    showToast('⏰', `Test kommer om 10 sekunder. ${rad}${exakt ? '' : ' Exakta alarm är av: tillåt "Alarm och påminnelser" för exakt tid.'}`, 7000);
+}
+window.testaPassNotis = testaPassNotis;
+
 // Service workern har lagt på ett steg medan appen låg öppen. Skriv igenom det
 // absoluta beloppet, så blir raden rätt även om workerns egen skrivning föll.
 if (snabbNotisStods()){

@@ -25,7 +25,7 @@
     <link rel="stylesheet" href="ui.css?v=116">
     <link rel="stylesheet" href="premium.css?v=118">
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="fokus.css?v=184">
+    <link rel="stylesheet" href="fokus.css?v=185">
     <script>try{var v=localStorage.getItem('sf_ck')||'ljust';document.documentElement.setAttribute('data-ck',(v==='mork'||(v==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches))?'dark':'light');}catch(e){}</script>
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
@@ -490,6 +490,10 @@
                 <label class="md-toggle-row">
                     <span>🎯 Fokusläge under passet</span>
                     <input id="focus-auto" type="checkbox" onchange="setFocusAuto(this.checked)">
+                </label>
+                <label class="md-toggle-row">
+                    <span>⏰ Stämpla in, 10 min före pass</span>
+                    <input id="pass-notis" type="checkbox" checked onchange="setPassNotis(this.checked)">
                 </label>
                 <label class="md-toggle-row">
                     <span>📲 Snabbnotis med dagens mål</span>
@@ -968,7 +972,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=184"></script>
+    <script src="script.js?v=185"></script>
     <script src="fx.js?v=182"></script>
     <script src="fxsidor.js?v=184"></script>
     <script src="fxkal.js?v=180"></script>

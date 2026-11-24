@@ -723,6 +723,7 @@ async function loadAllData() {
             }
         }
         saveSchedMemory();   // spara permanenta schemaminnet efter varje import
+        try { paminnelseSen(); } catch(e){}
 
         let upserts = [];
         for (let k in db.q) {
@@ -1034,6 +1035,7 @@ function calculateTimeline() {
 }
 
 function pushMatrixSync(k, o) {
+    try { if (typeof paminnelseSen === 'function') paminnelseSen(); } catch(e){}
     const old = db.d[k] || {}; const qd = db.q[k] || {};
     const merged = { 
         st: o.st !== undefined ? o.st : (old.st || 'Arbete'), 
@@ -4048,6 +4050,120 @@ async function setSnabbNotis(pa){
 }
 window.setSnabbNotis = setSnabbNotis;
 
+// ==========================================
+//  PÅMINNELSE 10 MIN FÖRE VARJE PASS
+//  Android-appens egna notiser, schemalagda på exakt tid. De ligger hos Android och
+//  kommer även när appen är stängd. Planeras om varje gång schemat eller en frånvarodag
+//  ändras, och när appen startar (Quinyx-schemat är ett rullande fönster).
+// ==========================================
+const PASS_NOTIS_MIN = 10;
+const PASS_NOTIS_ID0 = 20000000, PASS_NOTIS_ID1 = 29999999;      // id = ååååmmdd
+const PASS_NOTIS_DAGAR = 28;
+let passNotisPa = true;
+try { passNotisPa = localStorage.getItem('sf_passnotis') !== '0'; } catch(e){}
+let passNotisKlar = false, passNotisKor = false, passNotisTimer = null;
+async function passNotisForbered(){
+    const LN = appNotiser(); if (!LN) return null;
+    if (!passNotisKlar) {
+        passNotisKlar = true;
+        try { await LN.createChannel({ id: 'sf-pass', name: 'Påminnelse före pass', description: 'Stämpla in 10 minuter före passet', importance: 4, visibility: 1, vibration: true }); } catch(e){}
+    }
+    return LN;
+}
+async function passNotisTillstand(fraga){
+    const LN = appNotiser(); if (!LN) return false;
+    try {
+        let r = await LN.checkPermissions();
+        if (r && r.display === 'prompt' && fraga) r = await LN.requestPermissions();
+        return !!(r && r.display === 'granted');
+    } catch(e){ return false; }
+}
+async function exaktaAlarmOk(){
+    const LN = appNotiser(); if (!LN || !LN.checkExactNotificationSetting) return true;
+    try { const r = await LN.checkExactNotificationSetting(); return !r || r.exact_alarm === 'granted'; } catch(e){ return true; }
+}
+// Pass som ska ha påminnelse: dagar med pass i schemat, inte frånvaro eller ledig, som ännu inte börjat.
+function kommandePass(nu){
+    const ut = [], dag0 = new Date(nu.getFullYear(), nu.getMonth(), nu.getDate());
+    for (let i = 0; i < PASS_NOTIS_DAGAR; i++){
+        const d = new Date(dag0); d.setDate(d.getDate() + i);
+        const k = getK(d), q = db.q[k], o = db.d[k] || {};
+        if (!q || !q.start) continue;
+        if (o.abs || o.st === 'Ledig') continue;                       // frånvaro eller ledig dag: inget pass
+        const hm = String(q.start).slice(0, 5).split(':').map(Number);
+        if (hm.length < 2 || isNaN(hm[0]) || isNaN(hm[1])) continue;
+        const start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), hm[0], hm[1]);
+        const at = new Date(start.getTime() - PASS_NOTIS_MIN * 60000);
+        if (at.getTime() <= nu.getTime() + 15000) continue;            // redan förbi
+        ut.push({ k, d, start, at, tid: String(q.start).slice(0, 5) });
+    }
+    return ut;
+}
+async function planeraPassPaminnelser(){
+    if (passNotisKor) { passNotisTimer = setTimeout(planeraPassPaminnelser, 1500); return; }
+    const LN = appNotiser(); if (!LN) return;
+    if (!Object.keys(db.q || {}).length) return;                      // schemat ej inläst: rör inga befintliga påminnelser
+    // första gången: fråga om tillstånd (notiser och exakta alarm) en gång
+    let fragad = true; try { fragad = localStorage.getItem('sf_passnotis_fragad') === '1'; } catch(e){}
+    if (passNotisPa && !fragad) { try { localStorage.setItem('sf_passnotis_fragad', '1'); } catch(e){} setTimeout(() => setPassNotis(true), 800); return; }
+    passNotisKor = true;
+    try {
+        await passNotisForbered();
+        // alltid rensa gamla påminnelser först, så inget blir kvar när ett pass flyttats eller tagits bort
+        // Kommer schemat från reservfilen (Quinyx svarade inte) rensas bara det som reservfilen
+        // faktiskt täcker. Dagar bortom filens slut behåller sina påminnelser tills live-schemat är tillbaka.
+        const tackt = (scheduleSource === 'live' || !schemaTackning) ? null : schemaTackning.max;
+        try {
+            const pend = await LN.getPending();
+            const gamla = ((pend && pend.notifications) || []).filter(n => {
+                if (n.id < PASS_NOTIS_ID0 || n.id > PASS_NOTIS_ID1) return false;
+                if (!tackt) return true;
+                const t = String(n.id), dag = new Date(+t.slice(0, 4), +t.slice(4, 6) - 1, +t.slice(6, 8));
+                return dag <= tackt;
+            }).map(n => ({ id: n.id }));
+            if (gamla.length) await LN.cancel({ notifications: gamla });
+        } catch(e){}
+        if (!passNotisPa) return;
+        if (!(await passNotisTillstand(false))) return;
+        const exakt = await exaktaAlarmOk();
+        const lista = kommandePass(new Date());
+        if (!lista.length) return;
+        const notiser = lista.map(p => {
+            const mal = Math.round(dayTarget(p.k) || 0);
+            return { id: Number(p.k.split('-').map((x, i) => i ? String(x).padStart(2, '0') : x).join('')),
+                title: 'Dags att stämpla in', body: `Passet börjar ${p.tid}${mal > 0 ? ' · mål ' + lonKr(mal) : ''}`,
+                channelId: 'sf-pass', smallIcon: 'ic_stat_notify', extra: { k: p.k },
+                schedule: { at: p.at, allowWhileIdle: true }, isExactNotification: exakt, isExactMandatory: false };
+        });
+        await LN.schedule({ notifications: notiser });
+    } catch(e){ console.warn('Påminnelser kunde inte planeras:', e); }
+    finally { passNotisKor = false; }
+}
+function paminnelseSen(){ clearTimeout(passNotisTimer); passNotisTimer = setTimeout(planeraPassPaminnelser, 1500); }
+window.planeraPassPaminnelser = planeraPassPaminnelser; window.paminnelseSen = paminnelseSen;
+
+async function setPassNotis(pa){
+    if (!appNotiser()){ showToast('⚠️', 'Påminnelser finns i Android-appen', 2400); const el = document.getElementById('pass-notis'); if (el) el.checked = false; return; }
+    if (pa){
+        if (!(await passNotisTillstand(true))){
+            const el = document.getElementById('pass-notis'); if (el) el.checked = false;
+            passNotisPa = false; try { localStorage.setItem('sf_passnotis', '0'); } catch(e){}
+            showToast('🔕', 'Notiser är avstängda för appen', 2800); return;
+        }
+        // exakta alarm: Android frågar en gång. Utan dem kan påminnelsen komma flera minuter fel.
+        let fragad = false; try { fragad = localStorage.getItem('sf_exakt_fragad') === '1'; } catch(e){}
+        if (!fragad && !(await exaktaAlarmOk())) {
+            try { localStorage.setItem('sf_exakt_fragad', '1'); } catch(e){}
+            showToast('⏰', 'Tillåt "Alarm och påminnelser" för exakt tid', 4500);
+            try { await appNotiser().changeExactNotificationSetting(); } catch(e){}
+        }
+    }
+    passNotisPa = !!pa; try { localStorage.setItem('sf_passnotis', pa ? '1' : '0'); } catch(e){}
+    await planeraPassPaminnelser();
+    showToast(pa ? '⏰' : '🔕', pa ? `Påminnelse ${PASS_NOTIS_MIN} min före varje pass` : 'Påminnelse före pass avstängd', 2200);
+}
+window.setPassNotis = setPassNotis;
+
 // Service workern har lagt på ett steg medan appen låg öppen. Skriv igenom det
 // absoluta beloppet, så blir raden rätt även om workerns egen skrivning föll.
 if (snabbNotisStods()){
@@ -4857,6 +4973,7 @@ function openBudgetModal() {
     const ver = document.getElementById('app-version'); if (ver) ver.innerText = 'SalesFlow ' + APP_VERSION;
     const fa = document.getElementById('focus-auto'); if (fa) fa.checked = focusAuto;
     const bs = document.getElementById('boost-step'); if (bs) bs.value = boostStep;
+    const pn = document.getElementById('pass-notis'); if (pn) { pn.checked = passNotisPa; const rad = pn.closest('label'); if (rad) rad.style.display = appNotiser() ? '' : 'none'; }
     const bh = document.getElementById('boost-step-hint'); if (bh) bh.innerText = `Ett tryck lägger på ${lonKr(boostStep)}.`;
     renderBudgetChoices();
     if (window.ckTemaRita) window.ckTemaRita();

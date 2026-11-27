@@ -2637,7 +2637,7 @@ function lonApplyPrognos(data, key, slot){
     const m=lonMonthly[key]||{}; m['prog_'+slot]={ ob50:data.ob50, ob100:data.ob100, franvaro_tim:data.franvaro_tim }; lonMonthly[key]=m; lonSaveMonthly(); lonFillFields(); lonRecalc();
 }
 function lonUndoPrognos(key, slot){ const m=lonMonthly[key]; if(m){ delete m['prog_'+slot]; lonSaveMonthly(); lonFillFields(); lonRecalc(); } }
-function lonClearFileKey(key, slot){ const m=lonMonthly[key]; if(m){ delete m['file_'+slot]; lonSaveMonthly(); } }
+function lonClearFileKey(key, slot){ const m=lonMonthly[key]; if(m){ delete m['file_'+slot]; lonRaderaFilRad(key, slot); lonSaveMonthly(); } }
 
 const LON_CFG_DEF = {
     manadslon: 29554, tillagg: 515, timpris: 181.14, timdivisor: 166, timModelV: 2,
@@ -2740,7 +2740,10 @@ function lonSignatur(id, data){
         const m = data[k];
         if (!m || typeof m !== 'object' || Array.isArray(m)) { if (m != null) ut[k] = m; continue; }
         const r = {};
-        for (const f of Object.keys(m)) { if (LON_HARLEDDA.has(f) || m[f] == null) continue; r[f] = m[f]; }
+        for (const f of Object.keys(m)) {
+            if (LON_HARLEDDA.has(f) || m[f] == null) continue;
+            r[f] = (f.startsWith('file_') && typeof m[f] === 'object') ? { name: m[f].name } : m[f];     // bilden själv ligger i en egen rad
+        }
         if (Object.keys(r).length) ut[k] = r;
     }
     return lonStabil(ut);
@@ -2755,7 +2758,7 @@ function lonUtanBilddata(m){
         const r = {};
         for (const f in v){
             // Namnet räcker för listan över bilagor; själva bilden hämtas ur molnet.
-            if (f.startsWith('file_') && v[f] && typeof v[f] === 'object') r[f] = { name: v[f].name };
+            if (f.startsWith('file_') && v[f] && typeof v[f] === 'object') r[f] = v[f].remote ? { name: v[f].name, remote: true } : { name: v[f].name };
             else r[f] = v[f];
         }
         ut[k] = r;
@@ -2767,7 +2770,7 @@ function lonUtanBilddata(m){
 function lonHarBildstubb(m){
     for (const k in m){
         const v = m[k]; if (!v || typeof v !== 'object') continue;
-        for (const f in v) if (f.startsWith('file_') && v[f] && typeof v[f] === 'object' && !v[f].data) return true;
+        for (const f in v) if (f.startsWith('file_') && v[f] && typeof v[f] === 'object' && !v[f].data && !v[f].remote) return true;
     }
     return false;
 }
@@ -3724,6 +3727,9 @@ function lonRenderHistory(){
 // Specar som lästes fel av den gamla läsaren (årets brutto som månadens, OB "1 och 1",
 // netto saknas) läses om en gång från den sparade bilden och kalibreras om.
 let lonOmlasning = false;
+// De nya fälten (sen ankomst, månadens bonus) behövs bara för de senaste fyra månaderna. Äldre specar lämnas orörda,
+// så att inlärningen från dem inte ändras i onödan.
+function lonNyligenSpec(k){ const p = String(k).split('-').map(Number), nu = new Date(); return (p[0]*12 + p[1]) >= (nu.getFullYear()*12 + nu.getMonth()+1 - 3); }
 function lonSpecSerFelUt(s){
     if (!s) return false;
     const tak = Math.max((lonCfg && lonCfg.manadslon) || 30000, 20000) * 4;
@@ -3736,13 +3742,14 @@ async function lonLasOmFelaSpecar(){
     try {
         const keys = Object.keys(lonMonthly || {}).filter(k => /^\d{4}-\d{1,2}$/.test(k)).filter(k => {
             const m = lonMonthly[k];
-            return m && m.cal_lonespec && m.file_lonespec && m.file_lonespec.data && ((!m.omlast_v2 && lonSpecSerFelUt(m.cal_lonespec)) || (!m.omlast_v4 && (m.cal_lonespec.sen_avdrag_kr === undefined || m.cal_lonespec.bonus_manad === undefined)));
+            return m && m.cal_lonespec && m.file_lonespec && (m.file_lonespec.data || m.file_lonespec.remote) && ((!m.omlast_v2 && lonSpecSerFelUt(m.cal_lonespec)) || (!m.omlast_v4 && lonNyligenSpec(k) && (m.cal_lonespec.sen_avdrag_kr === undefined || m.cal_lonespec.bonus_manad === undefined)));
         });
         for (const k of keys) {
             try {
                 const m = lonMonthly[k];
                 if ((m.omlast_fel || 0) >= 3) continue;                     // gett upp efter tre misslyckade försök
-                const r = await sb.functions.invoke('scan-payslip', { body: { image_base64: m.file_lonespec.data, kind: 'lonespec' } });
+                const bild = await lonHamtaBild(k, 'lonespec'); if (!bild) continue;
+                const r = await sb.functions.invoke('scan-payslip', { body: { image_base64: bild, kind: 'lonespec' } });
                 const d = r && r.data;
                 // Fel i anropet (inget nät, funktionen nere): försök igen nästa start, men högst tre gånger
                 if (!r || r.error || (d && d.error)) { m.omlast_fel = (m.omlast_fel || 0) + 1; lonSaveMonthly(); continue; }
@@ -3761,12 +3768,15 @@ async function lonSyncRemote(){
     if (lonSynkPagar) return lonSynkPagar;
     lonSynkPagar = (async () => {
         try {
-            const { data, error } = await sb.from('lon_store').select('id,data');
+            const { data, error } = await sb.from('lon_store').select('id,data').in('id', ['cfg', 'monthly']);
             if (error || !data) return;
             let changed=false;
             data.forEach(row=>{
                 if(row.id==='cfg' && row.data && typeof row.data.manadslon === 'number'){ lonCfg = lonNormalizeCfg(row.data); lonSistSkickat.cfg = lonSignatur('cfg', row.data); changed=true; }
-                if(row.id==='monthly' && row.data && typeof row.data === 'object'){ lonMonthly = row.data; lonSistSkickat.monthly = lonSignatur('monthly', row.data); changed=true; }
+                if(row.id==='monthly' && row.data && typeof row.data === 'object'){
+                    lonMolnRaa = lonHarInlineBilder(row.data) ? JSON.stringify(row.data) : null;      // orört original, för backup före migrering
+                    lonMonthly = row.data; lonSistSkickat.monthly = lonSignatur('monthly', row.data); changed=true;
+                }
             });
             lonMolnLast = true;   // från och med nu får ändringar skickas upp
             // Om molnet bara har tomma seed-rader: spara upp den lokala (riktiga) konfigen dit
@@ -3782,23 +3792,101 @@ async function lonSyncRemote(){
                 if (typeof updateDash === 'function') updateDash();
             }
             setTimeout(lonLasOmFelaSpecar, 1500);
+            if (lonMolnRaa) setTimeout(lonMigreraBilder, 4000);
         } catch(e){}
         finally { lonSynkPagar = null; }
     })();
     return lonSynkPagar;
 }
-function lonPushRemote(id, data){
+// Lönespecarnas bilder ligger i egna rader ('fil:<månad>:<typ>') och raden 'monthly' har bara
+// namnet och märket remote:true. Förut låg alla bilder i samma rad (cirka 5 MB), som laddades
+// ner vid varje appstart och upp vid varje ändring.
+// Ordningen skyddar mot förlust: bilden laddas upp, läses tillbaka och jämförs, och först då
+// skickas månadsraden. Misslyckas något skickas ingenting.
+const lonFilSynkad = {};          // 'månad|typ' -> längd på bilden som verifierats i molnet
+let lonPushKo = Promise.resolve(), lonMolnRaa = null, lonMigrerar = false;
+function lonHarInlineBilder(m){
+    for (const k in m){ const v = m[k]; if (!v || typeof v !== 'object') continue;
+        for (const f in v) if (f.startsWith('file_') && v[f] && typeof v[f] === 'object' && v[f].data) return true; }
+    return false;
+}
+function lonPushRemote(id, data, tvinga){
     if (typeof sb === 'undefined' || !sb) return;
     if (!lonMolnLast) return;                                  // regel 2
     if (id === 'monthly' && lonHarBildstubb(data)) { console.warn('Lönedata utan bilder skickas inte upp'); return; }
     let s; try { s = lonSignatur(id, data); } catch(e){ return; }
-    if (s === lonSistSkickat[id]) return;                      // regel 3: inget verkligt nytt
+    if (!tvinga && s === lonSistSkickat[id]) return;           // regel 3: inget verkligt nytt
     lonSistSkickat[id] = s;
+    lonPushKo = lonPushKo.then(() => lonSkickaRad(id, data)).catch(() => { delete lonSistSkickat[id]; });   // en i taget, i ordning
+}
+async function lonSkickaRad(id, data){
     try {
-        sb.from('lon_store').upsert({ id, data, updated_at: new Date().toISOString() })
-          .then(({error}) => { if (error) delete lonSistSkickat[id]; });   // försök igen nästa gång
+        let ut = data;
+        if (id === 'monthly') { ut = await lonLaddaUppBilder(data); if (!ut) { delete lonSistSkickat[id]; return; } }
+        const { error } = await sb.from('lon_store').upsert({ id, data: ut, updated_at: new Date().toISOString() });
+        if (error) delete lonSistSkickat[id];                  // försök igen nästa gång
     } catch(e){ delete lonSistSkickat[id]; }
 }
+async function lonLaddaUppBilder(data){
+    const tunn = {};
+    for (const k of Object.keys(data)){
+        const v = data[k];
+        if (!v || typeof v !== 'object' || Array.isArray(v)) { tunn[k] = v; continue; }
+        const r = {};
+        for (const f of Object.keys(v)){
+            const x = v[f];
+            if (f.startsWith('file_') && x && typeof x === 'object'){
+                const slot = f.slice(5);
+                if (x.data && lonFilSynkad[k + '|' + slot] !== x.data.length){
+                    if (!(await lonSparaFilRad(k, slot, x))) return null;      // bilden är inte säkert uppe: skicka inget alls
+                    lonFilSynkad[k + '|' + slot] = x.data.length;
+                }
+                r[f] = { name: x.name, remote: true };
+            } else r[f] = x;
+        }
+        tunn[k] = r;
+    }
+    return tunn;
+}
+async function lonSparaFilRad(k, slot, x){
+    const id = `fil:${k}:${slot}`;
+    const up = await sb.from('lon_store').upsert({ id, data: { name: x.name, data: x.data }, updated_at: new Date().toISOString() });
+    if (up.error) return false;
+    const r = await sb.from('lon_store').select('data').eq('id', id).maybeSingle();       // läs tillbaka och jämför
+    return !!(r && !r.error && r.data && r.data.data && r.data.data.data === x.data);
+}
+async function lonHamtaBild(k, slot){
+    const f = (lonMonthly[k] || {})['file_' + slot]; if (!f) return null;
+    if (f.data) return f.data;
+    try {
+        const r = await sb.from('lon_store').select('data').eq('id', `fil:${k}:${slot}`).maybeSingle();
+        if (r && !r.error && r.data && r.data.data && r.data.data.data){ f.data = r.data.data.data; lonFilSynkad[k + '|' + slot] = f.data.length; return f.data; }
+    } catch(e){}
+    return null;
+}
+function lonRaderaFilRad(k, slot){
+    delete lonFilSynkad[k + '|' + slot];
+    try { if (sb) sb.from('lon_store').delete().eq('id', `fil:${k}:${slot}`).then(() => {}); } catch(e){}
+}
+// Engångsflytt av bilderna ur monthly-raden. Backup av hela originalet först.
+async function lonMigreraBilder(){
+    if (lonMigrerar || !lonMolnRaa || typeof sb === 'undefined' || !sb || !lonMolnLast) return;
+    lonMigrerar = true;
+    try {
+        const finns = await sb.from('lon_store').select('id').eq('id', 'monthly_backup_inline').maybeSingle();
+        if (finns.error) return;
+        if (!finns.data){
+            const up = await sb.from('lon_store').upsert({ id: 'monthly_backup_inline', data: JSON.parse(lonMolnRaa), updated_at: new Date().toISOString() });
+            if (up.error) return;
+            const kolla = await sb.from('lon_store').select('id').eq('id', 'monthly_backup_inline').maybeSingle();
+            if (kolla.error || !kolla.data) return;                 // ingen bekräftad backup: flytta inget
+        }
+        lonMolnRaa = null;
+        lonPushRemote('monthly', lonMonthly, true);
+    } catch(e){ console.warn('Flytt av bilder avbröts:', e); }
+    finally { lonMigrerar = false; }
+}
+window.lonMigreraBilder = lonMigreraBilder; window.lonHamtaBild = lonHamtaBild;
 
 async function lonHandleUpload(input, slot){
     const file = input.files[0]; if(!file) return;
@@ -3890,9 +3978,9 @@ function lonRenderFile(slot){
     if (!k){ el.classList.add('hidden'); el.innerHTML=''; return; }
     const f = lonMonthly[k]['file_'+slot];
     el.classList.remove('hidden');
-    el.innerHTML = `📎 ${lonMonthLabel(k)}: ${f.name}` + (f.data?' <span class="lon-file-open">öppna</span>':'') + ' <span class="lon-file-del">ta bort</span>';
-    const o = el.querySelector('.lon-file-open'); if(o) o.onclick = ()=>{ const w=window.open(); if(w) w.document.write('<iframe src="'+f.data+'" style="border:0;width:100%;height:100%"></iframe>'); };
-    const d = el.querySelector('.lon-file-del'); if(d) d.onclick = ()=>{ delete lonMonthly[k]['file_'+slot]; lonClearCalibration(k, slot); delete (lonMonthly[k]||{})['prog_'+slot]; lonSaveMonthly(); lonRenderUploads(); lonRenderReminder(); lonRecalc(); showToast('🗑️',`${lonMonthLabel(k)} ${slot} borttagen – omräknad`,2800); };
+    el.innerHTML = `📎 ${lonMonthLabel(k)}: ${f.name}` + ((f.data || f.remote)?' <span class="lon-file-open">öppna</span>':'') + ' <span class="lon-file-del">ta bort</span>';
+    const o = el.querySelector('.lon-file-open'); if(o) o.onclick = async ()=>{ const bild = f.data || await lonHamtaBild(k, slot); if(!bild){ showToast('⚠️','Kunde inte hämta bilden',2400); return; } const w=window.open(); if(w) w.document.write('<iframe src="'+bild+'" style="border:0;width:100%;height:100%"></iframe>'); };
+    const d = el.querySelector('.lon-file-del'); if(d) d.onclick = ()=>{ delete lonMonthly[k]['file_'+slot]; lonRaderaFilRad(k, slot); lonClearCalibration(k, slot); delete (lonMonthly[k]||{})['prog_'+slot]; lonSaveMonthly(); lonRenderUploads(); lonRenderReminder(); lonRecalc(); showToast('🗑️',`${lonMonthLabel(k)} ${slot} borttagen – omräknad`,2800); };
 }
 
 // Tar bort laddskärmen. Säkerhetstimern nedan gör att den ALLTID försvinner –

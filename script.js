@@ -2759,7 +2759,7 @@ const lonSistSkickat = {};        // id -> det molnet har just nu, i stabil form
 // (OB-uppskattning ur schemat, inlärda OB-timmar, frånvarotimmar ur kalendern) och tomma
 // värden räknas inte: förut växlade de fram och tillbaka och laddade upp all lönedata
 // med bilder (cirka 5 MB) två gånger varje gång Lön öppnades.
-const LON_HARLEDDA = new Set(['rawOb50', 'rawOb100', 'actualOb50', 'actualOb100', 'franv']);
+const LON_HARLEDDA = new Set(['rawOb50', 'rawOb100', 'actualOb50', 'actualOb100', 'franv', 'omlast_v2', 'omlast_v3', 'omlast_v4', 'omlast_fel']);
 function lonSignatur(id, data){
     if (id !== 'monthly' || !data || typeof data !== 'object') return lonStabil(data);
     const ut = {};
@@ -3029,7 +3029,7 @@ function lonApplyCalibration(d, monthKey, slot){
     lonMonthly[k] = m;
     lonRecomputeLearning();
     lonSaveMonthly(); lonSaveCfg();
-    lonFillFields(); lonRecalc();
+    if (lonViewDate) { lonFillFields(); lonRecalc(); }      // Lön-fliken kan vara oöppnad (då finns ingen vald månad)
 }
 function lonClearCalibration(monthKey, slot){
     const m = lonMonthly[monthKey]; if(!m) return;
@@ -3105,6 +3105,11 @@ function lonRecomputeLearning(){
     // Modellen är nu verifierad exakt mot lönespec (1383,17/dag, 181,13/tim), så en snittfaktor
     // över gamla månader kan bara införa fel – en enda felaktig månad drog ner den till 0,72.
     lonCfg.franvCorr = 1;
+    // Sen ankomst/tidig hemgång kommer från stämpelklockan och finns inte i schemat. Snittet av
+    // de senaste tre specarna används i uppskattningen tills månadens spec finns.
+    { const sen = []; Object.keys(lonMonthly).filter(k => /^\d{4}-\d{1,2}$/.test(k)).sort((a, b) => { const x = a.split('-').map(Number), y = b.split('-').map(Number); return (y[0]*12+y[1]) - (x[0]*12+x[1]); })
+        .forEach(k => { const sp = (lonMonthly[k] || {}).cal_lonespec; if (sp && sp.sen_avdrag_kr != null && isFinite(+sp.sen_avdrag_kr) && sen.length < 3) sen.push(+sp.sen_avdrag_kr); });
+      lonCfg.senKr = sen.length ? Math.round(sen.reduce((a, b) => a + b, 0) / sen.length * 100) / 100 : 0; }
     if (latestBase) lonCfg.manadslon = latestBase;
     // Applicera inlärd semesterlön/dag om ingen manuell override är satt
     if (latestSemLon && !lonCfg.semLonManual) lonCfg.semLonDag = Math.round(latestSemLon*100)/100;   // behåll ören – 20 dagar × 0,47 kr blir annars ~10 kr fel
@@ -3269,6 +3274,8 @@ function lonBonusAuto(sales){
     return 0;
 }
 
+// Finns en uppladdad lönespec för den visade månaden? (då gäller specens siffror och inte uppskattningen)
+function lonKrEgenSpec(){ const sp = (lonMonthly[lonKey()] || {}).cal_lonespec; return !!(sp && (sp.brutto != null || sp.netto != null)); }
 function lonGetOB(){
     const m = lonMonthly[lonKey()] || {};
     const est = lonEstimateOB(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
@@ -3342,7 +3349,8 @@ function lonRecalc(){
     const bonus = bonusBrutto * (1 - (lonAvdrag||0)/100);
 
     const obTot = ob50 + ob100;
-    const franvTot = franvKr + extraDed;
+    const senEst = lonKrEgenSpec() ? 0 : (lonCfg.senKr || 0);   // bara uppskattning: månadens spec ersätter den
+    const franvTot = franvKr + extraDed + senEst;
     // Semestertillägg: betalda semesterdagar × sats × månadslön (Handels standard ~0,8%/dag). Månadslönen ligger kvar under semester.
     // Semestereffekt: månadslönen ligger kvar; för varje semesterdag byts ordinarie daglön (avdrag) mot semesterlön/dag.
     // Netto per dag = semesterlön/dag − semesteravdrag/dag. Semesterlön/dag lärs in från specar (Semesterlön Månlön/heltid).
@@ -3755,14 +3763,18 @@ async function lonLasOmFelaSpecar(){
     try {
         const keys = Object.keys(lonMonthly || {}).filter(k => /^\d{4}-\d{1,2}$/.test(k)).filter(k => {
             const m = lonMonthly[k];
-            return m && m.cal_lonespec && m.file_lonespec && m.file_lonespec.data && !m.omlast_v2 && lonSpecSerFelUt(m.cal_lonespec);
+            return m && m.cal_lonespec && m.file_lonespec && m.file_lonespec.data && ((!m.omlast_v2 && lonSpecSerFelUt(m.cal_lonespec)) || (!m.omlast_v4 && (m.cal_lonespec.sen_avdrag_kr === undefined || m.cal_lonespec.bonus_manad === undefined)));
         });
         for (const k of keys) {
             try {
-                const r = await sb.functions.invoke('scan-payslip', { body: { image_base64: lonMonthly[k].file_lonespec.data, kind: 'lonespec' } });
+                const m = lonMonthly[k];
+                if ((m.omlast_fel || 0) >= 3) continue;                     // gett upp efter tre misslyckade försök
+                const r = await sb.functions.invoke('scan-payslip', { body: { image_base64: m.file_lonespec.data, kind: 'lonespec' } });
                 const d = r && r.data;
-                lonMonthly[k].omlast_v2 = true;          // försök bara en gång per spec
-                if (r.error || !d || d.error || (d.brutto == null && d.netto == null)) { lonSaveMonthly(); continue; }
+                // Fel i anropet (inget nät, funktionen nere): försök igen nästa start, men högst tre gånger
+                if (!r || r.error || (d && d.error)) { m.omlast_fel = (m.omlast_fel || 0) + 1; lonSaveMonthly(); continue; }
+                m.omlast_v2 = true; m.omlast_v4 = true;                      // ett riktigt svar: klart, oavsett om något kunde läsas
+                if (!d || (d.brutto == null && d.netto == null)) { lonSaveMonthly(); continue; }
                 lonApplyCalibration(d, k, 'lonespec');
                 fixade.push(k);
             } catch(e){}
@@ -4162,7 +4174,125 @@ async function planeraPassPaminnelser(){
     } catch(e){ console.warn('Påminnelser kunde inte planeras:', e); }
     finally { passNotisKor = false; }
 }
-function paminnelseSen(){ clearTimeout(passNotisTimer); passNotisTimer = setTimeout(planeraPassPaminnelser, 1500); }
+function paminnelseSen(){ clearTimeout(passNotisTimer); passNotisTimer = setTimeout(() => { planeraPassPaminnelser(); planeraVeckosumma(); }, 1500); }
+
+// ---- Veckosummering: en notis måndag 08:00 med förra veckans resultat ----
+// Innehållet räknas om vid varje ändring, så notisen visar det som gällde när du senast öppnade appen.
+const VECKO_NOTIS_ID = 3001;
+let veckoNotisPa = true; try { veckoNotisPa = localStorage.getItem('sf_veckonotis') !== '0'; } catch(e){}
+let veckoNotisKlar = false, veckoNotisKor = false;
+function veckoSammanfattning(nu){
+    const mand = new Date(nu.getFullYear(), nu.getMonth(), nu.getDate(), 8, 0);
+    mand.setDate(mand.getDate() + ((8 - (mand.getDay() || 7)) % 7));                 // närmaste måndag 08:00
+    if (mand.getTime() <= nu.getTime() + 15000) mand.setDate(mand.getDate() + 7);
+    const v0 = new Date(mand); v0.setDate(v0.getDate() - 7);                           // förra måndagen
+    let salt = 0, pass = 0, basta = null;
+    for (let i = 0; i < 7; i++){
+        const d = new Date(v0); d.setDate(d.getDate() + i); const o = db.d[getK(d)] || {}, s = o.s || 0;
+        salt += s; if (s > 0) pass++; if (s > 0 && (!basta || s > basta.s)) basta = { s, dow: d.getDay() };
+    }
+    const son = new Date(v0); son.setDate(son.getDate() + 6);                          // veckans söndag avgör vilken månad vi talar om
+    const y = son.getFullYear(), m = son.getMonth() + 1, dim = new Date(y, m, 0).getDate();
+    let msalt = 0, kvarPass = 0;
+    for (let d = 1; d <= dim; d++){
+        const k = `${y}-${m}-${d}`, dt = new Date(y, m - 1, d), o = db.d[k] || {}, q = db.q[k] || {};
+        if (dt <= son) msalt += o.s || 0;
+        else if (q.start && !o.abs && o.st !== 'Ledig') kvarPass++;
+    }
+    const mal = getBudgetForMonth(y, m);
+    return { mand, v0, salt, pass, basta, y, m, msalt, kvarPass, mal };
+}
+async function planeraVeckosumma(){
+    const LN = appNotiser(); if (!LN || veckoNotisKor) return;
+    if (!Object.keys(db.d || {}).length) return;
+    veckoNotisKor = true;
+    try {
+        if (!veckoNotisKlar){ veckoNotisKlar = true; try { await LN.createChannel({ id: 'sf-vecka', name: 'Veckosummering', description: 'Förra veckans resultat, måndag morgon', importance: 3, visibility: 1 }); } catch(e){} }
+        try { await LN.cancel({ notifications: [{ id: VECKO_NOTIS_ID }] }); } catch(e){}
+        if (!veckoNotisPa || !(await passNotisTillstand(false))) return;
+        const v = veckoSammanfattning(new Date()), dag = ['sön','mån','tis','ons','tors','fre','lör'];
+        const tkr = n => lonKr(Math.round(n));
+        const snitt = v.pass ? v.salt / v.pass : 0;
+        const rad1 = v.salt > 0 ? `${v.pass} pass · snitt ${tkr(snitt)}${v.basta ? ` · bäst ${dag[v.basta.dow]} ${tkr(v.basta.s)}` : ''}` : 'Ingen försäljning registrerad förra veckan';
+        const pct = v.mal > 0 ? Math.round(v.msalt / v.mal * 100) : 0;
+        const rad2 = v.kvarPass > 0 && v.mal > v.msalt ? `Månaden: ${pct} % av ${tkr(v.mal)} · krävs ${tkr((v.mal - v.msalt) / v.kvarPass)} per pass (${v.kvarPass} kvar)`
+                   : v.mal > 0 ? `Månaden blev ${pct} % av ${tkr(v.mal)}` : '';
+        const exakt = await exaktaAlarmOk();
+        await LN.schedule({ notifications: [{ id: VECKO_NOTIS_ID, title: `Förra veckan: ${tkr(v.salt)}`, body: rad1 + (rad2 ? '\n' + rad2 : ''), largeBody: rad1 + (rad2 ? '\n' + rad2 : ''), summaryText: 'Veckosummering',
+            channelId: 'sf-vecka', smallIcon: 'ic_stat_notify', schedule: { at: v.mand, allowWhileIdle: true }, isExactNotification: exakt, isExactMandatory: false }] });
+    } catch(e){ console.warn('Veckosummering kunde inte planeras:', e); }
+    finally { veckoNotisKor = false; }
+}
+async function setVeckoNotis(pa){
+    if (!appNotiser()){ showToast('⚠️', 'Finns i Android-appen', 2400); const el = document.getElementById('vecko-notis'); if (el) el.checked = false; return; }
+    if (pa && !(await passNotisTillstand(true))){ const el = document.getElementById('vecko-notis'); if (el) el.checked = false; veckoNotisPa = false; try { localStorage.setItem('sf_veckonotis', '0'); } catch(e){} showToast('🔕', 'Notiser är avstängda för appen', 2800); return; }
+    veckoNotisPa = !!pa; try { localStorage.setItem('sf_veckonotis', pa ? '1' : '0'); } catch(e){}
+    await planeraVeckosumma();
+    showToast(pa ? '📅' : '🔕', pa ? 'Veckosummering varje måndag 08:00' : 'Veckosummeringen avstängd', 2200);
+}
+window.setVeckoNotis = setVeckoNotis;
+// ---- Månadssammanställning: text att visa chefen eller skicka som sms ----
+function byggManadsText(y, mo){
+    const MAN = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+    const key = `${y}-${mo}`, rec = lonMonthly[key] || {}, spec = rec.cal_lonespec || null;
+    const kr = n => lonKr(Math.round(n));
+    const sales = getMonthlySales(y, mo), dim = new Date(y, mo, 0).getDate();
+    let pass = 0; for (let d = 1; d <= dim; d++) { const o = db.d[`${y}-${mo}-${d}`]; if (o && o.s > 0) pass++; }
+    const rader = [`Sammanställning ${MAN[mo-1]} ${y}`, '', `Försäljning: ${kr(sales)} (${pass} pass${pass ? ', snitt ' + kr(sales / pass) : ''})`];
+    // frånvaro, sammanhängande perioder per typ
+    const brk = getMonthAbsenceBreakdown(y, mo), per = {};
+    brk.items.filter(i => i.reason !== 'Åtgärd krävs').forEach(i => { (per[i.reason.split(' ')[0]] = per[i.reason.split(' ')[0]] || []).push(i.d); });
+    const dl = n => `${n} ${MAN[mo-1].slice(0, 3)}`;
+    const fr = Object.keys(per).map(t => {
+        const dgr = per[t].sort((a, b) => a - b), grp = []; let a = dgr[0], b = a;
+        for (let i = 1; i <= dgr.length; i++) { if (dgr[i] === b + 1) { b = dgr[i]; continue; } grp.push(a === b ? dl(a) : `${a}–${dl(b)}`); a = dgr[i]; b = a; }
+        return `${t} ${dgr.length} ${dgr.length === 1 ? 'dag' : 'dagar'} (${grp.join(', ')})`;
+    });
+    rader.push(fr.length ? 'Frånvaro: ' + fr.join('; ') : 'Frånvaro: ingen');
+    // lättnad och nivåer
+    const lat = bonusLattnad(y, mo), basT = lonTiersForMonth(mo, y).filter(t => +t.min > 0), adj = lonAdjustedTiers(y, mo).tiers.filter(t => +t.min > 0);
+    if (lat.ratio > 0) rader.push(`Lättat mål: ${Math.round(lat.ratio * 100)} %${lat.manuell ? ' (eget val)' : lat.regel === 'vecka' ? ` (${lat.veckor} ${lat.veckor === 1 ? 'vecka' : 'veckor'} ledig, 25 % per vecka)` : ` (${lat.dagar} av ${lat.dim} dagar)`}`);
+    const t12 = basT.find(t => +t.pct === 12), a12 = adj.find(t => +t.pct === 12);
+    if (t12 && a12) rader.push(`Mål för 12 %: ${kr(t12.min)}${lat.ratio > 0 ? ' → ' + kr(a12.min) + ' efter lättnad' : ''}`);
+    const nivaE = lonEgenNiva(y, mo); if (nivaE) rader.push(`Överenskommen nivå: ${nivaE.pct} % från ${kr(nivaE.min)}`);
+    let pct = 0; adj.forEach(t => { if (sales >= +t.min) pct = +t.pct; });
+    const avdr = +rec.avdrag || 0, bonusApp = sales * pct / 100 * (1 - avdr / 100);
+    rader.push('', `Bonusnivå enligt uträkning: ${pct} %${avdr ? ', avdrag ' + avdr + ' %' : ''}`, `Bonus enligt uträkning: ${kr(bonusApp)}`);
+    if (spec && spec.bonus != null) {
+        // En spec kan innehålla bonus från månaden före: jämför månadens egen del
+        const sb = spec.bonus_manad != null ? spec.bonus_manad : spec.bonus;
+        rader.push(`Bonus enligt lönespec: ${kr(sb)}` + (spec.bonus_manad != null && Math.abs(spec.bonus - spec.bonus_manad) > 1 ? ` (specen betalar totalt ${kr(spec.bonus)} inklusive bonus från månaden före)` : ''));
+        const diff = Math.round(bonusApp - sb);
+        rader.push(Math.abs(diff) < 50 ? 'Stämmer med uträkningen.' : `Skillnad: ${diff > 0 ? '+' : '−'}${kr(Math.abs(diff))} ${diff > 0 ? '(uträkningen är högre än utbetalt)' : '(utbetalt är högre än uträkningen)'}`);
+        if (sales > 0 && sb > 0) rader.push(`Utbetald bonus motsvarar ${(sb / sales * 100).toFixed(1).replace('.', ',')} % av försäljningen.`);
+    }
+    return rader.join('\n');
+}
+function delaManad(){
+    const d = (typeof lonViewDate !== 'undefined' && lonViewDate) ? lonViewDate : viewDate;
+    const text = byggManadsText(d.getFullYear(), d.getMonth() + 1);
+    let el = document.getElementById('fx-delning');
+    if (!el) {
+        el = document.createElement('div'); el.id = 'fx-delning'; el.className = 'fx-sheet';
+        el.innerHTML = `<div class="fx-panel"><div class="fx-grab"></div><div class="fx-ph"><b>Månadssammanställning</b></div>
+          <textarea id="fx-delning-text" class="dl-text" readonly></textarea>
+          <div class="dl-knappar"><button type="button" id="dl-kopiera" class="dl-pri">Kopiera</button><button type="button" id="dl-dela">Dela</button><button type="button" id="dl-stang">Stäng</button></div></div>`;
+        document.body.appendChild(el);
+        el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+        el.querySelector('#dl-stang').onclick = () => el.classList.remove('open');
+        el.querySelector('#dl-kopiera').onclick = async () => {
+            const t = document.getElementById('fx-delning-text'); let ok = false;
+            try { await navigator.clipboard.writeText(t.value); ok = true; } catch(e){ try { t.removeAttribute('readonly'); t.select(); ok = document.execCommand('copy'); t.setAttribute('readonly', ''); } catch(_){} }
+            showToast(ok ? '📋' : '⚠️', ok ? 'Kopierat. Klistra in i sms eller mejl.' : 'Kunde inte kopiera. Markera texten och kopiera.', 2600);
+        };
+        el.querySelector('#dl-dela').onclick = async () => { try { await navigator.share({ title: 'Månadssammanställning', text: document.getElementById('fx-delning-text').value }); } catch(e){} };
+    }
+    document.getElementById('fx-delning-text').value = text;
+    el.querySelector('#dl-dela').style.display = navigator.share ? '' : 'none';
+    requestAnimationFrame(() => el.classList.add('open'));
+}
+window.delaManad = delaManad; window.byggManadsText = byggManadsText;
+ window.planeraVeckosumma = planeraVeckosumma; window.veckoSammanfattning = veckoSammanfattning;
 window.planeraPassPaminnelser = planeraPassPaminnelser; window.paminnelseSen = paminnelseSen;
 
 async function setPassNotis(pa){
@@ -5012,6 +5142,7 @@ function openBudgetModal() {
     const ver = document.getElementById('app-version'); if (ver) ver.innerText = 'SalesFlow ' + APP_VERSION;
     const fa = document.getElementById('focus-auto'); if (fa) fa.checked = focusAuto;
     const bs = document.getElementById('boost-step'); if (bs) bs.value = boostStep;
+    const vn = document.getElementById('vecko-notis'); if (vn) { vn.checked = veckoNotisPa; const rad = vn.closest('label'); if (rad) rad.style.display = appNotiser() ? '' : 'none'; }
     const pn = document.getElementById('pass-notis'); if (pn) { pn.checked = passNotisPa; const rad = pn.closest('label'); if (rad) rad.style.display = appNotiser() ? '' : 'none'; }
     const bh = document.getElementById('boost-step-hint'); if (bh) bh.innerText = `Ett tryck lägger på ${lonKr(boostStep)}.`;
     renderBudgetChoices();

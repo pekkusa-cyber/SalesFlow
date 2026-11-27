@@ -17,7 +17,6 @@
     <link rel="apple-touch-icon" href="icon-192-v2.png">
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700;900&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=116">
@@ -25,7 +24,7 @@
     <link rel="stylesheet" href="ui.css?v=116">
     <link rel="stylesheet" href="premium.css?v=118">
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="fokus.css?v=188">
+    <link rel="stylesheet" href="fokus.css?v=190">
     <script>try{var v=localStorage.getItem('sf_ck')||'ljust';document.documentElement.setAttribute('data-ck',(v==='mork'||(v==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches))?'dark':'light');}catch(e){}</script>
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
@@ -50,6 +49,7 @@
         #sf-boot .boot-bar span{animation-duration:2.4s}
       }
     </style>
+    <link rel="stylesheet" href="tailwind.css?v=1">
 </head>
 <body class="mode-dash">
 
@@ -497,6 +497,10 @@
                     <input id="pass-notis" type="checkbox" checked onchange="setPassNotis(this.checked)">
                 </label>
                 <label class="md-toggle-row">
+                    <span>📅 Veckosummering, måndag</span>
+                    <input id="vecko-notis" type="checkbox" checked onchange="setVeckoNotis(this.checked)">
+                </label>
+                <label class="md-toggle-row">
                     <span>📲 Snabbnotis med dagens mål</span>
                     <input id="snabb-notis" type="checkbox" onchange="setSnabbNotis(this.checked)">
                 </label>
@@ -923,6 +927,7 @@
                                 </div>
                             </div>
                         </div>
+                        <button type="button" id="lon-share" class="lon-share" onclick="delaManad()"><span class="material-symbols-rounded">ios_share</span> Dela sammanställning</button>
                         <!-- Dolda auto-fält -->
                         <div class="hidden">
                             <input id="lon-sales" type="hidden"><input id="lon-ob50" type="hidden"><input id="lon-ob100" type="hidden">
@@ -973,7 +978,7 @@
         </div>
     </div>
 
-    <script src="script.js?v=188"></script>
+    <script src="script.js?v=190"></script>
     <script src="fx.js?v=188"></script>
     <script src="fxsidor.js?v=188"></script>
     <script src="fxkal.js?v=180"></script>

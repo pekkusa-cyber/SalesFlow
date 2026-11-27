@@ -59,26 +59,41 @@ export function regler(text: string) {
   // belopp på datumraden direkt under rubriken: "1001-1031 19951,00"
   const datumBelopp = (i: number) => {
     for (let k = i + 1; k < Math.min(rader.length, i + 3); k++) {
-      const m = rader[k].match(/^\d{4}-\d{4}\s+(\d[\d\s\u00a0]*,\d{2})$/);
-      if (m) return tal(m[1]);
+      const m = rader[k].match(/^(\d{2})\d{2}-\d{4}\s+(\d[\d\s\u00a0]*,\d{2})$/);
+      if (m) return { belopp: tal(m[2])!, mm: +m[1] };
       if (/[a-zåäö]{3,}/i.test(rader[k])) break;
     }
     return null;
   };
 
-  const ob50: number[] = [], ob100: number[] = [], bonus: number[] = [], franvKr: number[] = [];
+  const ob50: number[] = [], ob100: number[] = [], bonus: number[] = [], franvKr: number[] = [], senKr: number[] = [], bonusRad: { belopp: number; mm: number }[] = [], obMm: number[] = [];
   for (let i = 0; i < rader.length; i++) {
     const r = rader[i];
-    if (/^OB[- ]?till[äa]gg\s*50\s*%/i.test(r) || /^OB\s*kontant\s*50/i.test(r)) { const t = prisAntal(i); if (t) ob50.push(t.antal); }
-    else if (/^OB[- ]?till[äa]gg\s*100\s*%/i.test(r) || /^OB\s*kontant\s*100/i.test(r)) { const t = prisAntal(i); if (t) ob100.push(t.antal); }
-    else if (/^Bonus\b/i.test(r)) { const b = datumBelopp(i); if (b != null) bonus.push(b); }
-    else if (/^(F[öo]r[äa]ldrale|VAB|Sjuk|Tj[äa]nstledig|Sen ankomst|Fr[åa]nvaro)/i.test(r)) { const t = prisAntal(i); if (t) franvKr.push(t.pris * t.antal); }
+    if (/^OB[- ]?till[äa]gg\s*50\s*%/i.test(r) || /^OB\s*kontant\s*50/i.test(r)) { const t = prisAntal(i); if (t) { ob50.push(t.antal); const d = (rader[i + 1] || "").match(/^(\d{2})\d{2}-\d{4}/); if (d) obMm.push(+d[1]); } }
+    else if (/^OB[- ]?till[äa]gg\s*100\s*%/i.test(r) || /^OB\s*kontant\s*100/i.test(r)) { const t = prisAntal(i); if (t) { ob100.push(t.antal); const d = (rader[i + 1] || "").match(/^(\d{2})\d{2}-\d{4}/); if (d) obMm.push(+d[1]); } }
+    else if (/^Bonus\b/i.test(r)) { const b = datumBelopp(i); if (b != null) { bonus.push(b.belopp); bonusRad.push(b); } }
+    else if (/^(F[öo]r[äa]ldrale|VAB|Sjuk|Tj[äa]nstledig|Sen ankomst|Fr[åa]nvaro)/i.test(r)) {
+      const t = prisAntal(i);
+      if (t) { franvKr.push(t.pris * t.antal); if (/^Sen ankomst/i.test(r)) senKr.push(t.pris * t.antal); }   // sen ankomst/tidig hemgång ingår i frånvarosumman men redovisas också separat
+    }
   }
   const sum = (a: number[]) => Math.round(a.reduce((x, y) => x + y, 0) * 100) / 100;
   if (ob50.length) ut.ob50 = sum(ob50);
   if (ob100.length) ut.ob100 = sum(ob100);
-  if (bonus.length) ut.bonus = sum(bonus);
+  if (bonus.length) {
+    ut.bonus = sum(bonus);                                   // allt som betalades ut som bonus på specen
+    // Bonus som hör till själva månaden: rader vars datum ligger i samma månad som OB-raderna.
+    // En spec kan även innehålla en bonusrad från månaden före (t.ex. 0801-0831 på septemberspecen).
+    const freq: Record<number, number> = {}; obMm.forEach((m) => (freq[m] = (freq[m] || 0) + 1));
+    const huvud = Object.keys(freq).sort((a, b) => freq[+b] - freq[+a])[0];
+    if (huvud != null) { const egen = bonusRad.filter((b) => b.mm === +huvud).map((b) => b.belopp); if (egen.length) ut.bonus_manad = sum(egen); }
+  }
+  // Arbetsmånaden avgörs av datumen på raderna (MMDD), aldrig av AI-modellens gissning:
+  // månaden som flest OB-/bonusrader ligger i. Avgör vilken månad specen sparas på.
+  { const alla = obMm.concat(bonusRad.map((b) => b.mm)); const f: Record<number, number> = {}; alla.forEach((m) => (f[m] = (f[m] || 0) + 1));
+    const bast = Object.keys(f).sort((a, b) => f[+b] - f[+a])[0]; if (bast != null && +bast >= 1 && +bast <= 12) ut.manad_nr = +bast; }
   if (franvKr.length) ut.franvaro_avdrag_kr = sum(franvKr);
+  if (senKr.length) ut.sen_avdrag_kr = sum(senKr); else if (/Sen ankomst/i.test(hela) === false) ut.sen_avdrag_kr = 0;
   return ut;
 }
 
@@ -86,7 +101,7 @@ export function regler(text: string) {
 function rimligt(o: Record<string, number | null>) {
   const ml = o.manadslon && o.manadslon > 10000 && o.manadslon < 80000 ? o.manadslon : 30000;
   const tak = ml * 4;
-  for (const f of ["brutto", "netto", "skatt", "bonus", "franvaro_avdrag_kr"]) {
+  for (const f of ["brutto", "netto", "skatt", "bonus", "bonus_manad", "franvaro_avdrag_kr", "sen_avdrag_kr"]) {
     const v = o[f];
     if (v != null && (v < 0 || v > tak)) o[f] = null;
   }
@@ -194,6 +209,8 @@ Deno.serve(async (req) => {
       ob100: num(parsed.ob100),
       franvaro_tim: num(parsed.franvaro_tim),
       franvaro_avdrag_kr: parsed.franvaro_avdrag_kr != null ? Math.abs(num(parsed.franvaro_avdrag_kr) ?? 0) : null,
+      sen_avdrag_kr: null,
+      bonus_manad: null,
       bonus: num(parsed.bonus),
       manadslon: num(parsed.manadslon),
       brutto: num(parsed.brutto),

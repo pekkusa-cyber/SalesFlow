@@ -194,7 +194,7 @@
     let steg = [];
     try { steg = (lattat ? lonAdjustedTiers(cy, cm).tiers : lonTiersForMonth(cm, cy)).filter(t => +t.min > 0).sort((a, c) => a.min - c.min); } catch (e) {}
     const nu = steg.filter(t => tS >= t.min).pop() || null, nasta = steg.find(t => tS < t.min) || null;
-    return { cy, cm, dim, salt: tS, mal, prognos, rW, tP, ratio, lattat, steg, dagar, avg, frv, best, nu, nasta,
+    return { cy, cm, dim, salt: tS, mal, prognos, rW, tP, idagPass, ratio, lattat, steg, dagar, avg, frv, best, nu, nasta,
       krav: tS >= mal && mal > 0 ? 0 : (rW > 0 ? (mal - tS) / rW : null),
       kravNasta: nasta && rW > 0 ? (nasta.min - tS) / rW : null };
   }
@@ -352,7 +352,7 @@
   const chip = (txt, typ) => `<span class="fx-chip ${typ}">${txt}</span>`;
   const kol = (cls, rubrik, varde, g, inne, under) => `<div class="fx-k ${cls}"><div class="t"><span>${rubrik}</span><b>${varde}</b></div><div class="g">${g}<div class="c">${inne}</div></div><div class="u">${under}</div></div>`;
   const rad = (typ, txt) => `<p><i class="${typ}">${typ === 'k' ? 'Kan nå' : 'Måste'}</i><span>${txt}</span></p>`;
-  let vand = false, slot = false;
+  let slot = false;
 
   function idag(k, m) {
     const v = malVy(k), o = db.d[k] || {}, p = uiPass(k), tid = uiTidKvar(k), d = dateOf(k);
@@ -366,7 +366,14 @@
     const proj = (speed != null && tid > 0) ? v.salt + speed * (tid / 60) : null;
     // månadens tempo: var du borde vara just nu
     const isNu = m.cy === realToday.getFullYear() && m.cm === realToday.getMonth() + 1;
-    const mfp = isNu ? Math.min(1, (realToday.getDate() - 1 + nu.getHours() / 24) / m.dim) : (new Date(m.cy, m.cm - 1, 1) < realToday ? 1 : 0);
+    // Tempot räknas på PASS, inte kalenderdagar: en månad med mycket frånvaro har färre pass,
+    // och då ska du inte ligga "efter" för dagar du inte jobbade. Dagens pass räknas till den del det gått.
+    let mfp;
+    if (isNu && m.tP > 0) {
+      const pI = uiPass(keyOf(realToday));
+      const delIdag = pI && m.idagPass ? Math.max(0, Math.min(1, (mm - pI.a) / Math.max(1, pI.b - pI.a))) : 0;
+      mfp = Math.min(1, (m.tP - m.rW + delIdag) / m.tP);
+    } else mfp = isNu ? Math.min(1, (realToday.getDate() - 1 + nu.getHours() / 24) / m.dim) : (new Date(m.cy, m.cm - 1, 1) < realToday ? 1 : 0);
     const mf = m.mal > 0 ? m.salt / m.mal : 0, mklar = m.mal > 0 && m.salt >= m.mal;
     const mdiff = m.salt - m.mal * mfp, mfas = mdiff >= -m.mal * .02;
     // ---- framsidan ----
@@ -441,7 +448,6 @@
         </div>
       </section>`;
   }
-  window.fxVand = function () { vand = !vand; const c = document.querySelector('#fx .fx-card3'); if (c) c.classList.toggle('vand', vand); try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
   window.fxSlot = function (till) { slot = typeof till === 'boolean' ? till : !slot; const s = $('fx-slot'); if (s) s.classList.toggle('b', slot); const t = document.querySelector('#fx .tl.bon'); if (t) t.classList.toggle('on', slot); try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
   window.fxBonus = function (min) {
     const key = `${viewDate.getFullYear()}-${viewDate.getMonth() + 1}`;

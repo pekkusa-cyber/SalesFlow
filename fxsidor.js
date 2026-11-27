@@ -137,7 +137,7 @@
       <div class="fq-top"><b>Lägg in frånvaro</b><button class="fq-x" onclick="fvStang()" aria-label="Stäng">${ic('close')}</button></div>
       <div class="fq-typer">${FV_TYPER.map(x => `<button class="f-${x.c}${fv.typ === x.t ? ' on' : ''}" onclick="fvValjTyp('${x.t}')">${ic(TYP[x.c].i)}<span>${x.c === 'fl' ? 'Föräldral.' : x.t}</span></button>`).join('')}</div>
       ${behBarn ? `<div class="fq-seg">${BARN.map(b => `<button class="${fv.barn === b ? 'on' : ''}" onclick="fvValjBarn('${b}')">${ic('child_care')}${b}</button>`).join('')}</div>` : ''}
-      <div class="fq-snabb"><button onclick="fvSnabb('idag')">Idag</button><button onclick="fvSnabb('imorgon')">Imorgon</button><button onclick="fvSnabb('veckan')">Resten av veckan</button><button onclick="fvSnabb('nasta')">Nästa vecka</button></div>
+      <div class="fq-snabb"><button onclick="fvSnabb('idag')">Idag</button><button onclick="fvSnabb('imorgon')">Imorgon</button><button onclick="fvSnabb('veckan')">Veckan ut</button><button onclick="fvSnabb('nasta')">Nästa vecka</button></div>
       <div class="fq-cal">
         <div class="fq-ch"><button onclick="fvMan(-1)" aria-label="Förra månaden">${ic('chevron_left')}</button><b>${UI_MAN[m - 1]} ${y}</b><button onclick="fvMan(1)" aria-label="Nästa månad">${ic('chevron_right')}</button></div>
         <div class="fq-grid">${cal}</div>

@@ -168,17 +168,23 @@ function renderBonusEgen(){
     box.innerHTML = `
       <p class="md-section-lbl be-rubrik">Bonus för ${MAN[cm-1]}</p>
       <div class="be-kort">
-        <div class="be-rad">
-          <div class="be-t"><b>Lättat mål</b><small class="be-regel">${harL ? `Eget val · auto ${autoPct} %` : `Auto ${autoPct} %`} · <button class="${bl.regel === 'vecka' ? 'on' : ''}" onclick="setLattnadRegel('vecka')">per vecka</button><button class="${bl.regel === 'dag' ? 'on' : ''}" onclick="setLattnadRegel('dag')">per dag</button></small></div>
-          <div class="be-in"><input id="be-lpct" type="number" inputmode="decimal" min="0" max="90" step="1" placeholder="${autoPct}" value="${harL ? egenL : ''}" aria-label="Lättat mål i procent"><span>%</span>
-            <button class="pri" onclick="setLattnadPct(document.getElementById('be-lpct').value)" aria-label="Spara lättat mål">${'✓'}</button>
-            ${harL ? `<button onclick="setLattnadPct(null)" aria-label="Auto">Auto</button>` : ''}</div>
+        <div class="be-rad tva">
+          <div class="be-t"><b>Lättat mål</b><small>${harL ? `Eget val ${egenL} % · appen räknar ${autoPct} %` : `Auto ${autoPct} % av din frånvaro`}</small></div>
+          <div class="be-in">
+            <div class="be-regel"><button class="${bl.regel === 'vecka' ? 'on' : ''}" onclick="setLattnadRegel('vecka')">Per vecka</button><button class="${bl.regel === 'dag' ? 'on' : ''}" onclick="setLattnadRegel('dag')">Per dag</button></div>
+            <input id="be-lpct" type="number" inputmode="decimal" min="0" max="90" step="1" placeholder="${autoPct}" value="${harL ? egenL : ''}" aria-label="Lättat mål i procent"><span>%</span>
+            <button class="pri" onclick="setLattnadPct(document.getElementById('be-lpct').value)" aria-label="Spara lättat mål">✓</button>
+            ${harL ? `<button onclick="setLattnadPct(null)" aria-label="Tillbaka till auto">✕</button>` : ''}
+          </div>
         </div>
-        <div class="be-rad">
-          <div class="be-t"><b>Egen nivå</b><small>${niva ? `${niva.pct} % från ${niva.min.toLocaleString('sv-SE')} kr` : 'Överenskommen med chefen'}</small></div>
-          <div class="be-in"><input id="be-nmin" type="number" inputmode="numeric" step="1000" placeholder="kr" value="${niva ? niva.min : ''}" aria-label="Belopp"><input id="be-npct" class="liten" type="number" inputmode="decimal" step="0.5" placeholder="%" value="${niva ? niva.pct : ''}" aria-label="Procent"><span>%</span>
+        <div class="be-rad tva">
+          <div class="be-t"><b>Egen nivå</b><small>${niva ? `${niva.pct} % från ${niva.min.toLocaleString('sv-SE')} kr` : 'Överenskommen med chefen för just den här månaden'}</small></div>
+          <div class="be-in">
+            <input id="be-nmin" class="bred" type="number" inputmode="numeric" step="1000" placeholder="Belopp kr" value="${niva ? niva.min : ''}" aria-label="Belopp i kronor">
+            <input id="be-npct" type="number" inputmode="decimal" step="0.5" placeholder="%" value="${niva ? niva.pct : ''}" aria-label="Procent"><span>%</span>
             <button class="pri" onclick="setEgenNiva(document.getElementById('be-nmin').value, document.getElementById('be-npct').value)" aria-label="Spara nivå">✓</button>
-            ${niva ? `<button onclick="setEgenNiva(null)" aria-label="Ta bort nivå">✕</button>` : ''}</div>
+            ${niva ? `<button onclick="setEgenNiva(null)" aria-label="Ta bort nivå">✕</button>` : ''}
+          </div>
         </div>
       </div>`;
 }
@@ -2749,6 +2755,23 @@ function lonSaveMonthly(){ try { localStorage.setItem('sf_lon_monthly', JSON.str
 //    upp hela lönedatan två–tre gånger, ~6,7 MB.
 let lonMolnLast = false;          // har molnet lästs i den här sessionen?
 const lonSistSkickat = {};        // id -> det molnet har just nu, i stabil form
+// Signaturen som avgör om något behöver laddas upp. Fält som appen räknar fram själv
+// (OB-uppskattning ur schemat, inlärda OB-timmar, frånvarotimmar ur kalendern) och tomma
+// värden räknas inte: förut växlade de fram och tillbaka och laddade upp all lönedata
+// med bilder (cirka 5 MB) två gånger varje gång Lön öppnades.
+const LON_HARLEDDA = new Set(['rawOb50', 'rawOb100', 'actualOb50', 'actualOb100', 'franv']);
+function lonSignatur(id, data){
+    if (id !== 'monthly' || !data || typeof data !== 'object') return lonStabil(data);
+    const ut = {};
+    for (const k of Object.keys(data)) {
+        const m = data[k];
+        if (!m || typeof m !== 'object' || Array.isArray(m)) { if (m != null) ut[k] = m; continue; }
+        const r = {};
+        for (const f of Object.keys(m)) { if (LON_HARLEDDA.has(f) || m[f] == null) continue; r[f] = m[f]; }
+        if (Object.keys(r).length) ut[k] = r;
+    }
+    return lonStabil(ut);
+}
 let lonSynkPagar = null;
 
 function lonUtanBilddata(m){
@@ -3757,8 +3780,8 @@ async function lonSyncRemote(){
             if (error || !data) return;
             let changed=false;
             data.forEach(row=>{
-                if(row.id==='cfg' && row.data && typeof row.data.manadslon === 'number'){ lonCfg = lonNormalizeCfg(row.data); lonSistSkickat.cfg = lonStabil(row.data); changed=true; }
-                if(row.id==='monthly' && row.data && typeof row.data === 'object'){ lonMonthly = row.data; lonSistSkickat.monthly = lonStabil(row.data); changed=true; }
+                if(row.id==='cfg' && row.data && typeof row.data.manadslon === 'number'){ lonCfg = lonNormalizeCfg(row.data); lonSistSkickat.cfg = lonSignatur('cfg', row.data); changed=true; }
+                if(row.id==='monthly' && row.data && typeof row.data === 'object'){ lonMonthly = row.data; lonSistSkickat.monthly = lonSignatur('monthly', row.data); changed=true; }
             });
             lonMolnLast = true;   // från och med nu får ändringar skickas upp
             // Om molnet bara har tomma seed-rader: spara upp den lokala (riktiga) konfigen dit
@@ -3783,8 +3806,8 @@ function lonPushRemote(id, data){
     if (typeof sb === 'undefined' || !sb) return;
     if (!lonMolnLast) return;                                  // regel 2
     if (id === 'monthly' && lonHarBildstubb(data)) { console.warn('Lönedata utan bilder skickas inte upp'); return; }
-    let s; try { s = lonStabil(data); } catch(e){ return; }
-    if (s === lonSistSkickat[id]) return;                      // regel 3
+    let s; try { s = lonSignatur(id, data); } catch(e){ return; }
+    if (s === lonSistSkickat[id]) return;                      // regel 3: inget verkligt nytt
     lonSistSkickat[id] = s;
     try {
         sb.from('lon_store').upsert({ id, data, updated_at: new Date().toISOString() })
@@ -4539,18 +4562,12 @@ function setEvalScore(metricId, score) {
 function renderEvalMetricsUI() {
     const cont = document.getElementById('eval-metrics-container');
     if(!cont) return;
-    let html = '';
-
-    evalMetrics.forEach(m => {
-        let score = evalState[m.id] || 0;
-        let btnHtml = '';
-        for(let i=1; i<=5; i++) {
-            let activeClass = (i === score) ? 'active' : 'bg-slate-50 text-slate-500 border-slate-200';
-            btnHtml += `<button onclick="setEvalScore('${m.id}', ${i})" class="eval-scale-btn flex-1 py-2.5 rounded-xl text-[12px] font-black border shadow-sm ${activeClass}">${i}</button>`;
-        }
-        html += `<div class="flex flex-col gap-1.5 p-2 bg-slate-50/50 rounded-2xl border border-slate-100"><span class="text-[9px] font-black uppercase text-slate-400 tracking-widest pl-1">${m.label}</span><div class="flex gap-1.5 justify-between">${btnHtml}</div></div>`;
-    });
-    cont.innerHTML = html;
+    const ord = ['Svag', 'Låg', 'Okej', 'Bra', 'Stark'];
+    cont.innerHTML = evalMetrics.map(m => {
+        const score = evalState[m.id] || 0;
+        const knappar = [1,2,3,4,5].map(i => `<button type="button" class="${i === score ? 'on' : ''}" onclick="setEvalScore('${m.id}', ${i})" aria-label="${m.label} ${i} av 5">${i}</button>`).join('');
+        return `<div class="ev-rad"><div class="ev-topp"><b>${m.label}</b><span>${score ? ord[score-1] : 'Inte satt'}</span></div><div class="ev-skala">${knappar}</div></div>`;
+    }).join('');
 }
 
 async function saveEvalModal() { 

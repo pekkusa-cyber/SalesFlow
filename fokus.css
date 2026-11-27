@@ -1357,3 +1357,57 @@ html body #budget-modal .be-regel button.on { background: linear-gradient(160deg
 
 /* v186: testknapp för påminnelsen */
 html body #budget-modal .st-test { height: 30px; padding: 0 12px; margin-left: auto; margin-right: 10px; border: 0; border-radius: 10px; background: linear-gradient(160deg, #4a6ff0, #2f52d6); color: #fff; font: 650 12.5px var(--f-ui); flex-shrink: 0; }
+
+/* ===== v187: granskning ===== */
+/* valda lägen: marinblått i stället för svart (ljust tema) */
+html:not([data-ck="dark"]) { --fx-ink: #1f3466; }
+
+/* fokusläget: byggt för mörk botten – får herokortets djupblå i stället för den ljusa appbakgrunden */
+html body #focus-mode { background: linear-gradient(165deg, #3358c4 0%, #2747a6 45%, #1a3378 100%) !important; color: #fff; }
+html[data-ck="dark"] body #focus-mode { background: linear-gradient(165deg, #15264a 0%, #11203f 55%, #0b1630 100%) !important; }
+html body #focus-mode :is(.fm-when, #fm-day, #fm-shift, .fm-tidkvar, .micro-lbl, .val-display, #fm-sales, #fm-perc, .fm-display, #fm-input, .fm-total) { color: #fff !important; }
+html body #focus-mode :is(#fm-day, .fm-tidkvar, .micro-lbl, #fm-perc) { color: rgba(255,255,255,.72) !important; }
+html body #focus-mode .fm-exit { background: rgba(255,255,255,.14) !important; color: #fff !important; border: 0 !important; }
+html body #focus-mode .g-bg { stroke: rgba(255,255,255,.16) !important; }
+html body #focus-mode .g-marks { stroke: rgba(255,255,255,.28) !important; }
+html body #focus-mode .fm-mal { font-weight: 700 !important; opacity: 1 !important; }
+html body #focus-mode .fm-mal.ar-rod { background: rgba(255,120,110,.2) !important; border-color: rgba(255,160,150,.55) !important; color: #ffd6d1 !important; }
+html body #focus-mode .fm-mal.ar-gron { background: rgba(60,200,130,.24) !important; border-color: rgba(140,230,180,.6) !important; color: #d9fbe8 !important; }
+html body #focus-mode .fm-mal.ar-neutral { background: rgba(255,255,255,.14) !important; border-color: rgba(255,255,255,.24) !important; color: #fff !important; }
+html body #focus-mode .fm-display { background: rgba(255,255,255,.1) !important; border: 1px solid rgba(255,255,255,.16) !important; }
+html body #focus-mode .fm-keys button { background: rgba(255,255,255,.12) !important; border: 1px solid rgba(255,255,255,.14) !important; color: #fff !important; box-shadow: none !important; }
+html body #focus-mode .fm-keys button:active { background: rgba(255,255,255,.26) !important; }
+html body #focus-mode .fm-keys .fm-c { color: #ffc2bb !important; }
+html body #focus-mode .fm-save { background: #fff !important; color: #2747a6 !important; border: 0 !important; box-shadow: 0 12px 24px -14px rgba(0,0,0,.5) !important; }
+html body #focus-mode .fm-save:disabled { opacity: .45 !important; }
+/* fokusläget: större mätare överst, kvar och per timme under */
+html body #focus-mode .fm-gauge-row { display: grid !important; grid-template-columns: 1fr 1fr; grid-template-areas: "g g" "a b"; row-gap: 6px; justify-items: center; align-items: start; max-width: 340px; }
+html body #focus-mode .fm-gauge-row > .side-col:first-child { grid-area: a; text-align: center; }
+html body #focus-mode .fm-gauge-row > .fm-gauge { grid-area: g; width: min(60vw, 27vh, 230px) !important; }
+html body #focus-mode .fm-gauge-row > .side-col:last-child { grid-area: b; text-align: center; }
+html body #focus-mode #fm-sales { font-size: clamp(22px, 7vw, 30px) !important; }
+html body #focus-mode #fm-perc { font-size: 13px !important; }
+html body #focus-mode .fm-arc:not(.ar-rod):not(.ar-gron):not(.ar-guld) { stroke: rgba(255,255,255,.85) !important; }
+/* utvärdera pass: samma stil som resten */
+html body #eval-metrics-container { gap: 8px !important; padding: 0 !important; }
+html body .ev-rad { background: var(--fx-card); border-radius: 16px; padding: 10px 12px 12px; box-shadow: 0 1px 2px rgba(20,30,60,.05), 0 6px 14px -10px rgba(30,60,140,.3); }
+html body .ev-topp { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+html body .ev-topp b { font: 650 14px var(--f-ui); color: var(--fx-tx); }
+html body .ev-topp span { font: 500 12px var(--f-ui); color: var(--fx-mu); }
+html body .ev-skala { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+html body .ev-skala button { height: 38px; border: 0; border-radius: 11px; background: var(--fx-bg); color: var(--fx-mu); font: 700 14px var(--f-ui); }
+html body .ev-skala button.on { background: linear-gradient(160deg, #4a6ff0, #2f52d6); color: #fff; box-shadow: 0 6px 12px -8px rgba(47,82,214,.8); }
+/* inställningar: bonusraderna i två rader så att inget klipps */
+html body #budget-modal .be-rad.tva { flex-direction: column; align-items: stretch; gap: 6px; padding: 9px 0; min-height: 0; }
+html body #budget-modal .be-rad.tva .be-in { width: 100%; gap: 5px; }
+html body #budget-modal .be-rad.tva .be-in input { width: 54px; }
+html body #budget-modal .be-rad.tva .be-in input.bred { flex: 1; width: auto; min-width: 0; text-align: left; padding-left: 10px; }
+html body #budget-modal .be-regel { display: flex; gap: 4px; margin-right: auto; background: var(--fx-bg); border-radius: 10px; padding: 3px; }
+html body #budget-modal .be-regel button { height: 28px !important; padding: 0 10px !important; border-radius: 8px !important; border: 0; background: transparent !important; color: var(--fx-mu) !important; font: 600 12px var(--f-ui) !important; min-width: 0 !important; }
+html body #budget-modal .be-regel button.on { background: var(--fx-card) !important; color: var(--fx-tx) !important; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+html body #budget-modal .md-dialog.st.fm1 .be-rad.tva { padding: 6px 0; gap: 4px; }
+html body #budget-modal .md-dialog.st.fm2 .be-rad.tva .be-t small { display: none; }
+html body .fq-snabb { display: grid !important; grid-template-columns: repeat(4, auto); justify-content: space-between; overflow: visible !important; }
+html body .fq-snabb button { padding: 0 11px !important; font-size: 12.5px !important; }
+/* sammanfattning: frånvarorutan marinblå i stället för svart */
+html body #summary-modal .md-stat-yellow { background: linear-gradient(160deg, #24407e, #182c5a) !important; border-color: transparent !important; }

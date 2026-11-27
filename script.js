@@ -2468,39 +2468,13 @@ function absAddType(){
     if (typeof window.calSeg === 'function') window.calSeg('month');
     if (typeof showToast === 'function') showToast('🗓️','Markera dag(ar) i kalendern och tryck en frånvaro-symbol',4200);
 }
-// Tryck på frånvarotyp i sammanfattningen → hoppa till kalendern och markera dagarna
-function absToCalendar(reason){
-    currentFocusReason = reason;
-    document.body.classList.add('focus-mode-active');
-    if (typeof window.calSeg === 'function') window.calSeg('month');
-    setTimeout(()=>{
-        document.querySelectorAll('#d-cal .day-cell').forEach(c => {
-            const k=c.dataset.key; const o=db.d[k];
-            if (o && o.abs && o.abs.includes(reason)) c.classList.add('focus-highlight'); else c.classList.remove('focus-highlight');
-        });
-    }, 60);
-}
 
-// ==========================================
-//  UI & MODAL LOGIC
-// ==========================================
-// ==========================================
-//  NOTE IMAGE SCANNING LOGIC (SUPABASE EDGE FUNCTION)
-// ==========================================
-function triggerNoteImageSelect() {
-    const input = document.getElementById('note-image-input');
-    if (input) input.click();
-}
 
-function showNoteImageLoader() {
-    const spinner = document.getElementById('image-load-spinner');
-    if (spinner) spinner.classList.remove('hidden');
-}
 
-function hideNoteImageLoader() {
-    const spinner = document.getElementById('image-load-spinner');
-    if (spinner) spinner.classList.add('hidden');
-}
+
+
+
+
 
 async function handleNoteImageSelect(input) {
     const file = input.files[0];
@@ -2606,8 +2580,7 @@ let lonAvdrag = 0;
 
 function lonSetAvdrag(v){ lonAvdrag = v; const seg=document.getElementById('lon-avdrag-seg'); if(seg) seg.querySelectorAll('button').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.av)===v)); lonRecalc(); }
 
-// Arbetsmånad = innevarande månad. Utbetalas månaden efter.
-function lonWorkDate(){ return new Date(realToday.getFullYear(), realToday.getMonth(), 1); }
+
 // Standardvy: arbetsmånaden vars lön betalas ut INNEVARANDE månad (= föregående arbetsmånad).
 // Det är den lön som just nu behandlas och som förra månadens lönearter hör till.
 // Prognosen för innevarande arbetsmånad (utbetalas nästa månad) nås genom att navigera framåt.
@@ -2619,7 +2592,7 @@ function lonPayoutDate(){ return new Date(lonViewDate.getFullYear(), lonViewDate
 // Bilagor gäller senast avslutade månad (föregående)
 function lonUploadTarget(){ return new Date(realToday.getFullYear(), realToday.getMonth()-1, 1); }
 function lonUploadTargetKey(){ const d=lonUploadTarget(); return `${d.getFullYear()}-${d.getMonth()+1}`; }
-function lonUploadsObj(){ if(!lonMonthly._uploads) lonMonthly._uploads={}; return lonMonthly._uploads; }
+
 // Månadsnavigering i lönevyn (bakåt till tidigare, framåt till innevarande prognos)
 function lonNavMonth(dir){
     if (!lonViewDate) lonViewDate = lonDefaultWorkDate();
@@ -2635,8 +2608,8 @@ function lonHasFacit(key, slot){ const m=lonMonthly[key]; return !!(m && m['cal_
 function lonHasFile(key, slot){ const m=lonMonthly[key]; return !!(m && m['file_'+slot]); }
 function lonHasProg(key, slot){ const m=lonMonthly[key]; return !!(m && m['prog_'+slot]); }
 function lonMonthClosed(key){ return lonHasFacit(key,'tidrapport') && lonHasFacit(key,'lonespec'); }
-function lonUploadDone(slot){ return lonHasFacit(lonUploadTargetKey(), slot); }
-function lonUploadOpen(){ return true; } // bilagor alltid öppna – appen sorterar själv
+
+ // bilagor alltid öppna – appen sorterar själv
 
 // ---- Klassificering av en bilaga utifrån månaden i dokumentet ----
 const LON_MONTHS=['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
@@ -3565,7 +3538,7 @@ function lonRenderAnchors(){
 }
 function lonAnchorEdit(i,j,v){ const n=parseFloat(String(v).replace(/\s/g,'').replace(',','.')); lonCfg.taxAnchors[i][j]=isNaN(n)?0:n; lonSaveCfg(); lonRecalc(); }
 function lonAnchorDel(i){ lonCfg.taxAnchors.splice(i,1); lonSaveCfg(); lonRenderAnchors(); lonRecalc(); }
-function lonAddAnchor(){ lonCfg.taxAnchors.push([0,0]); lonSaveCfg(); lonRenderAnchors(); }
+
 
 function lonFillFields(){
     const k = lonKey(); const m = lonMonthly[k] || {};
@@ -4465,12 +4438,7 @@ function inlinePress(key) {
     updateInlineNumpadDisplay();
 }
 
-function inlineTarget() {
-    inlineNumpadJustOpened = false;
-    if (!activeK) return;
-    let target = dayTarget(activeK);
-    if (target > 0) { inlineNumpadValue = String(Math.ceil(target)); updateInlineNumpadDisplay(); }
-}
+
 
 function inlineAdd(amount) {
     inlineNumpadJustOpened = false;
@@ -4630,10 +4598,7 @@ function calApply(type) {
     checkOverwriteFromPopup(type);
 }
 
-function calAmountEdit() {
-    if (!multiSelectKeys.size) { showToast('☝️', 'Markera dag(ar) i kalendern först'); return; }
-    openNumpad('month', 0, 'VÄLJ BELOPP');
-}
+
 
 // "Försäljning"-knappen: hoppa till vald dag i dagsvyn (slider) där belopp m.m. kan ändras
 function calToSales() {
@@ -5166,31 +5131,10 @@ function handleDashAction(type) {
 
 function hideConfirm() { const box = document.getElementById('confirm-box'); if(box) box.style.display = 'none'; }
 
-function triggerFocusMode(reason) { 
-    currentFocusReason = reason; let temp = currentFocusReason; currentFocusReason = null; setMode('month'); currentFocusReason = temp;
-    document.body.classList.add('focus-mode-active');
-    document.querySelectorAll('.day-cell, .vp-cell').forEach(c => {
-        const k = c.dataset.key; const o = db.d[k];
-        if(o && o.abs && o.abs.includes(reason)) c.classList.add('focus-highlight'); else c.classList.remove('focus-highlight');
-    });
-    closeSummaryModal();
-}
 
-// ==========================================
-//  EVENT LISTENERS & APP START
-// ==========================================
-function handleSwipeStart(e) { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }
-function handleSwipeEnd(e, targetView) { 
-    let dx = e.changedTouches[0].screenX - touchStartX; let dy = e.changedTouches[0].screenY - touchStartY; 
-    if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) { 
-        let dir = dx > 0 ? -1 : 1; 
-        if (targetView === 'day') navDay(dir);
-        else if (targetView === 'week') navCal(dir);
-        else if (targetView === 'month' && viewMode === 'month') navCal(dir);
-        else if (targetView === 'absence' && viewMode === 'absence') navCal(dir);
-        else if (targetView === 'coach' && viewMode === 'coach') navCal(dir);
-    } 
-}
+
+
+
 
 // Robust svep: en dokument-lyssnare som avgör kontext via vilket element som rördes
 document.addEventListener('touchstart', function(e){ touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; }, { passive: true });

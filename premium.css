@@ -120,13 +120,13 @@ html body #saved-notes-modal .md-dialog > *:not(.md-dialog-header) { max-height:
 html body #saved-notes-modal #notes-list-gammal, html body #coach-history-modal .overflow-y-auto { padding-left: 0 !important; padding-right: 0 !important; }
 
 /* sidhuvud: stor rubrik, rund stängknapp, ligger kvar överst */
-html body .md-dialog-header, html body .pg-head {
+html body .md-dialog-header {
   position: sticky; top: calc(-10px - env(safe-area-inset-top, 0px)); z-index: 5;
   display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 12px;
   margin: 0 calc(-1 * var(--page-pad)) 6px !important; padding: 12px var(--page-pad) 14px !important;
   background: var(--ck-bg) !important; border: 0 !important;
 }
-html body .md-dialog-title, html body .pg-head h2 {
+html body .md-dialog-title {
   font: 800 28px/1.1 var(--f-num) !important; letter-spacing: -.04em !important; color: var(--ck-tx) !important; margin: 0;
 }
 html body .md-dialog-title .material-symbols-rounded { display: none !important; }
@@ -158,10 +158,7 @@ html body .nt-save { margin-top: auto; }
 /* ============================================================
    2. KNAPPAR
    ============================================================ */
-.sf-press, html body .md-btn-filled, html body .md-btn-tonal, html body .md-btn-outlined, html body .md-btn-text,
-html body .md-icon-btn, html body .md-budget-btn, .nt-new, .nt-save, .fv-save, .fv-add, .abs-register-btn,
-.ws-tool, .ws-step, .ws-amt, .ws-quick button, .ws-chip, .ck-themes button, .hl-seg button, .fv-typ, .fv-barn button,
-.nt-filter button, .sheet-nav-btn, .lon-nav-arrow, .md-header-icon, .fv-atg button, .fv-act button {
+html body .md-btn-filled, html body .md-btn-tonal, html body .md-btn-outlined, html body .md-btn-text, html body .md-icon-btn, html body .md-budget-btn, .nt-new, .nt-save, .fv-save, .fv-add, .abs-register-btn, .ws-tool, .ws-step, .ws-amt, .ws-quick button, .ws-chip, .ck-themes button, .hl-seg button, .fv-typ, .fv-barn button, .nt-filter button, .sheet-nav-btn, .lon-nav-arrow, .md-header-icon, .fv-atg button, .fv-act button {
   transition: transform .14s var(--ease-out), background-color .2s, color .2s, box-shadow .2s !important;
   -webkit-tap-highlight-color: transparent;
 }

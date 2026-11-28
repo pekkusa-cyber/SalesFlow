@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="ui.css?v=117">
     <link rel="stylesheet" href="premium.css?v=119">
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="fokus.css?v=190">
+    <link rel="stylesheet" href="fokus.css?v=193">
     <script>try{var v=localStorage.getItem('sf_ck')||'ljust';document.documentElement.setAttribute('data-ck',(v==='mork'||(v==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches))?'dark':'light');}catch(e){}</script>
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
@@ -268,25 +268,6 @@
                     <div id="lon-file-lonespec" class="lon-file-name hidden"></div>
                     <p id="lon-learn-status" class="lon-hint" style="margin-top:6px"></p>
 
-                    <div class="md-divider"></div>
-                    <p class="md-section-lbl text-center">Felaktigt utbetald bonus</p>
-                    <p class="lon-hint" style="margin-bottom:6px">Betalade arbetsgivaren fel? Skriv in mellanskillnaden
-                       för den månad du står på. Appens egen uträkning står kvar som den riktiga — beloppet
-                       registreras som en skuld och påverkar inte hur appen lär sig.</p>
-                    <div class="lon-korr-grid">
-                        <label class="lon-korr-f"><span>Brutto</span>
-                            <input id="lon-korr-brutto" type="number" inputmode="numeric" class="lon-input" placeholder="0"></label>
-                        <label class="lon-korr-f"><span>Netto</span>
-                            <input id="lon-korr-netto" type="number" inputmode="numeric" class="lon-input" placeholder="0"></label>
-                    </div>
-                    <input id="lon-korr-note" type="text" class="lon-input" style="margin-top:6px" placeholder="Anteckning (valfritt)">
-                    <button onclick="setBonusKorr(document.getElementById('lon-korr-brutto').value, document.getElementById('lon-korr-netto').value, document.getElementById('lon-korr-note').value)"
-                            class="md-btn-tonal-blue w-full" style="margin-top:8px">Spara korrigering</button>
-                    <label class="md-toggle-row" id="lon-korr-reglerad-row">
-                        <span>✓ Reglerad — pengarna är utbetalda</span>
-                        <input id="lon-korr-reglerad" type="checkbox" onchange="setBonusKorrReglerad(this.checked)">
-                    </label>
-                    <p id="lon-korr-total" class="lon-hint" style="margin-top:2px"></p>
                     <div class="lon-field" style="margin-top:10px">
                         <label class="lon-section-lbl" for="lon-cfg-semlon">Semesterlön / dag (heltid)</label>
                         <input id="lon-cfg-semlon" type="number" inputmode="numeric" class="lon-input" oninput="lonSetSemLon(this.value)" placeholder="2844">
@@ -909,8 +890,8 @@
                                 <div class="lon-rrow"><span>Lön före skatt (brutto)</span><span id="lon-gross">0 kr</span></div>
                                 <div class="lon-rrow lon-rrow-bonus"><span>↳ varav bonus<small id="lon-bonus-sub"></small></span><span id="lon-bonus-out">0 kr</span></div>
                                 <div id="lon-tier-goal" class="lon-tier-goal hidden"></div>
-                                <div id="lon-korr-row" class="lon-rrow lon-rrow-korr hidden" onclick="openLonSettings()">
-                                    <span>⚠️ Felaktig bonus — att få<small id="lon-korr-sub"></small></span>
+                                <div id="lon-korr-row" class="lon-rrow lon-rrow-korr hidden">
+                                    <span id="lon-korr-lbl">Bonus som saknas<small id="lon-korr-sub"></small></span>
                                     <span id="lon-korr-ut">0 kr</span>
                                 </div>
                                 <div class="lon-rrow lon-rrow-ob"><span>↳ varav OB-tillägg<small id="lon-ob-hint"></small></span><span id="lon-ob-out">0 kr</span></div>
@@ -978,8 +959,8 @@
         </div>
     </div>
 
-    <script src="script.js?v=192"></script>
-    <script src="fx.js?v=188"></script>
+    <script src="script.js?v=193"></script>
+    <script src="fx.js?v=193"></script>
     <script src="fxsidor.js?v=188"></script>
     <script src="fxkal.js?v=180"></script>
     <script src="fxangra.js?v=182"></script>

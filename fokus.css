@@ -1420,3 +1420,14 @@ html body #fx-delning .dl-text { width: 100%; height: min(46vh, 330px); border: 
 html body #fx-delning .dl-knappar { display: flex; gap: 8px; margin-top: 12px; }
 html body #fx-delning .dl-knappar button { flex: 1; height: 46px; border: 0; border-radius: 14px; background: var(--fx-bg); color: var(--fx-tx); font: 650 14px var(--f-ui); }
 html body #fx-delning .dl-knappar .dl-pri { background: linear-gradient(160deg, #4a6ff0, #2f52d6); color: #fff; }
+
+/* v193: kvar till månadsmålet direkt i stora mätaren */
+.fx-k.main .g .c em.kv { display: inline-block; font: 750 13px/1.25 var(--f-ui); font-style: normal; letter-spacing: -.01em;
+  color: #fff; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.22); padding: 3px 9px; border-radius: 99px; margin-top: 5px; white-space: nowrap; }
+.fx-k.main .g .c em.kv.ok { background: rgba(52,199,120,.28); border-color: rgba(52,199,120,.45); }
+.fx-k.main .g .c em.kv + small { margin-top: 3px; font-size: 11px; }
+.fx-scroll.fit2 .fx-k.main .g .c em.kv, .fx-scroll.fit3 .fx-k.main .g .c em.kv { font-size: 11.5px; padding: 2px 7px; margin-top: 3px; }
+/* v193: bonusskuld – efterbetalning på kommande lön, saknat belopp på månaden det gäller (på blå lönekortet) */
+.lon-rrow-korr { cursor: default; color: #8fe3b4; }
+.lon-rrow-korr.saknas { color: #f4c06a; }
+.lon-rrow-korr small { font-size: 10.5px; }

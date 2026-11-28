@@ -3229,16 +3229,55 @@ function setBonusKorrReglerad(pa){
     const k = lonKey(); const m = lonMonthly[k] || {};
     if (m.bonusKorr){ m.bonusKorr.reglerad = !!pa; lonMonthly[k] = m; lonSaveMonthly(); lonRecalc(); }
 }
-// Allt du har utestående, över alla månader
-function bonusKorrTotal(){
-    let brutto = 0, netto = 0; const rader = [];
-    Object.keys(lonMonthly || {}).forEach(k => {
-        if (!/^\d{4}-\d{1,2}$/.test(k)) return;
-        const b = lonMonthly[k] && lonMonthly[k].bonusKorr;
-        if (!b || !(+b.brutto) || b.reglerad) return;
-        brutto += +b.brutto; netto += (+b.netto || 0); rader.push({ k, ...b });
+// ============================================================
+//  AUTOMATISK BONUSSKULD
+//  När en lönespec finns jämförs månadens utbetalda bonus med appens egen
+//  uträkning. Saknas mer än 300 kr blir skillnaden en skuld som läggs på
+//  nästa lön som ännu inte har någon spec. En senare spec som betalar mer
+//  bonus än sin egen månad (bonus − bonus_manad) prickar av skulden.
+//  bonusKorr på en månad (sätts vid granskning av underlag) går före
+//  uträkningen: { brutto } ger exakt belopp, { reglerad:true } stänger den.
+//  Gäller från oktober 2026: äldre månader räknades med andra regler.
+// ============================================================
+const BONUSSKULD_FRAN = 2026 * 12 + 10;
+const lonYm = k => { const [y, m] = String(k).split('-').map(Number); return y * 12 + m; };
+const lonYmKey = n => `${Math.floor((n - 1) / 12)}-${((n - 1) % 12) + 1}`;
+function lonAppBonus(y, mo){
+    const sales = getMonthlySales(y, mo) || 0;
+    let pct = 0; lonAdjustedTiers(y, mo).tiers.forEach(t => { if (+t.min > 0 && sales >= +t.min) pct = +t.pct || 0; });
+    return Math.round(sales * pct / 100 * (1 - (+((lonMonthly[`${y}-${mo}`] || {}).avdrag) || 0) / 100));
+}
+function lonSpecBonus(k){
+    const s = (lonMonthly[k] || {}).cal_lonespec; if (!s) return null;
+    const egen = s.bonus_manad != null ? +s.bonus_manad : (s.bonus != null ? +s.bonus : null);
+    const extra = (s.bonus != null && s.bonus_manad != null) ? Math.max(0, Math.round(+s.bonus - +s.bonus_manad)) : 0;
+    return (egen != null && isFinite(egen)) ? { egen: Math.round(egen), extra } : null;
+}
+function bonusSkulder(){
+    const keys = Object.keys(lonMonthly || {}).filter(k => /^\d{4}-\d{1,2}$/.test(k)).sort((a, b) => lonYm(a) - lonYm(b));
+    const extra = {}; keys.forEach(k => { const sb = lonSpecBonus(k); if (sb && sb.extra > 0) extra[k] = sb.extra; });
+    const ut = [];
+    keys.forEach(k => {
+        if (lonYm(k) < BONUSSKULD_FRAN) return;
+        const m = lonMonthly[k] || {}, man = m.bonusKorr || null, sb = lonSpecBonus(k);
+        if (man && man.reglerad) return;
+        const [y, mo] = k.split('-').map(Number);
+        const app = sb ? lonAppBonus(y, mo) : 0;
+        const belopp = man && +man.brutto ? Math.round(+man.brutto) : (sb ? app - sb.egen : 0);
+        if (!(belopp >= 300)) return;
+        // återbetalt i senare specar?
+        let kvar = belopp;
+        keys.forEach(j => { if (lonYm(j) > lonYm(k) && extra[j] > 0 && kvar > 0) { const t = Math.min(kvar, extra[j]); kvar -= t; extra[j] -= t; } });
+        if (kvar <= belopp * 0.2) return;
+        // betalas med första månaden efter som saknar spec
+        let n = lonYm(k) + 1; while ((lonMonthly[lonYmKey(n)] || {}).cal_lonespec) n++;
+        ut.push({ k, belopp: kvar, app, utbetalt: sb ? sb.egen : null, manuell: !!(man && +man.brutto), betalasI: lonYmKey(n) });
     });
-    return { brutto, netto, rader };
+    return ut;
+}
+function bonusKorrTotal(){
+    const rader = bonusSkulder();
+    return { brutto: rader.reduce((a, r) => a + r.belopp, 0), netto: 0, rader };
 }
 window.setBonusKorr = setBonusKorr; window.setBonusKorrReglerad = setBonusKorrReglerad;
 window.bonusKorrTotal = bonusKorrTotal;
@@ -3351,7 +3390,9 @@ function lonRecalc(){
                      : (typeof semManual === 'number' ? semManual : semInfo.sched);
     // Lön på uttagna (betalda) dagar, avdrag bara på schemalagda dagar.
     const semTillagg = Math.round(semPaidD * semLonDag - semSchedD * semAvdragDag);
-    let brutto = manadslon + tillagg + obTot + bonus + extraAdd + semTillagg - franvTot;
+    const skuldIn = bonusSkulder().filter(r => r.betalasI === lonKey());
+    const efterbet = skuldIn.reduce((a, r) => a + r.belopp, 0);
+    let brutto = manadslon + tillagg + obTot + bonus + efterbet + extraAdd + semTillagg - franvTot;
     let skatt = lonTax(brutto);
     let netto = brutto - skatt;
     let obOut = obTot, franvOut = franvTot, bonusOut = bonus, semOut = semTillagg, fromFacit = false;
@@ -3426,20 +3467,23 @@ function lonRecalc(){
     }
     lonRenderTierGoal(sales, reliefInfo);
 
-    // Felaktigt utbetald bonus: appens siffra står kvar som den riktiga. Raden
-    // visar vad som faktiskt kom ut och vad du har att få.
-    const kk = bonusKorr();
+    // Bonusskuld: på månaden den uppstod ("saknas") och på lönen den betalas med ("efterbetalning")
+    const MANK = ['jan','feb','mars','april','maj','juni','juli','aug','sep','okt','nov','dec'];
     const kRow = document.getElementById('lon-korr-row');
     if (kRow){
-        if (kk && !kk.reglerad){
-            kRow.classList.remove('hidden');
-            const ut = document.getElementById('lon-korr-ut');
-            const sub = document.getElementById('lon-korr-sub');
-            if (ut) ut.innerText = '+' + lonKr(kk.brutto);
-            // Visa "utbetalt" bara när appen faktiskt har en bonus att jämföra med.
-            const utbetalt = Math.round(bonus) - kk.brutto;
-            if (sub) sub.innerText = (bonus > 0 && utbetalt >= 0 ? `utbetalt ${lonKr(utbetalt)} · ` : '')
-                                   + (kk.netto ? `${lonKr(kk.netto)} netto` : 'brutto');
+        const egen = bonusSkulder().find(r => r.k === lonKey());
+        const lbl = document.getElementById('lon-korr-lbl'), ut = document.getElementById('lon-korr-ut'), sub = document.getElementById('lon-korr-sub');
+        const utbM = k => { const n = lonYm(k) + 1; return MANK[(n - 1) % 12]; };
+        if (efterbet > 0 && !fromFacit){
+            kRow.classList.remove('hidden'); kRow.classList.remove('saknas');
+            if (lbl) lbl.firstChild.nodeValue = '↳ varav efterbetald bonus';
+            if (ut) ut.innerText = '+' + lonKr(efterbet);
+            if (sub) sub.innerText = ' ' + skuldIn.map(r => `för ${MANK[+r.k.split('-')[1] - 1]}`).join(', ');
+        } else if (egen){
+            kRow.classList.remove('hidden'); kRow.classList.add('saknas');
+            if (lbl) lbl.firstChild.nodeValue = 'Bonus som saknas';
+            if (ut) ut.innerText = lonKr(egen.belopp);
+            if (sub) sub.innerText = ` läggs på ${utbM(egen.betalasI)}-lönen`;
         } else kRow.classList.add('hidden');
     }
 
@@ -3557,21 +3601,6 @@ function lonFillFields(){
     // innehöll BÅDE heldagar och deltimmar → dubbelräkning. De används inte längre.
     setV('lon-franv', appFranv || '');
     setV('lon-extra-add', m.extraAdd); setV('lon-extra-ded', m.extraDed);
-    // Bonuskorrigeringen hör till EN månad – fälten följer med när du bläddrar.
-    const kk = m.bonusKorr || {};
-    setV('lon-korr-brutto', kk.brutto); setV('lon-korr-netto', kk.netto);
-    const kn = document.getElementById('lon-korr-note'); if (kn) kn.value = kk.note || '';
-    const kr = document.getElementById('lon-korr-reglerad'); if (kr) kr.checked = !!kk.reglerad;
-    const krRow = document.getElementById('lon-korr-reglerad-row');
-    if (krRow) krRow.classList.toggle('hidden', !kk.brutto);
-    const kt = document.getElementById('lon-korr-total');
-    if (kt){
-        const t = bonusKorrTotal();
-        kt.innerText = t.brutto > 0
-            ? `Utestående totalt: ${lonKr(t.brutto)} brutto` + (t.netto ? ` · ${lonKr(t.netto)} netto` : '')
-              + ` (${t.rader.length} ${t.rader.length===1?'månad':'månader'})`
-            : '';
-    }
     lonAvdrag = m.avdrag || 0;
     const seg=document.getElementById('lon-avdrag-seg'); if(seg) seg.querySelectorAll('button').forEach(b=>b.classList.toggle('active', parseInt(b.dataset.av)===lonAvdrag));
     setV('lon-cfg-manadslon', lonCfg.manadslon); setV('lon-cfg-tillagg', lonCfg.tillagg);

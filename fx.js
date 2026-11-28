@@ -382,7 +382,7 @@
       : !mal ? kol('sid', 'Dagsmål', '—', matare(0, null, 9), '<b>—</b>', `<small>${v.salt > 0 ? kr(v.salt) + ' kr' : (p ? 'inget mål' : 'ledig')}</small>`)
       : kol('sid', 'Dagsmål', kk(v.bas), matare(fs, fp, 9), `<b>${pc(fs)}</b>`, `<small>${kr(v.salt)} kr</small>`);
     const manKol = kol('main', 'Månadsmål', `${kr(m.mal)} kr`, matare(mf, isNu ? mfp : null, 8),
-      `<b id="fx-big" data-v="${Math.round(mf * 100)}">${pc(mf)}</b><small>${kr(m.salt)} kr</small>`,
+      `<b id="fx-big" data-v="${Math.round(mf * 100)}">${pc(mf)}</b>${m.mal > 0 ? `<em class="kv${mklar ? ' ok' : ''}">${mklar ? '+' + kr(m.salt - m.mal) + ' kr över' : kr(m.mal - m.salt) + ' kr kvar'}</em>` : ''}<small>${kr(m.salt)} kr sålt</small>`,
       mklar ? chip('Målet nått', 'ok') : isNu ? chip(`${mfas ? 'I fas' : 'Efter'} ${mdiff >= 0 ? '+' : '−'}${kk(Math.abs(mdiff))}`, mfas ? 'ok' : 'am') : '');
     let krKol;
     if (mklar) krKol = kol('sid', 'Krävs/pass', '✓', matare(1, null, 9), '<b>✓</b>', chip('Mål nått', 'ok'));
@@ -414,7 +414,11 @@
     else { mkan = `Slutade på <b>${kk(m.salt)}</b> (${pc(mf)} av målet).`; mmast = m.nu ? `Bonusnivå: <b>${m.nu.pct} %</b>.` : 'Ingen bonusnivå nådd.'; }
     // ---- rutor ----
     let np = null;
-    for (let i = 1, dd = new Date(realToday); i <= 21; i++) { dd.setDate(dd.getDate() + 1); const k2 = keyOf(dd), q = db.q[k2] || {}, o2 = db.d[k2] || {}; if (q.start && !o2.abs && o2.st !== 'Ledig') { np = { k: k2, d: new Date(dd), q, mal: dayTarget(k2) }; break; } }
+    // dagens pass räknas som "nästa" ända tills det börjar
+    const nuMin = new Date().getHours() * 60 + new Date().getMinutes();
+    for (let i = 0, dd = new Date(realToday); i <= 21; i++) { if (i) dd.setDate(dd.getDate() + 1); const k2 = keyOf(dd), q = db.q[k2] || {}, o2 = db.d[k2] || {};
+      if (!i) { const st = String(q.start || '').split(':'); if (!q.start || nuMin >= (+st[0]) * 60 + (+st[1] || 0)) continue; }
+      if (q.start && !o2.abs && o2.st !== 'Ledig') { np = { k: k2, d: new Date(dd), q, mal: dayTarget(k2) }; break; } }
     const bonusV = m.nu && !m.nasta ? `${m.nu.pct} %` : m.nasta ? `${m.nasta.pct} %` : '—';
     const bonusS = m.nu && !m.nasta ? 'högsta nivån' : m.nasta ? `${kk(m.nasta.min - m.salt)} kvar` : 'inga nivåer';
     // ---- bonusstegen ----
@@ -434,7 +438,7 @@
         <div class="fx-tl3">
           <button class="tl bon${slot ? ' on' : ''}" onclick="fxSlot()"><span>${ic('workspace_premium')}Vald bonus</span><b>${vald ? vald.pct + ' %' : '—'}</b><small>${vald ? kk(vald.min) + ' · ' + (m.salt >= vald.min ? 'nådd' : kk(vald.min - m.salt) + ' kvar') : 'inga nivåer'}</small></button>
           <div class="tl prog"><span>${ic('trending_up')}Prognos</span><b>${kk(m.prognos)}</b><small>${m.mal > 0 ? pc(pf) : ''}${reach ? ' · räcker till ' + reach.pct + ' %' : ' · under bonusnivå'}</small></div>
-          ${np ? `<button class="tl pass" onclick="fxDag('${np.k}')"><span>${ic('event')}Nästa pass</span><b>${DAG[np.d.getDay()].slice(0, 3)} ${np.d.getDate()} ${MAN[np.d.getMonth()].slice(0, 3)}</b><small><b>${String(np.q.start).slice(0, 5)}–${String(np.q.end || '').slice(0, 5)}</b><br>mål ${np.mal ? kr(np.mal) + ' kr' : '—'}</small></button>` : `<div class="tl pass"><span>${ic('event')}Nästa pass</span><b>—</b><small>inget i schemat</small></div>`}
+          ${np ? `<button class="tl pass" onclick="fxDag('${np.k}')"><span>${ic('event')}Nästa pass</span><b>${np.d.getTime() === realToday.getTime() ? 'Idag' : DAG[np.d.getDay()].slice(0, 3) + ' ' + np.d.getDate() + ' ' + MAN[np.d.getMonth()].slice(0, 3)}</b><small><b>${String(np.q.start).slice(0, 5)}–${String(np.q.end || '').slice(0, 5)}</b><br>mål ${np.mal ? kr(np.mal) + ' kr' : '—'}</small></button>` : `<div class="tl pass"><span>${ic('event')}Nästa pass</span><b>—</b><small>inget i schemat</small></div>`}
         </div>
       </section>
       <section class="fx-wk2${slot ? ' b' : ''}" id="fx-slot">

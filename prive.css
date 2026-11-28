@@ -1,0 +1,192 @@
+/* ============================================================
+   SalesFlow Privé
+   Pärlvit grund, champagneguld som enda accent, tunna siffror i Geist Light,
+   hårfina linjer i stället för lådor. Laddas sist, efter tailwind.css.
+   Marginaler: 20 px sidor på Idag, 16 px i undersidor, 12–16 px mellan block.
+   ============================================================ */
+html[data-ck="light"]:root {
+  --pv-bg: #f6f3ec; --pv-tx: #17181c; --pv-mu: #7d7a72; --pv-hair: rgba(23,24,28,.10);
+  --pv-gold: #a8823a; --pv-gold2: #c9a35a; --pv-glas: rgba(255,255,255,.62); --pv-glk: rgba(255,255,255,.95);
+  --pv-sh: 0 10px 24px -18px rgba(90,70,30,.45); --pv-ok: #2f7d55; --pv-bad: #b4533f; --pv-am: #a5741f; --pv-on-gold: #fff;
+  --fx-bgimg: radial-gradient(90% 40% at 88% 0%, rgba(198,160,86,.16), transparent 65%), radial-gradient(80% 36% at 0% 100%, rgba(120,140,200,.12), transparent 70%), #f6f3ec;
+  --fx-bg: #f6f3ec; --fx-card: rgba(255,255,255,.62); --fx-line: rgba(23,24,28,.10); --fx-line2: rgba(23,24,28,.16);
+  --fx-tx: #17181c; --fx-mu: #7d7a72; --fx-dim: #a7a397; --fx-ink: #17181c; --fx-on-ink: #fff; --fx-ac: #a8823a; --fx-gold: #a8823a;
+  --sa-grp: rgba(255,255,255,.62); --sa-acc: #a8823a; --sa-tint: rgba(168,130,58,.12); --sa-ink: #6e5422; --sa-seg: rgba(23,24,28,.06);
+  --sa-sh: 0 10px 24px -20px rgba(90,70,30,.45); --sa-ok: #2f7d55; --sa-okbg: rgba(47,125,85,.10); --sa-bad: #b4533f; --sa-badbg: rgba(180,83,63,.10); --sa-am: #a5741f; --sa-ambg: rgba(165,116,31,.12);
+  --gl-yta: rgba(255,255,255,.62); --gl-kant: rgba(255,255,255,.95); --gl-kant2: rgba(23,24,28,.08); --gl-blur: blur(16px) saturate(130%);
+  /* tidigare blå kort blir pärlglas med mörk text */
+  --hr-grad: rgba(255,255,255,.62); --gl-hero: rgba(255,255,255,.62); --gl-glans: transparent; --hr-bd: rgba(255,255,255,.95);
+  --hr-tx: #17181c; --hr-mu: #7d7a72; --hr-line: rgba(23,24,28,.10); --hr-track: rgba(23,24,28,.08); --hr-track2: rgba(23,24,28,.06); --hr-panel: rgba(23,24,28,.04);
+  --hr-shadow: 0 10px 24px -18px rgba(90,70,30,.45);
+  color-scheme: light;
+}
+html[data-ck="dark"]:root {
+  --pv-bg: #0b0c10; --pv-tx: #efe9dc; --pv-mu: #8d8a82; --pv-hair: rgba(239,233,220,.12);
+  --pv-gold: #d6b46a; --pv-gold2: #f0d595; --pv-glas: rgba(255,255,255,.05); --pv-glk: rgba(255,255,255,.09);
+  --pv-sh: 0 14px 30px -20px rgba(0,0,0,.9); --pv-ok: #8fd6ad; --pv-bad: #e59a8c; --pv-am: #e2bd73; --pv-on-gold: #17130a;
+  --fx-bgimg: radial-gradient(90% 40% at 88% 0%, rgba(214,180,106,.12), transparent 65%), radial-gradient(80% 36% at 0% 100%, rgba(70,90,160,.14), transparent 70%), #0b0c10;
+  --fx-bg: #0b0c10; --fx-card: rgba(255,255,255,.05); --fx-line: rgba(239,233,220,.12); --fx-line2: rgba(239,233,220,.18);
+  --fx-tx: #efe9dc; --fx-mu: #8d8a82; --fx-dim: #5f5d57; --fx-ink: #efe9dc; --fx-on-ink: #0b0c10; --fx-ac: #d6b46a; --fx-gold: #d6b46a;
+  --sa-grp: rgba(255,255,255,.05); --sa-acc: #d6b46a; --sa-tint: rgba(214,180,106,.13); --sa-ink: #f0d595; --sa-seg: rgba(255,255,255,.06);
+  --sa-sh: none; --sa-ok: #8fd6ad; --sa-okbg: rgba(143,214,173,.12); --sa-bad: #e59a8c; --sa-badbg: rgba(229,154,140,.12); --sa-am: #e2bd73; --sa-ambg: rgba(226,189,115,.13);
+  --gl-yta: rgba(255,255,255,.05); --gl-kant: rgba(255,255,255,.09); --gl-kant2: rgba(255,255,255,.07); --gl-blur: blur(16px) saturate(130%);
+  --hr-grad: rgba(255,255,255,.05); --gl-hero: rgba(255,255,255,.05); --gl-glans: transparent; --hr-bd: rgba(255,255,255,.09);
+  --hr-tx: #efe9dc; --hr-mu: #8d8a82; --hr-line: rgba(239,233,220,.12); --hr-track: rgba(239,233,220,.10); --hr-track2: rgba(239,233,220,.07); --hr-panel: rgba(255,255,255,.04);
+  --hr-shadow: 0 14px 30px -20px rgba(0,0,0,.9);
+  color-scheme: dark;
+}
+html[data-ck] body { background: var(--pv-bg) !important; font-family: var(--f-ui); }
+
+/* ---------- Idag ---------- */
+html[data-ck] body #fx .fx-top { padding-left: 20px !important; padding-right: 20px !important; }
+html[data-ck] body #fx .fx-scroll { padding-left: 20px !important; padding-right: 20px !important; }
+html[data-ck] body .fx-cta { left: 20px !important; right: 20px !important; }
+html[data-ck] body #fx .fx-date small { font: 500 12px var(--f-ui); color: var(--pv-mu); }
+html[data-ck] body #fx .fx-date b { font: 500 15px var(--f-ui); color: var(--pv-tx); letter-spacing: -.01em; }
+html[data-ck] body #fx .fx-ib { width: 34px !important; height: 34px !important; border-radius: 50% !important; background: transparent !important; border: 1px solid var(--pv-hair) !important; box-shadow: none !important; -webkit-backdrop-filter: none; backdrop-filter: none; }
+html[data-ck] body #fx .fx-ib .material-symbols-rounded, html[data-ck] body #fx .fx-top button .material-symbols-rounded { font-size: 18px !important; color: var(--pv-tx) !important; }
+.pv-hem { display: flex; flex-direction: column; color: var(--pv-tx); font-variant-numeric: tabular-nums; }
+.pv-ey { font: 600 10.5px var(--f-ui); letter-spacing: .2em; text-transform: uppercase; color: var(--pv-gold); margin-top: 6px; }
+.pv-huge { font: 300 clamp(52px, 8.6vh, 66px)/1 var(--f-ui); letter-spacing: -.05em; margin-top: 6px; white-space: nowrap; }
+.pv-huge small { font: 400 16px var(--f-ui); letter-spacing: 0; color: var(--pv-mu); margin-left: 6px; }
+.pv-sub { font: 400 13px var(--f-ui); color: var(--pv-mu); margin-top: 8px; }
+.pv-sub em { font-style: normal; } .pv-sub em.am { color: var(--pv-am); } .pv-sub em.ok { color: var(--pv-ok); }
+html[data-ck] body #fx .pv-track { position: relative; display: block; width: 100%; height: 22px; margin-top: 8px; background: none !important; }
+.pv-track::before { content: ""; position: absolute; left: 0; right: 0; top: 10px; height: 2px; background: var(--pv-hair); }
+.pv-track i { position: absolute; left: 0; top: 9px; width: 0; height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--pv-gold2), var(--pv-gold)); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.pv-track u { position: absolute; top: 4px; width: 1px; height: 14px; background: var(--pv-tx); opacity: .6; }
+.pv-track s { position: absolute; top: 7px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: var(--pv-gold); box-shadow: 0 0 0 4px color-mix(in srgb, var(--pv-gold) 18%, transparent); }
+.pv-ticks { display: flex; justify-content: space-between; font: 400 11px var(--f-ui); color: var(--pv-mu); margin-top: 2px; }
+.pv-trio { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 18px; border-top: 1px solid var(--pv-hair); border-bottom: 1px solid var(--pv-hair); }
+.pv-trio > div { padding: 12px 0 11px; min-width: 0; }
+.pv-trio > div + div { padding-left: 14px; border-left: 1px solid var(--pv-hair); }
+.pv-trio span { display: block; font: 500 10px var(--f-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--pv-mu); }
+.pv-trio b { display: block; font: 300 27px/1.1 var(--f-ui); letter-spacing: -.045em; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pv-trio small { display: block; font: 400 11px var(--f-ui); color: var(--pv-mu); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html[data-ck] body #fx .pv-pass { display: flex !important; justify-content: space-between; align-items: center; gap: 10px; width: 100%; margin-top: 16px; padding: 14px 16px !important; border-radius: 20px !important;
+  background: var(--pv-glas) !important; border: 1px solid var(--pv-glk) !important; box-shadow: var(--pv-sh); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); text-align: left; color: var(--pv-tx); }
+.pv-pass small { display: block; font: 400 11px var(--f-ui); color: var(--pv-mu); }
+.pv-pass .l b { display: block; font: 500 16.5px var(--f-ui); letter-spacing: -.015em; margin-top: 2px; white-space: nowrap; }
+.pv-pass .r { text-align: right; flex: none; }
+.pv-pass .r b { display: block; font: 300 22px var(--f-ui); letter-spacing: -.04em; color: var(--pv-gold); margin-top: 1px; }
+/* vecka: rubrik och pärlrutor, vald dag med guldkant */
+html[data-ck] body #fx .fx-wkh b { font: 500 14px var(--f-ui) !important; color: var(--pv-tx) !important; }
+html[data-ck] body #fx .fx-wkh small { font: 400 11.5px var(--f-ui) !important; color: var(--pv-mu) !important; }
+html[data-ck] body #fx .fx-wkh .nb button { width: 30px !important; height: 30px !important; border-radius: 50% !important; background: transparent !important; border: 1px solid var(--pv-hair) !important; box-shadow: none !important; }
+html[data-ck] body #fx .fx-wkh .nb button .material-symbols-rounded { font-size: 18px !important; color: var(--pv-tx) !important; }
+html[data-ck] body #fx .fx-days { gap: 5px !important; }
+html[data-ck] body #fx .fx-wd2.dc, html[data-ck] body #fx .fx-wd2.dc.idag { background: var(--pv-glas) !important; border: 1px solid var(--pv-glk) !important; border-radius: 15px !important; box-shadow: 0 6px 14px -12px rgba(90,70,30,.5) !important; overflow: hidden; }
+html[data-ck="dark"] body #fx .fx-wd2.dc { box-shadow: none !important; }
+html[data-ck] body #fx .fx-wd2.dc.off:not(.on) { background: transparent !important; border: 1px dashed var(--pv-hair) !important; box-shadow: none !important; }
+html[data-ck] body #fx .fx-wd2.dc.on, html[data-ck] body #fx .fx-wd2.dc.on.idag { background: color-mix(in srgb, var(--pv-glas) 70%, var(--pv-gold) 6%) !important; border: 1.5px solid var(--pv-gold) !important; box-shadow: 0 8px 18px -14px var(--pv-gold) !important; }
+html[data-ck] body #fx .fx-wd2.dc .n { font: 400 10px var(--f-ui) !important; color: var(--pv-mu) !important; }
+html[data-ck] body #fx .fx-wd2.dc .dt { font: 500 17px var(--f-ui) !important; color: var(--pv-tx) !important; letter-spacing: -.03em; }
+html[data-ck] body #fx .fx-wd2.dc.off .dt { color: var(--pv-mu) !important; }
+html[data-ck] body #fx .fx-wd2.dc.on .n, html[data-ck] body #fx .fx-wd2.dc.on .dt, html[data-ck] body #fx .fx-wd2.dc.on .st, html[data-ck] body #fx .fx-wd2.dc.on .st * { color: var(--pv-gold) !important; }
+html[data-ck] body #fx .fx-wd2.dc .st .material-symbols-rounded { display: none !important; }
+html[data-ck] body #fx .fx-wd2.dc .st span, html[data-ck] body #fx .fx-wd2.dc .st small { font-weight: 500; }
+/* knappen: glaspiller med guldplus till höger */
+html[data-ck] body .fx-cta { height: 52px !important; border-radius: 99px !important; justify-content: space-between !important; padding: 0 7px 0 22px !important;
+  background: var(--pv-glas) !important; border: 1px solid var(--pv-glk) !important; color: var(--pv-tx) !important; box-shadow: 0 12px 26px -18px rgba(90,70,30,.55) !important;
+  -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); font: 500 15px var(--f-ui) !important; }
+html[data-ck] body .fx-cta .fx-cta-t { order: 1; }
+html[data-ck] body .fx-cta > .material-symbols-rounded { order: 2; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(160deg, var(--pv-gold2), var(--pv-gold)); color: var(--pv-on-gold) !important; font-size: 22px !important; }
+/* menyn längst ner: bara text, guldprick för vald */
+html[data-ck] body .fx-nav { background: color-mix(in srgb, var(--pv-bg) 72%, transparent) !important; border-top: 1px solid var(--pv-hair) !important; -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
+html[data-ck] body .fx-nav button .material-symbols-rounded { display: none !important; }
+html[data-ck] body .fx-nav button { font: 500 10px var(--f-ui) !important; letter-spacing: .1em; text-transform: uppercase; color: var(--pv-mu) !important; justify-content: center !important; gap: 6px; }
+html[data-ck] body .fx-nav button span:not(.material-symbols-rounded) { font: inherit !important; letter-spacing: inherit; color: inherit !important; }
+html[data-ck] body .fx-nav button.on { color: var(--pv-tx) !important; }
+html[data-ck] body .fx-nav button::before { display: none !important; }
+html[data-ck] body .fx-nav button::after { content: ""; width: 4px; height: 4px; border-radius: 50%; background: transparent; }
+html[data-ck] body .fx-nav button.on::after { background: var(--pv-gold); }
+/* krymp på låga skärmar */
+.fx-scroll.fit1 .pv-huge { font-size: 50px; } .fx-scroll.fit1 .pv-trio { margin-top: 14px; } .fx-scroll.fit1 .pv-pass { margin-top: 12px !important; }
+.fx-scroll.fit2 .pv-huge { font-size: 44px; } .fx-scroll.fit2 .pv-trio b { font-size: 23px; } .fx-scroll.fit2 .pv-ey { margin-top: 0; }
+.fx-scroll.fit3 .pv-trio small { display: none; } .fx-scroll.fit3 .pv-pass { padding: 10px 14px !important; }
+
+/* ---------- ark: helt täckande, inte genomskinliga ---------- */
+html[data-ck] body .fx-panel { background: var(--pv-bg) !important; color: var(--pv-tx); box-shadow: 0 -20px 50px -30px rgba(0,0,0,.35); }
+html[data-ck] body .fx-sheet { background: rgba(20,18,12,.28) !important; }
+html[data-ck] body .nt-form-panel, html[data-ck] body .ui-sheet .ui-panel, html[data-ck] body .ui-sheet > div { background-color: var(--pv-bg); }
+
+/* ---------- guld i stället för blått ---------- */
+html[data-ck] body .fk-acts button.pri, html[data-ck] body #fx-delning .dl-knappar .dl-pri, html[data-ck] body .be-in button.pri, html[data-ck] body .be-knappar button.pri,
+html[data-ck] body .sa-btn, html[data-ck] body .nt-save, html[data-ck] body #note-submit-btn, html[data-ck] body .fv-cta, html[data-ck] body .fp-cta, html[data-ck] body .md-btn-filled,
+html[data-ck] body .fx-save, html[data-ck] body #fx-save {
+  background: linear-gradient(160deg, var(--pv-gold2), var(--pv-gold)) !important; color: var(--pv-on-gold) !important; border: 0 !important; box-shadow: 0 12px 22px -16px var(--pv-gold) !important; }
+html[data-ck] body .be-in button.pri, html[data-ck] body .sa-btn .material-symbols-rounded { color: var(--pv-on-gold) !important; }
+html[data-ck] body #budget-modal .be-regel button.on, html[data-ck] body .ev-skala button.on, html[data-ck] body .ev-seg button.on { background: var(--pv-tx) !important; color: var(--pv-bg) !important; }
+html[data-ck] body #fk .fk-d.dc.dc.val, html[data-ck] body #fk .fk-d.dc.dag-oppen, html[data-ck] body #fk .fk-d.dc.dc.dc.dag-oppen, html[data-ck] body .fp-cal button.dag-oppen,
+html[data-ck] body .fq-grid button.val:is(.start,.slut) { background: linear-gradient(160deg, var(--pv-gold2), var(--pv-gold)) !important; color: var(--pv-on-gold) !important; box-shadow: 0 0 0 2px var(--pv-bg), 0 0 0 3px var(--pv-gold) !important; }
+html[data-ck] body #fk .fk-d.dc.dc.val *, html[data-ck] body #fk .fk-d.dc.dag-oppen * { color: var(--pv-on-gold) !important; }
+html[data-ck] body .fq-grid button.val { background: color-mix(in srgb, var(--pv-gold) 16%, transparent) !important; color: var(--pv-gold) !important; }
+html[data-ck] body #fk .fk-d.dc.nu { --g1: var(--pv-gold2); --g2: var(--pv-gold); }
+html[data-ck] body .fp-hero small { color: var(--pv-mu) !important; }
+html[data-ck] body .nt-new, html[data-ck] body #notes-modal .nt-new { background: linear-gradient(160deg, var(--pv-gold2), var(--pv-gold)) !important; color: var(--pv-on-gold) !important; box-shadow: 0 8px 16px -10px var(--pv-gold) !important; }
+html[data-ck] body .sa-tg:checked { background: var(--pv-gold) !important; }
+html[data-ck] body #fx-tabs button.on, html[data-ck] body .fx-seg button.on { color: var(--pv-tx) !important; }
+
+/* ---------- Lön: kontoutdrag, inget kort ---------- */
+html[data-ck] body .lon-result-card { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 4px 4px 0 !important; color: var(--pv-tx) !important; -webkit-backdrop-filter: none; backdrop-filter: none;
+  --ck-tx: var(--pv-tx); --ck-mu: var(--pv-mu); --ck-line: var(--pv-hair); --fx-tx: var(--pv-tx); --fx-mu: var(--pv-mu); --fx-line: var(--pv-hair); }
+html[data-ck] body .lon-result-card::after { display: none; }
+html[data-ck] body .lon-result-card .lon-net-lbl { font: 600 10.5px var(--f-ui) !important; letter-spacing: .2em !important; text-transform: uppercase !important; color: var(--pv-gold) !important; }
+html[data-ck] body .lon-result-card .lon-net-val { font: 300 clamp(48px, 8vh, 60px)/1.05 var(--f-ui) !important; letter-spacing: -.05em !important; color: var(--pv-tx) !important; }
+html[data-ck] body .lon-result-card .lon-rrow { border-color: var(--pv-hair) !important; color: var(--pv-tx) !important; font: 400 14px var(--f-ui) !important; padding-top: 10px !important; padding-bottom: 10px !important; }
+html[data-ck] body .lon-result-card .lon-rrow + .lon-rrow { border-top: 1px solid var(--pv-hair) !important; }
+html[data-ck] body .lon-result-card .lon-rrow > span:last-child { font-weight: 500 !important; color: var(--pv-tx) !important; font-variant-numeric: tabular-nums; }
+html[data-ck] body .lon-result-card .lon-rrow small { color: var(--pv-mu) !important; font: 400 11px var(--f-ui) !important; }
+html[data-ck] body .lon-result-card .lon-rrow-bonus > span:last-child { color: var(--pv-gold) !important; }
+html[data-ck] body .lon-result-card .lon-rrow-neg > span:last-child { color: var(--pv-bad) !important; }
+html[data-ck] body .lon-result-card .lon-rrow-korr, html[data-ck] body .lon-result-card .lon-rrow-korr > span:last-child { color: var(--pv-ok) !important; }
+html[data-ck] body .lon-result-card .lon-rrow-korr.saknas, html[data-ck] body .lon-result-card .lon-rrow-korr.saknas > span:last-child { color: var(--pv-am) !important; }
+html[data-ck] body .lon-result-card .lon-rrow-skatt { border-top: 1px solid var(--pv-hair) !important; }
+html[data-ck] body .lon-result-card .lon-rrow-skatt > span:last-child { opacity: 1; }
+html[data-ck] body .lon-result-card .lon-tier-goal { background: var(--pv-glas) !important; border: 1px solid var(--pv-glk) !important; color: var(--pv-tx) !important; box-shadow: var(--pv-sh); }
+html[data-ck] body .lon-result-card .lon-tier-goal * { color: inherit; }
+html[data-ck] body .lon-result-card #lon-period-sub { color: var(--pv-mu) !important; }
+
+/* ---------- fokusläge: mörkt Privé med guld ---------- */
+html[data-ck] body #focus-mode { background: radial-gradient(90% 40% at 88% 0%, rgba(214,180,106,.14), transparent 65%), radial-gradient(80% 36% at 0% 100%, rgba(70,90,160,.14), transparent 70%), #0b0c10 !important; color: #efe9dc; }
+html[data-ck] body #focus-mode .fm-save { background: linear-gradient(160deg, #f0d595, #d6b46a) !important; color: #17130a !important; }
+html[data-ck] body #focus-mode .fm-keys button { background: rgba(255,255,255,.05) !important; border: 1px solid rgba(255,255,255,.08) !important; }
+html[data-ck] body #focus-mode .fm-arc:not(.ar-rod):not(.ar-gron):not(.ar-guld) { stroke: #d6b46a !important; }
+html[data-ck] body #focus-mode .fm-mal.ar-neutral { background: rgba(214,180,106,.12) !important; border-color: rgba(214,180,106,.35) !important; color: #f0d595 !important; }
+
+/* ---------- undersidor: 16 px sidor, rubriker i samma ton ---------- */
+html[data-ck] body .sa-lbl { color: var(--pv-mu); letter-spacing: .16em; font-size: 10.5px; }
+html[data-ck] body .sa-ic { background: transparent; border: 1px solid var(--pv-hair); color: var(--pv-tx); }
+html[data-ck] body .sa-hd .md-dialog-title, html[data-ck] body .nt-title, html[data-ck] body .sheet-title { font-weight: 500 !important; letter-spacing: -.035em !important; }
+html[data-ck] body .sa-x, html[data-ck] body .sa-bak { background: transparent !important; border: 1px solid var(--pv-hair) !important; }
+html[data-ck] body .sum-t b { font-weight: 300 !important; font-size: 32px !important; letter-spacing: -.05em; }
+html[data-ck] body .sum-t.sum-h { background: var(--pv-glas) !important; }
+html[data-ck] body .sum-t.sum-h span { color: var(--pv-gold) !important; } html[data-ck] body .sum-t.sum-h b { color: var(--pv-tx) !important; }
+html[data-ck] body .lon-result-card #lon-bonus-out { color: var(--pv-gold) !important; }
+/* lönestapeln i appens toner */
+html[data-ck] body .ck-stack { gap: 2px; background: transparent !important; }
+html[data-ck] body .ck-stack i { border-radius: 2px; }
+html[data-ck] body .ck-stack .s-lon { background: color-mix(in srgb, var(--pv-tx) 22%, transparent) !important; }
+html[data-ck] body .ck-stack .s-bonus { background: var(--pv-gold) !important; }
+html[data-ck] body .ck-stack .s-ob { background: color-mix(in srgb, var(--pv-gold) 45%, transparent) !important; }
+html[data-ck] body .ck-stack .s-franv { background: var(--pv-bad) !important; opacity: .7; }
+html[data-ck] body .ck-stack .s-skatt { background: color-mix(in srgb, var(--pv-tx) 50%, transparent) !important; }
+html[data-ck]:root body .lon-result-card #lon-bonus-out { color: var(--pv-gold) !important; }
+/* frånvarokortet */
+html[data-ck] body .fp-hero, html[data-ck] body .fp-hero b { color: var(--pv-tx) !important; }
+html[data-ck] body .fp-hero span, html[data-ck] body .fp-hero small { color: var(--pv-mu) !important; }
+html[data-ck] body .fp-hero b { font-weight: 300 !important; letter-spacing: -.045em !important; }
+/* bonusstegen (baksidan av veckan) i pärlglas */
+html[data-ck] body .fx-wkb { background: var(--pv-glas) !important; border: 1px solid var(--pv-glk) !important; color: var(--pv-tx) !important; box-shadow: var(--pv-sh); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+html[data-ck="light"] body .fx-wkb { background: rgba(255,255,255,.88) !important; }
+html[data-ck] body .fx-wkb .fx-wkh b.gold { color: var(--pv-gold) !important; } html[data-ck] body .fx-wkb .fx-wkh small, html[data-ck] body .fx-wkb .fx-ladf { color: var(--pv-mu) !important; }
+html[data-ck] body .fx-wkb .fx-ladf b { color: var(--pv-gold) !important; }
+html[data-ck] body #fx .fx-wkb .fx-wkh .nb button { background: transparent !important; border: 1px solid var(--pv-hair) !important; color: var(--pv-tx) !important; }
+html[data-ck] body .fx-wkb .fx-lad .lt { background: var(--pv-hair); }
+html[data-ck] body .fx-lad .lf { background: linear-gradient(90deg, var(--pv-gold2), var(--pv-gold)) !important; }
+html[data-ck] body .fx-wkb .fx-lad .nd i { background: var(--pv-bg); border-color: var(--pv-hair); }
+html[data-ck] body .fx-wkb .fx-lad .nd b, html[data-ck] body .fx-wkb .fx-lad .nd small { color: var(--pv-mu); }
+html[data-ck] body .fx-lad .nd.vald i { background: var(--pv-gold) !important; border-color: var(--pv-gold) !important; box-shadow: 0 0 0 4px color-mix(in srgb, var(--pv-gold) 20%, transparent) !important; }
+html[data-ck] body .fx-lad .nd.vald i .material-symbols-rounded { color: var(--pv-on-gold) !important; }
+html[data-ck] body .fx-lad .nd.vald b { color: var(--pv-gold) !important; }
+html[data-ck]:root body .fp-hero small { color: var(--pv-mu) !important; }

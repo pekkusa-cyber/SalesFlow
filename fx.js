@@ -354,11 +354,6 @@
   const rad = (typ, txt) => `<p><i class="${typ}">${typ === 'k' ? 'Kan nå' : 'Måste'}</i><span>${txt}</span></p>`;
   let slot = false;
 
-  // en rad i kortet: etikett, värde och en tunn stapel (med streck för tempot)
-  function hArad(t, v, f, tick, typ) {
-    const w = Math.max(0, Math.min(1, f || 0)) * 100;
-    return `<div class="hA-r"><div class="t"><span>${t}</span><b>${v}</b></div><div class="hA-bar ${typ}"><i class="fx-fill" data-w="${w.toFixed(1)}"></i>${tick != null ? `<u style="left:${(Math.max(0, Math.min(1, tick)) * 100).toFixed(1)}%"></u>` : ''}</div></div>`;
-  }
   function tillStart(start) {
     const [h, mi] = String(start).split(':').map(Number), n = new Date(), kvar = h * 60 + (mi || 0) - (n.getHours() * 60 + n.getMinutes());
     if (kvar <= 0) return 'pågår';
@@ -443,25 +438,18 @@
     const w = veckorad(k);
     const legend = `<div class="fx-leg"><span><i class="ok"></i>nått</span><span><i class="miss"></i>ej nått</span><span><i class="vab"></i>VAB</span><span><i class="fl"></i>FL</span><span><i class="chg"></i>ändrad tid</span><span>${ic('key')}stänger</span></div>`;
     return `
-      <section class="fx-hero5 fx-hA">
-        <div class="hA-top">
-          <div class="hA-ring">${matare(mf, isNu && !mklar ? mfp : null, 9)}<div class="c"><b id="fx-big" data-v="${Math.round(mf * 100)}">${pc(mf)}</b><small>av ${kk(m.mal)}</small></div></div>
-          <div class="hA-kv">
-            <span class="l">${mklar ? 'Månadsmålet är nått' : 'Kvar till månadsmålet'}</span>
-            <b>${mklar ? '+' + kr(m.salt - m.mal) + ' kr' : kr(Math.max(0, m.mal - m.salt)) + ' kr'}</b>
-            <small>${kr(m.salt)} kr sålt${mklar ? ' · över målet' : ''}</small>
-            ${isNu && !mklar && m.mal > 0 ? `<span class="hA-chip ${mfas ? 'ok' : 'am'}">${mfas ? 'I fas' : kk(Math.abs(mdiff)) + ' efter tempot'}${mfas && mdiff > 0 ? ' · +' + kk(mdiff) : ''}</span>` : ''}
-          </div>
+      <section class="pv-hem">
+        <div class="pv-ey">${mklar ? 'Över målet' : 'Kvar till målet'}</div>
+        <div class="pv-huge">${mklar ? '+' + kr(m.salt - m.mal) : kr(Math.max(0, m.mal - m.salt))}<small>kr</small></div>
+        <div class="pv-sub">${kr(m.salt)} av ${kr(m.mal)} kr${isNu && !mklar && m.mal > 0 ? ` · <em class="${mfas ? 'ok' : 'am'}">${mfas ? 'i fas' + (mdiff > 0 ? ' +' + kk(mdiff) : '') : kk(Math.abs(mdiff)) + ' efter tempot'}</em>` : ''}</div>
+        <button type="button" class="pv-track" onclick="fxSlot()" aria-label="Visa bonusnivåerna"><i class="fx-fill" data-w="${(Math.min(1, mf) * 100).toFixed(1)}"></i>${isNu && !mklar ? `<u style="left:${(Math.min(1, mfp) * 100).toFixed(1)}%"></u>` : ''}<s style="left:${(Math.min(1, mf) * 100).toFixed(1)}%"></s></button>
+        <div class="pv-ticks"><span>0</span><span>${vald && Number(vald.min) === Number(m.mal) ? `Bonus ${vald.pct} % vid ${kr(vald.min)}` : `Mål ${kr(m.mal)}`}</span></div>
+        <div class="pv-trio">
+          <div><span>Idag</span><b>${o.abs ? esc(String(o.abs).split(' ')[0]) : mal ? kk(v.bas) : '—'}</b><small>${o.abs ? 'frånvaro' : !mal ? (p ? 'inget mål' : 'ledig') : klar ? 'målet nått' : pc(fs) + ' sålt'}</small></div>
+          <div><span>Per pass</span><b>${mklar ? kk(m.avg || 0) : m.krav != null ? kk(m.krav) : '—'}</b><small>${mklar ? 'snitt' : m.krav != null ? 'snitt ' + pc(m.avg ? m.avg / m.krav : 0) : 'inga pass kvar'}</small></div>
+          <div><span>Prognos</span><b>${kk(m.prognos)}</b><small>${m.mal > 0 ? (m.prognos >= m.mal ? kk(m.prognos - m.mal) + ' över' : kk(m.mal - m.prognos) + ' under') : ''}</small></div>
         </div>
-        <div class="hA-rader">
-          ${hArad('Idag', o.abs ? esc(String(o.abs).split(' ')[0]) : !mal ? (p ? 'inget mål' : 'ledig') : `${kr(v.salt)} / ${kr(v.bas)} kr`, mal && !o.abs ? fs : 0, mal && !o.abs ? fp : null, klar ? 'ok' : 'vit')}
-          ${mklar ? hArad('Snitt per pass', kk(m.avg || 0), 1, null, 'ok') : m.krav != null ? hArad('Snitt mot krav per pass', `${kk(m.avg || 0)} / ${kk(m.krav)}`, m.avg ? m.avg / m.krav : 0, null, m.avg >= m.krav ? 'ok' : 'am') : hArad('Krav per pass', 'inga pass kvar', 0, null, 'vit')}
-        </div>
-        <div class="fx-tl3">
-          <button class="tl bon${slot ? ' on' : ''}" onclick="fxSlot()"><span>Bonus</span><b>${vald ? vald.pct + ' %' : '—'}</b><small>${vald ? (m.salt >= vald.min ? 'nådd' : 'vid ' + kr(vald.min)) : 'inga nivåer'}</small></button>
-          <div class="tl prog"><span>Prognos</span><b>${kk(m.prognos)}</b><small>${m.mal > 0 ? (m.prognos >= m.mal ? kk(m.prognos - m.mal) + ' över' : kk(m.mal - m.prognos) + ' under') : 'inget mål'}</small></div>
-          ${np ? `<button class="tl pass" onclick="fxDag('${np.k}')"><span>${np.d.getTime() === realToday.getTime() ? 'Passet' : 'Nästa pass'}</span><b>${np.d.getTime() === realToday.getTime() ? String(np.q.start).slice(0, 5) : DAG[np.d.getDay()].slice(0, 3) + ' ' + np.d.getDate()}</b><small>${np.d.getTime() === realToday.getTime() ? tillStart(np.q.start) : String(np.q.start).slice(0, 5) + '–' + String(np.q.end || '').slice(0, 5)}</small></button>` : `<div class="tl pass"><span>Nästa pass</span><b>—</b><small>inget i schemat</small></div>`}
-        </div>
+        ${np ? `<button type="button" class="pv-pass" onclick="fxDag('${np.k}')"><span class="l"><small>Nästa pass${np.d.getTime() === realToday.getTime() ? ' · ' + tillStart(np.q.start) : ''}</small><b>${np.d.getTime() === realToday.getTime() ? 'Idag' : DAG[np.d.getDay()].slice(0, 3) + ' ' + np.d.getDate() + ' ' + MAN[np.d.getMonth()].slice(0, 3)} ${String(np.q.start).slice(0, 5)}–${String(np.q.end || '').slice(0, 5)}</b></span><span class="r"><small>dagsmål</small><b>${np.mal ? kr(np.mal) : '—'}</b></span></button>` : `<div class="pv-pass"><span class="l"><small>Nästa pass</small><b>Inget i schemat</b></span></div>`}
       </section>
       <section class="fx-wk2${slot ? ' b' : ''}" id="fx-slot">
         <div class="fx-wkin">

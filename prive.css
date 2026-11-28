@@ -226,3 +226,27 @@ html[data-ck] body input:focus, html[data-ck] body textarea:focus, html[data-ck]
 html[data-ck] body .md-toggle-row input:checked, html[data-ck] body input[type=checkbox]:checked { accent-color: var(--pv-gold); }
 html[data-ck] body ::selection { background: color-mix(in srgb, var(--pv-gold) 30%, transparent); }
 html[data-ck] body #budget-modal .sa-pane > * { flex-shrink: 0; }
+
+/* ============================================================
+   v198 · fokusläget och menyn
+   ============================================================ */
+html[data-ck] body #focus-mode .fm-stage { overflow: hidden !important; }
+html[data-ck] body #focus-mode .fm-gauge-row > .fm-gauge { flex-shrink: 0; }
+html[data-ck] body #focus-mode #fm-shift { font: 500 22px var(--f-ui) !important; letter-spacing: -.02em !important; }
+html[data-ck] body #focus-mode #fm-day, html[data-ck] body #focus-mode .fm-tidkvar { font: 500 11px var(--f-ui) !important; letter-spacing: .16em !important; text-transform: uppercase; color: #8d8a82 !important; }
+html[data-ck] body #focus-mode .fm-mal, html[data-ck] body #focus-mode .fm-mal.ar-rod, html[data-ck] body #focus-mode .fm-mal.ar-neutral { background: transparent !important; border: 1px solid rgba(214,180,106,.45) !important; color: #f0d595 !important; font: 600 11px var(--f-ui) !important; letter-spacing: .16em !important; }
+html[data-ck] body #focus-mode .fm-mal.ar-gron { background: rgba(143,214,173,.12) !important; border-color: rgba(143,214,173,.5) !important; color: #bfeccf !important; }
+html[data-ck] body #focus-mode #fm-sales { font-weight: 300 !important; letter-spacing: -.04em !important; }
+html[data-ck] body #focus-mode .val-display { font: 300 22px var(--f-ui) !important; letter-spacing: -.03em !important; }
+html[data-ck] body #focus-mode .micro-lbl { font: 500 10px var(--f-ui) !important; letter-spacing: .16em !important; color: #8d8a82 !important; }
+html[data-ck] body #focus-mode .fm-exit { background: transparent !important; border: 1px solid rgba(239,233,220,.16) !important; }
+html[data-ck] body #focus-mode .fm-display { background: rgba(255,255,255,.04) !important; border: 1px solid rgba(239,233,220,.10) !important; }
+html[data-ck] body #focus-mode .fm-keys .fm-c { color: #e59a8c !important; }
+/* menyn: lika långt mellan alla ord */
+html[data-ck] body .fx-nav { justify-content: space-between !important; padding-left: 22px !important; padding-right: 22px !important; }
+html[data-ck] body .fx-nav button { flex: 0 0 auto !important; padding: 0 6px !important; min-width: 44px; }
+html[data-ck] body .fx-nav { padding-left: 10px !important; padding-right: 10px !important; }
+html[data-ck] body .fx-nav button { min-width: 0 !important; padding: 0 12px !important; }
+/* rutor som inte ska scrolla får inte heller scrollas av webbläsaren (fokus på reglage/fält flyttade innehållet uppåt) */
+html[data-ck] body .md-scrim, html[data-ck] body #budget-modal .md-dialog.sa, html[data-ck] body .md-dialog.sa-m { overflow: clip !important; }
+html[data-ck] body #budget-modal .sa-hd, html[data-ck] body .sa-m .sa-hd { position: sticky; top: 0; }

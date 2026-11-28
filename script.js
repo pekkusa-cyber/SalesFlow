@@ -2069,6 +2069,17 @@ function fmSave(){
 }
 window.fmKey = fmKey; window.fmSave = fmSave;
 
+// Mätaren i fokusläget krymper tills mål, båge, kvar och per timme får plats ovanför
+// sifferfältet. Skärmar skiljer sig för mycket för att en fast storlek ska räcka.
+function fmPassa(){
+    const st = document.querySelector('#focus-mode .fm-stage'), g = st && st.querySelector('.fm-gauge');
+    if (!st || !g || !st.clientHeight) return;
+    let w = Math.min(230, Math.round(window.innerWidth * .6));
+    g.style.setProperty('width', w + 'px', 'important');
+    while (st.scrollHeight > st.clientHeight + 1 && w > 96) { w -= 6; g.style.setProperty('width', w + 'px', 'important'); }
+}
+window.fmPassa = fmPassa;
+window.addEventListener('resize', () => { const el = document.getElementById('focus-mode'); if (el && el.classList.contains('is-open')) fmPassa(); });
 function openFocusMode2(){
     const el = document.getElementById('focus-mode'); if (!el) return;
     fmInput = '';
@@ -2076,6 +2087,7 @@ function openFocusMode2(){
     document.body.classList.add('focus-mode-on');
     bindFocusMode();
     fmRender();
+    requestAnimationFrame(fmPassa); setTimeout(fmPassa, 350);
     if (fmTimer) clearInterval(fmTimer);
     fmTimer = setInterval(fmRender, 30000);          // tiden kvar ska ticka
     if (window.sfPushHist) window.sfPushHist();
@@ -5230,10 +5242,13 @@ function openBudgetModal() {
     const pn = document.getElementById('pass-notis'); if (pn) { pn.checked = passNotisPa; const rad = pn.closest('label'); if (rad) rad.style.display = appNotiser() ? '' : 'none'; }
     const bh = document.getElementById('boost-step-hint'); if (bh) bh.innerText = `Ett tryck lägger på ${lonKr(boostStep)}.`;
     stVisa('main');
+    try { const m0 = document.getElementById('budget-modal'); [m0, m0 && m0.querySelector('.md-dialog')].forEach(e => { if (e) { e.scrollTop = 0; } }); } catch(e){}
     renderBudgetChoices();
     if (window.ckTemaRita) window.ckTemaRita();
     const m = document.getElementById('budget-modal'); if(m) m.classList.remove('hidden');
 }
+document.addEventListener('focusin', () => { const m = document.getElementById('budget-modal'); if (!m || m.classList.contains('hidden')) return; const d = m.querySelector('.md-dialog'); requestAnimationFrame(() => { m.scrollTop = 0; if (d) d.scrollTop = 0; }); });
+document.addEventListener('scroll', e => { const t = e.target; if (t && t.id === 'budget-modal' || (t && t.classList && t.classList.contains('sa') && t.closest('#budget-modal'))) t.scrollTop = 0; }, true);
 function stVisa(vy){
     const d = document.querySelector('#budget-modal .sa'); if (!d) return;
     d.querySelectorAll('.sa-pane').forEach(p => { p.hidden = p.dataset.pane !== vy; });

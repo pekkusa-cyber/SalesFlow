@@ -190,3 +190,39 @@ html[data-ck] body .fx-lad .nd.vald i { background: var(--pv-gold) !important; b
 html[data-ck] body .fx-lad .nd.vald i .material-symbols-rounded { color: var(--pv-on-gold) !important; }
 html[data-ck] body .fx-lad .nd.vald b { color: var(--pv-gold) !important; }
 html[data-ck]:root body .fp-hero small { color: var(--pv-mu) !important; }
+
+/* ============================================================
+   v197 · menyn lägre, Inställningar fast rubrik, inget blått kvar
+   ============================================================ */
+:root { --nav-h: 46px; }
+html[data-ck] body .fx-nav { align-items: center !important; padding-top: 0 !important; }
+html[data-ck] body .fx-nav button { height: 100%; justify-content: center !important; padding: 0 !important; }
+/* Inställningar: rubriken ligger alltid överst och går att trycka, innehållet scrollar under */
+html[data-ck] body #budget-modal.md-scrim { align-items: stretch !important; justify-content: center !important; padding: 0 !important; overflow: hidden !important; }
+html[data-ck] body #budget-modal .md-dialog.sa { height: 100% !important; max-height: 100% !important; width: 100% !important; max-width: 480px !important; padding: 0 16px !important; border-radius: 0 !important; background: transparent !important; overflow: hidden !important; display: flex !important; flex-direction: column !important; }
+html[data-ck] body #budget-modal .sa-hd { flex: none; padding: 12px 2px 6px; min-height: 60px; position: relative; z-index: 3; }
+html[data-ck] body #budget-modal .sa-pane { flex: 1 1 auto; min-height: 0; overflow-y: auto !important; scrollbar-width: none; padding-bottom: 24px; }
+html[data-ck] body #budget-modal .sa-pane::-webkit-scrollbar { display: none; }
+
+/* ---------- alla gamla blå toner pekas om till guld ---------- */
+html[data-ck]:root {
+  --ck-cy: var(--pv-gold); --ck-on-cy: var(--pv-on-gold); --ck-cy-soft: color-mix(in srgb, var(--pv-gold) 14%, transparent);
+  --fx-ac: var(--pv-gold); --fx-ac-soft: color-mix(in srgb, var(--pv-gold) 12%, transparent); --ac-soft: color-mix(in srgb, var(--pv-gold) 12%, transparent);
+  --g-blue: var(--pv-gold); --g-blue-deep: var(--pv-gold); --g-blue-soft: color-mix(in srgb, var(--pv-gold) 14%, transparent); --g-blue-tint: color-mix(in srgb, var(--pv-gold) 20%, transparent);
+  --sting-blue: var(--pv-gold); --p-blue: color-mix(in srgb, var(--pv-gold) 10%, var(--pv-bg)); --p-blue2: color-mix(in srgb, var(--pv-gold) 16%, var(--pv-bg)); --c-blue: var(--pv-gold);
+  --boost-gold: var(--pv-gold);
+}
+html[data-ck] body .nt-ic { background: transparent !important; border: 1px solid var(--pv-hair) !important; color: var(--pv-tx) !important; }
+html[data-ck] body .nt-ic .material-symbols-rounded { color: var(--pv-tx) !important; }
+html[data-ck] body .nt-prio i.p3, html[data-ck] body i.p3 { background: var(--pv-mu) !important; }
+html[data-ck] body .nt-prio button.is-on { background: var(--pv-tx) !important; color: var(--pv-bg) !important; }
+html[data-ck] body .fx-pill.ac, html[data-ck] body .fx-pill { background: color-mix(in srgb, var(--pv-gold) 16%, transparent) !important; color: var(--pv-gold) !important; }
+html[data-ck] body .md-btn-tonal-blue, html[data-ck] body .md-btn-tonal { background: color-mix(in srgb, var(--pv-gold) 14%, transparent) !important; color: var(--pv-gold) !important; border: 0 !important; }
+html[data-ck] body .md-btn-outlined, html[data-ck] body .md-btn-text { color: var(--pv-tx) !important; border-color: var(--pv-hair) !important; }
+html[data-ck] body .md-icon-btn { background: transparent !important; border: 1px solid var(--pv-hair) !important; color: var(--pv-tx) !important; }
+html[data-ck] body .text-google-blue, html[data-ck] body .lon-file-open, html[data-ck] body .lon-hint a { color: var(--pv-gold) !important; }
+html[data-ck] body .lon-hist-row .lh-badge.lh-blue, html[data-ck] body .lh-blue { color: var(--pv-gold) !important; }
+html[data-ck] body input:focus, html[data-ck] body textarea:focus, html[data-ck] body select:focus { outline-color: var(--pv-gold) !important; border-color: var(--pv-gold) !important; }
+html[data-ck] body .md-toggle-row input:checked, html[data-ck] body input[type=checkbox]:checked { accent-color: var(--pv-gold); }
+html[data-ck] body ::selection { background: color-mix(in srgb, var(--pv-gold) 30%, transparent); }
+html[data-ck] body #budget-modal .sa-pane > * { flex-shrink: 0; }

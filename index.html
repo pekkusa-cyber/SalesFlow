@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="ui.css?v=117">
     <link rel="stylesheet" href="premium.css?v=119">
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="fokus.css?v=193">
+    <link rel="stylesheet" href="fokus.css?v=194">
     <script>try{var v=localStorage.getItem('sf_ck')||'ljust';document.documentElement.setAttribute('data-ck',(v==='mork'||(v==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches))?'dark':'light');}catch(e){}</script>
     <style>
       /* Laddskärm. Medvetet inline och utan webbtypsnitt: den ska synas i första
@@ -164,14 +164,12 @@
 
     <!-- UTVÄRDERA PASS -->
     <div id="eval-modal" class="md-scrim fixed inset-0 z-[35000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="md-dialog w-full max-w-[340px]" id="eval-modal-content">
-            <div class="md-dialog-header">
-                <h2 class="md-dialog-title">Utvärdera pass</h2>
-                <button onclick="closeEvalModal()" class="md-icon-btn" data-testid="close-eval"><span class="material-symbols-rounded">close</span></button>
-            </div>
-            <div class="flex flex-col gap-3 px-1" id="eval-metrics-container"></div>
-            <div class="md-dialog-actions">
-                <button onclick="saveEvalModal()" class="md-btn-filled w-full" data-testid="save-eval">Spara utvärdering</button>
+        <div class="md-dialog sa-m" id="eval-modal-content">
+            <div class="sa-hd"><h2 class="md-dialog-title">Utvärdera pass</h2><button onclick="closeEvalModal()" class="sa-x" data-testid="close-eval" aria-label="Stäng"><span class="material-symbols-rounded">close</span></button></div>
+            <div class="sa-scroll">
+                <p class="sa-not" style="margin:0 6px 8px">Ge passet 1–5 på varje punkt. Appen jämför sedan dagar du nått målet med dagar du missat.</p>
+                <div class="sa-grp utan-ic" id="eval-metrics-container"></div>
+                <button onclick="saveEvalModal()" class="sa-btn" style="margin-top:14px" data-testid="save-eval">Spara utvärdering</button>
             </div>
         </div>
     </div>
@@ -181,13 +179,13 @@
         <div class="md-dialog notes-fullscreen nt w-full max-w-[480px]">
             <div class="nt-head">
                 <div><h2 class="nt-title">Anteckningar</h2><span id="nt-count" class="nt-count">Kunder &amp; uppgifter</span></div>
-                <button class="nt-new" onclick="ntNy()" data-testid="new-note"><span>＋</span> Ny</button>
+                <button class="nt-new" onclick="ntNy()" data-testid="new-note" aria-label="Ny anteckning"><span class="material-symbols-rounded">add</span></button>
             </div>
             <label class="nt-search"><span class="material-symbols-rounded">search</span><input id="nt-sok" type="search" placeholder="Sök namn, telefon eller order" oninput="ntSok(this.value)"></label>
-            <div class="nt-filter" id="nt-filter">
+            <div class="sa-seg sa-seg-bred nt-seg" id="nt-filter">
                 <button data-f="alla" class="is-on" onclick="ntFilter('alla')">Alla</button>
-                <button data-f="prio" onclick="ntFilter('prio')">🔴 Prio 1</button>
-                <button data-f="snart" onclick="ntFilter('snart')">⏳ Förfaller snart</button>
+                <button data-f="prio" onclick="ntFilter('prio')">Prio 1</button>
+                <button data-f="snart" onclick="ntFilter('snart')">Förfaller snart</button>
             </div>
             <div id="notes-list-container" class="nt-list"></div>
 
@@ -222,6 +220,7 @@
                         <label class="nt-f nt-f-text"><span>Anteckning</span><textarea id="note-text"></textarea></label>
                     </div>
                     <button id="note-submit-btn" onclick="addNote()" class="nt-save" data-testid="save-note">Spara anteckning</button>
+                    <button id="nt-ta-bort" type="button" class="nt-ta-bort" hidden onclick="if(currentEditId!=null){deleteNote(currentEditId);}">Ta bort anteckningen</button>
                 </div>
             </div>
         </div>
@@ -250,69 +249,45 @@
     </div>
 
     <div id="lon-settings-modal" class="md-scrim fixed inset-0 z-[35500] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300" onclick="if(event.target===this)closeLonSettings()">
-        <div class="md-dialog md-dialog-std">
-            <div class="md-dialog-header md-dialog-header-bar">
-                <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded text-google-blue">settings</span>Inställningar</h2>
-                <button onclick="closeLonSettings()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
-            </div>
-            <div class="md-dialog-body">
-                <!-- BILAGOR & INLÄRNING -->
-                <details class="lon-details" open>
-                    <summary>Bilagor &amp; inlärning</summary>
-                    <p id="lon-upload-help" class="lon-hint" style="margin-top:2px"></p>
-                    <input type="file" id="lon-file-input-tidrapport" accept="image/*,application/pdf" class="hidden" onchange="lonHandleUpload(this,'tidrapport')">
-                    <button id="lon-btn-tidrapport" onclick="lonClickUpload('tidrapport')" class="md-btn-outlined w-full md-btn-icon-text lon-upload-btn"><span class="material-symbols-rounded">schedule</span> <span class="lon-upbtn-txt">Tidrapport</span></button>
-                    <div id="lon-file-tidrapport" class="lon-file-name hidden"></div>
-                    <input type="file" id="lon-file-input-lonespec" accept="image/*,application/pdf" class="hidden" onchange="lonHandleUpload(this,'lonespec')">
-                    <button id="lon-btn-lonespec" onclick="lonClickUpload('lonespec')" class="md-btn-outlined w-full md-btn-icon-text mt-1 lon-upload-btn"><span class="material-symbols-rounded">receipt_long</span> <span class="lon-upbtn-txt">Lönespec</span></button>
-                    <div id="lon-file-lonespec" class="lon-file-name hidden"></div>
-                    <p id="lon-learn-status" class="lon-hint" style="margin-top:6px"></p>
-
-                    <div class="lon-field" style="margin-top:10px">
-                        <label class="lon-section-lbl" for="lon-cfg-semlon">Semesterlön / dag (heltid)</label>
-                        <input id="lon-cfg-semlon" type="number" inputmode="numeric" class="lon-input" oninput="lonSetSemLon(this.value)" placeholder="2844">
-                        <p class="lon-hint" id="lon-semlon-hint" style="margin-top:3px"></p>
-                    </div>
-                    <div class="lon-field" style="margin-top:10px">
-                        <label class="lon-section-lbl" for="lon-cfg-semsaldo">Betalda semesterdagar kvar</label>
-                        <input id="lon-cfg-semsaldo" type="number" inputmode="numeric" class="lon-input" oninput="lonSetSemSaldo(this.value)" placeholder="5">
-                        <p class="lon-hint" id="lon-semsaldo-hint" style="margin-top:3px"></p>
-                    </div>
-                    <div class="lon-field" style="margin-top:10px">
-                        <label class="lon-section-lbl" for="lon-cfg-semsched">Schemalagda semesterdagar (visad månad)</label>
-                        <input id="lon-cfg-semsched" type="number" inputmode="numeric" class="lon-input" oninput="lonSetSemSched(this.value)" placeholder="auto">
-                        <p class="lon-hint" style="margin-top:3px">Endast om Quinyx-exporten saknar semesterpassen. Töm fältet för automatik.</p>
-                    </div>
-                    <span class="lon-section-lbl" style="margin-top:10px">Historik &amp; månadsstatus</span>
-                    <div id="lon-history" class="lon-history"></div>
-                    <details class="lon-info">
-                        <summary>Hur fungerar det?</summary>
-                        <p class="lon-hint" style="margin-top:6px;line-height:1.5">
-                        <b>Tidrapport</b> = lönearter från Quinyx. Skicka in den för en avslutad månad (t.ex. juni i juli) så <b>kalibreras</b> OB och frånvaro mot facit. Skickar du in pågående månad blir det en <b>prognos</b> som bara uppdaterar estimatet.<br><br>
-                        <b>Lönespec</b> = specen du fått utbetald. Den ger exakt skatt, frånvaroavdrag och bonus.<br><br>
-                        En månad är <b>stängd</b> (grön) när både tidrapport och lönespec finns. Appen läser månaden ur bilden och sorterar själv — du kan ladda upp när som helst. Senaste filen per månad gäller alltid; tar du bort en räknas allt om automatiskt.</p>
-                    </details>
-                </details>
-                <!-- BONUSSPANN -->
-                <details class="lon-details">
-                    <summary>Bonusspann</summary>
-                    <div id="lon-bonus-tiers"></div>
-                    <button onclick="lonAddTier()" class="md-btn-outlined w-full md-btn-icon-text mt-1"><span class="material-symbols-rounded">add</span> Lägg till spann</button>
-                    <p class="lon-hint" style="margin-top:8px">Gäller alla månader utom november och december, som har egna trösklar nedan.</p>
-                </details>
-                <!-- NOVEMBER-TRÖSKLAR -->
-                <details class="lon-details">
-                    <summary>Bonusspann – november</summary>
-                    <div id="lon-bonus-tiers-nov"></div>
-                    <button onclick="lonMonthTierAdd(11)" class="md-btn-outlined w-full md-btn-icon-text mt-1"><span class="material-symbols-rounded">add</span> Lägg till spann</button>
-                </details>
-                <!-- DECEMBER-TRÖSKLAR -->
-                <details class="lon-details">
-                    <summary>Bonusspann – december</summary>
-                    <div id="lon-bonus-tiers-dec"></div>
-                    <button onclick="lonMonthTierAdd(12)" class="md-btn-outlined w-full md-btn-icon-text mt-1"><span class="material-symbols-rounded">add</span> Lägg till spann</button>
-                </details>
-                <p class="lon-hint" style="margin-top:2px">Semester och föräldraledighet lättar tröskelvärdena automatiskt i förhållande till hur många dagar du var borta den månaden.</p>
+        <div class="md-dialog sa-m">
+            <div class="sa-hd"><h2 class="md-dialog-title">Underlag</h2><button onclick="closeLonSettings()" class="sa-x" aria-label="Stäng"><span class="material-symbols-rounded">close</span></button></div>
+            <div class="sa-scroll">
+                <input type="file" id="lon-file-input-tidrapport" accept="image/*,application/pdf" class="hidden" onchange="lonHandleUpload(this,'tidrapport')">
+                <input type="file" id="lon-file-input-lonespec" accept="image/*,application/pdf" class="hidden" onchange="lonHandleUpload(this,'lonespec')">
+                <div class="sa-grp">
+                    <div class="sa-li" id="lon-btn-tidrapport" onclick="lonClickUpload('tidrapport')" role="button" tabindex="0"><span class="sa-ic"><span class="material-symbols-rounded">schedule</span></span><span class="sa-t"><span class="lon-upbtn-txt">Tidrapport</span><small id="lon-file-tidrapport">Ingen bild än</small></span><span class="lon-fil-knappar" id="lon-fk-tidrapport"></span></div>
+                    <div class="sa-li" id="lon-btn-lonespec" onclick="lonClickUpload('lonespec')" role="button" tabindex="0"><span class="sa-ic"><span class="material-symbols-rounded">receipt_long</span></span><span class="sa-t"><span class="lon-upbtn-txt">Lönespec</span><small id="lon-file-lonespec">Ingen bild än</small></span><span class="lon-fil-knappar" id="lon-fk-lonespec"></span></div>
+                </div>
+                <p class="sa-not">Tryck på en rad för att ladda upp en ny bild. Appen läser själv vilken månad den gäller.</p>
+                <p class="sa-lbl">Månader</p>
+                <div class="sa-grp utan-ic" id="lon-history"></div>
+                <p class="sa-lbl" id="lon-avdrag-lbl">Bonusavdrag</p>
+                <div class="sa-grp utan-ic">
+                    <div class="sa-li"><span class="sa-t">Avdrag på bonusen<small>enligt villkoren</small></span>
+                        <span id="lon-avdrag-seg" class="sa-seg">
+                            <button data-av="0" class="active" onclick="lonSetAvdrag(0)">0</button>
+                            <button data-av="10" onclick="lonSetAvdrag(10)">10 %</button>
+                            <button data-av="20" onclick="lonSetAvdrag(20)">20</button>
+                            <button data-av="30" onclick="lonSetAvdrag(30)">30</button>
+                        </span></div>
+                </div>
+                <p class="sa-lbl">Semester</p>
+                <div class="sa-grp utan-ic">
+                    <label class="sa-li"><span class="sa-t">Semesterlön per dag<small id="lon-semlon-hint"></small></span><input id="lon-cfg-semlon" type="number" inputmode="numeric" class="sa-num" oninput="lonSetSemLon(this.value)" placeholder="2844"></label>
+                    <label class="sa-li"><span class="sa-t">Betalda dagar kvar<small id="lon-semsaldo-hint"></small></span><input id="lon-cfg-semsaldo" type="number" inputmode="numeric" class="sa-num" oninput="lonSetSemSaldo(this.value)" placeholder="5"></label>
+                    <label class="sa-li"><span class="sa-t">Semesterdagar i schemat<small>bara om Quinyx saknar dem</small></span><input id="lon-cfg-semsched" type="number" inputmode="numeric" class="sa-num" oninput="lonSetSemSched(this.value)" placeholder="auto"></label>
+                </div>
+                <p class="sa-lbl">Bonusspann</p>
+                <div class="sa-grp utan-ic">
+                    <details class="sa-det"><summary class="sa-li"><span class="sa-t">Alla månader<small>utom november och december</small></span><span class="sa-chev material-symbols-rounded">expand_more</span></summary>
+                        <div class="sa-det-in"><div id="lon-bonus-tiers"></div><button onclick="lonAddTier()" class="sa-lank">+ Lägg till spann</button></div></details>
+                    <details class="sa-det"><summary class="sa-li"><span class="sa-t">November</span><span class="sa-chev material-symbols-rounded">expand_more</span></summary>
+                        <div class="sa-det-in"><div id="lon-bonus-tiers-nov"></div><button onclick="lonMonthTierAdd(11)" class="sa-lank">+ Lägg till spann</button></div></details>
+                    <details class="sa-det"><summary class="sa-li"><span class="sa-t">December</span><span class="sa-chev material-symbols-rounded">expand_more</span></summary>
+                        <div class="sa-det-in"><div id="lon-bonus-tiers-dec"></div><button onclick="lonMonthTierAdd(12)" class="sa-lank">+ Lägg till spann</button></div></details>
+                </div>
+                <p id="lon-learn-status" class="sa-not"></p>
+                <p id="lon-upload-help" hidden></p>
             </div>
         </div>
     </div>
@@ -330,78 +305,34 @@
 
     <!-- SAMMANFATTNING -->
     <div id="summary-modal" class="md-scrim fixed inset-0 z-[30000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="md-dialog w-full max-w-[340px]" id="summary-modal-content">
-            <div class="md-dialog-header">
+        <div class="md-dialog sa-m" id="summary-modal-content">
+            <div class="sa-hd">
                 <h2 id="summary-modal-title" class="md-dialog-title">Sammanfattning</h2>
-                <div class="flex gap-1 items-center">
-                    <button id="btn-sum-toggle" onclick="toggleSummaryView()" class="md-icon-btn" title="Insikter"><span class="material-symbols-rounded">lightbulb</span></button>
-                    <button onclick="closeSummaryModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
+                <button id="btn-sum-toggle" onclick="toggleSummaryView()" class="sa-x" title="Insikter" aria-label="Insikter"><span class="material-symbols-rounded">lightbulb</span></button>
+                <button onclick="closeSummaryModal()" class="sa-x" aria-label="Stäng"><span class="material-symbols-rounded">close</span></button>
+            </div>
+            <div class="sa-scroll">
+            <div id="summary-stats-view" class="sum-vy">
+                <div class="sum-t4">
+                    <button type="button" onclick="focusFromSummary('work')" class="sum-t sum-clickable"><span>Pass</span><b id="sum-workdays">0</b></button>
+                    <button type="button" onclick="focusFromSummary('abs')" class="sum-t sum-h sum-clickable"><span>Frånvarodagar</span><b id="sum-absdays">0</b></button>
+                    <button type="button" onclick="focusFromSummary('best')" class="sum-t sum-clickable"><span>Bästa dag · <em id="sum-bestday-lbl">--</em></span><b id="sum-bestday-val" class="ok">0k</b></button>
+                    <button type="button" onclick="focusFromSummary('worst')" class="sum-t sum-clickable"><span>Sämsta dag · <em id="sum-worstday-lbl">--</em></span><b id="sum-worstday-val" class="bad">0k</b></button>
+                </div>
+                <div class="sa-grp">
+                    <button type="button" onclick="focusFromSummary('green')" class="sa-li sum-clickable"><span class="sa-ic"><span class="material-symbols-rounded">local_fire_department</span></span><span class="sa-t">Grön streak<small>dagar i rad med nått mål</small></span><span id="sum-streak" class="sa-v">0</span></button>
+                    <button type="button" id="sum-boost-row" onclick="focusFromSummary('boost')" class="sa-li sum-clickable hidden"><span class="sa-ic"><span class="material-symbols-rounded">bolt</span></span><span class="sa-t">Boostade dagar<small><span id="sum-boost-hint">Markera boostade dagar</span> · <span id="sum-boost-sub">--</span></small></span><span id="sum-boost-val" class="sa-v">0</span></button>
+                    <button type="button" id="sum-bestweek-container" onclick="focusFromSummary('week')" class="sa-li sum-clickable"><span class="sa-ic"><span class="material-symbols-rounded">star</span></span><span class="sa-t">Bästa vecka<small id="sum-bestweek-lbl">--</small></span><span id="sum-bestweek-val" class="sa-v">0k</span></button>
+                </div>
+                <div id="sum-abs-details" class="hidden">
+                    <p class="sa-lbl">Frånvaro</p>
+                    <div id="sum-abs-list" class="sa-grp"></div>
                 </div>
             </div>
-
-            <div id="summary-stats-view" class="flex flex-col gap-3">
-                <div class="grid grid-cols-2 gap-2">
-                    <div onclick="focusFromSummary('work')" class="md-stat-card md-stat-blue sum-clickable">
-                        <span class="md-stat-lbl">Pass / Jobb</span>
-                        <span id="sum-workdays" class="md-stat-val">0</span>
-                    </div>
-                    <div onclick="focusFromSummary('abs')" class="md-stat-card md-stat-yellow sum-clickable">
-                        <span class="md-stat-lbl">Frånvaro</span>
-                        <span id="sum-absdays" class="md-stat-val">0</span>
-                    </div>
-                    <div onclick="focusFromSummary('best')" class="md-stat-card md-stat-green sum-clickable">
-                        <span class="md-stat-lbl">Bästa dag</span>
-                        <span id="sum-bestday-val" class="md-stat-val">0k</span>
-                        <span id="sum-bestday-lbl" class="md-stat-sub">--</span>
-                    </div>
-                    <div onclick="focusFromSummary('worst')" class="md-stat-card md-stat-red sum-clickable">
-                        <span class="md-stat-lbl">Sämsta dag</span>
-                        <span id="sum-worstday-val" class="md-stat-val">0k</span>
-                        <span id="sum-worstday-lbl" class="md-stat-sub">--</span>
-                    </div>
-                </div>
-
-                <div onclick="focusFromSummary('green')" class="md-row-card md-row-blue sum-clickable">
-                    <div class="flex flex-col">
-                        <span class="md-row-title">Grön streak (mål nått)</span>
-                        <span class="md-row-sub">Markera alla gröna dagar</span>
-                    </div>
-                    <span id="sum-streak" class="md-row-val">0 🔥</span>
-                </div>
-
-                <div id="sum-boost-row" onclick="focusFromSummary('boost')" class="md-row-card md-row-blue sum-clickable hidden">
-                    <div class="flex flex-col">
-                        <span class="md-row-title">⚡ Boostade dagar</span>
-                        <span id="sum-boost-hint" class="md-row-sub">Markera boostade dagar</span>
-                    </div>
-                    <div class="text-right">
-                        <span id="sum-boost-val" class="md-row-val block">0 ⚡</span>
-                        <span id="sum-boost-sub" class="md-row-sub">--</span>
-                    </div>
-                </div>
-
-                <div id="sum-bestweek-container" onclick="focusFromSummary('week')" class="md-row-card md-row-indigo sum-clickable">
-                    <div class="flex flex-col">
-                        <span class="md-row-title">Bästa veckan</span>
-                        <span class="md-row-sub">Markera hela veckan</span>
-                    </div>
-                    <div class="text-right">
-                        <span id="sum-bestweek-val" class="md-row-val block">0k</span>
-                        <span id="sum-bestweek-lbl" class="md-row-sub">--</span>
-                    </div>
-                </div>
-
-                <div id="sum-abs-details" class="flex flex-col gap-1 hidden">
-                    <h3 class="md-section-lbl">Frånvaro orsaker</h3>
-                    <div id="sum-abs-list" class="flex flex-col gap-1"></div>
-                </div>
+            <div id="summary-insights-view" class="hidden">
+                <div id="insight-container"></div>
             </div>
-
-            <div id="summary-insights-view" class="hidden flex flex-col gap-3">
-                <div id="insight-container" class="flex flex-col gap-2"></div>
             </div>
-
-            <button onclick="closeSummaryModal()" class="md-btn-filled w-full mt-2">Stäng</button>
         </div>
     </div>
 
@@ -446,93 +377,74 @@
         </div>
     </div>
 
-    <!-- INSTÄLLNINGAR: en sida utan scroll -->
+    <!-- INSTÄLLNINGAR: grupperade listor, en sida utan scroll. Bonusnivån har en egen undersida. -->
     <div id="budget-modal" class="md-scrim fixed inset-0 z-[15000] hidden flex items-center justify-center p-4">
-        <div class="md-dialog w-[320px] st">
-            <div class="md-dialog-header">
-                <h2 class="md-dialog-title">Inställningar</h2>
-                <button onclick="closeBudgetModal()" class="md-icon-btn" aria-label="Stäng"><span class="material-symbols-rounded">close</span></button>
+        <div class="md-dialog w-[320px] sa">
+            <div class="sa-hd">
+                <button type="button" class="sa-bak" onclick="stVisa('main')" aria-label="Tillbaka"><span class="material-symbols-rounded">chevron_left</span></button>
+                <h2 class="md-dialog-title" id="sa-titel">Inställningar</h2>
+                <button onclick="closeBudgetModal()" class="sa-x" aria-label="Stäng"><span class="material-symbols-rounded">close</span></button>
             </div>
-            <button id="sync-btn" onclick="syncData()" class="md-btn-filled w-full md-btn-icon-text" data-testid="sync-data">
-                <span class="material-symbols-rounded">sync</span> Synkronisera data
-            </button>
-            <p class="md-section-lbl" id="budget-month-lbl">Månadsmål</p>
-            <!-- Knapparna byggs från månadens bonustrappa (renderBudgetChoices) – november
-                 har andra nivåer än oktober, och fasta 180/240/350 gick inte att välja rätt med. -->
-            <div id="budget-choices"></div>
-            <div id="bonus-egen" class="be"></div>
-            <p class="md-section-lbl">Utseende</p>
-            <div class="ck-themes">
-                <button data-ck-val="ljust" onclick="setCkTheme('ljust')">☀️ Ljust</button>
-                <button data-ck-val="mork" onclick="setCkTheme('mork')">🌙 Mörkt</button>
-                <button data-ck-val="auto" onclick="setCkTheme('auto')">📱 Telefonen</button>
-            </div>
-            <div class="st-rader">
-                <label class="md-toggle-row">
-                    <span>🎯 Fokusläge under passet</span>
-                    <input id="focus-auto" type="checkbox" onchange="setFocusAuto(this.checked)">
-                </label>
-                <label class="md-toggle-row">
-                    <span>⏰ Före pass</span>
-                    <button type="button" class="st-test" onclick="testaPassNotis(event)">Testa</button>
-                    <input id="pass-notis" type="checkbox" checked onchange="setPassNotis(this.checked)">
-                </label>
-                <label class="md-toggle-row">
-                    <span>📅 Veckosummering, måndag</span>
-                    <input id="vecko-notis" type="checkbox" checked onchange="setVeckoNotis(this.checked)">
-                </label>
-                <label class="md-toggle-row">
-                    <span>📲 Snabbnotis med dagens mål</span>
-                    <input id="snabb-notis" type="checkbox" onchange="setSnabbNotis(this.checked)">
-                </label>
-                <div class="md-toggle-row st-boost">
-                    <span>Boost per tryck</span>
-                    <input id="boost-step" type="number" inputmode="numeric" step="500" class="md-input" onchange="setBoostStep(this.value)" placeholder="3000">
+            <div class="sa-pane" data-pane="main">
+                <p class="sa-lbl" id="budget-month-lbl">November</p>
+                <div class="sa-grp">
+                    <button type="button" class="sa-li" onclick="stVisa('niva')"><span class="sa-ic"><span class="material-symbols-rounded">workspace_premium</span></span><span class="sa-t">Bonusnivå<small id="st-niva-sub"></small></span><span class="sa-chev material-symbols-rounded">chevron_right</span></button>
+                    <button type="button" class="sa-li" onclick="stVisa('niva')"><span class="sa-ic"><span class="material-symbols-rounded">trending_down</span></span><span class="sa-t">Lättat mål<small id="st-lat-sub"></small></span><span class="sa-v" id="st-lat-v"></span><span class="sa-chev material-symbols-rounded">chevron_right</span></button>
                 </div>
+                <p class="sa-lbl">Notiser</p>
+                <div class="sa-grp">
+                    <label class="sa-li"><span class="sa-ic"><span class="material-symbols-rounded">alarm</span></span><span class="sa-t">10 min före pass<small><button type="button" class="sa-lank" onclick="testaPassNotis(event)">Skicka test</button></small></span><input id="pass-notis" class="sa-tg" type="checkbox" checked onchange="setPassNotis(this.checked)"></label>
+                    <label class="sa-li"><span class="sa-ic"><span class="material-symbols-rounded">calendar_view_week</span></span><span class="sa-t">Veckosummering<small>måndag 08:00</small></span><input id="vecko-notis" class="sa-tg" type="checkbox" checked onchange="setVeckoNotis(this.checked)"></label>
+                    <label class="sa-li"><span class="sa-ic"><span class="material-symbols-rounded">notifications</span></span><span class="sa-t">Dagens mål i notisfältet</span><input id="snabb-notis" class="sa-tg" type="checkbox" onchange="setSnabbNotis(this.checked)"></label>
+                </div>
+                <p class="sa-lbl">App</p>
+                <div class="sa-grp">
+                    <div class="sa-li"><span class="sa-ic"><span class="material-symbols-rounded">contrast</span></span><span class="sa-t">Tema</span>
+                        <span class="sa-seg ck-themes"><button type="button" data-ck-val="ljust" onclick="setCkTheme('ljust')">Ljust</button><button type="button" data-ck-val="mork" onclick="setCkTheme('mork')">Mörkt</button><button type="button" data-ck-val="auto" onclick="setCkTheme('auto')">Auto</button></span></div>
+                    <label class="sa-li"><span class="sa-ic"><span class="material-symbols-rounded">center_focus_strong</span></span><span class="sa-t">Fokusläge under pass</span><input id="focus-auto" class="sa-tg" type="checkbox" onchange="setFocusAuto(this.checked)"></label>
+                    <label class="sa-li"><span class="sa-ic"><span class="material-symbols-rounded">bolt</span></span><span class="sa-t">Boost per tryck</span><input id="boost-step" type="number" inputmode="numeric" step="500" class="sa-num" onchange="setBoostStep(this.value)" placeholder="3000"><span class="sa-enh">kr</span></label>
+                </div>
+                <div class="sa-fot">
+                    <button type="button" id="sync-btn" onclick="syncData()" data-testid="sync-data"><span class="material-symbols-rounded">sync</span> Synka nu</button>
+                    <span id="app-version">SalesFlow</span>
+                </div>
+                <p id="boost-step-hint" hidden></p>
             </div>
-            <p id="boost-step-hint" class="lon-hint" hidden></p>
-            <p id="app-version" class="lon-version">SalesFlow</p>
+            <div class="sa-pane" data-pane="niva" hidden>
+                <p class="sa-lbl">Månadsmål</p>
+                <div id="budget-choices"></div>
+                <div id="bonus-egen" class="be"></div>
+            </div>
         </div>
     </div>
 
-    <!-- COACH MAIN -->
+    <!-- COACH MAIN (stil A) -->
     <div id="coach-main-modal" class="md-scrim fixed inset-0 z-[36000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="md-dialog w-full max-w-[380px] !p-0 overflow-hidden max-h-[90vh]">
-            <div class="md-dialog-header md-dialog-header-bar">
-                <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded text-google-blue">smart_toy</span>Säljcoach</h2>
-                <button onclick="closeCoachModalMain()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
-            </div>
-            <div class="p-4 flex flex-col gap-3 overflow-y-auto hide-scrollbar">
-                <div class="md-form-card !p-4">
-                    <h3 class="md-section-lbl flex items-center gap-1.5 !text-left"><span class="material-symbols-rounded text-[16px] text-google-blue">edit_note</span>Nytt samtal</h3>
-                    <select id="call-input-type" class="md-input">
-                        <option value="bra">✅ Lyckat avslut (starkt)</option>
-                        <option value="utv">🎯 Missat / Utvecklingspotential</option>
-                    </select>
-                    <input type="text" id="call-input-title" placeholder="Kund / Företag..." class="md-input">
-                    <textarea id="call-input-text" placeholder="Klistra in transkribering här..." class="md-input h-24 resize-none"></textarea>
-                    <button id="btn-analyze-call" onclick="submitNewCall()" class="md-btn-filled w-full md-btn-icon-text" data-testid="analyze-call">
-                        <span class="material-symbols-rounded">auto_awesome</span> Analysera & spara
-                    </button>
-                    <p id="coach-status-text" class="md-status-text hidden">Hjärnan jobbar...</p>
+        <div class="md-dialog sa-m">
+            <div class="sa-hd"><h2 class="md-dialog-title">Säljcoach</h2><button onclick="closeCoachModalMain()" class="sa-x" aria-label="Stäng"><span class="material-symbols-rounded">close</span></button></div>
+            <div class="sa-scroll">
+                <div class="sa-grp sa-form">
+                    <span class="sa-seg sa-seg-bred" id="call-typ-seg">
+                        <button type="button" class="on" onclick="coachTyp('bra')">Lyckat avslut</button>
+                        <button type="button" onclick="coachTyp('utv')">Kunde gått bättre</button>
+                    </span>
+                    <select id="call-input-type" hidden><option value="bra">bra</option><option value="utv">utv</option></select>
+                    <input type="text" id="call-input-title" placeholder="Kund eller företag" class="sa-inp">
+                    <textarea id="call-input-text" placeholder="Klistra in samtalet här…" class="sa-inp sa-ta"></textarea>
+                    <button id="btn-analyze-call" onclick="submitNewCall()" class="sa-btn" data-testid="analyze-call"><span class="material-symbols-rounded">auto_awesome</span> Analysera och spara</button>
+                    <p id="coach-status-text" class="sa-status hidden">Analyserar samtalet…</p>
                 </div>
-                <button onclick="openCoachHistoryModal()" class="md-btn-outlined w-full md-btn-icon-text">
-                    <span class="material-symbols-rounded">history</span> Öppna historik
-                </button>
+                <p class="sa-lbl">Senaste</p>
+                <div class="sa-grp" id="coach-senaste"></div>
             </div>
         </div>
     </div>
 
-    <!-- COACH HISTORY -->
+    <!-- COACH HISTORY (stil A) -->
     <div id="coach-history-modal" class="md-scrim fixed inset-0 z-[37000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="md-dialog w-full max-w-[380px] !p-0 overflow-hidden max-h-[90vh]">
-            <div class="md-dialog-header md-dialog-header-bar">
-                <h2 class="md-dialog-title flex items-center gap-2"><span class="material-symbols-rounded">history</span>Historik</h2>
-                <button onclick="closeCoachHistoryModal()" class="md-icon-btn"><span class="material-symbols-rounded">close</span></button>
-            </div>
-            <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 hide-scrollbar">
-                <div id="coach-history-list" class="flex flex-col gap-3 pb-4"></div>
-            </div>
+        <div class="md-dialog sa-m">
+            <div class="sa-hd"><button type="button" class="sa-x" onclick="closeCoachHistoryModal()" aria-label="Tillbaka"><span class="material-symbols-rounded">chevron_left</span></button><h2 class="md-dialog-title">Historik</h2></div>
+            <div class="sa-scroll"><div id="coach-history-list"></div></div>
         </div>
     </div>
 
@@ -880,35 +792,28 @@
                     <div class="sheet-content lon-sheet-content">
                         <div id="lon-reminder" class="lon-reminder hidden" onclick="openLonSettings()"></div>
                         <div class="lon-result-card">
-                            <button onclick="openLonSettings()" class="lon-card-gear" aria-label="Bilagor och bonusspann"><span class="material-symbols-rounded">settings</span></button>
                             <span class="lon-net-lbl">Beräknad lön efter skatt</span>
                             <span id="lon-net" class="lon-net-val">0 kr</span>
                             <span id="lon-period-sub" class="lon-period-sub"></span>
                             <div id="lon-stack" class="ck-stack" aria-hidden="true"></div>
                             <div class="lon-result-rows">
-                                <div class="lon-rrow"><span>🟡 Skatt</span><span id="lon-tax">0 kr</span></div>
-                                <div class="lon-rrow"><span>Lön före skatt (brutto)</span><span id="lon-gross">0 kr</span></div>
-                                <div class="lon-rrow lon-rrow-bonus"><span>↳ varav bonus<small id="lon-bonus-sub"></small></span><span id="lon-bonus-out">0 kr</span></div>
-                                <div id="lon-tier-goal" class="lon-tier-goal hidden"></div>
+                                <div class="lon-rrow"><span>Brutto</span><span id="lon-gross">0 kr</span></div>
+                                <div class="lon-rrow lon-rrow-bonus"><span>Bonus<small id="lon-bonus-sub"></small></span><span id="lon-bonus-out">0 kr</span></div>
                                 <div id="lon-korr-row" class="lon-rrow lon-rrow-korr hidden">
                                     <span id="lon-korr-lbl">Bonus som saknas<small id="lon-korr-sub"></small></span>
                                     <span id="lon-korr-ut">0 kr</span>
                                 </div>
-                                <div class="lon-rrow lon-rrow-ob"><span>↳ varav OB-tillägg<small id="lon-ob-hint"></small></span><span id="lon-ob-out">0 kr</span></div>
-                                <div class="lon-rrow lon-rrow-sem hidden" id="lon-sem-row"><span>↳ varav semestertillägg<small id="lon-sem-sub"></small></span><span id="lon-sem-out">0 kr</span></div>
-                                <div class="lon-rrow lon-rrow-neg" onclick="lonFranvDetalj()"><span>↳ frånvaroavdrag<small id="lon-franv-sub"></small></span><span id="lon-franvaro-out">0 kr</span></div>
-                            </div>
-                            <div class="lon-card-avdrag lon-full-only">
-                                <span class="lon-card-avdrag-lbl">Bonusavdrag</span>
-                                <div id="lon-avdrag-seg" class="lon-seg lon-seg-oncard">
-                                    <button data-av="0" class="active" onclick="lonSetAvdrag(0)">Inget</button>
-                                    <button data-av="10" onclick="lonSetAvdrag(10)">10 %</button>
-                                    <button data-av="20" onclick="lonSetAvdrag(20)">20 %</button>
-                                    <button data-av="30" onclick="lonSetAvdrag(30)">30 %</button>
-                                </div>
+                                <div id="lon-tier-goal" class="lon-tier-goal hidden"></div>
+                                <div class="lon-rrow lon-rrow-ob"><span>OB-tillägg<small id="lon-ob-hint"></small></span><span id="lon-ob-out">0 kr</span></div>
+                                <div class="lon-rrow lon-rrow-sem hidden" id="lon-sem-row"><span>Semestertillägg<small id="lon-sem-sub"></small></span><span id="lon-sem-out">0 kr</span></div>
+                                <div class="lon-rrow lon-rrow-neg" onclick="lonFranvDetalj()"><span>Frånvaro<small id="lon-franv-sub"></small></span><span id="lon-franvaro-out">0 kr</span></div>
+                                <div class="lon-rrow lon-rrow-skatt"><span>Skatt</span><span id="lon-tax">0 kr</span></div>
                             </div>
                         </div>
-                        <button type="button" id="lon-share" class="lon-share" onclick="delaManad()"><span class="material-symbols-rounded">ios_share</span> Dela sammanställning</button>
+                        <div class="sa-grp lon-under">
+                            <button type="button" class="sa-li" onclick="openLonSettings()"><span class="sa-ic"><span class="material-symbols-rounded">upload_file</span></span><span class="sa-t">Underlag<small id="lon-under-sub">tidrapport och lönespec</small></span><span class="sa-chev material-symbols-rounded">chevron_right</span></button>
+                            <button type="button" class="sa-li" id="lon-share" onclick="delaManad()"><span class="sa-ic"><span class="material-symbols-rounded">ios_share</span></span><span class="sa-t">Dela sammanställning</span><span class="sa-chev material-symbols-rounded">chevron_right</span></button>
+                        </div>
                         <!-- Dolda auto-fält -->
                         <div class="hidden">
                             <input id="lon-sales" type="hidden"><input id="lon-ob50" type="hidden"><input id="lon-ob100" type="hidden">
@@ -959,8 +864,8 @@
         </div>
     </div>
 
-    <script src="script.js?v=193"></script>
-    <script src="fx.js?v=193"></script>
+    <script src="script.js?v=194"></script>
+    <script src="fx.js?v=194"></script>
     <script src="fxsidor.js?v=188"></script>
     <script src="fxkal.js?v=180"></script>
     <script src="fxangra.js?v=182"></script>

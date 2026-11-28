@@ -436,8 +436,8 @@
       <section class="fx-hero5">
         <div class="fx-g3">${dagKol}${manKol}${krKol}</div>
         <div class="fx-tl3">
-          <button class="tl bon${slot ? ' on' : ''}" onclick="fxSlot()"><span>${ic('workspace_premium')}Vald bonus</span><b>${vald ? vald.pct + ' %' : '—'}</b><small>${vald ? kk(vald.min) + ' · ' + (m.salt >= vald.min ? 'nådd' : kk(vald.min - m.salt) + ' kvar') : 'inga nivåer'}</small></button>
-          <div class="tl prog"><span>${ic('trending_up')}Prognos</span><b>${kk(m.prognos)}</b><small>${m.mal > 0 ? pc(pf) : ''}${reach ? ' · räcker till ' + reach.pct + ' %' : ' · under bonusnivå'}</small></div>
+          <button class="tl bon${slot ? ' on' : ''}" onclick="fxSlot()"><span>${ic('workspace_premium')}Vald bonus</span><b>${vald ? vald.pct + ' %' : '—'}</b><small>${vald ? (m.salt >= vald.min ? 'nådd vid ' + kk(vald.min) : kk(vald.min - m.salt) + ' kvar') : 'inga nivåer'}</small></button>
+          <div class="tl prog"><span>${ic('trending_up')}Prognos</span><b>${kk(m.prognos)}</b><small>${reach ? 'räcker till ' + reach.pct + ' %' : m.mal > 0 ? pc(pf) + ' av målet' : 'under bonusnivå'}</small></div>
           ${np ? `<button class="tl pass" onclick="fxDag('${np.k}')"><span>${ic('event')}Nästa pass</span><b>${np.d.getTime() === realToday.getTime() ? 'Idag' : DAG[np.d.getDay()].slice(0, 3) + ' ' + np.d.getDate() + ' ' + MAN[np.d.getMonth()].slice(0, 3)}</b><small><b>${String(np.q.start).slice(0, 5)}–${String(np.q.end || '').slice(0, 5)}</b><br>mål ${np.mal ? kr(np.mal) + ' kr' : '—'}</small></button>` : `<div class="tl pass"><span>${ic('event')}Nästa pass</span><b>—</b><small>inget i schemat</small></div>`}
         </div>
       </section>

@@ -142,7 +142,7 @@ function renderBudgetChoices(){
     const cy = viewDate.getFullYear(), cm = viewDate.getMonth() + 1;
     const lbl = document.getElementById('budget-month-lbl');
     const MAN = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
-    if (lbl) lbl.innerText = 'Månadsmål · ' + MAN[cm-1];
+    if (lbl) lbl.innerText = MAN[cm-1].charAt(0).toUpperCase() + MAN[cm-1].slice(1);
     let steg = [];
     try { if (!lonCfg) lonLoad(); steg = lonTiersForMonth(cm, cy).filter(t => Number(t.min) > 0); } catch(e){}
     const satt = savedBudgets[`${cy}-${cm}`] || null;
@@ -153,6 +153,16 @@ function renderBudgetChoices(){
         html += `<button onclick="setGlobalBudget(${Number(t.min)})" class="md-budget-btn${satt === Number(t.min) ? ' is-active' : ''}">${t.pct} % · ${kr(t.min)}${t.egen ? ' · egen' : ''}</button>`;
     });
     box.innerHTML = html;
+    // sammanfattning på huvudsidan i Inställningar
+    try {
+        const vald = satt ? steg.find(t => Number(t.min) === satt) : null;
+        const ns = document.getElementById('st-niva-sub');
+        if (ns) ns.innerText = vald ? `${vald.pct} % från ${kr(vald.min)}${vald.egen ? ' · egen nivå' : ''}` : `följer trappan · 12 % från ${kr(auto)}`;
+        const bl = bonusLattnad(cy, cm), egenL = lonCfg.lattnadPct ? lonCfg.lattnadPct[`${cy}-${cm}`] : undefined;
+        const ls = document.getElementById('st-lat-sub'), lv = document.getElementById('st-lat-v');
+        if (ls) ls.innerText = typeof egenL === 'number' ? 'eget val' : (bl.regel === 'dag' ? 'räknas per dag' : '25 % per frånvarovecka');
+        if (lv) lv.innerText = typeof egenL === 'number' ? egenL + ' %' : 'Auto ' + Math.round((bl.autoRatio || 0) * 100) + ' %';
+    } catch(e){}
     try { renderBonusEgen(); } catch(e){ console.warn(e); }
 }
 
@@ -259,7 +269,28 @@ function showToast(icon, msg, duration = 4000) {
 // ==========================================
 let activeCoachCallId = null;
 
+function coachTyp(t){
+    const sel = document.getElementById('call-input-type'); if (sel) sel.value = t === 'utv' ? 'utv' : 'bra';
+    document.querySelectorAll('#call-typ-seg button').forEach((b, i) => b.classList.toggle('on', (i === 1) === (t === 'utv')));
+}
+window.coachTyp = coachTyp;
+const coachEsc = t => String(t || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function coachRad(c){
+    const utv = (c.title || '').includes('[UTV]');
+    const namn = (c.title || 'Samtal').replace('[BRA] ', '').replace('[UTV] ', '');
+    const init = namn.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+    const dat = c.created_at ? new Date(c.created_at).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' }) : '';
+    return `<button type="button" class="sa-li" onclick="openCoachCall('${coachEsc(c.id)}')"><span class="sa-av">${coachEsc(init)}</span><span class="sa-t">${coachEsc(namn)}<small>${dat}</small></span><span class="sa-chip ${utv ? 'am' : 'ok'}">${utv ? 'Utveckla' : 'Avslut'}</span></button>`;
+}
+function renderCoachSenaste(){
+    const box = document.getElementById('coach-senaste'); if (!box) return;
+    const n = (typeof savedCalls !== 'undefined' && savedCalls) ? savedCalls.length : 0;
+    box.innerHTML = n
+        ? savedCalls.slice(0, 3).map(coachRad).join('') + `<button type="button" class="sa-li" onclick="openCoachHistoryModal()"><span class="sa-ic"><span class="material-symbols-rounded">history</span></span><span class="sa-t">Hela historiken</span><span class="sa-v">${n}</span><span class="sa-chev material-symbols-rounded">chevron_right</span></button>`
+        : `<div class="sa-li"><span class="sa-ic"><span class="material-symbols-rounded">history</span></span><span class="sa-t">Inga samtal än<small>Analyserade samtal sparas här</small></span></div>`;
+}
 function openCoachModalMain() {
+    renderCoachSenaste();
     const m = document.getElementById('coach-main-modal');
     if(m) { 
         m.classList.remove('hidden'); 
@@ -331,14 +362,9 @@ async function submitNewCall() {
                 
                 if(btn) {
                     let oldText = btn.innerHTML;
-                    btn.innerHTML = "✅ SPARAD I HISTORIK!";
-                    btn.classList.add("bg-emerald-500", "border-emerald-400");
-                    btn.classList.remove("bg-slate-800");
-                    setTimeout(() => {
-                        btn.innerHTML = oldText;
-                        btn.classList.remove("bg-emerald-500", "border-emerald-400");
-                        btn.classList.add("bg-slate-800");
-                    }, 2500);
+                    btn.innerHTML = '<span class="material-symbols-rounded">check</span> Sparat i historiken';
+                    btn.classList.add('klar');
+                    setTimeout(() => { btn.innerHTML = oldText; btn.classList.remove('klar'); }, 2500);
                 }
 
                 const callCount = savedCalls.length;
@@ -387,41 +413,16 @@ function openSavedRedThread() {
 function renderCoachingLibrary() {
     const list = document.getElementById('coach-history-list');
     if (!list) return;
-
+    renderCoachSenaste();
     const bra = savedCalls.filter(c => (c.title || '').includes('[BRA]'));
-    const utv = savedCalls.filter(c => (c.title || '').includes('[UTV]') || (!(c.title || '').includes('[BRA]') && !(c.title || '').includes('[UTV]')));
-
+    const utv = savedCalls.filter(c => !(c.title || '').includes('[BRA]'));
     let html = '';
-
-    const savedThread = localStorage.getItem('sf_latest_red_thread');
-    if (savedThread) {
-        html += `
-        <div onclick="openSavedRedThread()" class="mb-5 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] p-4 rounded-[20px] shadow-md text-white active:scale-95 transition-transform cursor-pointer relative overflow-hidden border border-[#bae6fd]">
-            <div class="absolute right-[-10px] top-[-10px] text-[60px] opacity-10">🧠</div>
-            <h4 class="text-[11.5px] font-black uppercase tracking-widest mb-1.5 flex items-center gap-1.5"><span class="text-[16px]">🧠</span> DIN RÖDA TRÅD</h4>
-            <p class="text-[10px] font-bold text-[#e0f2fe] leading-snug">AI:n har hittat mönster i dina samtal. Klicka för insikter.</p>
-        </div>`;
+    if (localStorage.getItem('sf_latest_red_thread')) {
+        html += `<div class="sa-grp"><button type="button" class="sa-li" onclick="openSavedRedThread()"><span class="sa-ic"><span class="material-symbols-rounded">psychology</span></span><span class="sa-t">Din röda tråd<small>Mönster i dina samtal</small></span><span class="sa-chev material-symbols-rounded">chevron_right</span></button></div>`;
     }
-    
-    if(bra.length > 0) {
-        html += `<div class="mb-3">
-                    <h4 class="text-[9px] font-black uppercase text-emerald-600 tracking-widest mb-2 border-b border-emerald-100 pb-1.5 flex items-center gap-1.5"><span>✅</span> Lyckade Avslut</h4>
-                    <div class="flex flex-col gap-2">${bra.map(c => createCallCard(c, 'emerald')).join('')}</div>
-                 </div>`;
-    }
-    
-    if(utv.length > 0) {
-        html += `<div>
-                    <h4 class="text-[9px] font-black uppercase text-rose-500 tracking-widest mb-2 border-b border-rose-100 pb-1.5 flex items-center gap-1.5"><span>🎯</span> Utvecklingspotential</h4>
-                    <div class="flex flex-col gap-2">${utv.map(c => createCallCard(c, 'rose')).join('')}</div>
-                 </div>`;
-    }
-
-    if(bra.length === 0 && utv.length === 0 && !savedThread) {
-        list.innerHTML = `<p class="text-center text-[10px] font-bold text-slate-400 mt-6 uppercase tracking-widest">Historiken är tom</p>`;
-    } else {
-        list.innerHTML = html;
-    }
+    if (bra.length) html += `<p class="sa-lbl">Lyckade avslut · ${bra.length}</p><div class="sa-grp">${bra.map(coachRad).join('')}</div>`;
+    if (utv.length) html += `<p class="sa-lbl">Kunde gått bättre · ${utv.length}</p><div class="sa-grp">${utv.map(coachRad).join('')}</div>`;
+    list.innerHTML = html || `<div class="sa-grp"><div class="sa-li"><span class="sa-ic"><span class="material-symbols-rounded">history</span></span><span class="sa-t">Historiken är tom<small>Analyserade samtal sparas här</small></span></div></div>`;
 }
 
 function createCallCard(call, color) {
@@ -801,12 +802,12 @@ async function loadAllData() {
 
 async function syncData() {
     const btn = document.getElementById('sync-btn'); if(!btn) return;
-    const oldTxt = btn.innerHTML; btn.innerHTML = '<span>⚡</span> SYNKAR...';
+    const oldTxt = btn.innerHTML; btn.innerHTML = '<span class="material-symbols-rounded">sync</span> Synkar…'; btn.classList.add('synkar');
     scheduleSource = null;
     await loadAllData(); calculateTimeline(); updateDash(); 
     if (viewMode === 'dash') updateDashboardView();
     else if (viewMode === 'absence') renderAbsence();
-    setTimeout(() => { btn.innerHTML = oldTxt; }, 800);
+    setTimeout(() => { btn.innerHTML = oldTxt; btn.classList.remove('synkar'); }, 800);
     if (scheduleSource === 'live') showToast('✅', 'Schemat hämtat direkt från Quinyx', 2200);
     else if (scheduleSource === 'backup') showToast('⚠️', 'Quinyx svarade inte – använde gårdagens schema', 3000);
 }
@@ -3441,7 +3442,7 @@ function lonRecalc(){
     document.getElementById('lon-franvaro-out').innerText = '−' + lonKr(franvOut);
     const fsEl = document.getElementById('lon-franv-sub');
     if (fsEl){
-        if (fromFacit && facit && facit.franvaro_avdrag_kr != null) { fsEl.innerText = ' enligt lönespec'; }
+        if (fromFacit && facit && facit.franvaro_avdrag_kr != null) { fsEl.innerText = ' enligt lönespecen'; }
         else { let parts=[]; if(franvHelDagar>0) parts.push(`${franvHelDagar} heldag${franvHelDagar===1?'':'ar'}`); if(franvTim>0) parts.push(`${franvTim} tim`); fsEl.innerText = parts.length ? ' ' + parts.join(' + ') : ''; }
     }
     // EN enda tilldelning. Tidigare sattes raden på två ställen i samma funktion
@@ -3452,7 +3453,7 @@ function lonRecalc(){
         const y2 = lonViewDate.getFullYear(), m2 = lonViewDate.getMonth()+1;
         const heltSchema = schemaTackerManad(y2, m2) || (lonMonthly[lonKey()] || {}).rawOb100 != null;
         const auto = !fromFacit && OB.src === 'auto';
-        obHintEl.innerText = (fromFacit || OB.src === 'facit') ? 'Från lönespec (facit)'
+        obHintEl.innerText = (fromFacit || OB.src === 'facit') ? 'enligt lönespecen'
                            : OB.src === 'prognos'              ? 'Från tidrapport'
                            : heltSchema                        ? 'Auto från dina pass'
                            : '⚠️ Auto – schemat täcker bara en del av månaden';
@@ -3462,11 +3463,16 @@ function lonRecalc(){
     const reliefInfo = lonAdjustedTiers(lonViewDate.getFullYear(), lonViewDate.getMonth()+1);
     if (avEl){
         let t = sales>0 ? ` ${pct}% av ${lonKr(sales)}` : ''; if((lonAvdrag||0)>0) t += ` − ${lonAvdrag}%`; if (reliefInfo.ratio>0) t += ` · trösklar lättade ${Math.round(reliefInfo.ratio*100)}% · ` + (reliefInfo.manuell ? 'eget val' : reliefInfo.regel === 'vecka' ? `${reliefInfo.veckor} ${reliefInfo.veckor === 1 ? 'vecka' : 'veckor'} ledig` : `${reliefInfo.dagar} av ${reliefInfo.dim} dagar`);
-        if (fromFacit && appBonus > 0 && Math.abs(bonusOut - Math.round(appBonus)) > 100) t = ` enligt lönespec · appen räknade ${lonKr(Math.round(appBonus))} (${pct}% av ${lonKr(sales)})`;
+        if (fromFacit && appBonus > 0 && Math.abs(bonusOut - Math.round(appBonus)) > 100) t = ` utbetalt · rätt enligt appen ${lonKr(Math.round(appBonus))}`;
+        else if (fromFacit) t = ' enligt lönespecen';
         avEl.innerText = t;
     }
-    lonRenderTierGoal(sales, reliefInfo);
+    // nästa nivå är bara intressant medan månaden pågår
+    if (fromFacit) { const tg = document.getElementById('lon-tier-goal'); if (tg) tg.classList.add('hidden'); }
+    else lonRenderTierGoal(sales, reliefInfo);
 
+    const us = document.getElementById('lon-under-sub');
+    if (us) { const k0 = lonKey(), m0 = x => lonHasFacit(k0, x) ? '✓' : '–'; us.innerText = `tidrapport ${m0('tidrapport')} · lönespec ${m0('lonespec')}`; }
     // Bonusskuld: på månaden den uppstod ("saknas") och på lönen den betalas med ("efterbetalning")
     const MANK = ['jan','feb','mars','april','maj','juni','juli','aug','sep','okt','nov','dec'];
     const kRow = document.getElementById('lon-korr-row');
@@ -3476,7 +3482,7 @@ function lonRecalc(){
         const utbM = k => { const n = lonYm(k) + 1; return MANK[(n - 1) % 12]; };
         if (efterbet > 0 && !fromFacit){
             kRow.classList.remove('hidden'); kRow.classList.remove('saknas');
-            if (lbl) lbl.firstChild.nodeValue = '↳ varav efterbetald bonus';
+            if (lbl) lbl.firstChild.nodeValue = 'Efterbetald bonus';
             if (ut) ut.innerText = '+' + lonKr(efterbet);
             if (sub) sub.innerText = ' ' + skuldIn.map(r => `för ${MANK[+r.k.split('-')[1] - 1]}`).join(', ');
         } else if (egen){
@@ -3644,6 +3650,7 @@ const APP_VERSION = (function(){
 function openLonSettings(){
     if (!lonCfg) lonLoad();
     lonRenderTiers(); lonRenderUploads(); lonFillSemField();
+    try { const al = document.getElementById('lon-avdrag-lbl'); if (al && lonViewDate) al.innerText = 'Bonusavdrag · ' + lonMonthLabel(lonKey()); } catch(e){}
     const m=document.getElementById('lon-settings-modal');
     if(m){ m.classList.remove('hidden'); setTimeout(()=>m.classList.replace('opacity-0','opacity-100'),10); if(window.sfPushHist) window.sfPushHist(); }
 }
@@ -3668,9 +3675,9 @@ function lonSetSemSaldo(v){
 }
 window.lonSetSemSaldo = lonSetSemSaldo;
 function lonFillSemField(){
-    const el=document.getElementById('lon-cfg-semlon'); if(el) el.value = lonCfg.semLonDag || '';
+    const el=document.getElementById('lon-cfg-semlon'); if(el) el.value = lonCfg.semLonDag ? Math.round(lonCfg.semLonDag) : '';
     const h=document.getElementById('lon-semlon-hint');
-    if(h) h.innerText = lonCfg.semLonManual ? `Manuellt satt. Avdrag ~${lonKr(lonCfg.semAvdragDag||0)}/dag. Töm fältet för auto.` : `Lärs in från specar (senaste: ${lonKr(lonCfg.semLonDag||0)}/dag). Skriv för att överskrida.`;
+    if(h) h.innerText = lonCfg.semLonManual ? 'eget värde · töm för auto' : 'inlärt från specarna';
     const schedEl=document.getElementById('lon-cfg-semsched');
     if(schedEl){ const mm=(lonMonthly[lonKey()]||{}); schedEl.value = (typeof mm.semSchedManual==='number') ? mm.semSchedManual : ''; }
     const sEl=document.getElementById('lon-cfg-semsaldo');
@@ -3678,11 +3685,11 @@ function lonFillSemField(){
     const sh=document.getElementById('lon-semsaldo-hint');
     if(sh){
         const s = lonCfg.semSaldo;
-        if (!s) sh.innerText = 'Saknas. Skriv in saldot från "Betald semester" på senaste lönespecen – annars antas alla semesterdagar vara betalda.';
+        if (!s) sh.innerText = 'saknas, se "Betald semester" på specen';
         else {
             const p = String(s.key).split('-');
             const mn = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'][(+p[1])-1];
-            sh.innerText = `${s.days} betalda dagar kvar efter ${mn} ${p[0]}${lonCfg.semSaldoManual ? ' (manuellt)' : ' (från lönespec)'}. Räknas ner automatiskt.`;
+            sh.innerText = `efter ${mn} · ${lonCfg.semSaldoManual ? 'eget värde' : 'från lönespecen'}`;
         }
     }
 }
@@ -3706,7 +3713,7 @@ function lonClickUpload(slot){ document.getElementById('lon-file-input-'+slot).c
 function lonRenderUploads(){
     const cur=realToday; const prev=new Date(cur.getFullYear(), cur.getMonth()-1, 1);
     const prevKey=`${prev.getFullYear()}-${prev.getMonth()+1}`;
-    [['tidrapport','Tidrapport (löneart)'],['lonespec','Lönespec']].forEach(([slot,name])=>{
+    [['tidrapport','Tidrapport'],['lonespec','Lönespec']].forEach(([slot,name])=>{
         const btn=document.getElementById('lon-btn-'+slot); const txt=btn&&btn.querySelector('.lon-upbtn-txt');
         if(txt) txt.innerText = name;
         if(btn) btn.classList.remove('lon-locked');
@@ -3715,7 +3722,7 @@ function lonRenderUploads(){
     const help=document.getElementById('lon-upload-help');
     if(help) help.innerHTML = `Ladda upp <b>när du vill</b> – appen läser månaden ur bilden och avgör själv om det är <b>prognos</b> (pågående månad), <b>facit</b> (avslutad → kalibrerar) eller för gammal. Senaste filen per månad gäller alltid.`;
     const ls=document.getElementById('lon-learn-status');
-    if(ls){ const c=lonCfg; ls.innerHTML = `Inlärt: OB-faktor ${(c.obCorr.ob50||1).toFixed(2)}/${(c.obCorr.ob100||1).toFixed(2)}, frånvaro ${(c.franvCorr||1).toFixed(2)}, ${c.taxAnchors.length} skattepunkter.`; }
+    if(ls){ const c=lonCfg; ls.innerText = `Inlärt från specarna: OB ${(c.obCorr.ob50||1).toFixed(2).replace('.',',')} / ${(c.obCorr.ob100||1).toFixed(2).replace('.',',')}, frånvaro ${(c.franvCorr||1).toFixed(2).replace('.',',')}, ${c.taxAnchors.length} skattepunkter.`; }
     lonRenderHistory();
 }
 function lonRenderReminder(){
@@ -3749,7 +3756,9 @@ function lonRenderHistory(){
         else if (isCur && (lonHasProg(key,'tidrapport')||lonHasFacit(key,'tidrapport'))){ badge='Prognos'; cls='lh-blue'; }
         else if (lonHasFacit(key,'tidrapport')||lonHasFacit(key,'lonespec')){ badge='Öppen'; cls='lh-amber'; }
         else { badge=isCur?'Pågår':'Väntar'; cls='lh-grey'; }
-        return `<div class="lon-hist-row ${cls}"><span class="lh-month">${lonMonthLabel(key)}</span><span class="lh-marks">tidr ${tid} · spec ${spec}</span><span class="lh-badge">${badge}</span></div>`;
+        const chip = cls === 'lh-green' ? 'ok' : cls === 'lh-amber' ? 'am' : '';
+        const mrk = t => t === '✓' ? '✓' : t === '~' ? 'prognos' : '–';
+        return `<div class="sa-li"><span class="sa-t">${lonMonthLabel(key)}<small>tidrapport ${mrk(tid)} · lönespec ${mrk(spec)}</small></span><span class="sa-chip ${chip}">${badge}</span></div>`;
     }).join('');
 }
 
@@ -4004,12 +4013,15 @@ function lonRenderFile(slot){
     // visa filen för den månad som senast har en bilaga av denna typ (innevarande → bakåt)
     let k=null; for(const key of lonRecentMonthKeys(4)){ if(lonHasFile(key,slot)){ k=key; break; } }
     const el = document.getElementById('lon-file-'+slot); if(!el) return;
-    if (!k){ el.classList.add('hidden'); el.innerHTML=''; return; }
+    const kn = document.getElementById('lon-fk-'+slot);
+    if (!k){ el.innerText = 'Ingen bild än · tryck för att ladda upp'; if (kn) kn.innerHTML = '<span class="sa-chip">Ladda upp</span>'; return; }
     const f = lonMonthly[k]['file_'+slot];
-    el.classList.remove('hidden');
-    el.innerHTML = `📎 ${lonMonthLabel(k)}: ${f.name}` + ((f.data || f.remote)?' <span class="lon-file-open">öppna</span>':'') + ' <span class="lon-file-del">ta bort</span>';
-    const o = el.querySelector('.lon-file-open'); if(o) o.onclick = async ()=>{ const bild = f.data || await lonHamtaBild(k, slot); if(!bild){ showToast('⚠️','Kunde inte hämta bilden',2400); return; } const w=window.open(); if(w) w.document.write('<iframe src="'+bild+'" style="border:0;width:100%;height:100%"></iframe>'); };
-    const d = el.querySelector('.lon-file-del'); if(d) d.onclick = ()=>{ delete lonMonthly[k]['file_'+slot]; lonRaderaFilRad(k, slot); lonClearCalibration(k, slot); delete (lonMonthly[k]||{})['prog_'+slot]; lonSaveMonthly(); lonRenderUploads(); lonRenderReminder(); lonRecalc(); showToast('🗑️',`${lonMonthLabel(k)} ${slot} borttagen – omräknad`,2800); };
+    el.innerText = lonMonthLabel(k) + (lonHasFacit(k, slot) ? ' · inläst' : ' · prognos');
+    if (!kn) return;
+    kn.innerHTML = ((f.data || f.remote) ? '<button type="button" class="lon-fk" aria-label="Öppna bilden"><span class="material-symbols-rounded">visibility</span></button>' : '')
+                 + '<button type="button" class="lon-fk del" aria-label="Ta bort bilden"><span class="material-symbols-rounded">delete</span></button>';
+    const o = kn.querySelector('.lon-fk:not(.del)'); if(o) o.onclick = async (e)=>{ e.stopPropagation(); const bild = f.data || await lonHamtaBild(k, slot); if(!bild){ showToast('⚠️','Kunde inte hämta bilden',2400); return; } const w=window.open(); if(w) w.document.write('<iframe src="'+bild+'" style="border:0;width:100%;height:100%"></iframe>'); };
+    const d = kn.querySelector('.lon-fk.del'); if(d) d.onclick = (e)=>{ e.stopPropagation(); if(!confirm(`Ta bort ${slot === 'lonespec' ? 'lönespecen' : 'tidrapporten'} för ${lonMonthLabel(k)}?`)) return; delete lonMonthly[k]['file_'+slot]; lonRaderaFilRad(k, slot); lonClearCalibration(k, slot); delete (lonMonthly[k]||{})['prog_'+slot]; lonSaveMonthly(); lonRenderUploads(); lonRenderReminder(); lonRecalc(); showToast('🗑️',`${lonMonthLabel(k)} ${slot} borttagen – omräknad`,2800); };
 }
 
 // Tar bort laddskärmen. Säkerhetstimern nedan gör att den ALLTID försvinner –
@@ -4778,7 +4790,7 @@ function renderEvalMetricsUI() {
     cont.innerHTML = evalMetrics.map(m => {
         const score = evalState[m.id] || 0;
         const knappar = [1,2,3,4,5].map(i => `<button type="button" class="${i === score ? 'on' : ''}" onclick="setEvalScore('${m.id}', ${i})" aria-label="${m.label} ${i} av 5">${i}</button>`).join('');
-        return `<div class="ev-rad"><div class="ev-topp"><b>${m.label}</b><span>${score ? ord[score-1] : 'Inte satt'}</span></div><div class="ev-skala">${knappar}</div></div>`;
+        return `<div class="sa-li ev-li"><span class="sa-t">${m.label}<small>${score ? ord[score-1] : 'inte satt'}</small></span><span class="sa-seg ev-seg">${knappar}</span></div>`;
     }).join('');
 }
 
@@ -4977,6 +4989,7 @@ function deleteNote(id) {
     cleanNotes = cleanNotes.filter(n => n.id !== id);
     sparaNotesLokalt(cleanNotes);
     notesSkicka(id, 'bort');   // förut låg raden kvar i molnet för alltid
+    if (currentEditId === id) { currentEditId = null; ntStangForm(); }
     renderNotes();
 }
 
@@ -5003,18 +5016,15 @@ function renderNotes() {
             : `<div class="nt-tom"><b>Inga anteckningar än</b><span>Tryck ＋ Ny för att spara en kund, eller skanna en lapp med kameran.</span></div>`;
         return;
     }
-    c.innerHTML = lista.map(n => {
-        const d = ntDagarKvar(n.due);
-        const due = d === null ? '' : `<i class="nt-tag ${d < 0 ? 'bad' : d <= 7 ? 'warn' : ''}">⏳ ${d < 0 ? Math.abs(d) + ' d sen' : d === 0 ? 'idag' : d === 1 ? 'imorgon' : 'om ' + d + ' d'}</i>`;
-        const tel = n.phone ? `<i class="nt-tag">📞 ${escHtml(n.phone)}</i>` : '';
-        const ord = n.order ? `<i class="nt-tag">📦 ${escHtml(n.order)}</i>` : '';
-        return `<div class="nt-card p${escHtml(n.prio || '0')}" onclick="editNote(${Number(n.id)})">
-            <div class="nt-card-top"><b>${escHtml(n.name || 'Utan namn')}</b>
-              <button class="nt-del" onclick="event.stopPropagation();deleteNote(${Number(n.id)})" aria-label="Ta bort"><span class="material-symbols-rounded">delete</span></button></div>
-            ${n.text ? `<p>${escHtml(n.text)}</p>` : ''}
-            ${tel || ord || due ? `<div class="nt-tags">${tel}${ord}${due}</div>` : ''}
-        </div>`;
-    }).join('');
+    // en grupp med en rad per kund: initialer, namn, första raden av texten, förfallodatum
+    c.innerHTML = `<div class="sa-grp">${lista.map(n => {
+        const d = ntDagarKvar(n.due), sen = d !== null && d < 0;
+        const namn = n.name || 'Utan namn';
+        const init = namn.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
+        const chip = d === null ? '' : `<span class="sa-chip ${sen ? 'bad' : d <= 7 ? 'am' : ''}">${sen ? Math.abs(d) + ' d sen' : d === 0 ? 'idag' : d === 1 ? 'imorgon' : 'om ' + d + ' d'}</span>`;
+        const sub = n.text || [n.phone, n.order].filter(Boolean).join(' · ');
+        return `<button type="button" class="sa-li nt-rad" onclick="editNote(${Number(n.id)})"><span class="sa-av${sen || n.prio === '1' ? ' bad' : ''}">${escHtml(init)}</span><span class="sa-t">${escHtml(namn)}${sub ? `<small>${escHtml(sub)}</small>` : ''}</span>${chip}</button>`;
+    }).join('')}</div>`;
 }
 function ntSok(v){ ntQ = v || ''; renderNotes(); }
 function ntFilter(f){ ntF = f; document.querySelectorAll('#nt-filter button').forEach(b => b.classList.toggle('is-on', b.getAttribute('data-f') === f)); renderNotes(); }
@@ -5025,6 +5035,7 @@ function ntOppnaForm(andra){
     const f = document.getElementById('nt-form'); if (!f) return;
     const m = document.getElementById('notes-modal'); if (m && m.classList.contains('hidden')) openNotesModal();
     const t = document.getElementById('nt-form-title'); if (t) t.innerText = andra ? 'Ändra anteckning' : 'Ny anteckning';
+    const tb = document.getElementById('nt-ta-bort'); if (tb) tb.hidden = !andra;
     ntPrioRita(); ntDueRita(); f.classList.add('open');
 }
 function ntStangForm(){ const f = document.getElementById('nt-form'); if (f) f.classList.remove('open'); }
@@ -5109,10 +5120,10 @@ function calculateSummaryStats() {
     
     document.getElementById('sum-workdays').innerText = wDays; document.getElementById('sum-absdays').innerText = aDays;
     
-    if (bestS > 0) { document.getElementById('sum-bestday-val').innerText = (bestS/1000).toFixed(1) + "k"; document.getElementById('sum-bestday-lbl').innerText = bestD; } else { document.getElementById('sum-bestday-val').innerText = "0k"; document.getElementById('sum-bestday-lbl').innerText = "--"; }
-    if (worstS !== Infinity) { document.getElementById('sum-worstday-val').innerText = (worstS/1000).toFixed(1) + "k"; document.getElementById('sum-worstday-lbl').innerText = worstD; } else { document.getElementById('sum-worstday-val').innerText = "0k"; document.getElementById('sum-worstday-lbl').innerText = "--"; }
+    if (bestS > 0) { document.getElementById('sum-bestday-val').innerText = (bestS/1000).toFixed(1).replace(".", ",") + "k"; document.getElementById('sum-bestday-lbl').innerText = bestD; } else { document.getElementById('sum-bestday-val').innerText = "0k"; document.getElementById('sum-bestday-lbl').innerText = "--"; }
+    if (worstS !== Infinity) { document.getElementById('sum-worstday-val').innerText = (worstS/1000).toFixed(1).replace(".", ",") + "k"; document.getElementById('sum-worstday-lbl').innerText = worstD; } else { document.getElementById('sum-worstday-val').innerText = "0k"; document.getElementById('sum-worstday-lbl').innerText = "--"; }
     
-    document.getElementById('sum-streak').innerText = maxStreak + " 🔥";
+    document.getElementById('sum-streak').innerText = maxStreak;
 
     // Boost: dagar du höjde ribban själv, och hur mycket du sålt ÖVER basmålet.
     const bs = boostStats(cy, cm);
@@ -5120,14 +5131,14 @@ function calculateSummaryStats() {
     if (bRow) {
         if (bs.dagar > 0 || bs.over > 0) {
             bRow.classList.remove('hidden');
-            document.getElementById('sum-boost-val').innerText = bs.klarade + "/" + bs.dagar + " ⚡";
+            document.getElementById('sum-boost-val').innerText = bs.klarade + " / " + bs.dagar;
             document.getElementById('sum-boost-sub').innerText = bs.over > 0
                 ? `${lonKr(Math.round(bs.over))} över målet`
-                : 'Klarade av satta';
+                : 'klarade av satta';
             // Raden visas även när du bara sålt över målet utan att ha boostat.
             // Då finns inga dagar att markera, så lova det inte heller.
             const bHint = document.getElementById('sum-boost-hint');
-            if (bHint) bHint.innerText = bs.dagar > 0 ? 'Markera boostade dagar' : 'Inga boostade dagar';
+            if (bHint) bHint.innerText = bs.dagar > 0 ? 'tryck för att markera' : 'inga boostade dagar';
             bRow.classList.toggle('sum-clickable', bs.dagar > 0);
         } else bRow.classList.add('hidden');
     }
@@ -5155,11 +5166,11 @@ function calculateSummaryStats() {
     for (const [wKey, wSum] of Object.entries(weeklySalesMap)) {
         if (wSum > bestWk) {
             bestWk = wSum;
-            bestWkLbl = "V." + wKey.split('-W')[1];
+            bestWkLbl = "vecka " + wKey.split('-W')[1];
             bestWkKey = wKey;
         }
     }
-    document.getElementById('sum-bestweek-val').innerText = (bestWk/1000).toFixed(1) + "k"; document.getElementById('sum-bestweek-lbl').innerText = bestWkLbl;
+    document.getElementById('sum-bestweek-val').innerText = (bestWk/1000).toFixed(1).replace(".", ",") + "k"; document.getElementById('sum-bestweek-lbl').innerText = bestWkLbl;
 
     // Spara nyckelmängder för sammanfattningens fokusåtgärder
     summaryFocus = {
@@ -5173,30 +5184,21 @@ function calculateSummaryStats() {
         absDetails.classList.remove('hidden'); let h = "";
         for (let a in f_reasons) {
             const cnt = f_reasons[a].length;
-            h += `<button onclick="focusFromSummary('reason','${a.replace(/'/g,"\\'")}')" class="sum-reason-row"><span class="sum-reason-name">${focusEmoji(a)} ${a}</span><span class="sum-reason-cnt">${cnt} st <span class="material-symbols-rounded">chevron_right</span></span></button>`;
+            const fg = /^VAB/i.test(a) ? '#d39b1f' : /^För/i.test(a) ? '#7c5ce0' : /^Sjuk/i.test(a) ? '#d8513f' : /^Semester/i.test(a) ? '#1f9d63' : '#8a93a3';
+            h += `<button type="button" onclick="focusFromSummary('reason','${a.replace(/'/g,"\\'")}')" class="sa-li"><span class="sum-dot" style="background:${fg}"></span><span class="sa-t">${escHtml(a)}</span><span class="sa-v">${cnt} ${cnt === 1 ? 'dag' : 'dagar'}</span><span class="sa-chev material-symbols-rounded">chevron_right</span></button>`;
         }
         absList.innerHTML = h;
     } else { absDetails.classList.add('hidden'); }
 
     const insightCont = document.getElementById('insight-container');
     if (totalEvals === 0) {
-        insightCont.innerHTML = `<div class="flex flex-col items-center justify-center py-10 opacity-50"><span class="text-4xl mb-2">🫙</span><p class="text-[10px] font-black uppercase tracking-widest text-center text-slate-500">Inga utvärderingar<br>denna månad</p></div>`;
+        insightCont.innerHTML = `<div class="sa-grp"><div class="sa-li"><span class="sa-ic"><span class="material-symbols-rounded">lightbulb</span></span><span class="sa-t">Inga utvärderingar den här månaden<small>Utvärdera pass under Registrera → Verktyg</small></span></div></div>`;
     } else {
-        let goodHtml = ''; let badHtml = '';
-        evalMetrics.forEach(m => {
-            let gAvg = goodCount[m.id] > 0 ? (goodScores[m.id] / goodCount[m.id]).toFixed(1) : '-';
-            let bAvg = badCount[m.id] > 0 ? (badScores[m.id] / badCount[m.id]).toFixed(1) : '-';
-            if(gAvg !== '-') { goodHtml += `<div class="flex justify-between items-center py-0.5 border-b border-[#bbf7d0] last:border-0"><span class="text-[9.5px] font-bold text-emerald-700">${m.label}</span><span class="text-[11px] font-black text-emerald-600 bg-white px-2 py-0.5 rounded shadow-sm">${gAvg}</span></div>`; }
-            if(bAvg !== '-') { badHtml += `<div class="flex justify-between items-center py-0.5 border-b border-[#fecdd3] last:border-0"><span class="text-[9.5px] font-bold text-rose-700">${m.label}</span><span class="text-[11px] font-black text-rose-600 bg-white px-2 py-0.5 rounded shadow-sm">${bAvg}</span></div>`; }
-        });
-
-        insightCont.innerHTML = `
-            <div class="bg-white border border-slate-100 rounded-[20px] p-2 shadow-sm flex flex-col gap-2">
-                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block text-center mb-0.5">Dina mönster (${totalEvals} pass)</span>
-                ${goodHtml ? `<div class="bg-[#f0fdf4] border border-[#bbf7d0] rounded-xl p-2 shadow-inner"><span class="text-[8px] font-black text-emerald-500 uppercase tracking-widest block mb-1.5 flex items-center gap-1">✅ Snitt när du NÅTT MÅL</span><div class="flex flex-col">${goodHtml}</div></div>` : ''}
-                ${badHtml ? `<div class="bg-[#fff1f2] border border-[#fecdd3] rounded-xl p-2 shadow-inner"><span class="text-[8px] font-black text-rose-500 uppercase tracking-widest block mb-1.5 flex items-center gap-1">❌ Snitt när du MISSAT MÅL</span><div class="flex flex-col">${badHtml}</div></div>` : ''}
-            </div>
-        `;
+        const rader = (sum, cnt) => evalMetrics.filter(m => cnt[m.id] > 0).map(m => `<div class="sa-li"><span class="sa-t">${escHtml(m.label)}</span><span class="sa-v">${(sum[m.id] / cnt[m.id]).toFixed(1).replace('.', ',')}</span></div>`).join('');
+        const g = rader(goodScores, goodCount), b = rader(badScores, badCount);
+        insightCont.innerHTML = `<p class="sa-not" style="margin:0 6px 4px">Dina mönster från ${totalEvals} utvärderade pass</p>`
+            + (g ? `<p class="sa-lbl ok">När du nått målet</p><div class="sa-grp utan-ic">${g}</div>` : '')
+            + (b ? `<p class="sa-lbl bad">När du missat målet</p><div class="sa-grp utan-ic">${b}</div>` : '');
     }
 }
 
@@ -5227,10 +5229,18 @@ function openBudgetModal() {
     const vn = document.getElementById('vecko-notis'); if (vn) { vn.checked = veckoNotisPa; const rad = vn.closest('label'); if (rad) rad.style.display = appNotiser() ? '' : 'none'; }
     const pn = document.getElementById('pass-notis'); if (pn) { pn.checked = passNotisPa; const rad = pn.closest('label'); if (rad) rad.style.display = appNotiser() ? '' : 'none'; }
     const bh = document.getElementById('boost-step-hint'); if (bh) bh.innerText = `Ett tryck lägger på ${lonKr(boostStep)}.`;
+    stVisa('main');
     renderBudgetChoices();
     if (window.ckTemaRita) window.ckTemaRita();
     const m = document.getElementById('budget-modal'); if(m) m.classList.remove('hidden');
 }
+function stVisa(vy){
+    const d = document.querySelector('#budget-modal .sa'); if (!d) return;
+    d.querySelectorAll('.sa-pane').forEach(p => { p.hidden = p.dataset.pane !== vy; });
+    d.classList.toggle('sa-sub', vy !== 'main');
+    const t = document.getElementById('sa-titel'); if (t) t.innerText = vy === 'main' ? 'Inställningar' : 'Bonus';
+}
+window.stVisa = stVisa;
 function closeBudgetModal() { const m = document.getElementById('budget-modal'); if(m) m.classList.add('hidden'); }
 function closeNoteConfirmModal() { const m = document.getElementById('note-confirm-modal'); if(m) m.classList.add('hidden'); }
 

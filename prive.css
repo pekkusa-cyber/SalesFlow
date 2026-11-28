@@ -250,3 +250,8 @@ html[data-ck] body .fx-nav button { min-width: 0 !important; padding: 0 12px !im
 /* rutor som inte ska scrolla får inte heller scrollas av webbläsaren (fokus på reglage/fält flyttade innehållet uppåt) */
 html[data-ck] body .md-scrim, html[data-ck] body #budget-modal .md-dialog.sa, html[data-ck] body .md-dialog.sa-m { overflow: clip !important; }
 html[data-ck] body #budget-modal .sa-hd, html[data-ck] body .sa-m .sa-hd { position: sticky; top: 0; }
+/* v199: Inställningar fick ingen plats för telefonens statusrad (appen ritas ända upp under klockan) */
+html[data-ck] body #budget-modal .md-dialog.sa { padding-top: env(safe-area-inset-top, 0px) !important; padding-bottom: env(safe-area-inset-bottom, 0px) !important; }
+/* Bonus-sidan: ✕ var blå (gammal regel gav alla knappar i raden blå bakgrund) */
+html[data-ck] body .be-in > button:not(.pri) { background: transparent !important; border: 1px solid var(--pv-hair) !important; color: var(--pv-tx) !important; box-shadow: none !important; }
+html[data-ck] body .be-in button.pri { background: linear-gradient(160deg, var(--pv-gold2), var(--pv-gold)) !important; color: var(--pv-on-gold) !important; }

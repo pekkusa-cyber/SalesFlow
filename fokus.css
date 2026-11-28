@@ -1597,3 +1597,95 @@ html body .ev-seg button { width: 30px; padding: 0 !important; font-weight: 700 
 html body .ev-seg button.on { background: var(--sa-acc) !important; color: #fff !important; }
 html[data-ck="dark"] body .ev-seg button.on { color: #0b1020 !important; }
 .ev-li { min-height: 56px; }
+
+/* ============================================================
+   v195 · FROSTAT GLAS + Idag-layout A
+   Ljuspunkter i bakgrunden, halvgenomskinliga ytor med ljus kant.
+   Marginaler: 16 px sidor överallt på Idag (topp, kort, vecka, knapp),
+   12 px mellan blocken, 14 px innerkant i kortet.
+   ============================================================ */
+:root:not([data-ck="dark"]) {
+  --fx-bgimg: radial-gradient(42% 26% at 8% 20%, rgba(122,162,255,.42), transparent 70%), radial-gradient(40% 24% at 96% 44%, rgba(181,155,255,.34), transparent 70%),
+              radial-gradient(48% 26% at 6% 88%, rgba(143,211,255,.40), transparent 70%), linear-gradient(170deg, #dfe7f5 0%, #e9eef7 55%, #e4e9f2 100%);
+  --gl-yta: rgba(255,255,255,.55); --gl-kant: rgba(255,255,255,.6); --gl-kant2: rgba(255,255,255,.2); --gl-blur: blur(16px) saturate(150%);
+  --gl-hero: linear-gradient(160deg, rgba(52,92,214,.84), rgba(31,59,156,.88)); --gl-glans: rgba(255,255,255,.26);
+}
+html[data-ck="dark"] {
+  --fx-bgimg: radial-gradient(42% 26% at 8% 20%, rgba(60,100,255,.30), transparent 70%), radial-gradient(40% 24% at 96% 44%, rgba(120,80,255,.22), transparent 70%),
+              radial-gradient(48% 26% at 6% 88%, rgba(40,140,255,.22), transparent 70%), #0a0f1d;
+  --gl-yta: rgba(255,255,255,.06); --gl-kant: rgba(255,255,255,.12); --gl-kant2: rgba(255,255,255,.08); --gl-blur: blur(16px) saturate(140%);
+  --gl-hero: linear-gradient(160deg, rgba(48,84,200,.55), rgba(24,44,120,.6)); --gl-glans: rgba(255,255,255,.10);
+}
+/* marginaler */
+#fx .fx-top { padding-left: 16px !important; padding-right: 16px !important; }
+#fx .fx-scroll { padding-left: 16px !important; padding-right: 16px !important; }
+#fx-view { gap: 12px !important; }
+.fx-cta { left: 16px !important; right: 16px !important; }
+/* glas på knappar, veckodagar, meny och registreringsknapp */
+#fx .fx-ib { background: var(--gl-yta) !important; border: 1px solid var(--gl-kant) !important; -webkit-backdrop-filter: var(--gl-blur); backdrop-filter: var(--gl-blur); box-shadow: 0 6px 16px -12px rgba(30,60,140,.5) !important; }
+#fx .fx-wd2.dc:not(.idag):not(.on) { background: var(--gl-yta) !important; border: 1px solid var(--gl-kant) !important; -webkit-backdrop-filter: var(--gl-blur); backdrop-filter: var(--gl-blur); box-shadow: 0 8px 18px -16px rgba(30,60,140,.6) !important; }
+#fx .fx-wd2.dc.off:not(.idag):not(.on) { background: transparent !important; border: 1px dashed color-mix(in srgb, var(--fx-mu) 45%, transparent) !important; box-shadow: none !important; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.fx-nav { background: color-mix(in srgb, var(--fx-bg) 55%, transparent) !important; -webkit-backdrop-filter: blur(20px) saturate(150%); backdrop-filter: blur(20px) saturate(150%); border-top: 1px solid var(--gl-kant2) !important; }
+.fx-cta { border: 1px solid rgba(255,255,255,.35) !important; }
+/* kortet */
+#fx .fx-hero5.fx-hA { flex: 1 1 auto; justify-content: space-between; gap: 12px; padding: 14px !important; border-radius: 24px !important;
+  background: var(--gl-hero) !important; border: 1px solid var(--gl-kant) !important; color: #fff;
+  -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%);
+  box-shadow: 0 24px 44px -24px rgba(30,60,170,.75), inset 0 1px 0 rgba(255,255,255,.35) !important; }
+html[data-ck="dark"] #fx .fx-hero5.fx-hA { box-shadow: 0 30px 60px -30px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.12) !important; }
+#fx .fx-hA::before { content: ""; position: absolute; inset: 0; right: 0; top: 0; width: auto; height: auto; border-radius: inherit; background: linear-gradient(160deg, var(--gl-glans) 0%, transparent 45%) !important; pointer-events: none; }
+.fx-hA > * { position: relative; }
+.hA-top { display: flex; align-items: center; gap: 14px; }
+.hA-ring { position: relative; width: 124px; height: 124px; flex: none; }
+.hA-ring svg { width: 100%; height: 100%; display: block; }
+.hA-ring svg path:first-child { stroke: rgba(255,255,255,.2); }
+.hA-ring .fx-tick { stroke: #fff; }
+.hA-ring .c { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.hA-ring .c b { font: 750 29px/1 var(--f-ui); letter-spacing: -.05em; color: #fff; }
+.hA-ring .c small { font: 550 10.5px var(--f-ui); color: #c7d5fb; margin-top: 3px; }
+.hA-kv { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+.hA-kv .l { font: 650 11.5px var(--f-ui); color: #c7d5fb; }
+.hA-kv b { font: 750 29px/1.08 var(--f-ui); letter-spacing: -.045em; color: #fff; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.hA-kv small { font: 500 12px var(--f-ui); color: #c7d5fb; margin-top: 1px; }
+.hA-chip { margin-top: 8px; font: 700 11.5px var(--f-ui); padding: 4px 10px; border-radius: 99px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); white-space: nowrap; }
+.hA-chip.am { color: #ffd08f; } .hA-chip.ok { color: #8ff0bf; }
+.hA-rader { display: flex; flex-direction: column; gap: 10px; }
+.hA-r .t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font: 550 12px var(--f-ui); color: #c7d5fb; }
+.hA-r .t b { font: 700 13px var(--f-ui); color: #fff; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hA-bar { position: relative; height: 6px; border-radius: 99px; background: rgba(255,255,255,.18); margin-top: 5px; }
+.hA-bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 99px; background: #fff; transition: width .7s cubic-bezier(.2,.8,.2,1); }
+.hA-bar.ok i { background: #6fe3a8; } .hA-bar.am i { background: #f2c35b; }
+.hA-bar u { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; border-radius: 2px; background: #fff; }
+#fx .fx-hA .fx-tl3 { grid-template-columns: repeat(3, 1fr) !important; gap: 7px; margin: 0 !important; padding: 0 !important; border: 0 !important; }
+#fx .fx-hA .fx-tl3 .tl { background: rgba(255,255,255,.12) !important; border: 1px solid rgba(255,255,255,.18) !important; padding: 9px 10px !important; border-radius: 15px !important; gap: 2px; }
+#fx .fx-hA .fx-tl3 .tl::after { display: none !important; }
+#fx .fx-hA .fx-tl3 .tl > span { font: 600 10.5px var(--f-ui) !important; color: #c7d5fb !important; }
+#fx .fx-hA .fx-tl3 .tl > b { font: 750 17px/1.15 var(--f-ui) !important; letter-spacing: -.03em; color: #fff !important; }
+#fx .fx-hA .fx-tl3 .tl.bon > b { color: #f6cf68 !important; }
+#fx .fx-hA .fx-tl3 .tl > small { font: 500 10.5px var(--f-ui) !important; color: #c7d5fb !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block !important; }
+#fx .fx-hA .fx-tl3 .tl.bon.on { box-shadow: 0 0 0 2px #f6cf68 !important; }
+/* små skärmar: krymp ringen i stället för att scrolla */
+.fx-scroll.fit1 .hA-ring { width: 110px; height: 110px; } .fx-scroll.fit1 .hA-kv b { font-size: 26px; }
+.fx-scroll.fit2 .hA-ring { width: 98px; height: 98px; } .fx-scroll.fit2 .hA-ring .c b { font-size: 25px; } .fx-scroll.fit2 .hA-rader { gap: 7px; }
+.fx-scroll.fit3 .fx-hA { gap: 9px !important; padding: 12px !important; }
+/* luft: 12 px mellan topp och kort; innehållet växer med skärmhöjden så att höga telefoner inte får tomrum */
+#fx .fx-scroll { padding-top: 6px !important; }
+#fx .fx-hero5.fx-hA { gap: clamp(12px, 2.4vh, 28px); padding: clamp(14px, 2vh, 20px) 14px !important; }
+.hA-ring { width: clamp(112px, 17.5vh, 156px); height: clamp(112px, 17.5vh, 156px); }
+.hA-ring .c b { font-size: clamp(27px, 4.2vh, 36px); }
+.hA-kv b { font-size: clamp(27px, 4.1vh, 35px); }
+.hA-rader { gap: clamp(10px, 1.8vh, 18px); }
+#fx .fx-hA .fx-tl3 .tl { padding: clamp(9px, 1.4vh, 13px) 10px !important; }
+#fx .fx-hA .fx-tl3 .tl > b { font-size: clamp(17px, 2.4vh, 20px) !important; }
+#fx .fx-scroll:not(.fit1):not(.fit2):not(.fit3):not(.fit4):not(.fit5) .fx-wd2 { height: clamp(92px, 11.5vh, 116px) !important; }
+/* samma glas på övriga blå kort: lön, frånvaro, sammanfattning */
+html body .lon-result-card, html body .fp-hero, html body .sum-t.sum-h, #fx .fx-hero4 {
+  background: var(--gl-hero) !important; border: 1px solid var(--gl-kant) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%); backdrop-filter: blur(22px) saturate(160%);
+  box-shadow: 0 24px 44px -24px rgba(30,60,170,.7), inset 0 1px 0 rgba(255,255,255,.32) !important; position: relative; }
+html[data-ck="dark"] body .lon-result-card, html[data-ck="dark"] body .fp-hero, html[data-ck="dark"] body .sum-t.sum-h { box-shadow: 0 30px 60px -30px rgba(0,0,0,.9), inset 0 1px 0 rgba(255,255,255,.12) !important; }
+html body .lon-result-card::after, html body .fp-hero::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(160deg, var(--gl-glans) 0%, transparent 42%); pointer-events: none; }
+/* ljusa grupper får frostad yta så bakgrundens ljuspunkter skymtar */
+.sa-grp, .sum-t:not(.sum-h), .be-kort { -webkit-backdrop-filter: var(--gl-blur); backdrop-filter: var(--gl-blur); border: 1px solid var(--gl-kant); }
+:root:not([data-ck="dark"]) { --sa-grp: rgba(255,255,255,.62); }
+html[data-ck="dark"] { --sa-grp: rgba(255,255,255,.06); }

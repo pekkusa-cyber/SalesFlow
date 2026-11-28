@@ -2075,8 +2075,9 @@ function fmPassa(){
     const st = document.querySelector('#focus-mode .fm-stage'), g = st && st.querySelector('.fm-gauge');
     if (!st || !g || !st.clientHeight) return;
     let w = Math.min(230, Math.round(window.innerWidth * .6));
-    g.style.setProperty('width', w + 'px', 'important');
-    while (st.scrollHeight > st.clientHeight + 1 && w > 96) { w -= 6; g.style.setProperty('width', w + 'px', 'important'); }
+    const satt = v => { g.style.setProperty('width', v + 'px', 'important'); g.style.setProperty('--fmw', v + 'px'); };
+    satt(w);
+    while (st.scrollHeight > st.clientHeight + 1 && w > 96) { w -= 6; satt(w); }
 }
 window.fmPassa = fmPassa;
 window.addEventListener('resize', () => { const el = document.getElementById('focus-mode'); if (el && el.classList.contains('is-open')) fmPassa(); });

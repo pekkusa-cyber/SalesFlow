@@ -255,3 +255,13 @@ html[data-ck] body #budget-modal .md-dialog.sa { padding-top: env(safe-area-inse
 /* Bonus-sidan: ✕ var blå (gammal regel gav alla knappar i raden blå bakgrund) */
 html[data-ck] body .be-in > button:not(.pri) { background: transparent !important; border: 1px solid var(--pv-hair) !important; color: var(--pv-tx) !important; box-shadow: none !important; }
 html[data-ck] body .be-in button.pri { background: linear-gradient(160deg, var(--pv-gold2), var(--pv-gold)) !important; color: var(--pv-on-gold) !important; }
+
+/* v200 fokusläget: siffrorna i ringen följer ringens storlek och får aldrig sticka utanför, båge och sken i guld */
+html[data-ck] body #focus-mode #fm-sales { font-size: calc(var(--fmw, 190px) * .135) !important; max-width: 78%; text-align: center; letter-spacing: -.03em !important; }
+html[data-ck] body #focus-mode #fm-perc { font-size: calc(var(--fmw, 190px) * .075) !important; }
+html[data-ck] body #focus-mode .fm-center { padding-top: 0; }
+html[data-ck] body #focus-mode .fm-arc.ar-rod, html[data-ck] body #focus-mode .fm-arc.ar-rod.is-fast { stroke: #d6b46a !important; filter: drop-shadow(0 0 8px rgba(214,180,106,.45)) !important; animation: none !important; }
+html[data-ck] body #focus-mode .fm-arc.ar-gron, html[data-ck] body #focus-mode .fm-arc.ar-gron.is-fast { stroke: #8fd6ad !important; filter: drop-shadow(0 0 8px rgba(143,214,173,.45)) !important; animation: none !important; }
+html[data-ck] body #focus-mode .fm-arc.ar-guld { stroke: #f0d595 !important; filter: drop-shadow(0 0 10px rgba(240,213,149,.5)) !important; animation: none !important; }
+html[data-ck] body #focus-mode .fm-gauge { filter: none !important; }
+html[data-ck] body #focus-mode .fm-gauge::before, html[data-ck] body #focus-mode .fm-gauge::after, html[data-ck] body #focus-mode .fm-stage::before, html[data-ck] body #focus-mode .fm-stage::after { display: none !important; }

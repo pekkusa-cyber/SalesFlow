@@ -445,7 +445,7 @@
         <button type="button" class="pv-track" onclick="fxSlot()" aria-label="Visa bonusnivåerna"><i class="fx-fill" data-w="${(Math.min(1, mf) * 100).toFixed(1)}"></i>${isNu && !mklar ? `<u style="left:${(Math.min(1, mfp) * 100).toFixed(1)}%"></u>` : ''}<s style="left:${(Math.min(1, mf) * 100).toFixed(1)}%"></s></button>
         <div class="pv-ticks"><span>0</span><span>${vald && Number(vald.min) === Number(m.mal) ? `Bonus ${vald.pct} % vid ${kr(vald.min)}` : `Mål ${kr(m.mal)}`}</span></div>
         <div class="pv-trio">
-          <div><span>Idag</span><b>${o.abs ? esc(String(o.abs).split(' ')[0]) : mal ? kk(v.bas) : '—'}</b><small>${o.abs ? 'frånvaro' : !mal ? (p ? 'inget mål' : 'ledig') : klar ? 'målet nått' : pc(fs) + ' sålt'}</small></div>
+          <div><span>${o.abs || !mal ? 'Idag' : klar ? 'Dagsmål' : 'Kvar idag'}</span><b>${o.abs ? esc(String(o.abs).split(' ')[0]) : mal ? (klar ? 'Klart' : kk(kvar)) : '—'}</b><small>${o.abs ? 'frånvaro' : !mal ? (p ? 'inget mål' : 'ledig') : klar ? '+' + kk(v.salt - v.bas) + ' över' : 'av ' + kk(v.bas) + ' · ' + pc(fs)}</small></div>
           <div><span>Per pass</span><b>${mklar ? kk(m.avg || 0) : m.krav != null ? kk(m.krav) : '—'}</b><small>${mklar ? 'snitt' : m.krav != null ? 'snitt ' + pc(m.avg ? m.avg / m.krav : 0) : 'inga pass kvar'}</small></div>
           <div><span>Prognos</span><b>${kk(m.prognos)}</b><small>${m.mal > 0 ? (m.prognos >= m.mal ? kk(m.prognos - m.mal) + ' över' : kk(m.mal - m.prognos) + ' under') : ''}</small></div>
         </div>

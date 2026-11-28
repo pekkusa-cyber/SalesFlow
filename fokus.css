@@ -1270,11 +1270,7 @@ html body #fx .fx-wd2.on .st > small::before { background: #ffc46b; } html body 
 .fx-scroll.fit3 .fx-k.main .t b, .fx-scroll.fit4 .fx-k.main .t b, .fx-scroll.fit5 .fx-k.main .t b { font-size: 19px !important; }
 
 /* laddskärmen: samma blå som herokortet, vit logga */
-html body #sf-boot { background: linear-gradient(160deg, #3358c4 0%, #2747a6 55%, #1e3a8c 100%) !important; }
-html[data-ck="dark"] body #sf-boot { background: linear-gradient(160deg, #15264a 0%, #11203f 55%, #0d1a33 100%) !important; }
-html body #sf-boot .boot-name { color: #ffffff !important; opacity: 1; }
-html body #sf-boot .boot-bar { background: rgba(255,255,255,.2) !important; }
-html body #sf-boot .boot-bar span { background: #ffffff !important; }
+/* laddskärmen styrs av inline-CSS i index.html (Privé) */
 
 /* inställningar: bonus för månaden */
 .be { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
